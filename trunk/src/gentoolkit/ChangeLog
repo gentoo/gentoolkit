@@ -1,2 +1,4 @@
 2004-08-22: Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Fixed Package.get_env_var to use the correct tree db.
+	* Renamed Package.get_use_vars to Package.get_use_flags
+
