@@ -16,10 +16,12 @@ __productname__ = "gensync"
 __description__ = "Gentoo Overlay Sync Tool"
 
 
-import fileinput
-import portage
 import sys
 import os
+import fileinput
+
+sys.path.insert(0, "/usr/lib/portage/pym")
+import portage
 from output import *
 
 class ConfigDefaults:
