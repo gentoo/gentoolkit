@@ -39,7 +39,8 @@ class ConfigDefaults:
 				if x.find("=") == -1 or \
 				       (len(x) and x[0] == "#"):
 					continue
-				(attrib, value) = x.split()
+				(attrib, value) = x.split('=')
+				attrib = attrib.strip().strip('"')
 				value = value.strip().strip('"')
 				if attrib == "rsync_timeout":
 					self.rsync_timeout = value
@@ -91,7 +92,8 @@ class SyncSource:
 			if x.find("=") == -1 or \
 			       (len(x) and x[0] == "#"):
 				continue
-			attrib,value = x.split("=")
+			(attrib, value) = x.split("=")
+			attrib = attrib.strip().strip('"')
 			value = value.strip().strip('"')
 			if attrib == "id":
 				self.id = value
