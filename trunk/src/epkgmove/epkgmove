@@ -1,0 +1,266 @@
+#!/usr/bin/env python2
+# Copyright 1999-2003 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2
+# $Header$
+#
+# Author: 
+#  Ian Leitch <port001@gentoo.org>
+#
+# ChangeLog:
+#
+#  02 Jan 2004 - epkgmove-0.3,
+#    - Check exit status of commands, die if non zero
+#    - Check if PORTDIR is a CVS repository
+#    - Name changed to epkgmove
+#  
+#  02 Jan 2004 - pkgmove-0.2,
+#    - Code cleanups
+#    - Take only a catgegory name as destination argument
+#    - Wrote the AddUpdate() function - thanks to lanius 
+#    - Catch SIGINT
+#    - err() now prints to stderr
+#    - strip trailing /'s from input
+#    - use -Qf flags on cvs commands
+#    - Recursively find all files to remove/add
+#    - Tested on local repository - command changes accordingly 
+#    - Update categories before working in them
+#
+#  28 Dec 2003 - pkgmove-0.1,
+#    - 0.1 Beta Release
+#
+
+import os, re, portage, signal
+from output import *
+
+__author__ 	=	"Ian Leitch"
+__email__ 	=	"port001@gentoo.org"
+__productname__	= 	"epkgmove"
+__version__ 	=	"0.3"
+__description__	= 	"A simple tool for moving packages in CVS"
+
+def main():
+    
+    signal.signal(signal.SIGINT, sighandler)
+    
+    global portdir, ignore, cvsrmcmd, cvscommitcmd, cvsupcmd, cvsaddcmd, devnull 
+    
+    portdir = portage.settings["PORTDIR"]
+    ignore = ("CVS")
+    cvsrmcmd = "cvs -Qf rm"
+    cvscommitcmd = "cvs -Qf commit -m"
+    cvsupcmd = "cvs -Qf up -dPC ."
+    cvsaddcmd = "cvs -Qf add"
+    devnull = "> /dev/null"
+
+    if len(sys.argv) != 3:
+        print
+        err("Expected two arguments as input.")
+        help()
+        sys.exit(1)
+
+    Checkcwd()
+    CheckArgs()
+    print "%s Moving %s to %s..." % (green(" *"), turquoise(location), yellow(destination))
+    BackupPkg()
+    RemovePackage()
+    AddPackage()
+    AddUpdate()
+    CleanUp()
+    print "%s %s successfully moved to %s." % (green(" *"), turquoise(location), yellow(destination))
+
+def help():
+
+    print
+    print "%s %s [ %s ] [ %s ]" % (white("Usage:"), turquoise(__productname__), green("location"), green("destination")) 
+    print "   %s: Expects a package name in the format 'category/pkg' e.g net-im/gaim" % (green("location"))
+    print "   %s: Expects a category name" % (green("destination"))
+
+def about():
+
+    print
+    print "%s %s %s" % (white("About:"), turquoise(__productname__), green(__version__))
+    print "   \"%s\"" % (__description__)
+    print "   By %s <%s>" % (__author__, __email__)
+
+def docmd(cmd):
+
+    retval = os.system(cmd)
+    if retval != 0:
+        err("Command '%s' failed with exit status %d." % (cmd, retval))
+	sys.exit(1)
+
+def err(msg):
+
+    sys.stderr.write("%s ERROR: %s\n" % (red("!!!"), msg))
+
+def sighandler(signal_number=None, stack_frame=None):
+
+    err("Caught SIGINT; exiting...\n")
+    sys.exit(1)
+    os.kill(0,signal.SIGKILL)
+
+def Checkcwd():
+
+    if os.getcwd() != portdir:    
+        err("I'm not in PORTDIR, take me there!")
+        sys.exit(1)
+
+    files = os.listdir(portdir)
+    
+    for file in files:
+        if not os.path.isdir(file):
+	    files.remove(file)
+	    
+    if "CVS" not in files:
+        err("No CVS directory, this doesn't look like a repository!")
+	sys.exit(1)
+
+def UpdateCats():
+
+    print "%s Updating %s & %s..." % (green("   *"), locategory, decategory)
+
+    os.chdir(os.path.join(portdir, locategory))
+    docmd(cvsupcmd)
+    os.chdir(os.path.join(portdir, decategory))
+    docmd(cvsupcmd)
+
+def CheckArgs():
+    
+    global fulllocation, location, fulldestination, destination, locategory, lopkg, decategory
+
+    (locategory, lopkg) = sys.argv[1].strip('/').split('/')
+    location = os.path.join(locategory, lopkg)
+    decategory = sys.argv[2].strip('/')
+    fulllocation = os.path.join(portdir, location)
+    fulldestination = os.path.join(portdir, decategory, lopkg) 
+    destination = os.path.join(decategory, lopkg)
+   
+    if re.search('/', decategory):
+        err("Expected category name as destination argument.")
+        sys.exit(1)
+
+    if destination == location:
+        err("Don't waste my time...")
+	sys.exit(1)
+
+    if not os.path.exists(os.path.join(portdir, decategory)):
+        err("No such category '%s'" % (decategory))
+	sys.exit(1)
+
+    UpdateCats()
+
+    if not os.path.exists(fulllocation):
+        err("'%s' Invalid 'category/pkg'." % (location))
+        sys.exit(1)
+
+    if os.path.exists(fulldestination):
+        err("Destination location '%s' already exists." % (destination))
+        sys.exit(1)
+
+    if not os.path.exists(os.path.join(portdir, "profiles/updates")):
+        err("There doesn't seem to be a 'profiles/updates' directory here, I need it for later.")
+        sys.exit(1)
+
+def BackupPkg():
+
+    print "%s Backing-up %s to /tmp..." % (green("   *"), turquoise(location))
+    docmd("cp -R %s /tmp" % (fulllocation))
+
+def RemovePackage():
+    
+    def RemoveFiles(arg, dir, files):
+        if os.path.basename(dir) not in ignore:
+	    for file in files:
+	        if not os.path.isdir(os.path.join(dir, file)):
+	            print "      <<< %s" % (os.path.join(dir.strip('./'), file))
+	            os.unlink(os.path.join(dir, file))
+	            docmd("%s %s" % (cvsrmcmd, os.path.join(dir, file)))
+   
+    print "%s Removing %s from CVS:" % (green("   *"), turquoise(location)) 
+    os.chdir(fulllocation)
+    os.path.walk('.', RemoveFiles , None)
+    os.chdir("..")
+    
+    print "%s Running '%s 'Moving to %s''..." % (green("      *"), cvscommitcmd, destination)
+    docmd("%s 'Moving to %s' %s" % (cvscommitcmd, destination, devnull))
+    docmd("rm -rf " + fulllocation) 
+    
+    print "%s Checking if package still remains in CVS..." % (green("      *"))
+    docmd(cvsupcmd)
+   
+    if not os.path.exists(fulllocation):
+        print "%s %s successfully removed from CVS." % (green("   *"), turquoise(location))
+    else:
+        err("Remnants of %s still remain in CVS." % (turquoise(location)))
+
+def AddPackage():
+
+    def AddFiles(arg, dir, files):
+        global dirhi
+	dirhi = ""
+        if os.path.basename(dir) not in ignore:
+            if os.path.basename(dir) != lopkg:
+                (rubbish, dirhi) = dir.split("tmp/%s/" % (lopkg))
+                print "      >>> %s/" % (dirhi)
+		os.mkdir(os.path.join(fulldestination, dirhi))
+                docmd("%s %s" % (cvsaddcmd, os.path.basename(dir)))
+	        os.chdir(os.path.join(fulldestination, dirhi))
+	    for file in files:
+                if not os.path.isdir(os.path.join(dir, file)):
+                    print "      >>> %s" % (os.path.join(dirhi, os.path.basename(file)))
+  	            docmd("cp %s ." % (os.path.join(dir, file)))
+                    docmd("%s %s" % (cvsaddcmd, file))
+            os.chdir(fulldestination)
+
+    print "%s Adding %s to CVS:" % (green("   *"), turquoise(destination))
+
+    os.chdir(os.path.join(portdir, decategory))
+    print "      >>> %s/" % (lopkg)
+    os.mkdir(lopkg)
+    docmd("%s %s" % (cvsaddcmd,lopkg))
+    os.chdir(lopkg)
+    os.path.walk("/tmp/%s" % (lopkg), AddFiles , None)
+    os.chdir(fulldestination)
+    print "%s Running 'echangelog 'Moved from %s to %s.''..." % (green("      *"), location, destination) 
+    docmd("echangelog 'Moved from %s to %s.' %s" % (location, destination, devnull))
+
+    print "%s Running '%s'..." % (green("      *"), cvscommitcmd)
+    docmd("%s 'Moved from %s to %s.' %s" % (cvscommitcmd, location, destination, devnull))
+
+    print "%s %s successfully added to CVS." % (green("   *"), turquoise(destination))
+
+def AddUpdate():
+    
+    updatefiles = []
+    
+    print "%s Logging move in 'profiles/updates'..." % (green("   *")) 
+    os.chdir(os.path.join(portdir, "profiles/updates"))
+    docmd(cvsupcmd)
+
+    for file in os.listdir("."):
+        if file not in ignore:
+	    (q, y) =  file.split("-")
+	    updatefiles.append(y + "-" + q)
+	    
+    updatefiles.sort()
+    (y, q) = updatefiles[-1].split("-") 
+    upfile = q + "-" + y
+
+    print "      >>> %s" % (upfile)
+
+    f = open(upfile, 'a')
+    f.write("move %s %s\n" % (location, destination))
+    f.close()
+
+    docmd("%s 'Moved from %s to %s' %s" % (cvscommitcmd, location, destination, devnull))
+    
+    os.chdir(portdir)
+
+def CleanUp():
+
+    print "%s Removing back-up..." % (green("   *")) 
+    docmd("rm -rf /tmp/%s" % (lopkg))
+
+if __name__ == "__main__":
+    main()
+

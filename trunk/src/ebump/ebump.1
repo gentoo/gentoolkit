@@ -1,0 +1,110 @@
+.TH "ebump" "1" "0.1.0" "Gentoolkit" "Gentoo Administration"
+.SH "NAME"
+.LP 
+ebump \- Gentoo: Ebuild revision bumper
+.SH "SYNTAX"
+.LP 
+ebump [\fIoption\fP] <\fIpackage-name[-version]\fP>
+
+.SH "DESCRIPTION" 
+
+.LP
+\fIebump\fR bumps the revision of a particular ebuild, and all auxiliary
+files in the files/ directory that have a matching version suffix.
+
+.LP
+By default, the all new revision files will be added to CVS, and a
+dummy ChangeLog entry will be made.
+
+.LP 
+You must stand in the directory of the ebuild to be bumped.
+
+.SH "OPTIONS"
+.LP 
+\fB\-C\fR
+.br
+\fB--no-cvs\fB
+.IP 
+Do not add new files to CVS.
+
+.LP 
+\fB\-V\fR
+.br
+\fB--version\fB
+.IP 
+Display version information and exit.
+
+.LP 
+\fB\-v\fR
+.br
+\fB--verbose\fB
+.IP 
+Increase verbosity level. May be used more than once.
+
+.LP 
+\fB\-q\fR
+.br
+\fB--quiet\fB
+.IP 
+Do not output any non-essential information.
+
+.LP 
+\fB\-m\fR <\fIChangeLog text\fR>
+.br 
+\fB\--message\fR <\fIChangeLog text\fR>
+.IP 
+Specifies the message to add to the ChangeLog, instead of the standard
+placeholder.
+
+.LP 
+\fB\-d\fR
+.br
+\fB\--delete-old\fR
+.IP 
+Delete old revision and old auxiliary files from CVS. This is
+\fIdangerous\fR and should only be used if you know exactly what you are
+doing, because
+.br
+1) the old revision may be stable on a different architecture than the one you
+are working on.
+.br
+2) the auxiliary files may be required by other versions of the ebuild.
+.br
+3) the new revision should usually undergo a period of testing before being marked stable.
+
+.SH "CONFIGURATION"
+
+.LP
+\fB/etc/gentoolkit/ebump.conf\fR
+.br
+\fB~/.gentoo/ebump.conf\fR
+.IP
+From these files, \fIebump\fR will load the settings
+.br
+\fBopt_verbosity\fR (default \fI1\fR) - verbosity level 0-10
+.br
+\fBopt_add_changelog\fR (default \fIy\fR) - add entry in ChangeLog
+.br
+\fBopt_add_cvs\fR (default \fIy\fR) - add new files to CVS
+.br
+\fBopt_bump_auxfiles\fR (default \fIy\fR) - bump auxiliary files in files/
+.br
+\fBopt_delete_old\fR (default \fIn\fR) - delete old revision (DANGEROUS!)
+.br
+\fBopt_commitmessage\fR (default \fI""\fR) - default ChangeLog message
+
+.LP
+\fB~/.gentoo/gentool-env\fR
+.IR
+From this file, \fIebump\fR will load the env vars \fBAUTHORNAME\fR and 
+\fBAUTHOREMAIL\fR, which are used to generate proper ChangeLog entries.
+
+.SH "SEE ALSO"
+.LP 
+The rest of the utilities in \fIapp-portage/gentoolkit-dev\fR, such as
+\fIechangelog\fR and \fIego\fR.
+
+.SH "AUTHORS"
+.LP 
+Karl Trygve Kalleberg <karltk@gentoo.org>
+

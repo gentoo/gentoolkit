@@ -1,0 +1,71 @@
+2004-02-18 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Moved from separate CVS module to be part of gentoolkit-dev
+	
+2002-10-31 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Fixed \$Header$ comment
+	* Fixed off-by-one in line numbering
+
+2002-10-30 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Now defaults to showing all details
+        * Added --no-details
+        * Better LICENSE parsing
+        * Better references to policy.
+        * Line numbers for whitespace testing.
+	* Released 0.2.4
+	
+2002-08-12 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added more header tests
+	* Added initial tests for SLOT, KEYWORD and LICENSE
+
+2002-08-10 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Spurious space checker works again.
+	* Added Makefile, COPYING, README, AUTHORS, NEWS
+
+2002-07-22 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Changed A=${P}.tar.gz check to ^A=.*, as per Seemant's suggestion.
+
+2002-07-17 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added TestLicense to ebuild.py
+	* Added --aux-license-dir=<dir>
+	* Added MunchieFormatter
+	* Added --formatter=<formatter>
+
+2002-07-10 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Refactored; split tests into changelog, digest and ebuild-specific
+	* Added TestSyntax test to digest.py
+	* Added TestHeaders, TestConstructPresence, TestIndentation to 
+	changelog.py
+	
+2002-05-15 Karl Trygve Kalleberg <karltk@gentoo.org>
+
+	* Fixed test for Author: and Maintainer: to warn about their
+	deprecation and recommend the use of ChangeLog instead.
+	* Added (E) and (W) prefixes to messages printed by --show-details
+	* Added --tests=-<particular test> to allow turning off a
+	particular test easily.
+	* Added statistics output at the bottom.
+	* Updated man page to reflect new option feature.
+	* Fixed the --show-details, --show-separate annoyance.
+	* Fixed use flags parsing to disregard some false positives.
+	
+2002-05-13 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Fixed --list-tests which was incorrectly --listTests
+
+2002-04-30 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added <jnelson@gentoo.org>'s cleanups
+	* Improved error reporting; now separates into errors and
+	warnings.
+	* Improved TestSpaces to check for non-conformant
+	line-continuations.
+	* Added TestUseFlags that checks that an ebuild only uses
+	sanctioned use flags (read from /usr/portage/profiles/use.desc)
+	* Added SLOT= to list desired env vars (warns if missing)
+	* Added LICENSE= to list of required env vars (errors if missing)
+	* Improved error messages
+	* Added --tests= option to allow the user to specify which tests
+	to run
+	* Added --list-tests option that lists available tests
+	* Updated man page.
+	
+2002-03-22 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added this ChangeLog
