@@ -1,0 +1,2 @@
+2004-08-22: Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Fixed Package.get_env_var to use the correct tree db.

@@ -1,0 +1,6 @@
+- find all packages with useflag foo
+- list all global useflags
+- list all local useflags
+- list all installed/uninstalled/overlay packages
+- pipeable output
+- 
