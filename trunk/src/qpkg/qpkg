@@ -448,7 +448,7 @@ for p in ${ipak} ${upak} -;do
 		else
 			if [ "${ffind}" ]; then
 				if [ "${fpat}" ]; then
-					grep "${arg}" $d/CONTENTS
+					grep "${arg}[:blank:]" $d/CONTENTS
 				else
 					grep " ${arg}\( .*\)*$" $d/CONTENTS
 				fi

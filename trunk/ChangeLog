@@ -1,4 +1,7 @@
-2003-04-14 Karl Trygve Kalleberg <karltk@gentoo.org>
+2004-08.01 Marius Mauch <genone@gentoo.org>
+	* fixed grep expression for `qpkg -f`
+
+2004-04-14 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Released gentoolkit-dev-0.2.0_pre3
 	
 2004-03-31 Marius Mauch <genone@gentoo.org>
