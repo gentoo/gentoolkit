@@ -1,4 +1,8 @@
 
+2003-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
+        * Added new build system
+        * Added src/old-scripts, the scripts from app-portage/gentoolkit
+        
 2003-12-08 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Removed emerge-rsync, emerge-webrsync
 	* Added moo

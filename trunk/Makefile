@@ -1,10 +1,11 @@
-VERSION=0.2.0
-PYVERSION="`python-config | sed 's/-l//' | sed 's/ -lm.*//'`"
-DESTDIR=
-docdir=$(DESTDIR)/usr/share/doc/gentoolkit-$(VERSION)
-bindir=$(DESTDIR)/usr/bin
-sbindir=$(DESTDIR)/usr/sbin
-mandir=$(DESTDIR)/usr/share/man/man1
+# Copyright 2003-2004 Karl Trygve Kalleberg <karltk@gentoo.org>
+# Copyright 2003-2004 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2
+#
+# $Header$
+
+include makedefs.mak
+
 
 all:
 	echo $(PYVERSION)
@@ -13,47 +14,46 @@ all:
 	echo $(bindir)
 	echo $(sbindir)
 	echo $(mandir)
-			
+
+dist:
+	echo "Err0r: Must use either dist-gentoolkit or dist-gentoolkit-dev"
+
+dist-gentoolkit-dev:
+	echo "You wish..."
+
+dist-gentoolkit:
+	mkdir -p dist/gentoolkit-$(VERSION)
+	for x in gentool etcat qpkg revdep-rebuild old-scripts ; do \
+		( cd src/$$x ; make distdir=dist/gentoolkit-$(VERSION) dist ) \
+	done
 install:
+	echo "Err0r: Must use either install-gentoolkit or install-gentoolkit-dev"
+
+
+install-gentoolkit:
 
 	install -d $(docdir)
 	install -d $(bindir)
 	install -d $(sbindir)
 	install -d $(mandir)
-			
+
 	install -m 0644 {AUTHORS,ChangeLog,COPYING,NEWS,README,TODO} $(docdir)/
 
-	install -m 0755 src/gentool/gentool $(bindir)/
-	install -d $(docdir)/gentool
-	install -m 0644 src/gentool/{README,AUTHORS} $(docdir)/gentool/
-	install -m 0644 src/gentool/gentool.1 $(mandir)/
-	
-	install -m 0755 src/etcat/etcat $(bindir)/
-	install -d $(docdir)/etcat
-	install -m 0644 src/etcat/{README,AUTHORS} $(docdir)/etcat/
-	install -m 0644 src/etcat/etcat.1 $(mandir)/
+	for x in gentool etcat qpkg euse etc-update revdep-rebuild old-scripts ; do
+		( cd src/$(x) ; make DESTDIR=$(DESTDIR) install ) 
+	done
 
-	install -m 0755 src/qpkg/qpkg $(bindir)/
-	install -d $(docdir)/qpkg	
-	install -m 0644 src/qpkg/{README,AUTHORS,ChangeLog} $(docdir)/qpkg/
-	install -m 0644 src/qpkg/qpkg.1 $(mandir)/
-	
-	install -m 0755 src/etc-update/etc-update $(bindir)/
-	install -d $(docdir)/etc-update
-	install -m 0644 src/etc-update/{AUTHORS,ChangeLog,README} $(docdir)/etc-update/
-	install -m 0644 src/etc-update/etc-update.1 $(mandir)/
-	
-	install -m 0755 src/ekeyword/ekeyword $(bindir)/
-	install -d $(docdir)/ekeyword
-	install -m 0644 src/ekeyword/{AUTHORS,README} $(docdir)/ekeyword/
-	install -m 0644 src/ekeyword/ekeyword.1 $(mandir)/
+install-gentoolkit-dev:
 
-	install -m 0755 src/echangelog/echangelog $(bindir)/
-	install -d $(docdir)/echangelog	
-	install -m 0644 src/echangelog/{AUTHORS,README} $(docdir)/echangelog/
-	install -m 0644 src/echangelog/echangelog.1 $(mandir)/
-        
-	install -m 0755 src/revdep-rebuild/revdep-rebuild $(sbindir)/
-	install -d $(docdir)/revdep-rebuild	
-	install -m 0644 src/revdep-rebuild/{AUTHORS,README,TODO} $(docdir)/revdep-rebuild/
-	install -m 0644 src/revdep-rebuild/revdep-rebuild.1 $(mandir)/
+# FIXME: we override the docdir for the -dev package, should be prettier
+	docdir=$(DESTDIR)/usr/share/doc/gentoolkit-dev-$(VERSION)
+
+	install -d $(docdir)
+	install -d $(bindir)
+	install -d $(sbindir)
+	install -d $(mandir)
+
+	install -m 0644 {AUTHORS,ChangeLog,COPYING,NEWS,README,README.Developer,TODO} $(docdir)/
+
+	for x in ekeyword echangelog ; do
+		( cd src/$(x) ; make DESTDIR=$(DESTDIR) install ) 

@@ -1,0 +1,63 @@
+#!/bin/sh
+# Copyright 1999-2003 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2
+# $Header$
+# Author: Karl Trygve Kalleberg <karltk@gentoo.org>
+
+echo
+echo -e "\x1b[31;01m!!! As of Gentoolkit 0.2.0, this tool is deprecated."
+echo -e "!!!\x1b[0;0m Refer to 'equery size' for a replacement."
+echo
+
+spec=$1
+
+if [ -z "$spec" ] ; then
+  echo "Usage: pkg-size package"
+  exit 1
+fi
+
+name=`echo $1 | sed "s/\([^/]*\)\///"`
+category=`echo $1 | sed "s/\/.*//"`
+
+if [ "$category" == "$name" ] ; then
+	category=
+fi
+
+function tryfile() {
+	local foo
+	foo=/var/db/pkg/$1/CONTENTS
+	bar=`ls $foo 2> /dev/null`
+	for i in $bar ; do
+		if [ -f "$i" ] ; then
+			echo $i
+			break
+		fi
+	done
+}
+
+file=`tryfile "${category}/${name}"`
+if [ -z $file ] ; then
+ file=`tryfile "${category}/${name}*"`
+ if [ -z $file ] ; then
+  file=`tryfile "${category}*/${name}"`
+  if [ -z $file ] ; then
+   file=`tryfile "${category}*/${name}*"`
+   if [ -z $file ] ; then
+    echo "!!! Package resembling ${category}/${name} not found"
+    exit 1
+   fi
+  fi
+ fi
+fi
+
+pkgname=`echo $file | sed -e "s:\/var\/db\/pkg\/::" -e "s:\/CONTENTS::"`
+
+totals=`cat $file|grep "obj"|awk '{ print $2 }' | sed "s/ /\\ /" | xargs du -scb | grep total | cut -f 1`
+
+size=0
+for i in $totals ; do 
+	size=$[size+i]
+done
+
+echo "$pkgname $size ($[size/1024]KB)"
+

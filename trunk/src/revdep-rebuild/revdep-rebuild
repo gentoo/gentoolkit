@@ -2,15 +2,30 @@
 
 # Copyright 1999-2003 Gentoo Technologies, Inc.
 # $Header$
+
+# revdep-rebuild: Reverse dependency rebuilder.
 # Author: Stanislav Brabec <utx@gentoo.org>
 
 # requires: qpkg
 
-# FIXME: Rebuild order should follow DEPEND tree, otherwise packages
-# can be rebuild incorrectly or fail.
+# Known problems:
+#
+# In exact ebuild mode revdep-rebuild can fails to get order packages,
+# which are not up to date. This is because emerge first tries to
+# merge latest package and last in resort it tries to degrade.
+# http://bugs.gentoo.org/show_bug.cgi?id=23018
+#
+# Rebuild in --package-names mode should be default, but emerge has no
+# feature to update to latest version of defined SLOT.
+# http://bugs.gentoo.org/show_bug.cgi?id=4698
 
 # Mask of specially evaluated libraries (exactly one space separated).
 LD_LIBRARY_MASK="libodbcinst.so libodbc.so libjava.so libjvm.so"
+
+# List of directories to be searched (feel free to edit it)
+# Note /usr/libexec and /usr/local/subprefix cotradicts FHS, but are present
+# /var/something is for cgi and similar scripts
+SEARCH_DIRS="/lib /bin /sbin /usr/lib /usr/bin /usr/sbin /usr/libexec /usr/X11R6/lib /usr/X11R6/bin /usr/X11R6/sbin  /usr/e1* /usr/local /usr/qt* /usr/kde/*/lib /usr/*-*-linux-gnu /opt /var/qmail /var/vpopmail /home/httpd/cgi-bin"
 
 # Base of temporary files names.
 LIST=~/.revdep-rebuild
@@ -30,240 +45,331 @@ BL="\x1b[34;01m"
 alias echo_v=echo
 
 PACKAGE_NAMES=false
+SONAME="not found"
+SONAME_GREP=fgrep
+SEARCH_BROKEN=true
 
 while : ; do
-    case "$1" in
+	case "$1" in
 	-h | --help )
-	    echo "Usage: $0 [OPTIONS] [--] [EMERGE_OPTIONS]"
-	    echo
-	    echo "Broken reverse dependency rebuilder."
-	    echo
-	    echo "  -X, --package-names  recompile based on package names, not exact versions"
-	    echo "  -q, --quiet          be less verbose"
-	    echo
-	    echo "Calls emerge, all other options are used for it (e. g. -p, --pretend)."
-	    echo
-	    echo "Report bugs to <utx@gentoo.org>"
-	    exit 0
-	    ;;
+		echo "Usage: $0 [OPTIONS] [--] [EMERGE_OPTIONS]"
+		echo
+		echo "Broken reverse dependency rebuilder."
+		echo
+		echo "  -X, --package-names  recompile based on package names, not exact versions"
+		echo "      --soname SONAME  recompile packages using library with SONAME instead"
+		echo "                       of broken library (SONAME providing library must be"
+		echo "                       present in the system)"
+		echo "      --soname-regexp SONAME"
+		echo "                       the same as --soname, but accepts grep-style regexp"
+		echo "  -q, --quiet          be less verbose"
+		echo
+		echo "Calls emerge, all other options are used for it (e. g. -p, --pretend)."
+		echo
+		echo "Report bugs to <utx@gentoo.org>"
+		exit 0
+		;;
 	-X | --package-names )
-	    PACKAGE_NAMES=true
-	    shift
-	    ;;
+		PACKAGE_NAMES=true
+		shift
+		;;
 	-q | --quiet )
-	    alias echo_v=:
-	    shift
-	    ;;
+		alias echo_v=:
+		shift
+		;;
+	--soname=* )
+		SONAME="${1#*=}"
+		SEARCH_BROKEN=false
+		shift
+		;;
+	--soname )
+		SONAME="$2"
+		SEARCH_BROKEN=false
+		shift 2
+		;;
+	--soname-regexp=* )
+		SONAME="${1#*=}"
+		SONAME_GREP=grep
+		SEARCH_BROKEN=false
+		shift
+		;;
+	--soname-regexp )
+		SONAME="$2"
+		SONAME_GREP=grep
+		SEARCH_BROKEN=false
+		shift 2
+		;;
 	-- )
-	    shift
-	    break
-	    ;;
+		shift
+		break
+		;;
 	* )
-	    break
-	    ;;
-    esac
+		break
+		;;
+	esac
 done
 
 function set_trap () {
-    trap "rm_temp $1" SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+	trap "rm_temp $1" SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 }
 
 function rm_temp () {
-    echo " terminated."
-    echo "Removing incomplete $1."
-    rm $1
-    echo
-    exit 1
+	echo " terminated."
+	echo "Removing incomplete $1."
+	rm $1
+	echo
+	exit 1
 }
+
+if $SEARCH_BROKEN ; then
+	SONAME_SEARCH="$SONAME"
+	LLIST=$LIST
+	HEAD_TEXT="broken by any package update"
+	OK_TEXT="Dynamic linking on your system is consistent"
+	WORKING_TEXT=" consistency"
+else
+	SONAME_SEARCH="	$SONAME "
+	LLIST=${LIST}_$(echo "$SONAME_SEARCH$SONAME" | md5sum | head -c 8)
+	HEAD_TEXT="using given shared object name"
+	OK_TEXT="There are no dynamic links to $SONAME"
+	WORKING_TEXT=""
+fi
 
 echo
 echo "Checking reverse dependencies..."
-echo "Packages containing binaries and libraries broken by any package update,"
+echo "Packages containing binaries and libraries $HEAD_TEXT,"
 echo "will be recompiled."
 
 echo
 echo -n -e "${GR}Collecting system binaries and libraries...${NO}"
 if [ -f $LIST.1_files ] ; then
-    echo " using existing $LIST.1_files."
+	echo " using existing $LIST.1_files."
 else
-    set_trap "$LIST.1_files"
-# Note /usr/libexec and /usr/local/subprefix cotradicts FHS, but are present
-    find /lib /bin /sbin /usr/lib /usr/bin /usr/sbin /usr/libexec /usr/X11R6/lib /usr/X11R6/bin /usr/X11R6/sbin /usr/local /usr/kde/*/lib /usr/*-*-linux-gnu /opt -type f \( -perm +u+x -o -name '*.so' -o -name '*.so.*' \) 2>/dev/null >$LIST.1_files
-    echo -e " done.\n  ($LIST.1_files)"
+	set_trap "$LIST.1_files"
+	find $SEARCH_DIRS -type f \( -perm +u+x -o -name '*.so' -o -name '*.so.*' \) 2>/dev/null >$LIST.1_files
+	echo -e " done.\n  ($LIST.1_files)"
 fi
 
-echo
-echo -n -e "${GR}Collecting complete LD_LIBRARY_PATH...${NO}"
-if [ -f $LIST.2_ldpath ] ; then
-    echo " using existing $LIST.2_ldpath."
-else
-    set_trap "$LIST.2_ldpath"
-    (
-	grep '.*\.so\(\|\..*\)$' <$LIST.1_files | sed 's:/[^/]*$::'
-	sed '/^#/d;s/#.*$//' </etc/ld.so.conf
-    ) | uniq | sort | uniq |
-    tr '\n' : | tr -d '\r' | sed 's/:$//' >$LIST.2_ldpath
-    echo -e " done.\n  ($LIST.2_ldpath)"
-fi
-export COMPLETE_LD_LIBRARY_PATH="$(cat $LIST.2_ldpath)"
-
-echo
-echo -n -e "${GR}Checking dynamic linking consistency...${NO}"
-if [ -f $LIST.3_broken ] ; then
-    echo " using existing $LIST.3_broken."
-else
-    echo_v
-    set_trap "$LIST.3_broken"
-    LD_MASK="\\(	$(echo "$LD_LIBRARY_MASK" | sed 's/\./\\./g;s/ / \\|	/g') \\)"
-    echo -n >$LIST.3_broken
-    cat $LIST.1_files | while read FILE ; do
-# Note: double checking seems to be faster than single
-# with complete path (special add ons are rare).
-	if ldd "$FILE" 2>/dev/null  | grep -v "$LD_MASK" |
-	    fgrep -q 'not found' ; then
-	    if LD_LIBRARY_PATH="$COMPLETE_LD_LIBRARY_PATH" \
-		ldd "$FILE" 2>/dev/null | grep -v "$LD_MASK" |
-		fgrep -q 'not found' ; then
-		echo "$FILE" >>$LIST.3_broken
-		echo_v "  broken $FILE (requires $(ldd "$FILE" | sed -n 's/	\(.*\) => not found$/\1/p' | tr '\n' ' ' | sed 's/ $//' ))"
-	    fi
+if $SEARCH_BROKEN ; then
+	echo
+	echo -n -e "${GR}Collecting complete LD_LIBRARY_PATH...${NO}"
+	if [ -f $LIST.2_ldpath ] ; then
+	echo " using existing $LIST.2_ldpath."
+	else
+	set_trap "$LIST.2_ldpath"
+	(
+		grep '.*\.so\(\|\..*\)$' <$LIST.1_files | sed 's:/[^/]*$::'
+		sed '/^#/d;s/#.*$//' </etc/ld.so.conf
+	) | sort -u |
+	tr '\n' : | tr -d '\r' | sed 's/:$//' >$LIST.2_ldpath
+	echo -e " done.\n  ($LIST.2_ldpath)"
 	fi
-    done
-    echo -e " done.\n  ($LIST.3_broken)"
+	export COMPLETE_LD_LIBRARY_PATH="$(cat $LIST.2_ldpath)"
+fi
+
+echo
+echo -n -e "${GR}Checking dynamic linking$WORKING_TEXT...${NO}"
+if [ -f $LLIST.3_rebuild ] ; then
+	echo " using existing $LLIST.3_rebuild."
+else
+	echo_v
+	set_trap "$LLIST.3_rebuild"
+	LD_MASK="\\(	$(echo "$LD_LIBRARY_MASK" | sed 's/\./\\./g;s/ / \\|	/g') \\)"
+	echo -n >$LLIST.3_rebuild
+	cat $LIST.1_files | while read FILE ; do
+	# Note: double checking seems to be faster than single
+	# with complete path (special add ons are rare).
+	if ldd "$FILE" 2>/dev/null | grep -v "$LD_MASK" |
+		$SONAME_GREP -q "$SONAME_SEARCH" ; then
+		if $SEARCH_BROKEN ; then
+		if LD_LIBRARY_PATH="$COMPLETE_LD_LIBRARY_PATH" \
+		ldd "$FILE" 2>/dev/null | grep -v "$LD_MASK" |
+			$SONAME_GREP -q "$SONAME_SEARCH" ; then
+			echo "$FILE" >>$LLIST.3_rebuild
+			echo_v "  broken $FILE (requires $(ldd "$FILE" | sed -n 's/	\(.*\) => not found$/\1/p' | tr '\n' ' ' | sed 's/ $//' ))"
+		fi
+		else
+		echo "$FILE" >>$LLIST.3_rebuild
+		echo_v "  found $FILE"
+		fi
+	fi
+	done
+	echo -e " done.\n  ($LLIST.3_rebuild)"
 fi
 
 if $PACKAGE_NAMES ; then
-    EXACT_EBUILDS=false
+	EXACT_EBUILDS=false
 
-    echo
-    echo -n -e "${GR}Assigning files to packages...${NO}"
-    if [ -f $LIST.4_packages_raw ] ; then
-	echo " using existing $LIST.4_packages_raw."
-    else
-	set_trap "$LIST.4_packages_raw"
-	echo -n >$LIST.4_packages_raw
-	echo -n >$LIST.4_package_owners
-	cat $LIST.3_broken | while read FILE ; do
-	    PKG="$(qpkg -nc -f "$FILE")"
-	    if [ -z "$PKG" ] ; then
-		echo -n -e "\n  ${RD}*** $FILE not owned by any package is broken! ***${NO}"
-		echo "$FILE -> (none)" >> $LIST.4_package_owners	    
-		echo_v -n -e "\n  $FILE -> (none)"
-	    else
-		echo "$PKG" >> $LIST.4_packages_raw
-		echo "$FILE -> $PKG" >> $LIST.4_package_owners	    
-		echo_v -n -e "\n  $FILE -> $PKG"
-	    fi
-	done
-	echo_v
-	echo -e " done.\n  ($LIST.4_packages_raw, $LIST.4_package_owners)"
-    fi
+	echo
+	echo -n -e "${GR}Assigning files to packages...${NO}"
+	if [ -f $LLIST.4_packages_raw ] ; then
+		echo " using existing $LLIST.4_packages_raw."
+	else
+		set_trap "$LLIST.4_packages_raw"
+		echo -n >$LLIST.4_packages_raw
+		echo -n >$LLIST.4_package_owners
+		cat $LLIST.3_rebuild | while read FILE ; do
+			PKG="$(qpkg -nc -f "$FILE")"
+			if [ -z "$PKG" ] ; then
+				echo -n -e "\n  ${RD}*** $FILE not owned by any package is broken! ***${NO}"
+				echo "$FILE -> (none)" >> $LLIST.4_package_owners
+				echo_v -n -e "\n  $FILE -> (none)"
+			else
+				echo "$PKG" >> $LLIST.4_packages_raw
+				echo "$FILE -> $PKG" >> $LLIST.4_package_owners
+				echo_v -n -e "\n  $FILE -> $PKG"
+			fi
+		done
+		echo_v
+		echo -e " done.\n  ($LLIST.4_packages_raw, $LLIST.4_package_owners)"
+	fi
 
-    echo
-    echo -n -e "${GR}Cleaning list of packages to rebuild...${NO}"
-    if [ -f $LIST.5_packages ] ; then
-	echo " using existing $LIST.5_packages."
-    else
-	set_trap "$LIST.5_packages"
-	sort <$LIST.4_packages_raw | uniq >$LIST.5_packages
-	echo -e " done.\n  ($LIST.5_packages)"
-    fi
+	echo
+	echo -n -e "${GR}Cleaning list of packages to rebuild...${NO}"
+	if [ -f $LLIST.5_packages ] ; then
+		echo " using existing $LLIST.5_packages."
+	else
+		set_trap "$LLIST.5_packages"
+		sort -u $LLIST.4_packages_raw >$LLIST.5_packages
+		echo -e " done.\n  ($LLIST.5_packages)"
+	fi
 
-    REBUILD_LIST="$(cat $LIST.5_packages | tr '\n' ' ')"
+	RAW_REBUILD_LIST="$(cat $LLIST.5_packages | tr '\n' ' ')"
 
 else
-    EXACT_EBUILDS=true
+	EXACT_EBUILDS=true
 
-    echo
-    echo -n -e "${GR}Assigning files to ebuilds...${NO}"
-    if [ -f $LIST.4_ebuilds ] ; then
-	echo " using existing $LIST.4_ebuilds."
-    else
-	set_trap "$LIST.4_ebuilds"
-	cat $LIST.3_broken | sed 's/^/obj /;s/$/ /' |
-	(
-	    cd /var/db/pkg
-	    fgrep -l -f - */*/CONTENTS
-	) | sed s:/CONTENTS:: > $LIST.4_ebuilds
-	echo -e " done.\n  ($LIST.4_ebuilds)"
-    fi
+	echo
+	echo -n -e "${GR}Assigning files to ebuilds...${NO}"
+	if [ -f $LLIST.4_ebuilds ] ; then
+		echo " using existing $LLIST.4_ebuilds."
+	else
+		if [ -s "$LLIST.3_rebuild" ] ; then
+			set_trap "$LLIST.4_ebuilds"
+			cat $LLIST.3_rebuild | sed 's/^/obj /;s/$/ /' |
+			(
+				cd /var/db/pkg
+				fgrep -l -f - */*/CONTENTS
+			) | sed s:/CONTENTS:: > $LLIST.4_ebuilds
+			echo -e " done.\n  ($LLIST.4_ebuilds)"
+		else
+			echo " Nothing to rebuild"
+			echo -n > $LLIST.4_ebuilds
+		fi
+	fi
 
-    REBUILD_LIST="$(cat $LIST.4_ebuilds | sed s/^/=/ | tr '\n' ' ')"
+	RAW_REBUILD_LIST="$(cat $LLIST.4_ebuilds | sed s/^/=/ | tr '\n' ' ')"
 fi
+
+echo
+echo -n -e "${GR}Evaluating package order...${NO}"
+if [ -f $LLIST.5_order ] ; then
+	echo " using existing $LLIST.5_order."
+else
+	if [ ! -z "$RAW_REBUILD_LIST" ] ; then
+		REBUILD_GREP="^\\($( (emerge --nospinner --pretend --oneshot --nodeps $RAW_REBUILD_LIST ; echo $? >$LLIST.5_status ) | sed -n 's/\./\\&/g;s/ //g;s/$/\\/;s/\[[^]]*\]//gp' | tr '\n' '|' | sed 's/|$//'))\$"
+		if [ $(cat $LLIST.5_status) -gt 0 ] ; then
+			echo ""
+			echo -e "${RD}Warning: Failed to resolve package order."
+			echo -e "Will merge in \"random\" order!${NO}"
+			echo "Possible reasons:"
+			echo "- Some ebuilds are no more in portage tree."
+			echo "- Some ebuilds are masked, try to change ACCEPT_KEYWORDS=\"~<your platform>\""
+			echo "  and/or use /etc/portage/package.unmask"
+			for i in . . . . . ; do
+			echo -n -e '\a.'
+			sleep 1
+			done
+			ln -f $LLIST.4_ebuilds $LLIST.5_order
+		else
+			emerge --nospinner --pretend --oneshot --emptytree $RAW_REBUILD_LIST | sed -n 's/ //g;s/^.*\]//p' | grep "$REBUILD_GREP" >$LLIST.5_order
+		fi
+	else
+		echo -n "" >$LLIST.5_order
+	fi
+	echo -e " done.\n  ($LLIST.5_order)"
+fi
+
+REBUILD_LIST="$(cat $LLIST.5_order | sed s/^/=/ | tr '\n' ' ')"
 
 trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 
 if [ -z "$REBUILD_LIST" ] ; then
-    echo -e "\n${GR}Dynamic linking on your system is consistent... All done.${NO} "
-    rm $LIST.?_*
-    exit 0
+	echo -e "\n${GR}$OK_TEXT... All done.${NO} "
+	rm $LIST.[1-2]_*
+	rm $LLIST.[3-9]_*
+	exit 0
 fi
 
 IS_REAL_MERGE=true
-echo " $* " | grep -q '\( -p \| --pretend \)' && IS_REAL_MERGE=false
+echo " $* " | grep -q '\( -p \| --pretend \| -f \| --fetchonly \)' && IS_REAL_MERGE=false
 
 echo
 echo -e "${GR}All prepared. Starting rebuild...${NO}"
 echo "emerge --oneshot --nodeps $@ $REBUILD_LIST"
 if $IS_REAL_MERGE ; then
-    for i in . . . . . . . . . . ; do
-	echo -n -e '\a.'
-	sleep 1
-    done
-    echo
+	for i in . . . . . . . . . . ; do
+		echo -n -e '\a.'
+		sleep 1
+	done
+	echo
 fi
 
 #if $EXACT_EBUILDS ; then
 # Uncomment following, if you want to recompile masked ebuilds.
 ## FIXME: Check for PORTDIR_OVERLAY
-#    echo -e "${GR}Temporarilly disablink package mask...${NO}"
-#    trap "mv -i /usr/portage/profiles/package.mask.hidden /usr/portage/profiles/package.mask ; echo -e "\\n\\nTerminated." ; exit 1" \
+#	echo -e "${GR}Temporarilly disablink package mask...${NO}"
+#	trap "mv -i /usr/portage/profiles/package.mask.hidden /usr/portage/profiles/package.mask ; echo -e "\\n\\nTerminated." ; exit 1" \
 #	SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
-#    mv -i /usr/portage/profiles/package.mask /usr/portage/profiles/package.mask.hidden
+#	mv -i /usr/portage/profiles/package.mask /usr/portage/profiles/package.mask.hidden
 #fi
 
 # Run in background to correctly handle Ctrl-C
 (
-    emerge --oneshot --nodeps $@ $REBUILD_LIST
-    echo $? >$LIST.6_status
+	emerge --oneshot --nodeps $@ $REBUILD_LIST
+	echo $? >$LLIST.6_status
 ) &
 wait
 
 #if $EXACT_EBUILDS ; then
-#    mv -i /usr/portage/profiles/package.mask.hidden /usr/portage/profiles/package.mask
-#    trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+#	mv -i /usr/portage/profiles/package.mask.hidden /usr/portage/profiles/package.mask
+#	trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 #fi
 
-if [ "$(cat $LIST.6_status)" -gt 0 ] ; then
-    echo
-    echo -e "${RD}Result is not OK, you have following chances:${NO}"
-    echo "- if emerge failed during build, fix the problems and re-run this script"
-    echo "    or"
-    echo "- use -X or --package-names as first argument (try to rebuild package, not exact"
-    echo "  ebuild - ignores SLOT!)"
-    echo "    or"
-    echo "- modify the above emerge command and run it manually"
-    echo "    or"
-    echo "- compile or unmerge unsatisfied packages manually, remove temporary files and"
-    echo "  try again (you can edit package/ebuild list first)"
-    echo
-    echo -e "${GR}To remove temporary files, please run:${NO}"
-    echo "rm $LIST.?_*"
-else
-    if $IS_REAL_MERGE ; then
-	trap "echo -e \" terminated. Please remove them manually:\nrm $LIST.?_*\" ; exit 1" \
-	    SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
-	echo -n -e "${GR}Build finished correctly. Removing temporary files...${NO} "
-	for i in . . . . . . . . . . ; do
-	    echo -n -e '.'
-	    sleep 1
-	done
+if [ "$(cat $LLIST.6_status)" -gt 0 ] ; then
 	echo
-	rm $LIST.?_*
-	echo "You can re-run this script to verify that all libraries and binaries"
-	echo "are fixed. If some inconsistency remains, it can be orphaned file, deep"
-	echo "dependency, binary package or specially evaluated library."
-    else
-	echo -e "${GR}Now you can remove -p (or --pretend) from arguments and re-run the script.${NO}"
-    fi
+	echo -e "${RD}Result is not OK, you have following choices:${NO}"
+	echo "- if emerge failed during build, fix the problems and re-run revdep-rebuild"
+	echo "    or"
+	echo "- use -X or --package-names as first argument (try to rebuild package, not exact"
+	echo "  ebuild - ignores SLOT!)"
+	echo "    or"
+	echo "- set ACCEPT_KEYWORDS=\"~<your platform>\" and/or /etc/portage/package.unmask"
+	echo "  (and remove $LLIST.5_order to be evaluated again)"
+	echo "    or"
+	echo "- modify the above emerge command and run it manually"
+	echo "    or"
+	echo "- compile or unmerge unsatisfied packages manually, remove temporary files and"
+	echo "  try again (you can edit package/ebuild list first)"
+	echo
+	echo -e "${GR}To remove temporary files, please run:${NO}"
+	echo "rm $LIST*.?_*"
+else
+	if $IS_REAL_MERGE ; then
+		trap "echo -e \" terminated. Please remove them manually:\nrm $LIST*.?_*\" ; exit 1" \
+			SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+		echo -n -e "${GR}Build finished correctly. Removing temporary files...${NO} "
+		for i in . . . . . . . . . . ; do
+			echo -n -e '.'
+			sleep 1
+		done
+		echo
+		rm $LIST.[1-2]_*
+		rm $LLIST.[3-9]_*
+		echo "You can re-run revdep-rebuild to verify that all libraries and binaries"
+		echo "are fixed. If some inconsistency remains, it can be orphaned file, deep"
+		echo "dependency, binary package or specially evaluated library."
+		else
+		echo -e "${GR}Now you can remove -p (or --pretend) from arguments and re-run revdep-rebuild.${NO}"
+	fi
 fi

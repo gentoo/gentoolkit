@@ -168,10 +168,9 @@ class InterfaceHandler:
     def _loadAllInterfaces(self):
         ins=open("/proc/net/dev")
         for line in ins.readlines():
-            tokens = line.split()
-            ifaceName = tokens[0].strip()
-            if ifaceName[-1] == ":":
-                ifaceName = ifaceName[:-1]
+            tokens = line.split(":")
+            if len(tokens) > 1:
+            	ifaceName = tokens[0].strip()
                 iface = Interface(ifaceName)
                 self.ifaces[ifaceName] = iface
     def getInterface(self,ifaceName):
