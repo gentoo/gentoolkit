@@ -1,4 +1,4 @@
-#! /usr/bin/env python2.2
+#!/usr/bin/python
 #
 # Copyright 2003 Karl Trygve Kalleberg
 # Copyright 2003 Gentoo Technologies, Inc.
