@@ -5,7 +5,9 @@
 #  Distributed under the terms of the GNU General Public License v2
 #  Copyright (c) 2003 Karl Trygve Kalleberg
 
+from dialog import Dialog
 import portage
+import time
 import re
 import os
 
@@ -46,23 +48,98 @@ def _recurseFiles(path):
                 else:
                     print "What is this anyway?:", fn
         except OSError:
-            print "Access denied:", path
+            pass
+            # print "Access denied:", path
             
     return files
                 
-def findAllFiles(config):
+def findAllFiles(dlg, config):
     files = []
-    for i in config.config_protect:
-        files += _recurseFiles(i)
+    gauge = dlg.gauge(0,
+                      "Processing CONFIG_PROTECT directories...",
+                      7,
+                      60,
+                      "Gauge",
+                      sleep=3)
+    num_dirs = len(config.config_protect)
+    for i in xrange(num_dirs):
+        rem = repr(num_dirs - i / num_dirs)
+        gauge.update(rem, "Directories remaining: %s" % rem)
+        files += _recurseFiles(config.config_protect[i])
     return files
 
-def displayFiles(config,files):
-    print files
+def prettifyFiles(files):
+    rx = re.compile("\._cfg...._")
+    def strip_cfg(x):
+        """Remove ._cfg????_ part """
+        m = rx.search(x)
+        if m:
+            s,e = m.span(0)
+            return x[:s] + x[e:]
+        return x
+    return map(strip_cfg, files)
 
+def updateFile(dlg, original):
+
+    # Find candidates
+
+    dir = os.path.dirname(original)
+    filename = os.path.basename(original)
+    rx = re.compile("\._cfg...._" + filename)
+    cand = filter(lambda x: rx.search(x), os.listdir(dir))
+
+    if len(cand) > 1:
+        
+        # Add mtimes
+        for i in xrange(len(cand)):
+            stamp = time.localtime(os.path.getmtime(dir + "/" + cand[i]))
+            tstr = time.strftime("%a, %d %b %Y %H:%M:%S", stamp)
+            cand[i] = cand[i] + " - " + tstr
+
+    
+        # Show selection
+        replacement = dlg.menu("Files that need updating",
+                          Dialog.AUTO_SIZE,
+                          list = cand,
+                          showHelp = False,
+                          title="Checklist")
+
+    else:
+        replacement = cand[0]
+
+    
+    # Display diff
+
+    dlg.yesno("Would you like to update \n" + \
+              "[" + original + "]with\n[" + dir + "/" + replacement + "] ?")
+    
+def displayFiles(dlg, config, files):
+
+    pretty_files = prettifyFiles(files)
+
+    while 1:
+        result = dlg.menu("Files that need updating",
+                          Dialog.AUTO_SIZE,
+                          list = pretty_files,
+                          showHelp = False,
+                          title="Checklist")
+        if result == None:
+            if dlg.ERR_CANCEL:
+                break
+
+        updateFile(dlg, result)
+        
+    if len(pretty_files):
+        print "!!! Warning: There are still files that require updating."
+        
+    
 def main():
+    dlg = Dialog("etc-update")
+#    dlg = None
+    
     config = loadConfig()
-    files = findAllFiles(config)
-    displayFiles(config,files)
+    files = findAllFiles(dlg, config)
+    displayFiles(dlg, config,files)
     
     
 if __name__ == "__main__":
@@ -70,3 +147,8 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         print "Operation aborted!"
+
+# TODO:
+# - option for automatically update untouched files
+# - show coloured diff
+# - proper progress bar

@@ -7,7 +7,9 @@
 # $Header$
 # Author: Karl Trygve Kalleberg <karltk@gentoo.org>
 #
-# Portions written ripped from etcat, written by Alistair Tse <liquidx@gentoo.org>
+# Portions written ripped from 
+# - etcat, by Alistair Tse <liquidx@gentoo.org>
+#
 
 __author__ = "Karl Trygve Kalleberg"
 __email__ = "karltk@gentoo.org"
@@ -193,6 +195,40 @@ def find_best_match(search_key):
         return Package(t)
     return None
 
+def find_system_packages(prefilter=None):
+    """Returns a tuple of lists, first list is resolved system packages,
+    second is a list of unresolved packages."""
+    f = open(portage.profiledir+"/packages")
+    pkglist = f.readlines()
+    resolved = []
+    unresolved = []
+    for x in pkglist:
+        cpv = x.strip()
+        if len(cpv) and cpv[0] == "*":
+            pkg = find_best_match(cpv)
+            if pkg:
+                resolved.append(pkg)
+            else:
+                unresolved.append(cpv)
+    return (resolved, unresolved)
+              
+def find_world_packages(prefilter=None):
+    """Returns a tuple of lists, first list is resolved world packages,
+    seond is unresolved package names."""
+    f = open(portage.root+"var/cache/edb/world")
+    pkglist = f.readlines()
+    resolved = []
+    unresolved = []
+    for x in pkglist:
+        cpv = x.strip()
+        if len(cpv) and cpv[0] != "#":
+            pkg = find_best_match(cpv)
+            if pkg:
+                resolved.append(pkg)
+            else:
+                unresolved.append(cpv)
+    return (resolved,unresolved)
+
 def find_all_installed_packages(prefilter=None):
     """Returns a list of all installed packages, after applying the prefilter
     function"""
@@ -200,8 +236,18 @@ def find_all_installed_packages(prefilter=None):
     if prefilter:
         t=filter(prefilter,t)
     return map(lambda x: Package(x), t)
-    
-    return find_all_packages(prefilter,1)
+
+def find_all_uninstalled_packages(prefilter=None):
+    """Returns a list of all uninstalled packages, after applying the prefilter
+    function"""
+    t=porttree.getallnodes()
+    if prefilter:
+        t=filter(prefilter,t)
+    return map(lambda x: Package(x), t)
+#    t2 = []
+#    for x in t:
+#        t2 += porttree.dep_match(x)
+#    return map(lambda x: Package(x), t2)
 
 def find_all_packages(prefilter=None):
     """Returns a list of all known packages, installed or not, after applying
