@@ -1,0 +1,205 @@
+#!/usr/bin/python
+
+# $Header$
+# This program is licensed under the GPL, version 2
+
+import os,string,sys
+from getopt import getopt,GetoptError
+
+__program__ = "glsa-check"
+__author__ = "Marius Mauch <genone@gentoo.org>"
+__version__ = "0.4"
+
+optionmap = [
+["-l", "--list", "list all unapplied GLSA"],
+["-d", "--dump", "--print", "show all information about the given GLSA"],
+["-t", "--test", "test if this system is affected by the given GLSA"],
+["-p", "--pretend", "show the necessary commands to apply this GLSA"],
+["-f", "--fix", "try to auto-apply this GLSA (experimental)"],
+["-i", "--inject", "inject the given GLSA into the checkfile"],
+["-h", "--help", "show this help message"],
+["-v", "--version", "some information about this tool"]
+]
+
+# print a warning as this is beta code
+sys.stderr.write("WARNING: This tool is completely new and not very tested, so it should not be\n")
+sys.stderr.write("used on production systems. It's mainly a test tool for the new GLSA release\n")
+sys.stderr.write("and distribution system, it's functionality will later be merged into emerge\n")
+sys.stderr.write("and equery.\n")
+sys.stderr.write("Please read http://www.gentoo.org/proj/en/portage/glsa-integration.xml\n")
+sys.stderr.write("before using this tool AND before reporting a bug.\n\n")
+
+# option parsing
+args = []
+params = []
+try:
+	args, params = getopt(sys.argv[1:], "dplfchivt", \
+		["dump", "print", "list", "pretend", "fix", "inject", "help", "info", "version", "test"])
+	args = [a for a,b in args]
+	
+	# sanity checking
+	if len(args) <= 0:
+		print "no option given: what should I do ?"
+		mode="help"
+	elif len(args) > 1:
+		print "please use only one option per call"
+		mode = "help"
+	else:
+		# in what mode are we ?
+		args = args[0]
+		for m in optionmap:
+			if args in [o for o in m[:-1]]:
+				mode = m[1][2:]
+except GetoptError:
+	print "unknown option given"
+	mode = "help"
+
+# we need a set of glsa for most operation modes
+if len(params) <= 0 and mode in ["fix", "test", "pretend", "dump", "inject"]:
+	print
+	print "no GLSA given, so we'll do nothing for now. "
+	print "If you want to run on all GLSA please tell me so "
+	print "(specify \"all\" as parameter)"
+	print
+	mode = "help"
+elif len(params) <= 0 and mode == "list":
+	params.append("new")
+	
+# show help message
+if mode == "help":
+	print
+	print "Syntax: glsa-check <option> [glsa-list]"
+	print
+	for m in optionmap:
+		print m[0] + "\t" + m[1] + "   \t: " + m[-1]
+		for o in m[2:-1]:
+			print "\t" + o
+	print
+	print "glsa-list can contain an arbitrary number of GLSA ids "
+	print "or the special identifiers 'all' and 'new'"
+	print
+	sys.exit(1)
+
+# we need root priviledges for write access
+if mode in ["fix", "inject"] and os.geteuid() != 0:
+	print
+	print "This tool needs root access to "+mode+" this GLSA"
+	print
+	sys.exit(2)
+
+# show version and copyright information
+if mode == "version":
+	print
+	print __program__ + ", version " + __version__
+	print "Author: " + __author__
+	print "This program is licensed under the GPL, version 2"
+	print
+	sys.exit(0)
+
+# delay this for speed increase
+sys.path.insert(0, "/usr/lib/gentoolkit/pym")
+from glsa import *
+
+glsaconfig = checkconfig(portage.config(clone=portage.settings))
+
+# build glsa lists
+completelist = get_glsa_list(glsaconfig["GLSA_DIR"], glsaconfig)
+
+if os.access(glsaconfig["CHECKFILE"], os.R_OK):
+	checklist = [line.strip() for line in open(glsaconfig["CHECKFILE"], "r").readlines()]
+else:
+	checklist = []
+todolist = [e for e in completelist if e not in checklist]
+
+glsalist = []
+if "new" in params:
+	glsalist = todolist
+	params.remove("new")
+if "all" in params:
+	glsalist = completelist
+	params.remove("all")
+glsalist.extend([g for g in params if g not in glsalist])
+
+# list short information for given or new GLSA
+if mode == "list":
+	print "[A] means this GLSA was already applied,"
+	print "[U] means the system is not affected and"
+	print "[N] indicates that the system might be affected."
+	print
+	for myid in glsalist:
+		try:
+			myglsa = Glsa(myid, glsaconfig)
+		except GlsaTypeException, e:
+			#print "invalid GLSA: %s (error message was: %s)" % (myid, e)
+			continue
+		if myglsa.isApplied():
+			status = "[A]"
+		elif myglsa.isVulnerable():
+			status = "[N]"
+		else:
+			status = "[U]"
+		print myglsa.nr, status, myglsa.title, "(", 
+		for pkg in myglsa.packages.keys()[:3]:
+			print pkg,
+		if len(myglsa.packages) > 3:
+			print "...",
+		print ")"
+	sys.exit(0)
+
+# dump, fix, inject and fix are nearly the same code, only the glsa method call differs
+if mode in ["dump", "fix", "inject", "pretend"]:
+	for myid in glsalist:
+		myglsa = Glsa(myid, glsaconfig)
+		if mode == "dump":
+			myglsa.dump()
+		elif mode == "fix":
+			print "fixing "+myid
+			mergelist = myglsa.getMergeList()
+			for pkg in mergelist:
+				print ">>> merging "+pkg
+				# using emerge for the actual merging as it contains the dependency
+				# code and we want to be consistent in behaviour. Also this functionality
+				# will be integrated in emerge later, so it shouldn't hurt much.
+				exitcode = os.system("emerge ="+pkg)
+				if exitcode:
+					sys.exit(exitcode)
+			myglsa.inject()
+		elif mode == "pretend":
+			mergelist = myglsa.getMergeList()
+			print "The following updates will be performed for this GLSA:"
+			for pkg in mergelist:
+				# we simplify a bit here
+				oldver = portage.db["/"]["vartree"].dbapi.match(portage.dep_getkey(pkg))[-1]
+				oldver = oldver[len(portage.dep_getkey(oldver))+1:]
+				print "    ", pkg, "("+oldver+")"
+		elif mode == "inject":
+			print "injecting " + myid
+			myglsa.inject()
+		if glsalist[-1] != myid:
+			print 
+			print 70*'*'
+			print
+	sys.exit(0)
+
+# test is a bit different as Glsa.test() produces no output
+if mode == "test":
+	outputlist = []
+	for myid in glsalist:
+		try:
+			myglsa = Glsa(myid, glsaconfig)
+		except GlsaTypeException, e:
+			#print "invalid GLSA: %s (error message was: %s)" % (myid, e)
+			continue
+		if myglsa.isVulnerable():
+			outputlist.append(myglsa.nr)
+	if len(outputlist) > 0:
+		print "This system is affected by the following GLSA:"
+		for g in outputlist:
+			print g
+	else:
+		print "This system is not affected by any of the listed GLSA"
+	sys.exit(0)
+	
+# something wrong here, all valid paths are covered with sys.exit()
+print "nothing more to do"
+sys.exit(2)
