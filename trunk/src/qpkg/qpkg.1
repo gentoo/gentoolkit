@@ -76,6 +76,8 @@ Short options may not be combined on the command\-line, yet.
 The operation of some flags has been changed in version 1.6 by the stripping of version numbers from some output to see the version numbers play with \fI\-v\fR and \fI\-vv\fR.
 .TP 
 When using \fI\-f\fR with \fI\-l\fR or \fI\-\-check.. \-v\fR options, only matching files will be displayed, unless \fI\-v\fR is doubled, (yet more verbose), equivalent to \fI\-vv\fR.
+.TP 
+When using \fI\-q\fR, it is important to note that the querying of deps checks package names only, because qpkg is not advanced enough (nor can it reasonably made so) to check complete deps with versions.  Please use \fBdepclean\fR or \fBemerge --dep-clean\fR to more completely check the dependency sanity of your system.
 .SH "EXAMPLES"
 .LP 
 .B qpkg \fI\-\-dups\fR		print duplicates oldest first

@@ -1,0 +1,66 @@
+#! /usr/bin/python
+#
+# $Header$
+#
+#  Distributed under the terms of the GNU General Public License v2
+#  Copyright (c) 2003 Karl Trygve Kalleberg
+
+import portage
+import pprint
+import sys
+import os
+
+__author__ = "Karl Trygve Kalleberg"
+__email__ = "karltk@gentoo.org"
+__version__ = "0.1.0"
+__productname__ = "pkg-size"
+__description__ = "Portage package size calculator"
+
+def find(name):
+    return portage.portdb.match(name)
+
+def print_size(cpv):
+    scpv=portage.catpkgsplit(cpv)
+    cat = scpv[0]
+    pnv = scpv[1]+"-"+scpv[2]
+    if scpv[3] != "r0":
+        pnv +="-"+scpv[3]
+    db=portage.dblink(cat,pnv,"")
+    size=0
+    uncounted = 0
+    if not os.path.exists(db.getpath()):
+        return
+    k=db.getcontents()
+    if not k:
+        return
+    for i in k:
+        try:
+            size += os.stat(i).st_size
+        except OSError:
+            uncounted += 1
+    s = cpv + ": " + str(size) + " bytes (" + str((size+512)/1024) + "KB)"
+    if uncounted > 0:
+        s += " (" + str(uncounted) + " file(s) not accessible)"
+    print s
+
+    
+def main():
+    # parse parameters
+    if len(sys.argv) < 2:
+        print "No arguments!"
+        return 
+    name = sys.argv[1]
+    candidates = find(name)
+    if len(candidates) == 0:
+        print "No candidate packages found!"
+        return
+
+    for i in candidates:
+            print_size(i)
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print "Operation Aborted!"
+        

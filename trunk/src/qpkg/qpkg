@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # qpkg - query portage package system for various information
 #
@@ -60,6 +60,14 @@ do
 
 	-I|--installed)
 		inst=y
+		;;
+
+	-m|--masked)
+		grepmask="-L"
+		;;
+
+	-n|--non-masked)
+		grepmask="-l"
 		;;
 
 	-U|--uninstalled)
@@ -168,6 +176,8 @@ ${BR}Duplicate Locating:
 ${BR}Package Selection:
   ${BL}-f,  --find-file${NO}${T}finds package that owns file <file>
   ${BL}-fp, --find-pattern${NO}${T}finds to package that owns file matching *<pattern>*
+  ${BL}-m,  --masked${NO}${T}Include${YL} only${NO} masked packages
+  ${BL}-n,  --non-masked${NO}${T}Include${YL} only${NO} non-masked packages
   ${BL}-I,  --installed${NO}${T}Include${YL} only${NO} installed packages
   ${BL}-U,  --uninstalled${NO}${T}Include${YL} only${NO} uninstalled packages
   ${BL}-g,  --group${NO}${T}${T}Find by goup (can be combined with other searches)
@@ -215,6 +225,13 @@ fi
 
 #For the --dups switch only
 if [ "${dups}" ]; then
+if [ "${grepmask}" ]; then
+	mask=`python -c 'import portage; print portage.settings["ACCEPT_KEYWORDS"];' 2> /dev/null`
+	echo -e "Currently accepted keywords: ${BL}${mask}${NO}"
+	echo -e
+	mask=`echo ${mask} | perl -pe 's/\s+/|/'`
+fi
+
 	#First dig out the list of packages with duplicates
 	find /var/db/pkg -iname "*${arg}*.ebuild" 2> /dev/null > /tmp/qpkg.lst
 	dups=`cat /tmp/qpkg.lst | cut -f7 -d/ |
@@ -279,6 +296,10 @@ if [ "${ffind}" ]; then
 		| xargs grep -l "${arg}" \
 		| xargs --no-run-if-empty -n 1 dirname`
 	else
+		# if the user didnt specify a full path assume they
+		# want to check in the working dir #17331
+		[ "${arg:0:1}" != "/" ] && arg="${PWD}/${arg}"
+
 		dirs=`ls /var/db/pkg/${group}/*/CONTENTS \
 		| xargs grep -l " ${arg}\( .*\)*$" \
 		| xargs --no-run-if-empty -n 1 dirname`
@@ -302,6 +323,9 @@ else
 			temp="/var/db/pkg/.*${arg}"	
 			ipak=`echo ${ipak}|sed -e "s: :\n:g"|grep ${temp}`
 		fi
+		if [ -n "${mask}" ]; then
+		    ipak=`echo ${ipak}|xargs -r egrep ${grepmask} "^KEYWORDS=.*[[:space:]\"\'](${mask})[[:space:]\"\']"`
+		fi
 	fi
 	# not installed packages (yet:-)
 	if [ ! "${inst}" ]; then
@@ -311,6 +335,9 @@ else
 		fi
 		if [ ${arg} ]; then
 		    upak=`echo ${upak}|sed -e "s: :\n:g"|grep ${arg}`
+		fi
+		if [ -n "${mask}" ]; then
+		    upak=`echo ${upak}|xargs -r egrep ${grepmask} "^KEYWORDS=.*[[:space:]\"\'](${mask})[[:space:]\"\']"`
 		fi
 	fi
 fi
@@ -335,6 +362,11 @@ for p in ${ipak} ${upak} -;do
 	# if we have no passed parameters then 
 	# we can skip the extra conditional checks
 	[[ ${params} == 0 ]] && continue;
+
+	if [ "${mask}" ]; then
+		keywords=`grep KEYWORDS ${p}| cut -d\" -f2`
+		echo -e "${T}Keywords: ${BL}${keywords}${NO}"
+	fi
 	
 	if [ ${verb} -gt 1 ];then
 		echo "vvv    ${p}"
@@ -473,10 +505,10 @@ for p in ${ipak} ${upak} -;do
 	fi
 	
 done | (
-	if [ ! \( "${tcheck}" -o "${mcheck}" -o "${info}" -o "${list}" -o "${query}" -o ${verb} -gt 0 \) ]; then
-		sed -e "s:-r[0-9]\+$::" -e "s:-[0-9][^-]*$::"|sort -k2|uniq -1
-	elif [ ! \( "${tcheck}" -o "${mcheck}" -o "${info}" -o "${list}" -o "${query}" -o ${verb} -lt 2 \) ]; then
-		sort -k2|uniq -1
+	if [ ! \( "${tcheck}" -o "${mcheck}" -o "${info}" -o "${list}" -o "${query}" -o "${mask}" -o ${verb} -gt 0 \) ]; then
+		sed -e "s:-r[0-9]\+$::" -e "s:-[0-9][^-]*$::"|sort -k2|uniq -f1
+	elif [ ! \( "${tcheck}" -o "${mcheck}" -o "${info}" -o "${list}" -o "${query}" -o "${mask}" -o ${verb} -lt 2 \) ]; then
+		sort -k2|uniq -f1
 	else
 		cat
 	fi | sed \

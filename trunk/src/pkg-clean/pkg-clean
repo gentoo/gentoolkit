@@ -1,7 +1,7 @@
 #!/usr/bin/python
-# vim: set ts=4 sw=4:
-# Copyright 2002 Gentoo Technologies, Inc.
-# Distributed under the terms of the GNU General Public License, v2 or later
+# Copyright 1999-2003 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2
+# $Header$
 # Author: Leo Lipelis <aeoo@gentoo.org>
 # Author: Karl Trygve Kalleberg <karltk@gentoo.org>
 
@@ -92,7 +92,7 @@ for pkg_core in pkg_hash.keys():
 
 		if res == 0:
 			(status, unmerge_out) = commands.getstatusoutput(
-				"ebuild unmerge %s" % (full_path))
+				"ebuild %s unmerge" % (full_path))
 			print unmerge_out
 			time.sleep(2)
 			if status != 0:

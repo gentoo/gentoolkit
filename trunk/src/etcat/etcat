@@ -42,7 +42,10 @@
 # 
 # --| Changes |------------------------------------------------------
 #
-#  * etcat-0.2.0 ( ?? )
+#  * etcat-0.3.0 (12 Jul 2003) [karltk]
+#    - Refactored interesting stuff into the Gentoolkit module
+#  * etcat-0.2.0 (13 Jun 2003)
+#    - Updated "versions" with PORTAGE_OVERLAY detection
 #    - Added "graph" feature
 #  * etcat-0.1.5 (30 Apr 2003)
 #    - Fixed disappearing short opts. Oops.
@@ -74,7 +77,7 @@
 
 import os,sys,string,re,pprint
 import getopt,glob
-import portage
+import gentoolkit
 from stat import *
 from output import *
 
@@ -87,7 +90,7 @@ __description__ = "Portage Information Extractor"
 # .-------------------------------------------------------.
 # | Initialise Colour Settings                            |
 # `-------------------------------------------------------'
-if (not sys.stdout.isatty()) or (portage.settings["NOCOLOR"] in ["yes","true"]):
+if (not sys.stdout.isatty()) or (gentoolkit.settings["NOCOLOR"] in ["yes","true"]):
     nocolor()
 
 # "option": ("shortcommand","desc",["example one", "example two"])
@@ -99,7 +102,7 @@ options = {
 "depends":("d","Finds all packages that are directly dependent to a regex search string.",
 ["etcat depends 'gnome-base/libgnome'", "etcat depends '>=dev-lang/python-2.2'"]),
 "files":("f","Lists files that belongs to a package and optionally with version.",[]),
-"graph":("g","Graphs Dependencies",[]),
+"graph":("g","Graphs Dependencies (NON WORKING)",[]),
 "size":("s","Lists the installed size of a package.",[]),
 "uses":("u", "Advanced output of USE vars in a package. Tells you flags used by a package at time of installation, flags in current config and flag description.",[]),
 "versions":("v","Displays the versions available for a specific package. Colour coded to indicate installation status and displays slot information.",
@@ -157,99 +160,8 @@ def wrap_print(string, indent=0, width=74):
     for line in lines:
 	print " "*indent + line
 
-# .-------------------------------------------------------.
-# | Smart Pacakge Version Comparison                      |
-# +-------------------------------------------------------+
-# | Does more advanced package sorting hueristics         |
-# `-------------------------------------------------------'
-
-LETTERS=map(lambda x: chr(x), range(ord('a'),ord('z')))
-# find roughly which is the newer version
-def vercmp(a, b):
-    a_ver = []
-    a_min = ""
-    a_pre = ""
-    a_rev = 0
-    b_ver = []
-    b_min = ""
-    b_pre = ""
-    b_rev = 0
-
-    # split into digestable components
-    # eg. 1.2.3b_pre4-r5
-    # 1. get the 1.2.3 bit
-    a_parts = a.split("-")[0].split("_")
-    a_ver = a_parts[0].split(".")
-    b_parts = b.split("-")[0].split("_")
-    b_ver = b_parts[0].split(".")    
-    
-    # 2. get a,b,c.. or whatever letter at the end
-    if a_ver[-1][-1] in LETTERS:
-        a_min = a_ver[-1][-1]
-        a_ver[-1] = a_ver[-1][:-1]
-    if b_ver[-1][-1] in LETTERS:
-        b_min = b_ver[-1][-1]
-        b_ver[-1] = b_ver[-1][:-1]        
-    
-    # 2. get the _pre4 bit and -r5 
-    if len(a_parts) > 1:
-        a_pre = a_parts[1]
-    if len(a.split("-")) > 1:
-        a_rev = int(a.split("-")[1][1:])
-    if len(b_parts) > 1:
-        b_pre = b_parts[1]
-    if len(b.split("-")) > 1:
-        b_rev = int(b.split("-")[1][1:])        
-
-    # 3. do the comparison
-    for x in range(len(a_ver)):
-        # 3a. convert to numbers
-        try:
-            a_num = int(a_ver[x])
-        except (ValueError, IndexError):
-            a_num = 0
-        try:
-            b_num = int(b_ver[x])
-        except (ValueError, IndexError):
-            b_num = 0
-        # 3b. the comparison
-        if a_num == b_num:
-            continue
-        elif a_num > b_num:
-            return 1
-        elif a_num < b_num:
-            return -1
-
-    # 3c. compare minor ver
-    if a_min and not b_min:
-        return -1
-    elif not a_min and b_min:
-        return 1
-    elif a_min and b_min and a_min > b_min:
-        return 1
-    elif a_min and b_min and a_min < b_min:
-        return -1
-
-    # 3d. compare pre ver
-    if a_pre and not b_pre:
-        return -1
-    elif not a_pre and b_pre:
-        return 1
-    elif a_pre and b_pre and a_pre > b_pre:
-        return 1
-    elif a_pre and b_pre and a_pre < b_pre:
-        return -1
-    
-    # 3e. compare rev
-    if a_rev > b_rev:
-        return 1
-    elif a_rev < b_rev:
-        return -1
-    else:
-        return 0
-
-    
 def pkgcmp(a,b):
+    raise "This is not present"
     # strips out package name and returns the result of vercmp
     awords = a.split("-")
     bwords = b.split("-")
@@ -280,7 +192,7 @@ def pkgcmp(a,b):
     elif bpkg_str > apkg_str:
 	return -1
     else:
-	return vercmp(aver_str, bver_str)
+	return gentoolkit.compare_versions(aver_str, bver_str)
     
 # .-------------------------------------------------------.
 # | Simple Package Search Function                        |
@@ -290,7 +202,6 @@ def pkgcmp(a,b):
 # | Results are in the form ["net-www/mozilla"]           |
 # `-------------------------------------------------------'
 def search(search_key):
-    
     matches = []    
     for package in portage.portdb.cp_all():
 	package_parts=package.split("/")
@@ -311,6 +222,7 @@ def search(search_key):
 # `-------------------------------------------------------'    
 
 def smart_pkgsplit(query):
+    raise "Use something else"
     cat = ''
     pkg = ''
     ver = ''
@@ -353,64 +265,10 @@ def smart_pkgsplit(query):
 # `-------------------------------------------------------'
 
 def smart_ebuild(query):
-    tup = smart_pkgsplit(query)
-    full_pkg = ''
-    
-    # here we have to guess the ebuild we want
-    if tup[0] and tup[1] and tup[2]:
-	# we've got all the required fields
-	if tup[3]:
-	    full_pkg = tup[0] + "/" + tup[1] + "-" + tup[2] + "-" + tup[3]
-	else:
-	    full_pkg = tup[0] + "/" + tup[1] + "-" + tup[2]
-    elif tup[1] and tup[2]:
-	# only got package name and version
-	matches = search(tup[1] + "$")
-	print "[ Applications Found : " + white(str(len(matches))) + " ]"
-	print ">> Using first match only."
-	if len(matches[0].split("/")) == 2:
-	    if tup[3]:
-		full_pkg = matches[0] + "-" + tup[2] + "-" + tup[3]
-	    else:
-		full_pkg = matches[0] + "-" + tup[2]
-    elif not tup[2]:
-	# don't have version, so we find the latest version
-	if tup[0] and tup[1]:
-	    all_vers = portage.portdb.xmatch("match-all",tup[0] + "/" + tup[1])
-	elif tup[1]:
-	    all_vers = portage.portdb.xmatch("match-all",tup[1])
-	# get fullpkg
-	full_pkg = portage.portdb.xmatch("bestmatch-list",tup[1],mylist=all_vers)
-	if not full_pkg:
-	    print "Error: Can't match query:", query
-	    return
-    else:
-	print "Error: Can't match query :", query
-	return
-
-    # find the ebuild
-    cps = portage.catpkgsplit(full_pkg)
-    if len(cps) != 4:
-	print "Error: Something wrong with package found."
-	return
-    if cps[3] == "r0":
-	ebuild = portage.settings["PORTDIR"] + "/" + cps[0]  + "/" + cps[1] + "/" + cps[1] + "-" + cps[2] + ".ebuild"
-    else:
-	ebuild = portage.settings["PORTDIR"] + "/" + cps[0]  + "/" + cps[1] + "/" + cps[1] + "-" + cps[2] + "-" + cps[3] + ".ebuild"
-	
-    if os.path.exists(ebuild):
-	return ebuild
-
-    # can't find it in PORTDIR, so we try the PORTDIR_OVERLAY
-    if cps[3] == "r0":
-	ebuild = portage.settings["PORTDIR_OVERLAY"] + "/" + cps[0]  + "/" + cps[1] + "/" + cps[1] + "-" + cps[2] + ".ebuild"
-    else:
-	ebuild = portage.settings["PORTDIR_OVERLAY"] + "/" + cps[0]  + "/" + cps[1] + "/" + cps[1] + "-" + cps[2] + "-" + cps[3] + ".ebuild"
-	
-    if os.path.exists(ebuild):
-	return ebuild
-    else:
-	return None
+    pkg = gentoolkit.find_packages(query)
+    if len(pkg)>1:
+        raise "Too many packages to handle"
+    return pkg[0].get_ebuild_path()
     
 
 # .-------------------------------------------------------.
@@ -453,23 +311,12 @@ def output_log(lines, package_ver=""):
 # `-------------------------------------------------------'
 
 def changes(query):
-
-    matches = []
-    printed = 0
-
-    tup = smart_pkgsplit(query)
-    if tup[0] and tup[1]:
-	matches = [ tup[0] + "/" + tup[1] ]
-    elif tup[1]:
-	matches = search(tup[1])
+    matches=gentoolkit.find_packages(query)
+    if not report_matches(matches,query):
+        return
     
-	
-    print "[ Results for search key : " + white(query) + " ]"
-    #print "[ Applications found : " + white(str(len(matches))) + " ]"
-    print 
-    
-    for match in matches:
-	changelog_file = portage.settings["PORTDIR"] + '/' + match + '/ChangeLog'
+    for pkg in matches:
+        changelog_file = pkg.get_portage_path() + "/ChangeLog"
 	if os.path.exists(changelog_file):
 	    if tup[2] and tup[3]:
 		printed = output_log(open(changelog_file).readlines(),match.split('/')[1] + ".*-" + tup[2] + "-" + tup[3]) or printed
@@ -492,18 +339,19 @@ def changes(query):
 # `-------------------------------------------------------'	
 	
 def versions(query):
+    
     tup = smart_pkgsplit(query)
     if tup[0] and tup[1]:
 	matches = [ tup[0] + "/" + tup[1] ]
     elif tup[1]:
-	matches = search(tup[1])
+	matches = gentoolkit.find_packages(tup[1])
     
     print "[ Results for search key : " + white(query) + " ]"
     print "[ Applications found : " + white(str(len(matches))) + " ]"
     print
     
     for package in matches:
-	print green("*") + "  " + white(package) + " :"
+	print green("*") + "  " + white(package.get_cpv()) + " :"
 	versions = portage.portdb.xmatch("match-all", package)
 	unmasked = portage.portdb.xmatch("match-visible",package)
 	curver = portage.db["/"]["vartree"].dep_bestmatch(package)
@@ -517,6 +365,7 @@ def versions(query):
             state = []
             color = green
             unstable = 0
+	    overlay = ""
             
             # check if masked
             if ver not in unmasked:
@@ -547,6 +396,14 @@ def versions(query):
                 color = turquoise
             else:
                 state.append(" ")
+		
+	    # check if this is a OVERLAY ebuilds
+	    try:
+		if portage.portdb.oroot:
+		    if os.path.exists(portage.portdb.oroot + "/" + package + "/" + pkg + ".ebuild"):
+			overlay = " OVERLAY"
+	    except AttributeError:
+		pass
 
             # print
 	    try:
@@ -555,8 +412,8 @@ def versions(query):
 		    slot = ["0"]
 	    except KeyError:
 		slot = ["?"]
-            
-            print " "*8 + "[" + string.join(state,"") + "] " + color(ver) + " (" + color(slot[0]) + ")"
+		
+            print " "*8 + "[" + string.join(state,"") + "] " + color(ver) + " (" + color(slot[0]) + ")" + overlay
 
         print
 
@@ -571,7 +428,7 @@ def uses(query):
     if tup[0] and tup[1]:
 	matches = [ tup[0] + "/" + tup[1] ]
     elif tup[1]:
-	matches = search(tup[1])
+	matches = gentoolkit.find_packages(tup[1])
 	
     useflags = portage.config()["USE"].split()    
     usedesc = {}
@@ -749,6 +606,7 @@ graphcache = []
 
 def graph(query):
     print "attempt to graph dependencies"
+    print red("warning, this is BETA, will probably report the wrong results")
     rgraph(query, [])
 
 # return string of deps that are valid
@@ -861,7 +719,9 @@ def depends(query):
     
     match_depend = {}
     match_rdepend = {}
-    
+
+#    for x in gentoolkit.find_all_packages():
+        
     # get all installed packages
     for x in os.listdir(portage.root + "var/cache/edb/dep"):
         # for each category, we just grep for the deps, slowly
@@ -920,65 +780,30 @@ def belongs(query):
     return
 	
 # .-------------------------------------------------------.
-# | Size of a particular package                          |
+# | Size of all packages matching query                   |
 # +-------------------------------------------------------+
-# | Finds the size of the installed package               |
+# | Finds the size of installed packages                  |
 # `-------------------------------------------------------'	    
 def size(query):
-    matches = search(query)
-    # FIXME: use portage.settings
-    dbdir = "/var/db/pkg/"
-    
-    print "[ Results for search key : " + white(query) + " ]"
-    print "[ Applications found : " + white(str(len(matches))) + " ]"
-    print
-    if matches:
-	print " Only printing found installed programs."
-	print 
-    
-    for package in matches:
-	files = glob.glob(dbdir + package + "-[0-9]*")
-	if files:
-	    for pkg in files:
-		# for each package we find
-		size = 0
-		files = 0
-		uncounted = 0
-		if os.path.exists(pkg):
-		    try:
-			f = open(pkg + "/CONTENTS")
-		    except:
-			# fail silently
-			continue
-		    for line in f.readlines():
-			words = line.split()
-			if len(words) > 2 and words[0] == "obj":
-			    try:
-				size = size + os.stat(words[1]).st_size
-				files = files + 1
-			    except OSError:
-				uncounted = uncounted + 1
-		print turquoise("*") + " " + white(os.path.basename(pkg))
-		print string.rjust(" Total Files : ",25) + str(files)
-		if uncounted:
-		    print string.rjust(" Inaccessible Files : ",25) + str(uncounted)
-		print string.rjust(" Total Size : ",25) + "%.2f KB" % (size/1024.0)
-		
-# .-------------------------------------------------------.
-# | Files in a package                                    |
-# +-------------------------------------------------------+
-# | Lists all the files in a package                      |
-# `-------------------------------------------------------'	    
-def files(query):
-    tup = smart_pkgsplit(query)
-    if tup[0] and tup[1]:
-	matches = [ tup[0] + "/" + tup[1] ]
-    elif tup[1]:
-	matches = search(tup[1])
-    
-    # FIXME: use portage.settings
-    dbdir = "/var/db/pkg/"
-    
+    packages = gentoolkit.find_packages(query)
+    if not report_matches(query, packages):
+        return
+    for pkg in packages:
+        if not pkg.is_installed():
+            continue
+        x=pkg.size()
+        cpv=x[0]
+        size=x[1]
+        files=x[2]
+        uncounted=x[3]
+        print turquoise("*") + " " + white(pkg.get_cpv())
+        print string.rjust(" Total Files : ",25) + str(files)
+        if uncounted:
+            print string.rjust(" Inaccessible Files : ",25) + str(uncounted)
+        print string.rjust(" Total Size : ",25) + "%.2f KB" % (size/1024.0)
+
+
+def report_matches(query, matches):
     print "[ Results for search key : " + white(query) + " ]"
     print "[ Applications found : " + white(str(len(matches))) + " ]"
     print
@@ -986,42 +811,40 @@ def files(query):
     if matches:
 	print " Only printing found installed programs."
 	print
+        return 1
     else:
 	print "No packages found."
-	return
+        return 0
+
+
+# .-------------------------------------------------------.
+# | Files in a package                                    |
+# +-------------------------------------------------------+
+# | Lists all the files in a package                      |
+# `-------------------------------------------------------'	    
+def files(query):
+
+    matches = gentoolkit.find_packages(query)
+
+    if not report_matches(query, matches):
+        return
     
     for package in matches:
-	if tup[2]:
-	    files = glob.glob(dbdir + package + "-" + tup[2])
-	else:
-	    files = glob.glob(dbdir + package + "-[0-9]*")
-	    
-	if files:
-	    for pkg in files:
-		# for each package we find
-		size = 0
-		files = 0
-		uncounted = 0
-		if os.path.exists(pkg):
-		    try:
-			f = open(pkg + "/CONTENTS")
-		    except:
-			# fail silently
-			continue
-		    print
-		    print yellow(" * ") + white("/".join(pkg.split("/")[-2:]))
-		    for line in f.readlines():
-			words = line.split()
-			if len(words) < 2:
-			    continue
-			elif words[0] == "obj":
-			    print words[1]
-			elif words[0] == "sym":
-			    print turquoise(words[1])
-			elif words[0] == "dir":
-			    print blue(words[1])
-			else:
-			    print words[1]
+        if not package.is_installed():
+            continue
+        contents = package.get_contents()
+        
+        print yellow(" * ") + white(package.get_cpv())
+        for x in contents.keys():
+            t = contents[x][0]
+            if t == "obj":
+                print x
+            elif t == "sym":
+                print turquoise(x)
+            elif t == "dir":
+                print blue(x)
+            else:
+                print x
 
 # .-------------------------------------------------------.
 # | Help Function                                         |

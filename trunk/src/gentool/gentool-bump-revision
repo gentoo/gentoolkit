@@ -1,7 +1,8 @@
-#! /bin/sh
-# Copyright (c) 2002, Gentoo Technologies, Inc.
-# Author: Karl Trygve Kalleberg <karltk@gentoo.org>
+#!/bin/sh
+# Copyright 2002-2003 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2
 # $Header$
+# Author: Karl Trygve Kalleberg <karltk@gentoo.org>
 
 if [ ! -f $HOME/.gentoo/gentool-env ] ; then
 	echo "You must make a $HOME/.gentoo/gentool-env file that contains"
@@ -39,6 +40,10 @@ cd ${dn}
 echo "Updating revisions for ebuilds digests"
 mv ${oldver}.ebuild ${newver}.ebuild
 mv files/digest-${oldver} files/digest-${newver}
+
+#echo "Removing old revisions from CVS"
+#cvs remove -f ${oldver}.ebuild
+#cvs remove -f files/digest-${oldver}
 
 echo "Adding new revisions to CVS"
 cvs add ${newver}.ebuild
