@@ -16,6 +16,10 @@ __author__ = "Marius Mauch <genone@gentoo.org>"
 import os, sys, urllib, time, string, codecs, re
 import xml.dom.minidom
 
+if sys.version_info[0:2] < (2,3):
+	raise NotImplementedError("Python versions below 2.3 have broken XML code " \
+								+"and are not supported")
+
 sys.path.insert(0, "/usr/lib/portage/pym")	# to find portage.py
 
 import portage
