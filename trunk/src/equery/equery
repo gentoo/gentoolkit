@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
-# Copyright 2003 Karl Trygve Kalleberg
-# Copyright 2003 Gentoo Technologies, Inc.
+# Copyright 2003-2004 Karl Trygve Kalleberg
+# Copyright 2003-2004 Gentoo Technologies, Inc.
 # Distributed under the terms of the GNU General Public License v2
 #
 # $Header$
@@ -136,9 +136,9 @@ class CmdListFiles(Command):
         if not Config["piping"]:
             print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
             
-        pkgs = gentoolkit.find_packages(query, True)
+        pkgs = gentoolkit.find_installed_packages(query, True)
         for x in pkgs:
-
+            print x.get_cpv()
             if not x.is_installed():
                 continue
         
@@ -747,7 +747,7 @@ class CmdCheckIntegrity(Command):
             print_info(0, pp.section(" * ") + pp.number(str(good_files)) + " out of " +  pp.number(str(checked_files)) + " files good")
                     
     def shortHelp(self):
-        return pp.pkgquery("pkgspec") + " - check package's files against recorded MD5 sums and timestamps"
+        return pp.pkgquery("pkgspec") + " - check MD5sums and timestamps of " + pp.pkgquery("pkgspec") + "'s files"
     def longHelp(self):
         return "Check package's files against recorded MD5 sums and timestamps" + \
                 "\n" + \
@@ -1271,24 +1271,42 @@ class CmdFindUSEs(Command):
                "  " + pp.localoption("-o, --overlay-tree") + "      - also search in overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")\n"
 
 #
-#
+# Command line tokens to commands mapping
 #
 
 Known_commands = {
-    "list": CmdListPackages(),
-    "files": CmdListFiles(),
-    "belongs": CmdListBelongs(),
-    "depends": CmdListDepends(),
-    "hasuses": CmdFindUSEs(),
-    "uses": CmdDisplayUSEs(),
-    "depgraph": CmdDisplayDepGraph(),
-    "changes": CmdDisplayChanges(),
-    "size": CmdDisplaySize(),
-    "check": CmdCheckIntegrity(),
-    "stats": CmdDisplayStatistics(),
-    "glsa": CmdListGLSAs(),
+    "list" : CmdListPackages(),
+    "files" : CmdListFiles(),
+    "belongs" : CmdListBelongs(),
+    "depends" : CmdListDepends(),
+    "hasuses" : CmdFindUSEs(),
+    "uses" : CmdDisplayUSEs(),
+    "depgraph" : CmdDisplayDepGraph(),
+    "changes" : CmdDisplayChanges(),
+    "size" : CmdDisplaySize(),
+    "check" : CmdCheckIntegrity(),
+    "stats" : CmdDisplayStatistics(),
+    "glsa" : CmdListGLSAs(),
     "which": CmdWhich()
     }
+
+# Short command line tokens
+
+Short_commands = {
+    "a" : "glsa",
+    "b" : "belongs",
+    "c" : "changes",
+    "d" : "depends",
+    "f" : "files",
+    "g" : "depgraph",
+    "h" : "hasuses",
+    "k" : "check",
+    "l" : "list",
+    "s" : "size",
+    "t" : "stats",
+    "u" : "uses",
+    "w" : "which"
+}
 
 from gentoolkit import Config
 
@@ -1318,9 +1336,18 @@ def printVersion():
     print_info(0, __productname__ + "(" + __version__ + ") - " + \
           __description__)
     print_info(0, "Author(s): " + __author__)
+
+def buildReverseMap(m):
+    r = {}
+    for x in m.keys():
+        r[m[x]] = x
+    return r
     
 def printUsage():
     """Print full usage information for this tool to the console."""
+    
+    short_cmds = buildReverseMap(Short_commands);
+    
     print_info(0, pp.emph("Usage: ") + pp.productname(__productname__) + pp.globaloption(" <global-opts> ") + pp.command("command") + pp.localoption(" <local-opts>"))
     print_info(0, "where " + pp.globaloption("<global-opts>") + " is one of")
     print_info(0, pp.globaloption(" -q, --quiet") + "   - minimal output")
@@ -1328,10 +1355,14 @@ def printUsage():
     print_info(0, pp.globaloption(" -h, --help") + "    - this help screen")
     print_info(0, pp.globaloption(" -V, --version") + " - display version info")
     
-    print_info(0, "where " + pp.command("command") + " is one of")
-    for x in Known_commands.keys():
-        print_info(0, " " + pp.command(x) + " " + Known_commands[x].shortHelp())
-
+    print_info(0, "where " + pp.command("command") + "(" + pp.command("short") + ") is one of")
+    keys = Known_commands.keys()
+    keys.sort()
+    for x in keys:
+        print_info(0, " " + pp.command(x) + "(" + pp.command(short_cmds[x]) + ") " + \
+            Known_commands[x].shortHelp())
+    print
+    
 def configure():
     """Set up default configuration.
     """
@@ -1362,6 +1393,11 @@ def parseArgs(args):
     local_opts = []
     showhelp = 0
 
+    def expand(x):
+        if x in Short_commands.keys():
+            return Short_commands[x]
+        return x
+        
     for i in xrange(len(args)):
         x = args[i]
         if 0:
@@ -1377,8 +1413,8 @@ def parseArgs(args):
             Config["piping"] = False
         elif x in ["-q","--quiet"]:
             Config["verbosityLevel"] = 0
-        elif x in Known_commands.keys():
-            command = Known_commands[x]
+        elif expand(x) in Known_commands.keys():
+            command = Known_commands[expand(x)]
             local_opts = args[i+1:]
             if showhelp:
                 local_opts.append("--help")
