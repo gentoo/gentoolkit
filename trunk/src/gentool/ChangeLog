@@ -1,0 +1,8 @@
+2002-11-22 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Fixed the nasty thinko whereby the old revisions were removed
+	from CVS.
+	* Imported pkg-size as gentool-package-size.
+	* Importet pst-package-count as gentool-package-count.
+	* Added a man page for gentool-bump-revision.	
+	* Added a man page for gentool-package-size.
+	* Added a man page for gentool-package-count.

@@ -1,7 +1,0 @@
-#! /bin/sh
-
-
-find /usr/portage/ -name "*.ebuild" | \
-	xargs egrep -i "<[a-z]+@[a-z\.]+>" | \
-	awk -f /usr/share/gentoolkit/histogram.awk | \
-	sort -n +1 -r

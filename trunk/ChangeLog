@@ -1,3 +1,9 @@
+
+2002-11-21 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Renamed pkg-size to gentool-package-size
+	* Renamed pst-package-count to gentool-package-count
+	* Retired rest of pst-* stuff
+
 2002-08-06 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Created separate CVS module for Gentoolkit
 	* Restructured directory hierarchy
