@@ -19,7 +19,7 @@
 # --| License |------------------------------------------------------
 #
 #  Distributed under the terms of the GNU General Public License v2
-#  Copyright (c) 2002 Alastair Tse. <liquidx@gentoo.org>
+#  Copyright (c) 2002 Alastair Tse.
 #
 # --| Usage |--------------------------------------------------------
 #
@@ -62,7 +62,7 @@ from output import *
 
 options = [ "changes", "versions", "uses", "size" ]
 __author__ = "Alastair Tse"
-__version__ = "0.1.2"
+__version__ = "0.1"
 __productname__ = "etcat"
 __description__ = "Portage Information Extractor"
 
@@ -318,7 +318,10 @@ def versions(query):
                 state.append(" ")
 
             # check if in unstable
-            ver_keywords =  portage.db["/"]["porttree"].dbapi.aux_get(ver,["KEYWORDS"])
+	    try:
+		ver_keywords =  portage.db["/"]["porttree"].dbapi.aux_get(ver,["KEYWORDS"])
+	    except KeyError:
+		ver_keywords = [""]
             keywords_list = ver_keywords[0].split()
             if "~" + portage.settings["ARCH"] in keywords_list:
                 state.append(yellow("~"))
@@ -334,11 +337,14 @@ def versions(query):
                 color = turquoise
             else:
                 state.append(" ")
-                
+
             # print
-            slot = portage.db["/"]["porttree"].dbapi.aux_get(ver,["SLOT"])
-            if not slot:
-                slot = ["0"]
+	    try:
+		slot = portage.db["/"]["porttree"].dbapi.aux_get(ver,["SLOT"])
+		if not slot:
+		    slot = ["0"]
+	    except KeyError:
+		slot = ["?"]
             
             print " "*8 + "[" + string.join(state,"") + "] " + color(ver) + " (" + color(slot[0]) + ")"
 
