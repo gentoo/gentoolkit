@@ -73,6 +73,6 @@ install-gentoolkit-dev:
 
 	install -m 0644 {AUTHORS,ChangeLog,COPYING,NEWS,README,README.Developer,TODO} $(docdir)/
 
-	for x in ekeyword echangelog ; do \
+	for x in ekeyword echangelog ego ; do \
 		( cd src/$$x ; make DESTDIR=$(DESTDIR) install ) \
 	done
