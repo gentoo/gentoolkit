@@ -318,6 +318,16 @@ def getMinUpgrade(vulnerableList, unaffectedList):
 		if not installed:
 			continue
 		for u in unaffectedList:
+			install_unaffected = True
+			for i in installed:
+				if u[2] == "~":
+					myinstalledlist = revisionMatch(u, portage.db["/"]["vartree"].dbapi)
+				else:
+					myinstalledlist = portage.db["/"]["vartree"].dbapi.match(u)
+				if not i in myinstalledlist:
+					install_unaffected = False
+			if install_unaffected:
+				break
 			if u[2] == "~":
 				mylist = revisionMatch(u, portage.db["/"]["porttree"].dbapi)
 			else:
@@ -441,13 +451,16 @@ class Glsa:
 		self.packages = {}
 		for p in self.affected.getElementsByTagName("package"):
 			name = p.getAttribute("name")
-			self.packages[name] = {}
-			self.packages[name]["arch"] = p.getAttribute("arch")
-			self.packages[name]["auto"] = (p.getAttribute("auto") == "yes")
-			self.packages[name]["vul_vers"] = [makeVersion(v) for v in p.getElementsByTagName("vulnerable")]
-			self.packages[name]["unaff_vers"] = [makeVersion(v) for v in p.getElementsByTagName("unaffected")]
-			self.packages[name]["vul_atoms"] = [makeAtom(name, v) for v in p.getElementsByTagName("vulnerable")]
-			self.packages[name]["unaff_atoms"] = [makeAtom(name, v) for v in p.getElementsByTagName("unaffected")]
+			if not self.packages.has_key(name):
+				self.packages[name] = []
+			tmp = {}
+			tmp["arch"] = p.getAttribute("arch")
+			tmp["auto"] = (p.getAttribute("auto") == "yes")
+			tmp["vul_vers"] = [makeVersion(v) for v in p.getElementsByTagName("vulnerable")]
+			tmp["unaff_vers"] = [makeVersion(v) for v in p.getElementsByTagName("unaffected")]
+			tmp["vul_atoms"] = [makeAtom(name, v) for v in p.getElementsByTagName("vulnerable")]
+			tmp["unaff_atoms"] = [makeAtom(name, v) for v in p.getElementsByTagName("unaffected")]
+			self.packages[name].append(tmp)
 		# TODO: services aren't really used yet
 		self.services = self.affected.getElementsByTagName("service")
 		return None
@@ -472,17 +485,19 @@ class Glsa:
 		myfile.write("Announced on:      %s\n" % self.announced)
 		myfile.write("Last revised on:   %s\n\n" % self.revised)
 		if self.glsatype == "ebuild":
-			for pkg in self.packages.keys():
-				vul_vers = string.join(self.packages[pkg]["vul_vers"])
-				unaff_vers = string.join(self.packages[pkg]["unaff_vers"])
-				myfile.write("Affected package:  %s\n" % pkg)
-				myfile.write("Affected archs:    ")
-				if self.packages[pkg]["arch"] == "*":
-					myfile.write("All\n")
-				else:
-					myfile.write("%s\n" % self.packages[pkg]["arch"])
-				myfile.write("Vulnerable:        %s\n" % vul_vers)
-				myfile.write("Unaffected:        %s\n\n" % unaff_vers)
+			for k in self.packages.keys():
+				pkg = self.packages[k]
+				for path in pkg:
+					vul_vers = string.join(path["vul_vers"])
+					unaff_vers = string.join(path["unaff_vers"])
+					myfile.write("Affected package:  %s\n" % k)
+					myfile.write("Affected archs:    ")
+					if path["arch"] == "*":
+						myfile.write("All\n")
+					else:
+						myfile.write("%s\n" % path["arch"])
+					myfile.write("Vulnerable:        %s\n" % vul_vers)
+					myfile.write("Unaffected:        %s\n\n" % unaff_vers)
 		elif self.glsatype == "infrastructure":
 			pass
 		if len(self.bugs) > 0:
@@ -518,10 +533,13 @@ class Glsa:
 		rValue = False
 		for k in self.packages.keys():
 			pkg = self.packages[k]
-			if pkg["arch"] == "*" or self.config["ARCH"] in pkg["arch"].split():
-				vList += pkg["vul_atoms"]
+			for path in pkg:
+				if path["arch"] == "*" or self.config["ARCH"] in path["arch"].split():
+					vList += path["vul_atoms"]
 		for v in vList:
-			rValue = rValue or len(portage.db["/"]["vartree"].dbapi.match(v)) > 0
+			rValue = rValue \
+					or (len(portage.db["/"]["vartree"].dbapi.match(v)) > 0 \
+						and getMinUpgrade(vList, path["unaff_atoms"]))
 		return rValue
 	
 	def isApplied(self):
@@ -561,8 +579,9 @@ class Glsa:
 		"""
 		rValue = []
 		for pkg in self.packages.keys():
-			update = getMinUpgrade(self.packages[pkg]["vul_atoms"],
-									self.packages[pkg]["unaff_atoms"])
-			if update:
-				rValue.append(update)
+			for path in self.packages[pkg]:
+				update = getMinUpgrade(path["vul_atoms"],
+										path["unaff_atoms"])
+				if update:
+					rValue.append(update)
 		return rValue
