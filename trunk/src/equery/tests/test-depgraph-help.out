@@ -1,0 +1,7 @@
+Display a dependency tree for a given package
+
+Syntax:
+  depgraph <local-opts> pkgspec
+<local-opts> is either of: 
+  -U, --no-useflags - do not show USE flags
+  -l, --linear      - do not use fancy formatting

@@ -1,0 +1,9 @@
+List all packages matching a query pattern
+Syntax:
+  list <local-opts> pkgspec
+<local-opts> is either of: 
+  -i, --installed         - search installed packages (default)
+  -I, --exclude-installed - do not search installed packages
+  -p, --portage-tree      - also search in portage tree (/usr/portage)
+  -o, --overlay-tree      - also search in overlay tree (/usr/local/portage /usr/local/overlays/gentoo-boblycat)
+

@@ -1,3 +1,6 @@
+2004-09-30 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added unit tests for --help
+
 2004-09-27 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added short commands
 	* Fixed copyright dates
