@@ -1,2 +1,5 @@
+2004-01-12 Aron Griffis <agriffis@gentoo.org>
+	* Allow multiple keywords
+
 2004-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added Makefile
