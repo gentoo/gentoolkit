@@ -1,3 +1,11 @@
+2004-10-17 Marius Mauch <genone@gentoo.org>
+	* equery: fix for bug #67473 (checking md5sums of prelinked binaries)
+	* equery: fix for bug #67275 (--nocolor didn't work as configure was 
+				called before parsing the arguments
+	* equery: changed defaults for `equery depends` as making a depgraph
+				for the full portage tree isn't a good idea and find_all_packages()
+				uses way to much memory currently
+
 2004-10-12 Marius Mauch <genone@gentoo.org>
 	* equery: fix for bug #67210
 

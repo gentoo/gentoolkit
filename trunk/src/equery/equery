@@ -793,8 +793,7 @@ class CmdCheckIntegrity(Command):
         return (query, opts)
 
     def getMD5sum(self, file):
-        md5sum, filesize = portage_checksum.md5hash(file)
-        return md5sum
+        return portage_checksum.perform_md5(file, calc_prelink=1)
     
     def perform(self, args):
         (query, opts) = self.parseArgs(args)
@@ -924,7 +923,7 @@ class CmdListDepends(Command):
     def __init__(self):
         self.default_opts = {
             "onlyDirect": 1,
-            "onlyInstalled": 0
+            "onlyInstalled": 1
             }
 
     def parseArgs(self, args):
@@ -947,8 +946,8 @@ class CmdListDepends(Command):
                 opts["onlyDirect"] = 1
             elif x in ["-D", "--indirect"]:
                 opts["onlyDirect"] = 0
-            elif x in ["-i", "--only-installed"]:
-                opts["onlyInstalled"] = 1
+            elif x in ["-a", "--all-packages"]:
+                opts["onlyInstalled"] = 0
             else:
                 query = x
      
@@ -986,25 +985,22 @@ class CmdListDepends(Command):
                     if isdep:
                         subdeps(pkg.get_cpv(), spacing+" ")
   
- 
         (query, opts) = self.parseArgs(args)
- 
+
         if not Config["piping"]:
-            print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
- 
+            print_info(3, "[ Searching for packages depending on " + pp.pkgquery(query) + "... ]")
+
         isdepend = gentoolkit.split_package_name(query)
- 
         
         if opts["onlyInstalled"]:
             packages = gentoolkit.find_all_installed_packages()
         else:
             packages = gentoolkit.find_all_packages()
- 
+
         if not opts["onlyDirect"]:
             print_info(4, "Caching indirect dependencies...")
             depscache = {"":[]}
             for pkg in packages:
-                
                 print_info(1, pp.section("* ") + "Dependencies for " + pp.cpv(pkg.get_cpv()) + ":")
 
                 try:
@@ -1079,9 +1075,9 @@ class CmdListDepends(Command):
                 "  " + pp.command("depends") + pp.localoption(" <local-opts> ") + pp.pkgquery("pkgspec") + \
                 "\n" + \
                 pp.localoption("<local-opts>") + " is either of: \n" + \
+                "  " + pp.localoption("-a, --all-packages") + "       - search in all available packages (slow)\n" + \
                 "  " + pp.localoption("-d, --direct") + "             - search direct dependencies only (default)\n" + \
-                "  " + pp.localoption("-D, --indirect") + "           - search indirect dependencies (VERY slow)\n" + \
-                "  " + pp.localoption("-i, --only-installed") + "     - search installed in installed packages only\n"
+                "  " + pp.localoption("-D, --indirect") + "           - search indirect dependencies (VERY slow)\n"
 
 
 class CmdListPackages(Command):
@@ -1487,7 +1483,7 @@ def printUsage():
 def configure():
     """Set up default configuration.
     """
-    
+
     # Guess colour output
     if (Config["color"] == -1 and \
         ((not sys.stdout.isatty()) or \
@@ -1529,7 +1525,7 @@ def parseArgs(args):
             printVersion()
             sys.exit(0)
         elif x in ["-C", "--nocolor"]:
-            Config["color"] = False
+            Config["color"] = 0
         elif x in ["-N", "--no-pipe"]:
             Config["piping"] = False
         elif x in ["-q","--quiet"]:
@@ -1548,8 +1544,8 @@ def parseArgs(args):
     return (command, local_opts)
    
 if __name__ == "__main__":
-    configure()
     (cmd, local_opts) = parseArgs(sys.argv[1:])
+    configure()
     if cmd:
         try:
             cmd.perform(local_opts)
