@@ -143,7 +143,7 @@ class CmdListFiles(Command):
 
     
 class CmdListBelongs(Command):
-    """List all packages owning file_spec"""
+    """List all packages owning a particular file"""
     def __init__(self):
         self.default_opts = {
             "category": "*",
@@ -219,41 +219,44 @@ class CmdListBelongs(Command):
                "  " + yellow("-c, --category cat") + " - only search in category " + yellow("cat") + "\n" + \
                "  " + yellow("-e, --earlyout") + "     - stop when first match found\n"
     
-def cmdDepends(file_spec):
+class CmdListDepends(Command):
     """List all packages directly or indirectly depending on pkgQuery"""
     pass
 
-def cmdDisplayUSEs(query):
+class CmdDisplayUSEs(Command):
     """Advanced report of a package's USE flags"""
     pass
 
-def cmdDisplayDepGraph(pkgQuery):
+class CmdDisplayDepGraph(Command):
     """Display tree graph of deps for pkgQuery"""
     pass
 
-def cmdDisplayReverseDepGraph(pkgQuery):
-    """Display tree graph of reverse deps for pkgQuery"""
-    pass
-
-def cmdDisplayChanges(pkgQuery):
+class CmdDisplayChanges(Command):
     """Display changes for pkgQuery"""
     pass
 
-def cmdDisplaySize(pkgQuery):
+class CmdDisplaySize(Command):
     """Display disk size consumed by pkgQuery"""
     pass
 
-def cmdCheckIntegrity(pkgQuery):
+class CmdCheckIntegrity(Command):
     """Check timestamps and md5sums for files owned by pkgQuery"""
     pass
 
-def cmdPortageStatistics():
+class CmdDisplayStatistics(Command):
     """Display statistics about installed and uninstalled packages"""
     pass
 
 Known_commands = {
     "files": CmdListFiles(),
-    "belongs": CmdListBelongs()
+    "belongs": CmdListBelongs(),
+    "depends": CmdListDepends(),
+    "uses": CmdDisplayUSEs(),
+    "depgraph": CmdDisplayDepGraph(),
+    "changes": CmdDisplayChanges(),
+    "size": CmdDisplaySize(),
+    "check": CmdCheckIntegrity(),
+    "stats": CmdDisplayStatistics()
     }
 
 Config = {

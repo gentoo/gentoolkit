@@ -1,0 +1,6 @@
+- revdep cache in /var/cache
+ - list all .so files this package depends on
+ - use timestamps of files to know when to rebuild
+  - if ts of cache is older than any of the package's contained
+    files, we must rebuild
+    
