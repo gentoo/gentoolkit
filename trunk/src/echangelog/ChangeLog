@@ -1,3 +1,8 @@
+08 Nov 2004 Aron Griffis <agriffis@gentoo.org>
+	* call cvs with -f to refrain from using .cvsrc, which might
+	  contain conflicting options
+	* fix auto-addition of ChangeLog; last attempt was broken
+
 03 Nov 2004 Aron Griffis <agriffis@gentoo.org>
 	* abort when there are unresolved files (files that aren't under
 	  revision control) just like repoman
