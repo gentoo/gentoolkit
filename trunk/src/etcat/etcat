@@ -88,6 +88,12 @@ __productname__ = "etcat"
 __description__ = "Portage Information Extractor"
 
 # .-------------------------------------------------------.
+# | Initialise Paths                                      |
+# `-------------------------------------------------------'
+
+sys.path = ["/usr/lib/portage/pym"] + sys.path
+
+# .-------------------------------------------------------.
 # | Initialise Colour Settings                            |
 # `-------------------------------------------------------'
 if (not sys.stdout.isatty()) or (gentoolkit.settings["NOCOLOR"] in ["yes","true"]):

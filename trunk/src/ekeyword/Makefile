@@ -1,0 +1,21 @@
+# Copyright 2004 Karl Trygve Kalleberg <karltk@gentoo.org>
+# Copyright 2004 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2
+#
+# $Header$
+
+include ../../makdefs.mak
+
+all:
+	echo "ALBACETE (AL-ba-seet n.) A single surprisingly long hair growing in the middle of nowhere."
+
+dist:
+	mkdir -p ../../$(distdir)/src/ekeyword
+	cp {AUTHORS,README,TODO,ChangeLog,ekeyword,ekeyword.1} ../../$(distdir)/src/ekeyword/
+
+install:
+	install -m 0755 ekeyword $(bindir)/
+	install -d $(docdir)/ekeyword
+	install -m 0644 {AUTHORS,README,TODO,ChangeLog} $(docdir)/ekeyword/
+	install -m 0644 ekeyword.1 $(mandir)/
+

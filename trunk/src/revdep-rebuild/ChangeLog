@@ -1,0 +1,4 @@
+2004-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added Makefile
+	* Copied revdep-rebuild script from app-portage/gentoolkit
+
