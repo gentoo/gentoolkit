@@ -17,6 +17,7 @@ import re
 import sys
 import time
 import string
+import types
 
 # portage (output module) and gentoolkit need special path modifications
 sys.path.insert(0, "/usr/lib/portage/pym")
@@ -923,18 +924,28 @@ if __name__ == "__main__":
 		try:
 			cmd.perform(local_opts)
 		except KeyError, e:
-			print red("!!!"), "Invalid syntax: missing operator"
-			print red("!!!"), "If you want only specific versions please use one of"
-			print red("!!!"), "the following operators as prefix for the package name:"
-			print red("!!!"), "   >  >=  =  <=  <"
-			print red("!!!"), "Example to only match gcc versions greater or equal 3.2:"
-			print red("!!!"), "   >=sys-devel/gcc-3.2"
+			if string.find(e[0], "Specific key requires operator") == 0:
+				print red("!!!"), "Invalid syntax: missing operator"
+				print red("!!!"), "If you want only specific versions please use one of"
+				print red("!!!"), "the following operators as prefix for the package name:"
+				print red("!!!"), "   >  >=  =  <=  <"
+				print red("!!!"), "Example to only match gcc versions greater or equal 3.2:"
+				print red("!!!"), "   >=sys-devel/gcc-3.2"
+			else:
+				print red("!!!"), "Internal portage error, terminating"
+				if len(e[0]):
+					print red("!!!"), e
 			sys.exit(2)
-		except ValueError, epkg:
-			print red("!!!"), "Ambiguous package name \"%s\"" % query
-			print red("!!!"), "Please use one of the following long names:"
-			for p in epkg[0]:
-				print red("!!!"), "    "+p
+		except ValueError, e:
+			if type(e[0]) == types.ListType:
+				print red("!!!"), "Ambiguous package name \"%s\"" % query
+				print red("!!!"), "Please use one of the following long names:"
+				for p in e[0]:
+					print red("!!!"), "    "+p
+			else:
+				print red("!!!"), "Internal portage error, terminating"
+				if len(e[0])):
+					print red("!!!"), e[0]
 			sys.exit(2)
 	else:
 		print "No command or unknown command given"
