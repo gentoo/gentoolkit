@@ -41,3 +41,12 @@ function assert_ge() {
 		report_failure $1
 	fi
 }
+
+function assert_exists() {
+	if [ -f $2 ]  ; then
+		report_pass $1
+	else
+		printf "FAIL: $2 does not exist\n"
+		report_failure $1
+	fi
+}
