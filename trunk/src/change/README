@@ -1,0 +1,20 @@
+Package : change
+Version : 0.2.4
+Author  : See AUTHORS
+
+MOTIVATION
+
+Maintaing Gentoo's ChangeLog files in the Portage Tree is a tedious affair.
+Many of the details are well-defined enough for a tool to do. change is this
+tool.
+
+MECHANICS
+
+change can create a ChangeLog, add entries to the ChangeLog file, scan for
+updated files.
+
+
+IMPROVEMENTS
+
+For improvements, send a mail to karltk@gentoo.org or make out a bug at 
+bugs.gentoo.org and assign it to me.

@@ -1,0 +1,52 @@
+#!/bin/sh
+
+# Copyright(c) 2002, Gentoo Technologies, Inc
+# Author: Karl Trygve Kalleberg <karltk@gentoo.org>
+
+spec=$1
+
+name=`echo $1 | sed "s/\([^/]*\)\///"`
+category=`echo $1 | sed "s/\/.*//"`
+
+if [ "$category" == "$name" ] ; then
+	category=
+fi
+
+function tryfile() {
+	local foo
+	foo=/var/db/pkg/$1/CONTENTS
+	bar=`ls $foo 2> /dev/null`
+	for i in $bar ; do
+		if [ -f "$i" ] ; then
+			echo $i
+			break
+		fi
+	done
+}
+
+file=`tryfile "${category}/${name}"`
+if [ -z $file ] ; then
+ file=`tryfile "${category}/${name}*"`
+ if [ -z $file ] ; then
+  file=`tryfile "${category}*/${name}"`
+  if [ -z $file ] ; then
+   file=`tryfile "${category}*/${name}*"`
+   if [ -z $file ] ; then
+    echo "!!! Package resembling ${category}/${name} not found"
+    exit 1
+   fi
+  fi
+ fi
+fi
+
+pkgname=`echo $file | sed -e "s:\/var\/db\/pkg\/::" -e "s:\/CONTENTS::"`
+
+totals=`cat $file|grep "obj"|awk '{ print $2 }' | sed "s/ /\\ /" | xargs du -scb | grep total | cut -f 1`
+
+size=0
+for i in $totals ; do 
+	size=$[size+i]
+done
+
+echo "$pkgname $size ($[size/1024]KB)"
+
