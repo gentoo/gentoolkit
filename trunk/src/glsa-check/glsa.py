@@ -13,12 +13,16 @@
 
 __author__ = "Marius Mauch <genone@gentoo.org>"
 
-import os, sys, urllib, time, string, portage, codecs, re
+import os, sys, urllib, time, string, codecs, re
 import xml.dom.minidom
 
 sys.path.insert(0, "/usr/lib/portage/pym")	# to find portage.py
 
-opMapping = {"le": "<=", "lt": "<", "eq": "=", "gt": ">", "ge": ">="}
+import portage
+
+# Note: the space for rgt and rlt is important !!
+opMapping = {"le": "<=", "lt": "<", "eq": "=", "gt": ">", "ge": ">=", 
+			 "rge": ">=~", "rle": "<=~", "rgt": " >~", "rlt": " <~"}
 NEWLINE_ESCAPE = "!;\\n"	# some random string to mark newlines that should be preserved
 
 def center(text, width):
@@ -263,6 +267,30 @@ def makeVersion(versionNode):
 	return opMapping[versionNode.getAttribute("range")] \
 			+getText(versionNode, format="strip")
 
+def revisionMatch(revisionAtom, portdb):
+	"""
+	handler for the special >~, >=~, <=~ and <~ atoms that are supposed to behave
+	as > and < except that they are limited to the same version, the range only
+	applies to the revision part.
+	
+	@type	revisionAtom: string
+	@param	revisionAtom: a <~ or >~ atom that contains the atom to match against
+	@type	portdb: portage.dbapi
+	@param	portdb:	one of the portage databases to use as information source
+	
+	@rtype:		list of strings
+	@return:	a list with the matching versions
+	"""
+	mylist = portdb.match(revisionAtom[2:])
+	rValue = []
+	for v in mylist:
+		r1 = "\""+portage.pkgsplit(v)[-1]+"\""
+		r2 = "\""+portage.pkgsplit(revisionAtom[3:])[-1]+"\""
+		if eval(r1+" "+revisionAtom[0:1]+" "+r2):
+			rValue.append(v)
+	return rValue
+		
+
 def getMinUpgrade(vulnerableList, unaffectedList):
 	"""
 	Checks if the systemstate is matching an atom in
@@ -283,11 +311,18 @@ def getMinUpgrade(vulnerableList, unaffectedList):
 	"""
 	rValue = None
 	for v in vulnerableList:
-		installed = portage.db["/"]["vartree"].dbapi.match(v)
+		if v[2] == "~":
+			installed = revisionMatch(v, portage.db["/"]["vartree"].dbapi)
+		else:
+			installed = portage.db["/"]["vartree"].dbapi.match(v)
 		if not installed:
 			continue
 		for u in unaffectedList:
-			for c in portage.db["/"]["porttree"].dbapi.match(u):
+			if u[2] == "~":
+				mylist = revisionMatch(u, portage.db["/"]["porttree"].dbapi)
+			else:
+				mylist = portage.db["/"]["porttree"].dbapi.match(u)
+			for c in mylist:
 				c_pv = portage.catpkgsplit(c)
 				i_pv = portage.catpkgsplit(portage.best(installed))
 				if portage.pkgcmp(c_pv[1:], i_pv[1:]) > 0 and (rValue == None or portage.pkgcmp(c_pv[1:], rValue) < 0):
@@ -301,9 +336,12 @@ class GlsaTypeException(Exception):
 	def __init__(self, doctype):
 		Exception.__init__(self, "wrong DOCTYPE: %s" % doctype)
 
-class GlsaFormatExceptio(Exception):
+class GlsaFormatException(Exception):
 	pass
 				
+class GlsaArgumentException(Exception):
+	pass
+
 # GLSA xml data wrapper class
 class Glsa:
 	"""
@@ -317,10 +355,17 @@ class Glsa:
 		
 		@type	myid: String
 		@param	myid: String describing the id for the GLSA object (standard
-					  GLSAs have an ID of the form YYYYMM-nn)
+					  GLSAs have an ID of the form YYYYMM-nn) or an existing
+					  filename containing a GLSA.
 		@type	myconfig: portage.config
 		@param	myconfig: the config that should be used for this object.
 		"""
+		if re.match(r'\d{6}-\d{2}', myid):
+			self.type = "id"
+		elif os.path.exists(myid):
+			self.type = "file"
+		else:
+			raise GlsaArgumentException("Given ID "+myid+" isn't a valid GLSA ID or filename.")
 		self.nr = myid
 		self.config = myconfig
 		self.read()
@@ -337,7 +382,10 @@ class Glsa:
 			repository = "file://" + self.config["GLSA_DIR"]
 		else:
 			repository = self.config["GLSA_SERVER"]
-		myurl = repository + self.config["GLSA_PREFIX"] + str(self.nr) + self.config["GLSA_SUFFIX"]
+		if self.type == "file":
+			myurl = "file://"+self.nr
+		else:
+			myurl = repository + self.config["GLSA_PREFIX"] + str(self.nr) + self.config["GLSA_SUFFIX"]
 		self.parse(urllib.urlopen(myurl))
 		return None
 
@@ -358,7 +406,7 @@ class Glsa:
 		elif self.DOM.doctype.systemId != "http://www.gentoo.org/dtd/glsa.dtd":
 			raise GlsaTypeException(self.DOM.doctype.systemId)
 		myroot = self.DOM.getElementsByTagName("glsa")[0]
-		if myroot.getAttribute("id") != self.nr:
+		if self.type == "id" and myroot.getAttribute("id") != self.nr:
 			raise GlsaFormatException("filename and internal id don't match:" + myroot.getAttribute("id") + " != " + self.nr)
 
 		# the simple (single, required, top-level, #PCDATA) tags first
