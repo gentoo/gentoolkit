@@ -4,7 +4,7 @@
 #
 # --| Version Information |------------------------------------------
 # 
-#  etcat v0.1.2 (29 Mar 2003)
+#  etcat v0.1.3 (24 Apr 2003)
 #
 # --| About |--------------------------------------------------------
 #
@@ -25,21 +25,24 @@
 #
 #  etcat [options] <command> <package[-ver]|ebuild|category/package[-ver]>
 #
-#  -c/changes ) list the more recent changelog entry
+#  -c/changes  ) list the more recent changelog entry
 #  -v/versions ) list all the versions available for a package
-#  -u/uses ) list all the use variables used in this package/ebuild
-#  -s/size ) guesses the size of a installed packaged.
+#  -u/uses     ) list all the use variables used in this package/ebuild
+#  -s/size     ) guesses the size of a installed packaged.
+#  -b/belongs  ) checks what package(s) a file belongs to
 #
 # --| TODO |---------------------------------------------------------
 # 
-#  - Natural Order Sort for version numbers.
-#    (http://www.naturalordersort.org)
-#    - Do it by providing custom comparators, remember to sort
-#      out revisions and _alpha, _beta, _pre and suffixes like a,b,c.
-#    - All in all, a big hassle, i'd rather just forget about it.
+# - in ver_cmp: 1.2.10a < 1.2.10, need to fix that
 # 
 # --| Changes |------------------------------------------------------
 #
+#  * etcat-0.1.3 (24 Apr 2003)
+#    - Overhaul of commandline interpreter
+#    - Added "belongs" feature
+#    - Reimplemented "uses" to deal with IUSE more cleanly
+#      and sources use.local.desc
+#    - Natural Order Listings for version
 #  * etcat-0.1.2 (29 Mar 2003)
 #    - Added unstable indicator to complement masked
 #    - improved use flag listing
@@ -60,9 +63,9 @@ import portage
 from stat import *
 from output import *
 
-options = [ "changes", "versions", "uses", "size" ]
+options = [ "changes", "versions", "uses", "size", "belongs" ]
 __author__ = "Alastair Tse"
-__version__ = "0.1"
+__version__ = "0.1.3"
 __productname__ = "etcat"
 __description__ = "Portage Information Extractor"
 
@@ -72,6 +75,131 @@ __description__ = "Portage Information Extractor"
 if (not sys.stdout.isatty()) or (portage.settings["NOCOLOR"] in ["yes","true"]):
     nocolor()
 
+# .-------------------------------------------------------.
+# | Smart Pacakge Version Comparison                      |
+# +-------------------------------------------------------+
+# | Does more advanced package sorting hueristics         |
+# `-------------------------------------------------------'
+
+LETTERS=map(lambda x: chr(x), range(ord('a'),ord('z')))
+# find roughly which is the newer version
+def vercmp(a, b):
+    a_ver = []
+    a_min = ""
+    a_pre = ""
+    a_rev = 0
+    b_ver = []
+    b_min = ""
+    b_pre = ""
+    b_rev = 0
+
+    # split into digestable components
+    # eg. 1.2.3b_pre4-r5
+    # 1. get the 1.2.3 bit
+    a_parts = a.split("-")[0].split("_")
+    a_ver = a_parts[0].split(".")
+    b_parts = b.split("-")[0].split("_")
+    b_ver = b_parts[0].split(".")    
+    
+    # 2. get a,b,c.. or whatever letter at the end
+    if a_ver[-1][-1] in LETTERS:
+        a_min = a_ver[-1][-1]
+        a_ver[-1] = a_ver[-1][:-1]
+    if b_ver[-1][-1] in LETTERS:
+        b_min = b_ver[-1][-1]
+        b_ver[-1] = b_ver[-1][:-1]        
+    
+    # 2. get the _pre4 bit and -r5 
+    if len(a_parts) > 1:
+        a_pre = a_parts[1]
+    if len(a.split("-")) > 1:
+        a_rev = int(a.split("-")[1][1:])
+    if len(b_parts) > 1:
+        b_pre = b_parts[1]
+    if len(b.split("-")) > 1:
+        b_rev = int(b.split("-")[1][1:])        
+
+    # 3. do the comparison
+    for x in range(len(a_ver)):
+        # 3a. convert to numbers
+        try:
+            a_num = int(a_ver[x])
+        except (ValueError, IndexError):
+            a_num = 0
+        try:
+            b_num = int(b_ver[x])
+        except (ValueError, IndexError):
+            b_num = 0
+        # 3b. the comparison
+        if a_num == b_num:
+            continue
+        elif a_num > b_num:
+            return 1
+        elif a_num < b_num:
+            return -1
+
+    # 3c. compare minor ver
+    if a_min and not b_min:
+        return -1
+    elif not a_min and b_min:
+        return 1
+    elif a_min and b_min and a_min > b_min:
+        return 1
+    elif a_min and b_min and a_min < b_min:
+        return -1
+
+    # 3d. compare pre ver
+    if a_pre and not b_pre:
+        return -1
+    elif not a_pre and b_pre:
+        return 1
+    elif a_pre and b_pre and a_pre > b_pre:
+        return 1
+    elif a_pre and b_pre and a_pre < b_pre:
+        return -1
+    
+    # 3e. compare rev
+    if a_rev > b_rev:
+        return 1
+    elif a_rev < b_rev:
+        return -1
+    else:
+        return 0
+
+    
+def pkgcmp(a,b):
+    # strips out package name and returns the result of vercmp
+    awords = a.split("-")
+    bwords = b.split("-")
+    apkg = [awords[0]]
+    bpkg = [bwords[0]]
+    DIGITS = ['0','1','2','3','4','5','6','7','8','9']
+    
+    for w in awords[1:]:
+	if w[0] in DIGITS:
+	    break
+	else:
+	    apkg.append(w)
+    aver = awords[len(apkg):]
+    apkg_str = string.join(apkg, "-")
+    aver_str = string.join(aver, "-")
+    
+    for w in bwords[1:]:
+	if w[0] in DIGITS:
+	    break
+	else:
+	    bpkg.append(w)
+    bver = bwords[len(bpkg):]
+    bpkg_str = string.join(bpkg, "-")
+    bver_str = string.join(bver, "-")    
+    
+    if apkg_str > bpkg_str:
+	return 1
+    elif bpkg_str > apkg_str:
+	return -1
+    else:
+	return vercmp(aver_str, bver_str)
+    
 # .-------------------------------------------------------.
 # | Simple Package Search Function                        |
 # +-------------------------------------------------------+
@@ -302,7 +430,7 @@ def versions(query):
 	if (curver) and (curver not in versions):
 	    versions.append(curver)
 	
-	versions.sort()
+	versions.sort(pkgcmp)
 	
 	for ver in versions:
             
@@ -323,9 +451,11 @@ def versions(query):
 	    except KeyError:
 		ver_keywords = [""]
             keywords_list = ver_keywords[0].split()
+	    
             if "~" + portage.settings["ARCH"] in keywords_list:
                 state.append(yellow("~"))
-                color = yellow
+		if color != red:
+		    color = yellow
                 unstable = 1
             else:
                 state.append(" ")
@@ -351,58 +481,106 @@ def versions(query):
         print
 
 # .-------------------------------------------------------.
-# | Guesses Uses in Ebuild                                |
+# | List USE flags for a single ebuild                    |
 # +-------------------------------------------------------+
 # | Just uses the new IUSE parameter in ebuilds           |
 # `-------------------------------------------------------' 
 def uses(query):
-    ebuild = smart_ebuild(query)
-    useflags = portage.config()["USE"].split()
-    re_iuse = re.compile('IUSE="(.*)"');
-    if not ebuild:
-	print "Unable to find ebuild you requested."
-	return
-    for line in open(ebuild).readlines():
-	if len(line.strip()) and line.strip()[0] == "#":
-	    continue
-	iuse = re_iuse.search(line)
-	if iuse:
-	    print "[ Found these USE variables in : " + white(os.path.basename(ebuild)[:-7]) + " ]"
-	    print "[ Colour Code : " + green("set") + " " + red("unset") + "]"
-	    usevar = iuse.group(1).split()
-	    usevar.sort()
-            
-            # open up use.desc
-            if usevar:
-                try:
-                    fd = open("/usr/portage/profiles/use.desc")
-                    usedesc = {}
-                    for line in fd.readlines():
-                        if line[0] == "#":
-                            continue
-                        fields = line.split(" - ")
-                        if len(fields) == 2:
-                            usedesc[fields[0].strip()] = fields[1].strip()
-                except:
-                    usedesc = {}
-                    
-            inuse = []
-	    for u in usevar:
-		if u in useflags:
-		    print "+", green(u),
-
-		else:
-		    print "-", red(u),
-                    
-                if usedesc.has_key(u): 
-                    print " " + usedesc[u]
-                else: 
-                    print " unknown"
-	    return
-    print "[ Can't find IUSE variable in : " + white(os.path.basename(ebuild)[:-7]) + " ]"
-    print turquoise("*") + " Applying search manually .."
+    pkg = smart_pkgsplit(query)
+    matches = search(pkg[1])
+    useflags = portage.config()["USE"].split()    
+    usedesc = {}
+    uselocaldesc = {}
+    # open up use.desc
+    try:
+	# TODO: use portage settings
+	fd = open("/usr/portage/profiles/use.desc")
+	usedesc = {}
+	for line in fd.readlines():
+	    if line[0] == "#":
+		continue
+	    fields = line.split(" - ")
+	    if len(fields) == 2:
+		usedesc[fields[0].strip()] = fields[1].strip()
+    except IOError:
+	pass
+		
+    try:
+	# TODO: use portage.settings
+	fd = open("/usr/portage/profiles/use.local.desc")
+	for line in fd.readlines():
+	    if line[0] == "#":
+		continue
+	    fields = line.split(" - ")
+	    if len(fields) == 2:
+		catpkguse = re.search("([a-z]+-[a-z]+/.*):(.*)", fields[0])
+		if catpkguse:
+		    if not uselocaldesc.has_key(catpkguse.group(1).strip()):
+			uselocaldesc[catpkguse.group(1).strip()] = {catpkguse.group(2).strip() : fields[1]}
+		    else:
+			uselocaldesc[catpkguse.group(1).strip()][catpkguse.group(2).strip()] = fields[1]
+    except IOError:
+	pass
+	
     
-    old_uses(query)
+    
+    print "[ Colour Code : " + green("set") + " " + red("unset") + " ]"
+    print "[ Legend      : (U) Col 1 - Current USE flags        ]"
+    print "[             : (I) Col 2 - Installed With USE flags ]"
+    
+    for p in matches:
+	print white(" U I ") + "[ Found these USE variables in : " + white(p) + " ]"
+	
+	curver = portage.db["/"]["vartree"].dep_bestmatch(p)
+	iuse = portage.db["/"]["porttree"].dbapi.aux_get(curver,["IUSE"])
+	if iuse: usevar = iuse[0].split()
+	else: usevar = []
+	
+	# find flags in use for this package if installed
+	inuse = []
+	installed = glob.glob("/var/db/pkg/" + p + "-*")
+	if installed:
+	    try:
+		used = open(installed[-1] + "/USE").read().split()
+	    except:
+		used = []
+	
+	for u in usevar:
+	    inuse = 0
+	    inused = 0
+	    flag = ["-","+"]
+	    colour = [red, green]
+	    try:
+		desc = usedesc[u]
+	    except KeyError:
+		desc = ""
+	    
+	    if u in useflags: inuse = 1
+	    if u in used: inused = 1
+	    
+	    if inuse != inused:
+		print yellow(" %s %s" % (flag[inuse], flag[inused])),
+	    else:
+		print " %s %s" % (flag[inuse], flag[inused]),
+	    print colour[inuse](u),
+	    
+	    # check for local useflags
+	    if uselocaldesc.has_key(p):
+		try:
+		    desc = uselocaldesc[p][u]
+		except KeyError:
+		    desc = ""
+	    # print description
+	    if desc:
+		print ":", desc
+	    else:
+		print ": unknown"
+    return
+
+    # deprecated - this was a hack anyway
+    #print "[ Can't find IUSE variable in : " + white(os.path.basename(ebuild)[:-7]) + " ]"
+    #print turquoise("*") + " Applying search manually .."
+    #old_uses(query)
     
 # .-------------------------------------------------------.
 # | Uses a general rules that has all use's with either   |
@@ -456,6 +634,7 @@ def old_uses(query):
 # | Required By Function                                  |
 # +-------------------------------------------------------+
 # | Find what packages require a given package name       |
+# | !!! NOT WORKING !!!                                   |
 # `-------------------------------------------------------'
 
 def required(query):
@@ -477,11 +656,45 @@ def required(query):
             rdepend = dep.readline()
             depend = dep.readline()
             
-            
+
+# .-------------------------------------------------------.
+# | Belongs to which package                              |
+# +-------------------------------------------------------+
+# | Finds what file belongs to which pacakge              |
+# `-------------------------------------------------------'	    
+	    
+def belongs(query):
+    # FIXME: use portage.settings
+    dbdir = "/var/db/pkg"
+
+    q_regex = re.sub(r'\.',r'\.',query[0])
+    q_regex = re.sub(r'\*',r'\[^\s]*', q_regex)
+    
+    reobj = re.compile(r'^[a-zA-Z]{3}[\s](' + q_regex + r')[\s]', re.M)
+    
+    if len(query) >= 2:
+	category = query[1]
+    else:
+	category = "*"
+	
+    print "Searching for", query[0], "in", category, "..."
+	
+    for catdir in glob.glob(dbdir + "/" + category):
+	cat =  catdir.split("/")[-1]
+	for pkg in os.listdir(catdir):
+	    try:
+		contents = open(catdir + "/" + pkg + "/CONTENTS").read()
+		matches = reobj.search(contents)
+		if matches:
+		    print cat + "/" + pkg
+	    except IOError:
+		pass
+    return
+	
 
 def size(query):
     matches = search(query)
-    
+    # FIXME: use portage.settings
     dbdir = "/var/db/pkg/"
     
     print "[ Results for search key : " + white(query) + " ]"
@@ -517,7 +730,7 @@ def size(query):
 		print string.rjust(" Total Files : ",25) + str(files)
 		if uncounted:
 		    print string.rjust(" Inaccessible Files : ",25) + str(uncounted)
-		print string.rjust(" Total Size : ",25) + str(size) + " bytes"
+		print string.rjust(" Total Size : ",25) + "%.2f KB" % (size/1024.0)
 	
 # .-------------------------------------------------------.
 # | Help Function                                         |
@@ -531,12 +744,23 @@ def help():
     print white("Usage: ") + turquoise(__productname__) + " [ " + green("options") + " ] [ " + turquoise("action") + " ] [ " + turquoise("package") + " ]"
     print
     print turquoise("Actions:")
+    print
+    print " "*4 + green("belongs") + " (" + green("-b") + " short option)"
+    print " "*12 + "Searches the portage for package that owns a specified file."
+    print " "*12 + "with an option to restrict the search space. Example:"
+    print " "*16 + "etcat belongs /usr/bin/gimp media-gfx"
+    print " "*16 + "etcat belongs /usr/lib/libjpeg.so media-*"
+    print " "*16 + "etcat belongs /usr/lib/libmpeg.so"
+    print
     print " "*4 + green("changes") + " (" + green("-c") + " short option)"
     print " "*12 + "Outputs the changelog entry to screen. It is possible to give"
     print " "*12 + "a version number along with package name. eg:"
     print " "*12 + "    etcat changes mozilla"
     print " "*12 + "    etcat changes mozilla-1.1-r1"
     print " "*12 + "    etcat changes gkrellm$"
+    print
+    print " "*4 + green("size") + " (" + green("-s") + " short option)"
+    print " "*12 + "Outputs the size of all the files used by a particular package."    
     print
     print " "*4 + green("uses") + " (" + green("-u") + " short option)"
     print " "*12 + "Outputs all the possible USE variables that it uses. Note,"
@@ -551,16 +775,12 @@ def help():
     print " "*12 + " (" + turquoise("I") + ") : Installed Package"
     print " "*12 + " Number on the end indicates package SLOT."
     print 
-    print " "*4 + green("size") + " (" + green("-s") + " short options)"
-    print " "*12 + "Outputs the size of all the files used by a particular package."
-    print
 
 # .-------------------------------------------------------.
 # | Main Function                                         |
 # `-------------------------------------------------------'
 def main():
     
-    shortopts = "cuvsV"
     action = ''
     query = ''
     
@@ -568,41 +788,42 @@ def main():
 	help()
 	sys.exit(1)
 	
-    opts, args = getopt.getopt(sys.argv[1:],shortopts,[])
-    
-    for o,a in opts:
-	if o == "-c":
+    # delegates the commandline stuff to functions
+    # if you need to add a function, here's where you
+    # hook it in first, read further down for the other place
+    # you need to hook in.
+    pointer = 2
+    for arg in sys.argv[1:]:
+	if arg in ["-c","changes"]:
 	    action = "changes"
-	elif o == "-u":
-	    action = "uses"
-	elif o == "-v":
-	    action = "versions"
-	elif o == "-s":
+	    query = ' '.join(sys.argv[pointer:])
+	    break
+	elif arg in ["-b", "belongs"]:
+	    action = "belongs"
+	    query = sys.argv[pointer:]
+	    break
+	elif arg in ["-s","size"]:
 	    action = "size"
-    
-    if action:
-	query = ' '.join(args)
-    else:
-	i = 0
-	for a in args:
-	    if a in options:
-		action = a
-		break
-	    else:
-		i = i + 1
-	query = ' '.join(args[len(opts) + i + 1:])
-
+	    query = ' '.join(sys.argv[pointer:])
+	    break
+	elif arg in ["-u", "uses"]:
+	    action = "uses"
+	    query = ' '.join(sys.argv[pointer:])
+	    break
+	elif arg in ["-v","versions"]:
+	    action = "versions"
+	    query = ' '.join(sys.argv[pointer:])
+	    break
+	else:
+	    pointer += 1
 	
     # abort if we don't have an action or query string
-    if not query:
-	help()
-	sys.exit(1)
-		
-    if action not in options:
+    if not query or action not in options:
 	help()
 	sys.exit(1)
 	
-    # dispatch function
+    # dispatch function to the function
+    # this is the second place to hook in your function
     if action == "changes":
 	changes(query)
     elif action == "versions":
@@ -611,8 +832,13 @@ def main():
 	uses(query)
     elif action == "size":
 	size(query)
+    elif action == "belongs":
+	belongs(query)
 #    elif action == "required":
 #	required(query)
 
 if __name__ == "__main__":
-    main()
+    try:
+	main()
+    except KeyboardInterrupt:
+	print "Operation Aborted!"
