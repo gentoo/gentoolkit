@@ -342,9 +342,14 @@ def uses(query, matches):
 	print "[ Legend   : (U) Col 1 - Current USE flags        ]"
 	print "[          : (I) Col 2 - Installed With USE flags ]"
 
+	if filter(gentoolkit.Package.is_installed, matches):
+		only_installed = True
+	else:
+		only_installed = False
+
 	# Iterate through matches, printing a report for each package
 	for p in matches:
-		if not p.is_installed():
+		if not p.is_installed() and only_installed:
 			continue
 	
 		bestver = p.get_cpv()

@@ -1,3 +1,6 @@
+2004-04-20 Marius Mauch <genone@gentoo.org>
+	- fixing -u behavior so it matches equery (bug #47690)
+
 2004-03-13 Marius Mauch <genone@gentoo.org>
 	- grouping version in --version output
 
