@@ -175,7 +175,7 @@ class Package:
 		if not self._db:
 			cat=self.get_category()
 			pnv=self.get_name()+"-"+self.get_version()
-			self._db=portage.dblink(cat,pnv,"",settings)
+			self._db=portage.dblink(cat,pnv,"/",settings)
 
 #
 # Global helper functions
@@ -185,7 +185,7 @@ def find_packages(search_key):
 	"""Returns a list of Package objects that matched the search key."""
 	# FIXME: this one failes if search_key contains version suffix
 	t=portage.portdb.match(search_key)
-	return map(lambda x: Package(x), t)
+	return [Package(x) for x in t]
 
 def find_best_match(search_key):
 	"""Returns a Package object for the best available installed candidate that
@@ -203,8 +203,7 @@ def find_best_match(search_key):
 def find_system_packages(prefilter=None):
 	"""Returns a tuple of lists, first list is resolved system packages,
 	second is a list of unresolved packages."""
-	f = open(portage.profiledir+"/packages")
-	pkglist = f.readlines()
+	pkglist = settings.packages
 	resolved = []
 	unresolved = []
 	for x in pkglist:
