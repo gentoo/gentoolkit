@@ -343,7 +343,7 @@ class CmdListBelongs(Command):
 			#cnt = pkg.get_contents()
 			if not cnt: return
 			for file in cnt.keys():
-				if rx.search(file):
+				if rx.search(file) and (opts["category"] == "*" or portage.catpkgsplit(pkg)[0] == opts["category"]):
 					print pkg
 					return
 
@@ -356,7 +356,7 @@ class CmdListBelongs(Command):
 			#cnt = pkg.get_contents()
 			if not cnt: return
 			for file in cnt.keys():
-				if rx.search(file):
+				if rx.search(file) and (opts["category"] == "*" or portage.catpkgsplit(pkg)[0] == opts["category"]):
 					s = pkg + " (" + pp.path(fileAsStr(file, cnt[file])) + ")"
 					print_info(0, s)
 					if opts["earlyOut"]:
@@ -1555,8 +1555,7 @@ if __name__ == "__main__":
 		try:
 			cmd.perform(local_opts)
 		except KeyError, e:
-			if e and type(e[0]) == types.ListType and \
-					string.find(e[0], "Specific key requires operator") == 0:
+			if e and string.find(e[0], "Specific key requires an operator") >= 0:
 				print_error("Invalid syntax: missing operator")
 				print_error("If you want only specific versions please use one of")
 				print_error("the following operators as prefix for the package name:")
@@ -1567,18 +1566,18 @@ if __name__ == "__main__":
 			else:
 				print_error("Internal portage error, terminating")
 				if len(e[0]):
-					print_error(e)
+					print_error(str(e))
 			sys.exit(2)
 		except ValueError, e:
 			if e and type(e[0]) == types.ListType:
 				print_error("Ambiguous package name " + pp.emph("\"" + local_opts[0] + "\""))
 				print_error("Please use one of the following long names:")
 				for p in e[0]:
-					print_error("	" + p)
+					print_error("	" + str(p))
 			else:
 				print_error("Internal portage error, terminating")
 				if len(e[0]):
-					print_error(e[0])
+					print_error(str(e[0]))
 			sys.exit(2)
 		except KeyboardInterrupt:
 			print_info(0, "Interrupted by user, aborting.")
