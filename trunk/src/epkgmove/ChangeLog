@@ -1,3 +1,7 @@
+2004-09-27 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Updated epkgmove to 1.1, as availble on
+	http://dev.gentoo.org/~port001/DevTools/epkgmove/epkgmove-1.1.py
+
 2004-09-10 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Updated epkgmove to 1.0, as availble on
 	http://dev.gentoo.org/~port001/DevTools/epkgmove/epkgmove-1.0.py
