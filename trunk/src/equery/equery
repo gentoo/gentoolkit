@@ -9,7 +9,7 @@
 
 __author__ = "Karl Trygve Kalleberg"
 __email__ = "karltk@gentoo.org"
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __productname__ = "equery"
 __description__ = "Gentoo Package Query Tool"
 
@@ -26,9 +26,7 @@ sys.path.insert(0, "/usr/lib/portage/pym")
 from output import *
 import gentoolkit
 
-from gentoolkit import warn
-from gentoolkit import error
-from gentoolkit import info
+from gentoolkit import print_warn, print_error, print_info, die
 
 # Auxiliary functions
 
@@ -124,7 +122,7 @@ class CmdListFiles(Command):
                 query = x
 
         if need_help or query == "":
-            print self.longHelp()
+            info(0, self.longHelp())
             sys.exit(-1)
             
         return (query, opts)
@@ -133,29 +131,27 @@ class CmdListFiles(Command):
 
         (query, opts) = self.parseArgs(args)
 
-        if Config["verbosityLevel"] >= 3 and not Config["piping"]:
-            print "Searching for packages matching '" + query + "'..."
+        print_info(3, "Searching for packages matching '" + query + "'...")
             
         pkgs = gentoolkit.find_packages(query, True)
         for x in pkgs:
 
             if not x.is_installed():
                 continue
-            
-            if Config["verbosityLevel"] >= 1 and not Config["piping"]:
-                print "Contents of " + x.get_cpv() + ":"
-                
+        
+            print_info(1, "Contents of " + x.get_cpv() + ":")
+
             cnt = x.get_contents()
 
             filenames = cnt.keys()
             filenames.sort()
             
             for name in filenames:
-                print fileAsStr(name,
+                print_info(0, fileAsStr(name,
                                     cnt[name],
                                     showType=opts["showType"],
                                     showTimestamp=opts["showTimestamp"],
-                                    showMD5=opts["showMD5"])
+                                    showMD5=opts["showMD5"]))
         
     def longHelp(self):
         return "List files owned by a particular package\n" + \
@@ -210,13 +206,24 @@ class CmdListBelongs(Command):
                 query = x
 
         if need_help or query == "":
-            print self.longHelp()
+            print_info(0, self.longHelp())
             sys.exit(-1)
             
         return (query, opts)
                 
     def perform(self, args):
         (query, opts) = self.parseArgs(args)
+
+        # Act intelligently on the query
+        try: 
+            if opts["fullRegex"]: 
+                rx = re.compile(query)
+            elif len(query) and query[0] == "/":
+                rx = re.compile("^" + query + "$")
+            else:
+                rx = re.compile("/" + query + "$")
+        except:
+            die(2, "The query '" + white(query) + "' does not appear to be a valid regular expression")
 
         # Pick out only selected categories
         cat = opts["category"]
@@ -228,18 +235,6 @@ class CmdListBelongs(Command):
             
         matches = gentoolkit.find_all_installed_packages(filter_fn)
 
-        # Act intelligently on the query
-        try: 
-            if opts["fullRegex"]: 
-                rx = re.compile(query)
-            elif len(query) and query[0] == "/":
-                rx = re.compile("^" + query + "$")
-            else:
-                rx = re.compile("/" + query + "$")
-        except:
-            error("The query '" + query + "' does not appear to be a valid regular expression")
-            sys.exit(-2)
-        
         found = 0
         for pkg in matches:
             cnt = pkg.get_contents()
@@ -250,7 +245,7 @@ class CmdListBelongs(Command):
                     s = pkg.get_cpv()
                     if not Config["piping"]:
                         s += " (" + fileAsStr(file, cnt[file]) + ")"
-                    print s 
+                    print_info(0, s)
                     if opts["earlyOut"]:
                         found = 1
                         break
@@ -303,7 +298,7 @@ class CmdDisplayUSEs(Command):
                 query = x
 
         if need_help or query == "":
-            print self.longHelp()
+            print_info(0, self.longHelp())
             sys.exit(-1)
             
         return (query, opts)
@@ -315,9 +310,8 @@ class CmdDisplayUSEs(Command):
         matches = gentoolkit.find_packages(query, True)
 
         if not matches:
-            print red("!!! No matching packages found for \"") + white(query) + red("\"")
-            print
-            return
+            die(3, "No matching packages found for \"" + white(query) + "\"")
+
 
         useflags = gentoolkit.settings["USE"].split()    
         usedesc = {}
@@ -334,8 +328,7 @@ class CmdDisplayUSEs(Command):
                 if len(fields) == 2:
                     usedesc[fields[0].strip()] = fields[1].strip()
         except IOError:
-            if Config["verbosityLevel"] >= 5:
-                print "Warning: Could not load USE flag descriptions from " + gentoolkit.settings["PORTDIR"] + "/profiles/use.desc"
+            print_warn(5, "Could not load USE flag descriptions from " + white(gentoolkit.settings["PORTDIR"] + "/profiles/use.desc"))
 
         # Load local USE flag descriptions
         try:
@@ -352,13 +345,12 @@ class CmdDisplayUSEs(Command):
                         else:
                             uselocaldesc[catpkguse.group(1).strip()][catpkguse.group(2).strip()] = fields[1].strip()
         except IOError:
-            if Config["verbosityLevel"] >= 5:
-                print "Warning: Could not load USE flag descriptions from " + gentoolkit.settings["PORTDIR"] + "/profiles/use.desc"
+                print_warn(5, "Could not load USE flag descriptions from " + white(gentoolkit.settings["PORTDIR"] + "/profiles/use.desc"))
 
-        if Config["verbosityLevel"] >= 2 and not Config["piping"]: 
-            print "[ Colour Code : " + green("set") + " " + red("unset") + " ]"
-            print "[ Legend    : Left column  (U) - USE flags from make.conf              ]"
-            print "[           : Right column (I) - USE flags packages was installed with ]"
+        if not Config["piping"]: 
+            print_info(3, "[ Colour Code : " + green("set") + " " + red("unset") + " ]")
+            print_info(3, "[ Legend    : Left column  (U) - USE flags from make.conf              ]")
+            print_info(3, "[           : Right column (I) - USE flags packages was installed with ]")
 
         # Iterate through matches, printing a report for each package
         printed_matches = 0
@@ -405,8 +397,8 @@ class CmdDisplayUSEs(Command):
             # pretty print
             if output:
                 if not Config["piping"]:
-                    print
-                    print white(" U I ") + "[ Found these USE variables for : " + white(bestver) + " ]"
+                    print_info(0, "[ Found these USE variables for : " + white(bestver) + " ]")
+                    print_info(3, white(" U I"))
                 maxflag_len = 0
                 for inuse, inused, u, desc in output:
                     if len(u) > maxflag_len:
@@ -416,31 +408,31 @@ class CmdDisplayUSEs(Command):
                     markers = ["-","+"]
                     colour = [red, green]
                     if Config["piping"]:
-                        print markers[in_makeconf] + flag
+                        print_info(0, markers[in_makeconf] + flag)
                     else:
                         if in_makeconf != in_installed:
-                            print yellow(" %s %s" % (markers[in_makeconf], markers[in_installed])),
+                            print_info(0, yellow(" %s %s" % (markers[in_makeconf], markers[in_installed])), False)
                         else:
-                            print " %s %s" % (markers[in_makeconf], markers[in_installed]),
+                            print_info(0, " %s %s" % (markers[in_makeconf], markers[in_installed]), False)
     
-                        print colour[in_makeconf](flag.ljust(maxflag_len)),
+                        print_info(0, " " + colour[in_makeconf](flag.ljust(maxflag_len)), False)
 
                         # print description
                         if desc:
-                            print ":", desc
+                            print_info(0, " : " + desc)
                         else:
-                            print ": unknown"
+                            print_info(0, ": unknown")
                 printed_matches += 1
             else:
                 if not Config["piping"]:
-                    print "[ No USE flags found for :", white(p.get_cpv()), "]"
+                    print_info(1, "[ No USE flags found for :", white(p.get_cpv()), "]")
 
         if Config["verbosityLevel"] >= 2:
             if printed_matches == 0:
                 s = ""
                 if opts["installedOnly"]:
                     s = "installed "
-                print red("!!! No " + s + "packages found for \"") + white(query) + "\""
+                die("No " + s + "packages found for \"") + white(query) + "\""
                 
                     
     def shortHelp(self):
@@ -489,7 +481,7 @@ class CmdDisplayDepGraph(Command):
                 query = x
 
         if need_help or query == "":
-            print self.longHelp()
+            print_info(0, self.longHelp())
             sys.exit(-1)
             
         return (query, opts)
@@ -502,15 +494,15 @@ class CmdDisplayDepGraph(Command):
         for pkg in matches:
 
             if Config["piping"]:
-                print pkg.get_cpv() + ":"
-            elif Config["verbosityLevel"] >= 3:
-                print "[ Dependencies for " + white(pkg.get_cpv()) + " ]"
+                print_info(0, pkg.get_cpv() + ":")
+            else:
+                print_info(3, "[ Dependencies for " + white(pkg.get_cpv()) + " ]")
 
             if not pkg.is_installed():
                 continue
             stats = { "maxdepth": 0, "packages": 0 }
             self._graph(pkg, opts, stats)
-            print "[ " + white(pkg.get_cpv()) + " stats: packages (" + green(str(stats["packages"])) + "), max depth (" + green(str(stats["maxdepth"])) + ") ]"
+            print_info(0, "[ " + white(pkg.get_cpv()) + " stats: packages (" + green(str(stats["packages"])) + "), max depth (" + green(str(stats["maxdepth"])) + ") ]")
         
     def _graph(self, pkg, opts, stats, level=0, pkgtbl=[], suffix=""):
     
@@ -522,7 +514,7 @@ class CmdDisplayDepGraph(Command):
         pfx = ""
         if opts["fancyFormatting"]:
             pfx = level * " " + "`-- " 
-        print pfx + cpv + suffix
+        print_info(0, pfx + cpv + suffix)
         
         pkgtbl.append(cpv)
         
@@ -583,7 +575,7 @@ class CmdDisplaySize(Command):
                 query = x
 
         if need_help or query == "":
-            print self.longHelp()
+            print_info(0, self.longHelp())
             sys.exit(-1)
             
         return (query, opts)
@@ -600,20 +592,20 @@ class CmdDisplaySize(Command):
             (size, files, uncounted) = pkg.size()
 
             if Config["piping"]:
-                print pkg.get_cpv() + ": total(" + str(files) + "), inaccessible(" + str(uncounted) + \
-                    "), size(" + str(size) + ")"
+                print_info(0, pkg.get_cpv() + ": total(" + str(files) + "), inaccessible(" + str(uncounted) + \
+                    "), size(" + str(size) + ")")
             else:
-                print "[ Size of " + white(pkg.get_cpv()) + " ]"
-                print string.rjust(" Total files : ",25) + str(files)
+                print_info(0, "[ Size of " + white(pkg.get_cpv()) + " ]")
+                print_info(0, string.rjust(" Total files : ",25) + str(files))
     
                 if uncounted:
-                    print string.rjust(" Inaccessible files : ",25) + str(uncounted)
+                    print_info(0, string.rjust(" Inaccessible files : ",25) + str(uncounted))
     
                 sz = "%.2f KiB" % (size/1024.0)                
                 if opts["reportSizeInBytes"]:
                     sz = str(size) + " bytes"
                 
-                print string.rjust("Total size  : ",25) + sz
+                print_info(0, string.rjust("Total size  : ",25) + sz)
 
                     
     def shortHelp(self):
@@ -666,7 +658,7 @@ class CmdCheckIntegrity(Command):
                 query = x
 
         if need_help or query == "":
-            print self.longHelp()
+            print_info(0, self.longHelp())
             sys.exit(-1)
             
         return (query, opts)
@@ -683,9 +675,9 @@ class CmdCheckIntegrity(Command):
             if not pkg.is_installed():
                 continue
             if Config["piping"]:
-                print pkg.get_cpv() + ":"
+                print_info(0, pkg.get_cpv() + ":")
             elif Config["verbosityLevel"] >= 1:
-                print "[ Checking " + white(pkg.get_cpv()) + " ]"
+                print_info(1, "[ Checking " + white(pkg.get_cpv()) + " ]")
                 
             files = pkg.get_contents()
             checked_files = 0
@@ -716,17 +708,17 @@ class CmdCheckIntegrity(Command):
                             raise CheckException(file + " does not point to " + target)
                             
                     else:
-                        print file
-                        print files[file]
-                        print type
+                        print_error(file)
+                        print_error(files[file])
+                        print_error(type)
                         raise "Unknown type"
                     good_files += 1
                 except CheckException, (e):
-                    print red(" * ") + e.s
+                    print_error(e.s)
                 except OSError:
-                    print red(" * ") + white(file) + " does not exist"
+                    print_error(white(file) + " does not exist")
                 checked_files += 1
-            print yellow(" * ") + green(str(good_files)) + " out of " +  white(str(checked_files)) + " files good"
+            print_info(0, yellow(" * ") + green(str(good_files)) + " out of " +  white(str(checked_files)) + " files good")
                     
     def shortHelp(self):
         return turquoise("pkgspec") + " - check package's files against recorded MD5 sums and timestamps"
@@ -764,7 +756,7 @@ class CmdWhich(Command):
                 query = x
 
         if need_help or query == "":
-            print self.longHelp()
+            print_info(0, self.longHelp())
             sys.exit(-1)
             
         return (query, opts)
@@ -776,10 +768,9 @@ class CmdWhich(Command):
         matches = gentoolkit.sort_package_list(matches)
 
         if matches:
-            print os.path.normpath(matches[-1].get_ebuild_path())
+            print_info(0, os.path.normpath(matches[-1].get_ebuild_path()))
         else:
-            print red("!!!"), "No masked or unmasked packages found for %s" % query
-            print
+            print_error("No masked or unmasked packages found for " + white(query))
                     
     def shortHelp(self):
         return turquoise("pkgspec") + " - print full path to ebuild for package " + turquoise("pkgspec")
@@ -837,7 +828,7 @@ class CmdListPackages(Command):
                 query = x
 
         if need_help:
-            print self.longHelp()
+            print_info(0, self.longHelp())
             sys.exit(-1)
             
         return (query, opts)
@@ -868,8 +859,7 @@ class CmdListPackages(Command):
             package_finder = gentoolkit.find_all_uninstalled_packages
 
         if not package_finder:
-            print red("!!! You must specify one of ") + yellow("-i") + red(", ") + yellow("-p") + red(" or ") + yellow("-o")
-            sys.exit(2)
+            die(2, "You must specify one of ") + yellow("-i") + red(", ") + yellow("-p") + red(" or ") + yellow("-o")
 
         filter_fn = None
 
@@ -887,19 +877,19 @@ class CmdListPackages(Command):
             if name == ".*":
                 sname = "all packages"
             if not Config["piping"]:
-                print "Searching for " + sname + " in " + scat + " among:"
+                print_info(1, "Searching for " + white(sname) + " in " + white(scat) + " among:")
                 if opts["includeInstalled"]:
-                    print turquoise(" *") + " installed packages"
+                    print_info(1, turquoise(" *") + " installed packages")
                 if opts["includePortTree"]:
-                    print turquoise(" *") + " Portage tree (" + gentoolkit.settings["PORTDIR"] + ")"
+                    print_info(1, turquoise(" *") + " Portage tree (" + gentoolkit.settings["PORTDIR"] + ")")
                 if opts["includeOverlayTree"]:
-                    print turquoise(" *") + " overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")"
+                    print_info(1, turquoise(" *") + " overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")")
         
         matches = package_finder(filter_fn)
 
         rx = re.compile(cat + "/" + name + "-" + ver + "(-" + rev + ")?")
-        pfxmodes = [ "[---]", "[I--]", "[-P-]", "[--O]" ]
-        maskmodes = [ "[  ]", "[ ~]", "[ -]", "[M ]", "[M~]", "[M-]" ]
+        pfxmodes = [ "[---]", "[" + green("I") + "--]", "[-P-]", "[--O]" ]
+        maskmodes = [ "[  ]", "[ ~]", "[ -]", "[" + red("M") + " ]", "[" + red("M") + "~]", "[" + red("M") + "-]" ]
         for pkg in matches:
             status = 0
             if pkg.is_installed():
@@ -927,9 +917,9 @@ class CmdListPackages(Command):
                (status == 3 and opts["includeOverlayTree"]):
                 if rx.search(pkg.get_cpv()):
                     if Config["piping"]:
-                        print pkg.get_cpv()
+                        print_info(0, pkg.get_cpv())
                     else:
-                        print pfxmodes[status] + " " + maskmodes[pkgmask] + " " + pkg.get_cpv() + " (" + slot + ")"
+                        print_info(0, pfxmodes[status] + " " + maskmodes[pkgmask] + " " + pkg.get_cpv() + " (" + blue(slot) + ")")
                     
     def shortHelp(self):
         return yellow("<local-opts> ") + turquoise("pkgspec") + " - list all packages matching " + turquoise("pkgspec")
@@ -988,7 +978,7 @@ class CmdFindUSEs(Command):
                 query = x
 
         if need_help:
-            print self.longHelp()
+            print_info(0, self.longHelp())
             sys.exit(-1)
             
         return (query, opts)
@@ -1011,8 +1001,7 @@ class CmdFindUSEs(Command):
             package_finder = gentoolkit.find_all_uninstalled_packages
 
         if not package_finder:
-            print red("!!! You must specify one of ") + yellow("-i") + red(", ") + yellow("-p") + red(" or ") + yellow("-o")
-            sys.exit(2)
+            die(2,"You must specify one of " + yellow("-i") + red(", ") + yellow("-p") + red(" or ") + yellow("-o"))
 
         filter_fn = lambda x: True
             
@@ -1021,13 +1010,13 @@ class CmdFindUSEs(Command):
             if cat == ".*":
                 scat = "all categories"
             if not Config["piping"]:
-                print "Searching for USE flag '" + query  + " in " + scat + " among:"
+                print_info(2, "Searching for USE flag " + white(query)  + " in " + white(scat) + " among:")
                 if opts["includeInstalled"]:
-                    print turquoise(" *") + " installed packages"
+                    print_info(1, turquoise(" *") + " installed packages")
                 if opts["includePortTree"]:
-                    print turquoise(" *") + " Portage tree (" + gentoolkit.settings["PORTDIR"] + ")"
+                    print_info(1, turquoise(" *") + " Portage tree (" + gentoolkit.settings["PORTDIR"] + ")")
                 if opts["includeOverlayTree"]:
-                    print turquoise(" *") + " overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")"
+                    print_info(1, turquoise(" *") + " overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")")
         
         matches = package_finder(filter_fn)
 
@@ -1070,9 +1059,9 @@ class CmdFindUSEs(Command):
                (status == 2 and opts["includePortTree"]) or \
                (status == 3 and opts["includeOverlayTree"]):
                 if Config["piping"]:
-                    print pkg.get_cpv()
+                    print_info(0, pkg.get_cpv())
                 else:
-                    print pfxmodes[status] + " " + maskmodes[pkgmask] + " " + pkg.get_cpv() + " (" + slot + ")"
+                    print_info(0, pfxmodes[status] + " " + maskmodes[pkgmask] + " " + pkg.get_cpv() + " (" + blue(slot) + ")")
                     
     def shortHelp(self):
         return yellow("<local-opts> ") + turquoise("pkgspec") + " - list all packages with " + turquoise("useflag")
@@ -1108,6 +1097,8 @@ Known_commands = {
     "which": CmdWhich()
     }
 
+from gentoolkit import Config
+
 Config = {
     # Query will include packages installed on the system
     "installedPackages":  1,
@@ -1131,22 +1122,22 @@ Config = {
     
 def printVersion():
     """Print the version of this tool to the console."""
-    print __productname__ + "(" + __version__ + ") - " + \
-          __description__
-    print "Author(s): " + __author__
+    print_info(0, __productname__ + "(" + __version__ + ") - " + \
+          __description__)
+    print_info(0, "Author(s): " + __author__)
     
 def printUsage():
     """Print full usage information for this tool to the console."""
-    print white("Usage: ") + turquoise(__productname__) + yellow(" <global-opts> ") + green("command") + yellow(" <local-opts>")
-    print "where " + yellow("<global-opts>") + " is one of"
-    print yellow(" -q, --quiet") + "   - minimal output"
-    print yellow(" -C, --nocolor") + " - turn off colours"
-    print yellow(" -h, --help") + "    - this help screen"
-    print yellow(" -V, --version") + " - display version info"
+    print_info(0, white("Usage: ") + turquoise(__productname__) + yellow(" <global-opts> ") + green("command") + yellow(" <local-opts>"))
+    print_info(0, "where " + yellow("<global-opts>") + " is one of")
+    print_info(0, yellow(" -q, --quiet") + "   - minimal output")
+    print_info(0, yellow(" -C, --nocolor") + " - turn off colours")
+    print_info(0, yellow(" -h, --help") + "    - this help screen")
+    print_info(0, yellow(" -V, --version") + " - display version info")
     
-    print "where " + green("command") + " is one of"
+    print_info(0, "where " + green("command") + " is one of")
     for x in Known_commands.keys():
-        print " " + green(x) + " " + Known_commands[x].shortHelp()
+        print_info(0, " " + green(x) + " " + Known_commands[x].shortHelp())
 
 def configure():
     """Set up default configuration.
@@ -1215,30 +1206,31 @@ if __name__ == "__main__":
         except KeyError, e:
             if e and type(e[0]) == types.ListType and \
                     string.find(e[0], "Specific key requires operator") == 0:
-                print red("!!!"), "Invalid syntax: missing operator"
-                print red("!!!"), "If you want only specific versions please use one of"
-                print red("!!!"), "the following operators as prefix for the package name:"
-                print red("!!!"), "   >  >=  =  <=  <"
-                print red("!!!"), "Example to only match gcc versions greater or equal 3.2:"
-                print red("!!!"), "   >=sys-devel/gcc-3.2"
+                print_error("Invalid syntax: missing operator")
+                print_error("If you want only specific versions please use one of")
+                print_error("the following operators as prefix for the package name:")
+                print_error("   >  >=  =  <=  <")
+                print_error("Example to only match gcc versions greater or equal 3.2:")
+                print_error("   >=sys-devel/gcc-3.2")
+                
             else:
-                print red("!!!"), "Internal portage error, terminating"
+                print_error("Internal portage error, terminating")
                 if len(e[0]):
-                    print red("!!!"), e
+                    print_error(e)
             sys.exit(2)
         except ValueError, e:
             if e and type(e[0]) == types.ListType:
-                print red("!!!"), "Ambiguous package name \"%s\"" % local_opts[0]
-                print red("!!!"), "Please use one of the following long names:"
+                print_error("Ambiguous package name " + white("\"" + local_opts[0] + "\""))
+                print_error("Please use one of the following long names:")
                 for p in e[0]:
-                    print red("!!!"), "    "+p
+                    print_error("    " + p)
             else:
-                print red("!!!"), "Internal portage error, terminating"
+                print_error("Internal portage error, terminating")
                 if len(e[0]):
-                    print red("!!!"), e[0]
+                    print_error(e[0])
             sys.exit(2)
         except KeyboardInterrupt:
-            print "Interrupted by user, aborting."
+            print_info(0, "Interrupted by user, aborting.")
     else:
-        print "No command or unknown command given"
+        print_error("No command or unknown command given")
         printUsage()
