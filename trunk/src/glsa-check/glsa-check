@@ -11,7 +11,7 @@ from getopt import getopt,GetoptError
 
 __program__ = "glsa-check"
 __author__ = "Marius Mauch <genone@gentoo.org>"
-__version__ = "0.4"
+__version__ = "0.5"
 
 optionmap = [
 ["-l", "--list", "list all unapplied GLSA"],
