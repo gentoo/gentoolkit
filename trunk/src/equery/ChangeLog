@@ -1,3 +1,7 @@
+2004-03-13 Marius Mauch <genone@gentoo.org>
+	* fixing descriptions for local USE flags
+	* more checking on exceptions
+
 2004-01-23 Marius Mauch <genone@gentoo.org>
 	* now catches Exceptions thrown by portage
 	* minor bugfixes

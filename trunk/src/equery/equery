@@ -346,7 +346,7 @@ class CmdDisplayUSEs(Command):
 					desc = usedesc[u]
 				except KeyError:
 					try:
-						desc = uselocaldesc[p][u]
+						desc = uselocaldesc[p.get_category()+"/"+p.get_name()][u]
 					except KeyError:
 						desc = ""
 
@@ -946,7 +946,8 @@ if __name__ == "__main__":
 		try:
 			cmd.perform(local_opts)
 		except KeyError, e:
-			if string.find(e[0], "Specific key requires operator") == 0:
+			if e and type(e[0]) == types.ListType and \
+					string.find(e[0], "Specific key requires operator") == 0:
 				print red("!!!"), "Invalid syntax: missing operator"
 				print red("!!!"), "If you want only specific versions please use one of"
 				print red("!!!"), "the following operators as prefix for the package name:"
@@ -959,7 +960,7 @@ if __name__ == "__main__":
 					print red("!!!"), e
 			sys.exit(2)
 		except ValueError, e:
-			if type(e[0]) == types.ListType:
+			if e and type(e[0]) == types.ListType:
 				print red("!!!"), "Ambiguous package name \"%s\"" % local_opts[0]
 				print red("!!!"), "Please use one of the following long names:"
 				for p in e[0]:

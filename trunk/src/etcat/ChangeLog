@@ -1,3 +1,6 @@
+2004-03-13 Marius Mauch <genone@gentoo.org>
+	- grouping version in --version output
+
 2004-01-23 Marius Mauch <genone@gentoo.org>
 	- now catches exceptions thrown by portage
 	- minor bugfixes

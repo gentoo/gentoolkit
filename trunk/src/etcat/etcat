@@ -253,8 +253,13 @@ def versions(query, matches):
 	# FIXME: old version printed result of regex search on name,
 	# so "ant" would return app-emacs/semantic, etc...
 	
+	last_cp = ""
+
 	for pkg in matches:
-		print green("*") + "  " + white(pkg.get_cpv()) + " :"
+		new_cp = pkg.get_category()+"/"+pkg.get_name()
+		if last_cp != new_cp:
+			print green("*") + "  " + white(new_cp) + " :"
+		last_cp = new_cp
 			
 		state = []
 		color = green
@@ -292,7 +297,6 @@ def versions(query, matches):
 		ver = pkg.get_version()
 		slot = pkg.get_env_var("SLOT")
 		print " "*8 + "[" + string.join(state,"") + "] " + color(ver) + " (" + color(slot) + ")" + overlay
-		print
 
 # .-------------------------------------------------------.
 # | List USE flags for a single ebuild, if it's installed |
@@ -362,7 +366,7 @@ def uses(query, matches):
 				desc = usedesc[u]
 			except KeyError:
 				try:
-					desc = uselocaldesc[p][u]
+					desc = uselocaldesc[p.get_category()+"/"+p.get_name()][u]
 				except KeyError:
 					desc = ""
 
