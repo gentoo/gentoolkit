@@ -4,7 +4,9 @@
 #
 # --| Version Information |------------------------------------------
 # 
-#  etcat v0.1.3 (24 Apr 2003)
+#  etcat v0.1.4 (27 Apr 2003)
+#
+#  $Header$
 #
 # --| About |--------------------------------------------------------
 #
@@ -39,6 +41,10 @@
 # 
 # --| Changes |------------------------------------------------------
 #
+#  * etcat-0.1.4 (27 Apr 2003)
+#    - Cleaned up command execution code to provide a single place
+#      to specify functions
+#    - Added own custom wrapping print code.
 #    - Added "files" feature
 #    - Added "depends" feature
 #  * etcat-0.1.3 (24 Apr 2003)
@@ -61,15 +67,15 @@
 
 
 
-import os,sys,string,re
+import os,sys,string,re,pprint
 import getopt,glob
 import portage
 from stat import *
 from output import *
 
-options = [ "changes", "versions", "uses", "size", "belongs", "depends", "files"]
 __author__ = "Alastair Tse"
-__version__ = "0.1.3"
+__email__ = "liquidx@gentoo.org"
+__version__ = "0.1.4"
 __productname__ = "etcat"
 __description__ = "Portage Information Extractor"
 
@@ -78,6 +84,72 @@ __description__ = "Portage Information Extractor"
 # `-------------------------------------------------------'
 if (not sys.stdout.isatty()) or (portage.settings["NOCOLOR"] in ["yes","true"]):
     nocolor()
+
+# "option": ("shortcommand","desc",["example one", "example two"])
+options = {
+"belongs":("b","Searches for a package that owns a specified file with an option to restrict the search space.",
+["etcat belongs /usr/bin/gimp media-gfx","etcat belongs /usr/lib/libjpeg.so media-*","etcat belongs /usr/lib/libmpeg.so"]),
+"changes":("c","Outputs the changelog entry to screen. It is possible to give a version number along with the package name.",
+["etcat changes mozilla", "etcat changes mozilla-1.1-r1", "etcat changes gkrellm$"]),
+"depends":("d","Finds all packages that are directly dependent to a regex search string.",
+["etcat depends 'gnome-base/libgnome'", "etcat depends '>=dev-lang/python-2.2'"]),
+"files":("f","Lists files that belongs to a package and optionally with version.",[]),
+"size":("s","Lists the installed size of a package.",[]),
+"uses":("u", "Advanced output of USE vars in a package. Tells you flags used by a package at time of installation, flags in current config and flag description.",[]),
+"versions":("v","Displays the versions available for a specific package. Colour coded to indicate installation status and displays slot information.",
+[turquoise("(I)") + "nstalled", yellow("(~)") + "Unstable Testing Branch", red("(M)") + "asked Package"])
+}
+
+# .-------------------------------------------------------.
+# | Small Wrapping Printer with Indent Support            |
+# `-------------------------------------------------------'
+
+def wrap_print(string, indent=0, width=74):
+    line_len = width - indent
+    str_len = len(string)
+    lines = []
+    
+    pos = 0
+    thisline = ""
+    while pos < str_len:
+	# if we still have space stuff the
+	# character in this line
+	if len(thisline) < line_len-1:
+	    thisline += string[pos]
+	    pos += 1
+	# if we're at the end of the line,
+	# check if we should hyphenate or
+	# append
+	elif len(thisline) == line_len -1:
+	    # end of a text
+	    if pos == str_len -1:
+		thisline += string[pos]
+		pos += 1
+	    # end of a word
+	    elif string[pos] != " " and string[pos+1] == " ":
+		thisline += string[pos]		
+		pos += 1
+	    # just a space
+	    elif string[pos] == " ":
+		thisline += string[pos]				
+		pos += 1
+	    # start of a word, we start the word on the next line
+	    elif pos>0 and string[pos-1] == " ":
+		thisline += " "
+	    # needs hyphenating
+	    else:
+		thisline += "-"
+		
+	    # append the line
+	    lines.append(thisline)
+	    thisline = ""
+
+    # append last line
+    if thisline:
+	lines.append(thisline)
+	    
+    for line in lines:
+	print " "*indent + line
 
 # .-------------------------------------------------------.
 # | Smart Pacakge Version Comparison                      |
@@ -706,6 +778,7 @@ def depends(query):
 # `-------------------------------------------------------'	    
 	    
 def belongs(query):
+    query = query.split()
     # FIXME: use portage.settings
     dbdir = "/var/db/pkg"
 
@@ -835,49 +908,23 @@ def ver():
     print __productname__ + " (" + __version__ + ") - " + __description__ + " - By: " + __author__
 
 def help():
+    screenwidth = 74
+    margin = 2
+    margin_desc = 4
+    margin_ex = 8
+    
     ver()
     print
     print white("Usage: ") + turquoise(__productname__) + " [ " + green("options") + " ] [ " + turquoise("action") + " ] [ " + turquoise("package") + " ]"
     print
     print turquoise("Actions:")
     print
-    print " "*4 + green("belongs") + " (" + green("-b") + " short option)"
-    print " "*12 + "Searches the portage for package that owns a specified file."
-    print " "*12 + "with an option to restrict the search space. Example:"
-    print " "*16 + "etcat belongs /usr/bin/gimp media-gfx"
-    print " "*16 + "etcat belongs /usr/lib/libjpeg.so media-*"
-    print " "*16 + "etcat belongs /usr/lib/libmpeg.so"
-    print
-    print " "*4 + green("changes") + " (" + green("-c") + " short option)"
-    print " "*12 + "Outputs the changelog entry to screen. It is possible to give"
-    print " "*12 + "a version number along with package name. eg:"
-    print " "*12 + "    etcat changes mozilla"
-    print " "*12 + "    etcat changes mozilla-1.1-r1"
-    print " "*12 + "    etcat changes gkrellm$"
-    print
-    print " "*4 + green("depends") + " (" + green("-d") + " short option)"
-    print " "*12 + "Searches the portage for strings in the DEPEND/RDEPEND lines"
-    print " "*12 + "Accepts regex notation."
-    print
-    print " "*4 + green("files") + " (" + green("-d") + " short option)"
-    print " "*12 + "List files in a particular package."
-    print
-    print " "*4 + green("size") + " (" + green("-s") + " short option)"
-    print " "*12 + "Outputs the size of all the files used by a particular package."    
-    print
-    print " "*4 + green("uses") + " (" + green("-u") + " short option)"
-    print " "*12 + "Outputs all the possible USE variables that it uses. Note,"
-    print " "*12 + "if the ebuild does not use IUSE, then a hack is employed to"
-    print " "*12 + "try and guess the use variables used, maybe inaccurate."
-    print
-    print " "*4 + green("versions") + " (" + green("-v") + " short options)"
-    print " "*12 + "Outputs all the ebuild versions available in your portage tree."
-    print " "*12 + "How to decode the output:"
-    print " "*12 + " (" + red("M") + ") : Masked Package"
-    print " "*12 + " (" + yellow("~") + ") : Unstable Masked Package"
-    print " "*12 + " (" + turquoise("I") + ") : Installed Package"
-    print " "*12 + " Number on the end indicates package SLOT."
-    print 
+    for name,tup in options.items():
+	print " "*margin + green(name) + " (" + green("-" + tup[0]) + " short option)"
+	wrap_print(tup[1],indent=margin_desc)
+	for example in tup[2]:
+	    print " "*margin_ex + example
+	print
 
 # .-------------------------------------------------------.
 # | Main Function                                         |
@@ -892,65 +939,35 @@ def main():
 	sys.exit(1)
 	
     # delegates the commandline stuff to functions
-    # if you need to add a function, here's where you
-    # hook it in first, read further down for the other place
-    # you need to hook in.
     pointer = 2
+    # short/long opts mapping
+    shortopts = map(lambda x: x[0], options.values())
+    short2long = {}
+    for k,v in options.items():
+	short2long[v[0]] = k
+    longopts = options.keys()
+
+    # loop thru arguments
     for arg in sys.argv[1:]:
-	if arg in ["-c","changes"]:
-	    action = "changes"
+	if arg[0] == "-" and len(arg) == 2 and arg in shortopts:
+	    action = short2long[arg[1]]
 	    query = ' '.join(sys.argv[pointer:])
 	    break
-	elif arg in ["-b", "belongs"]:
-	    action = "belongs"
-	    query = sys.argv[pointer:]
-	    break
-	elif arg in ["-d","depends"]:
-	    action = "depends"
-	    query = ' '.join(sys.argv[pointer:])
-	elif arg in ["-s","size"]:
-	    action = "size"
+	elif arg in longopts:
+	    action = arg
 	    query = ' '.join(sys.argv[pointer:])
 	    break
-	elif arg in ["-u", "uses"]:
-	    action = "uses"
-	    query = ' '.join(sys.argv[pointer:])
-	    break
-	elif arg in ["-v","versions"]:
-	    action = "versions"
-	    query = ' '.join(sys.argv[pointer:])
-	    break
-	elif arg in ["-f","files"]:
-	    action = "files"
-	    query = ' '.join(sys.argv[pointer:])
-	elif arg in ["-nc"]:
-	    # i don't know if i want to publish this
-	    nocolor()
 	else:
 	    pointer += 1
-	
+	    
     # abort if we don't have an action or query string
-    if not query or action not in options:
+    if not query or action not in options.keys():
 	help()
 	sys.exit(1)
-	
-    # dispatch function to the function
-    # this is the second place to hook in your function
-    if action == "changes":
-	changes(query)
-    elif action == "versions":
-	versions(query)
-    elif action == "uses":
-	uses(query)
-    elif action == "size":
-	size(query)
-    elif action == "belongs":
-	belongs(query)
-    elif action == "depends":
-	depends(query)
-    elif action == "files":
-	files(query)
-
+    else:
+	function = globals()[action]
+	function(query)
+    
 if __name__ == "__main__":
     try:
 	main()

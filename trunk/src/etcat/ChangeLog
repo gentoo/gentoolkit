@@ -1,3 +1,8 @@
+* etcat-0.1.4 (27 Apr 2003)
+
+  27 Apr 2003; Alastair Tse <liquidx@gentoo.org>
+  Added "files", "belongs", "depends" functions.
+
 *etcat-0.1.3 (24 Apr 2003)
 
   24 Apr 2003; Alastair Tse <liquidx@gentoo.org>

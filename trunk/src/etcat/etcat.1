@@ -1,4 +1,4 @@
-.TH "etcat" "1" "0.1.3" "Alastair Tse <liquidx@gentoo.org>" "Gentoo Administration"
+.TH "etcat" "1" "0.1.4" "Alastair Tse <liquidx@gentoo.org>" "Gentoo Administration"
 .SH "NAME"
 .LP 
 etcat \- Gentoo Portage Information Extractor
@@ -31,11 +31,25 @@ are accepted.
 Searches for the package which a file belongs to with an option to restrict a search to a single or multiple category. Wildcards in the category name is accepted to speed up searching. (eg. etcat belongs /usr/lib/libmpeg.so "media\-*")
 
 .LP 
-\fB\-c\fR <\fIpackage\-[version]\fR>
+\fB\-c\fR <\fIpackage[\-version]\fR>
 .br 
-\fBchanges\fR <\fIpackage\-[version]\fR>
+\fBchanges\fR <\fIpackage[\-version]\fR>
 .IP 
 Outputs ChangeLog entry for the package and version specified. Uses the latest package version if none specified.
+
+.LP 
+\fB\-d\fR <\fIregex expression\fR>
+.br 
+\fBdepends\fR <\fIregex expression\fR>
+.IP 
+Searches through portage for a dependency string satisfying that regular expression.
+
+.LP 
+\fB\-f\fR <\fIpackage[\-version]\fR>
+.br 
+\fBfiles\fR <\fIpackage[\-version]\fR>
+.IP 
+Lists all the files installed for this package.
 
 .LP 
 \fB\-s\fR <\fIpackage\fR>
@@ -45,9 +59,9 @@ Outputs ChangeLog entry for the package and version specified. Uses the latest p
 Outputs the installed size of the package.
 
 .LP 
-\fB\-u\fR <\fIpackage\-[version]\fR>
+\fB\-u\fR <\fIpackage[\-version]\fR>
 .br 
-\fBuses\fR <\fIpackage\-[version]\fR>
+\fBuses\fR <\fIpackage[\-version]\fR>
 .IP 
 Outputs the USE flags supported by this package and also their installed state and description.
 
