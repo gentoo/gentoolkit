@@ -11,7 +11,7 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/glsa-check/
-	cp {Makefile,glsa.py,glsa-check} ../../$(distdir)/src/glsa-check/
+	cp Makefile glsa.py glsa-check ../../$(distdir)/src/glsa-check/
 
 install:
 	install -m 0755 glsa-check $(bindir)/
