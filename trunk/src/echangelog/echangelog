@@ -61,8 +61,6 @@ while (<C>) {
 # the changed files we have
 @ebuilds = grep /\.ebuild$/, @files;
 @files = grep !/\.ebuild$/, @files;
-print "files = @files\n";
-print "ebuilds = @ebuilds\n";
 if (@ebuilds) {
 	open C, "cvs diff -U 0 @ebuilds 2>&1 |" or die "Can't run cvs diff: $!\n";
 	$_ = <C>;
@@ -85,7 +83,7 @@ if (@ebuilds) {
 				last if /^[A-Za-z]/;
 				if (/^[-+](?!# Copyright)/) {
 					push @files, $f;
-					$versions{$2} = $v;	# existing ebuild that has changed
+					$versions{$v} = $0;	# existing ebuild that has changed
 					last;
 				}
 			}
