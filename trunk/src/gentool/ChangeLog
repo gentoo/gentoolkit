@@ -1,9 +1,14 @@
+2003-12-31 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added which command
+	* Added check command (not finished)
+	
 2003-12-12 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added size command
 	* Added depgraph command
 	
 2003-12-11 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added list command
+	* Added uses command
 	
 2003-10-05 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added files command

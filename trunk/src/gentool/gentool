@@ -140,7 +140,7 @@ class CmdListFiles(Command):
                "  " + yellow("--md5sum") + "     - append md5sum\n" + \
                "  " + yellow("--type") + "       - prepend file type"               
     def shortHelp(self):
-        return yellow("<local-opts> ") + green("pkgspec") + " - list files owned by " + green("pkgspec")
+        return yellow("<local-opts> ") + teal("pkgspec") + " - list files owned by " + teal("pkgspec")
 
     
 class CmdListBelongs(Command):
@@ -209,7 +209,7 @@ class CmdListBelongs(Command):
                 break
                     
     def shortHelp(self):
-        return yellow("<local-opts> ") + green("query") + " - list all packages owning " + green("file")
+        return yellow("<local-opts> ") + teal("file") + " - list all packages owning " + teal("file")
     def longHelp(self):
         return "List all packages owning a particular file" + \
                "\n" + \
@@ -217,19 +217,158 @@ class CmdListBelongs(Command):
                turquoise("Note: ") + "Normally, only one package will own a file. If multiple packages own the same file, it usually consitutes a problem, and should be reported.\n" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("belongs") + yellow(" <local-opts> ") + green("filename") + \
+               "  " + green("belongs") + yellow(" <local-opts> ") + teal("filename") + \
                "\n" + \
                yellow("<local-opts>") + " is either of: \n" + \
                "  " + yellow("-c, --category cat") + " - only search in category " + yellow("cat") + "\n" + \
                "  " + yellow("-e, --earlyout") + "     - stop when first match found\n"
-    
-class CmdListDepends(Command):
-    """List all packages directly or indirectly depending on pkgQuery"""
-    pass
 
 class CmdDisplayUSEs(Command):
     """Advanced report of a package's USE flags"""
-    pass
+    def __init__(self):
+        self.default_opts = {
+            }
+    def parseArgs(self, args):
+
+        query = ""
+        need_help = 0
+        opts = self.default_opts
+        skip = 0
+        
+        for i in xrange(len(args)):
+
+            if skip:
+                skip -= 1
+                continue
+            x = args[i]
+            
+            if x in ["-h","--help"]:
+                need_help = 1
+                break
+            else:
+                query = x
+
+        if need_help or query == "":
+            print self.longHelp()
+            sys.exit(-1)
+            
+        return (query, opts)
+
+    def perform(self, args):
+
+        (query, opts) = self.parseArgs(args)
+        
+        matches = gentoolkit.find_packages(query)
+
+        useflags = gentoolkit.settings["USE"].split()    
+        usedesc = {}
+        uselocaldesc = {}
+
+        # Load global USE flag descriptions
+        try:
+            fd = open(gentoolkit.settings["PORTDIR"]+"/profiles/use.desc")
+            usedesc = {}
+            for line in fd.readlines():
+                if line[0] == "#":
+                    continue
+                fields = line.split(" - ")
+                if len(fields) == 2:
+                    usedesc[fields[0].strip()] = fields[1].strip()
+        except IOError:
+            if Config["verbosityLevel"] >= 5:
+                print "Warning: Could not load USE flag descriptions from " + gentoolkit.settings["PORTDIR"] + "/profiles/use.desc"
+
+        # Load local USE flag descriptions
+        try:
+            fd = open(gentoolkit.settings["PORTDIR"]+"/profiles/use.local.desc")
+            for line in fd.readlines():
+                if line[0] == "#":
+                    continue
+                fields = line.split(" - ")
+                if len(fields) == 2:
+                    catpkguse = re.search("([a-z]+-[a-z]+/.*):(.*)", fields[0])
+                    if catpkguse:
+                        if not uselocaldesc.has_key(catpkguse.group(1).strip()):
+                            uselocaldesc[catpkguse.group(1).strip()] = {catpkguse.group(2).strip() : fields[1].strip()}
+                        else:
+                            uselocaldesc[catpkguse.group(1).strip()][catpkguse.group(2).strip()] = fields[1].strip()
+        except IOError:
+            if Config["verbosityLevel"] >= 5:
+                print "Warning: Could not load USE flag descriptions from " + gentoolkit.settings["PORTDIR"] + "/profiles/use.desc"
+	
+        print "[ Colour Code : " + green("set") + " " + red("unset") + " ]"
+        print "[ Legend      : (U) Col 1 - Current USE flags        ]"
+        print "[             : (I) Col 2 - Installed With USE flags ]"
+
+        # Iterate through matches, printing a report for each package
+        for p in matches:
+            if not p.is_installed():
+                continue
+    
+            bestver = p.get_cpv()
+            iuse = p.get_env_var("IUSE")
+	
+            if iuse: usevar = iuse.split()
+            else: usevar = []
+	
+            inuse = []
+            used = p.get_use_vars().split()
+
+            # store (inuse, inused, flag, desc)
+            output = []
+
+            for u in usevar:
+                inuse = 0
+                inused = 0
+                try:
+                    desc = usedesc[u]
+                except KeyError:
+                    try:
+                        desc = uselocaldesc[p][u]
+                    except KeyError:
+                        desc = ""
+
+                if u in useflags: inuse = 1
+                if u in used: inused = 1
+		
+                output.append((inuse, inused, u, desc))
+
+            # pretty print
+            if output:
+                print
+                print white(" U I ") + "[ Found these USE variables in : " + white(bestver) + " ]"
+                maxflag_len = 0
+                for inuse, inused, u, desc in output:
+                    if len(u) > maxflag_len:
+                        maxflag_len = len(u)
+	
+                for inuse, inused, u, desc in output:
+                    flag = ["-","+"]
+                    colour = [red, green]
+                    if inuse != inused:
+                        print yellow(" %s %s" % (flag[inuse], flag[inused])),
+                    else:
+                        print " %s %s" % (flag[inuse], flag[inused]),
+
+                        print colour[inuse](u.ljust(maxflag_len)),
+	    
+                    # print description
+                    if desc:
+                        print ":", desc
+                    else:
+                        print ": unknown"
+            else:
+                print "[ No USE flags found for :", white(p.get_cpv()), "]"
+    def shortHelp(self):
+        return yellow("<local-opts> ") + teal("pkgspec") + " - display USE flags for " + teal("pkgspec")
+    def longHelp(self):
+        return "Display USE flags for a given package\n" + \
+               "\n" + \
+               "Syntax:\n" + \
+               "  " + green("uses") + yellow(" <local-opts> ") + teal("pkgspec") + \
+               "\n" + \
+               yellow("<local-opts>") + " is either of: \n"
+
 
 class CmdDisplayDepGraph(Command):
     """Display tree graph of deps for pkgQuery"""
@@ -311,20 +450,16 @@ class CmdDisplayDepGraph(Command):
         return pkgtbl
 
     def shortHelp(self):
-        return yellow("<local-opts> ") + green("pkgspec") + " - display a dependency tree for " + green("pkgspec")
+        return yellow("<local-opts> ") + teal("pkgspec") + " - display a dependency tree for " + teal("pkgspec")
     def longHelp(self):
         return "Display a dependency tree for a given package\n" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("depgraph") + yellow(" <local-opts> ") + green("pkgspec") + \
+               "  " + green("depgraph") + yellow(" <local-opts> ") + teal("pkgspec") + \
                "\n" + \
                yellow("<local-opts>") + " is either of: \n" + \
                "  " + yellow("-U, --no-useflags") + " - do not show USE flags\n" + \
                "  " + yellow("-l, --linear") + "      - do not use fancy formatting"
-
-class CmdDisplayChanges(Command):
-    """Display changes for pkgQuery"""
-    pass
 
 class CmdDisplaySize(Command):
     """Display disk size consumed by a package"""
@@ -386,22 +521,168 @@ class CmdDisplaySize(Command):
 
                     
     def shortHelp(self):
-        return yellow("<local-opts> ") + green("pkgspec") + " - print size of files contained in packages " + green("pkgspec")
+        return yellow("<local-opts> ") + teal("pkgspec") + " - print size of files contained in package " + teal("pkgspec")
     def longHelp(self):
         return "Print size total size of files contained in a given package" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("size") + yellow(" <local-opts> ") + green("pkgspec") + \
+               "  " + green("size") + yellow(" <local-opts> ") + teal("pkgspec") + \
                "\n" + \
                yellow("<local-opts>") + " is either of: \n" + \
                "  " + yellow("-b, --bytes") + " - report size in bytes\n"
 
-class CmdCheckIntegrity(Command):
-    """Check timestamps and md5sums for files owned by pkgQuery"""
+class CmdDisplayChanges(Command):
+    """Display changes for pkgQuery"""
     pass
+
+class CheckException:
+    def __init__(self, s):
+        self.s = s
+    
+class CmdCheckIntegrity(Command):
+    """Check timestamps and md5sums for files owned by pkgspec"""
+    def __init__(self):
+        self.default_opts = {
+            "showSummary" : 1,
+            "showGoodFiles" : 0,
+            "showBadFiles" : 1,
+            "checkTimestamp" : 1,
+            "checkMD5sum": 1
+            }
+
+    def parseArgs(self, args):
+
+        query = ""
+        need_help = 0
+        opts = self.default_opts
+        skip = 0
+        
+        for i in xrange(len(args)):
+            if skip:
+                skip -= 1
+                continue
+            x = args[i]
+            
+            if x in ["-h","--help"]:
+                need_help = 1
+                break
+            else:
+                query = x
+
+        if need_help or query == "":
+            print self.longHelp()
+            sys.exit(-1)
+            
+        return (query, opts)
+
+    def checkMD5sum(self, file):
+        return 1
+    
+    def perform(self, args):
+        (query, opts) = self.parseArgs(args)
+
+        matches = gentoolkit.find_packages(query)
+
+        for pkg in matches:
+            if not pkg.is_installed():
+                continue
+            files = pkg.get_contents()
+            for file in files.keys():
+                type = files[file][0]
+                try:
+                    st = os.lstat(file)
+                    if type == "dir":
+                        if not os.path.isdir(file):
+                            raise CheckException(file + " exists, but is not a directory")
+                    elif type == "obj":
+                        mtime = files[file][1]
+                        if opts["checkTimestamp"]:
+                            if st.st_mtime != int(mtime):
+                                raise CheckException(file + (" has wrong mtime (is %d, should be %s)" % (st.st_mtime, mtime)))
+                        if opts["checkMD5sum"]:
+                            if not self.checkMD5sum(file):
+                                raise CheckException(file + " has incorrect md5sum")
+                    elif type == "sym":
+                        # FIXME: nastry strippery; portage should have this fixed!
+                        t = files[file][2]
+                        i = t.find("(")
+                        target = t[0:i].strip()
+                        if not os.path.islink(file):
+                            raise CheckException(file + " exists, but is not a symlink")
+                        tgt = os.readlink(file)
+                        if tgt != target:
+                            raise CheckException(file + " does not point to " + target)
+                            
+                    else:
+                        print file
+                        print files[file]
+                        print type
+                        raise "Unknown type"
+                except CheckException, (e):
+                    print e.s
+                except OSError:
+                    print file + " does not exist"
+                    
+    def shortHelp(self):
+        return teal("pkgspec") + " - check package's files against recorded MD5 sums and timestamps"
+    def longHelp(self):
+        return "Check package's files against recorded MD5 sums and timestamps"
 
 class CmdDisplayStatistics(Command):
     """Display statistics about installed and uninstalled packages"""
+    pass
+
+class CmdWhich(Command):
+    """Display the filename of the ebuild for a given package
+       that would be used by Portage with the current configuration."""
+    def __init__(self):
+        self.default_opts = {}
+
+    def parseArgs(self, args):
+
+        query = ""
+        need_help = 0
+        opts = self.default_opts
+        skip = 0
+        
+        for i in xrange(len(args)):
+
+            if skip:
+                skip -= 1
+                continue
+            x = args[i]
+            
+            if x in ["-h","--help"]:
+                need_help = 1
+                break
+            else:
+                query = x
+
+        if need_help or query == "":
+            print self.longHelp()
+            sys.exit(-1)
+            
+        return (query, opts)
+                
+    def perform(self, args):
+        (query, opts) = self.parseArgs(args)
+
+        matches = gentoolkit.find_packages(query)
+
+        for pkg in matches:
+            print os.path.normpath(pkg.get_ebuild_path())
+                    
+    def shortHelp(self):
+        return teal("pkgspec") + " - print full path to ebuild for package " + teal("pkgspec")
+    def longHelp(self):
+        return "Print full path to ebuild for a given package"
+
+class CmdListGLSAs(Command):
+    """List outstanding GLSAs."""
+    pass
+
+class CmdListDepends(Command):
+    """List all packages directly or indirectly depending on pkgQuery"""
     pass
 
 class CmdListPackages(Command):
@@ -510,12 +791,12 @@ class CmdListPackages(Command):
                     print pfxmodes[status] + " " + pkg.get_cpv()
                     
     def shortHelp(self):
-        return yellow("<local-opts> ") + green("pkgspec") + " - list all packages matching " + green("pkgspec")
+        return yellow("<local-opts> ") + teal("pkgspec") + " - list all packages matching " + teal("pkgspec")
     def longHelp(self):
         return "List all packages matching a query pattern" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("list") + yellow(" <local-opts> ") + green("pkgspec") + \
+               "  " + green("list") + yellow(" <local-opts> ") + teal("pkgspec") + \
                "\n" + \
                yellow("<local-opts>") + " is either of: \n" + \
                "  " + yellow("-i, --installed") + "         - search installed packages (default)\n" + \
@@ -534,7 +815,9 @@ Known_commands = {
     "changes": CmdDisplayChanges(),
     "size": CmdDisplaySize(),
     "check": CmdCheckIntegrity(),
-    "stats": CmdDisplayStatistics()
+    "stats": CmdDisplayStatistics(),
+    "glsa": CmdListGLSAs(),
+    "which": CmdWhich()
     }
 
 Config = {
@@ -611,3 +894,4 @@ if __name__ == "__main__":
     (cmd, local_opts) = parseArgs(sys.argv[1:])
     if cmd:
         cmd.perform(local_opts)
+

@@ -1,8 +1,10 @@
-- rename gentool to equery
+- add dist to Makefile
+- gentool:
+ - add --overlay, --portdir to uses
+ - add glsa pkgspec
+  - query for current GLSAs on installed package(s)
  - add changelog <from> <to> [--last] [--lastentry] [--current]
   - displays changelog entries
- - add installed [cat]
-  - displays installed packages (optionally only in a given cat)
  - add check <pkg-spec> [--full] [--display=pkgnames,full]
   - check md5 and timestamps (optionally also in CONFIG_PROTECT dirs)
  - add which
@@ -15,13 +17,18 @@
 - merge emerge-rsync and emerge-webrsync
 - drop pkg-size (callfwd to etcat size)
 - merge change and echangelog
-- merge useflag and euse
+- merge useflag and euse, have _one_ command line tool
+  - update ufed to rely on the CLI tool
+  - update ufed to rely on generate-use
+  - merge generate-use and ufed?
 - rewrite revdep-rebuild to use gentoolkit
 - rewrite distfiles-clean to use gentoolkit
 - rewrite etc-update to use gentoolkit, add UI
 - add genlop
 - look through forums.gentoo.org for additional scripts
 - write a Gentoolkit Guide
+- write efeatures for turning on/off FEATURES in make.conf
+- look at ekeys, ewatch
 
 + check esearch, eupdatedb: separate package for now
 + extract helper code from etcat
