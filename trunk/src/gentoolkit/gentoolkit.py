@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
-# Copyright 2003 Karl Trygve Kalleberg
-# Copyright 2003 Gentoo Technologies, Inc.
+# Copyright 2003-2004 Karl Trygve Kalleberg
+# Copyright 2003-2004 Gentoo Technologies, Inc.
 # Distributed under the terms of the GNU General Public License v2
 #
 # $Header$
@@ -25,11 +25,17 @@ import re
 import string
 import types
 
+from output import *
+
 settings = portage.config(clone=portage.settings)
 porttree = portage.db[portage.root]["porttree"]
 vartree  = portage.db[portage.root]["vartree"]
 virtuals = portage.db[portage.root]["virtuals"]
 
+Config = {
+	"verbosityLevel": 3
+}
+	
 # Nomenclature:
 #
 # CPV - category/package-version
@@ -186,6 +192,26 @@ class Package:
 			pnv=self.get_name()+"-"+self.get_version()
 			self._db=portage.dblink(cat,pnv,"/",settings)
 
+#
+# Output 
+#
+
+def print_error(s):
+	sys.stderr.write(red("!!! ") + s + "\n")
+
+def print_info(lv, s, line_break = True):
+	if Config["verbosityLevel"] >= lv:
+		sys.stdout.write(s)
+		if line_break:
+			sys.stdout.write("\n")
+
+def print_warn(s):
+	sys.stderr.write("!!! " + s + "\n")
+	
+def die(err, s):
+	error(s)
+	sys.exit(-err)
+	
 #
 # Global helper functions
 #
