@@ -222,8 +222,7 @@ def output_log(lines, package_ver=""):
 # | Print out the ChangeLog entry for package[-version]   |
 # `-------------------------------------------------------'
 
-def changes(query):
-	matches=gentoolkit.find_packages(query)
+def changes(query, matches):
 	if not report_matches(query,matches,installed_only=0):
 		return
 
@@ -242,8 +241,7 @@ def changes(query):
 # | installed status.									 |
 # `-------------------------------------------------------'		
 		
-def versions(query):
-	matches = gentoolkit.find_packages(query)
+def versions(query, matches):
 	if not report_matches(query,matches):
 		return
 
@@ -299,10 +297,7 @@ def versions(query):
 # +-------------------------------------------------------+
 # | Just uses the new IUSE parameter in ebuilds		   |
 # `-------------------------------------------------------' 
-def uses(query):
-	
-	matches = gentoolkit.find_packages(query)
-		
+def uses(query, matches):
 	useflags = gentoolkit.settings["USE"].split()	
 	usedesc = {}
 	uselocaldesc = {}
@@ -409,8 +404,7 @@ def uses(query):
 # | Naive graphing of dependencies
 # `-------------------------------------------------------'
 
-def graph(query):
-	matches = gentoolkit.find_packages(query)
+def graph(query, matches):
 	if not report_matches(query, matches):
 		return
 
@@ -447,13 +441,13 @@ def rgraph(pkg,level=0,pkgtbl=[],suffix=""):
 # | Find what packages require a given package name	   |
 # `-------------------------------------------------------'
 
-def depends(query):
+def depends(query, matches):
 	
 	print "[ Results for search key : " + white(query) + " ]"
 
 	isdepend = gentoolkit.split_package_name(query)
 	
-	for pkg in gentoolkit.find_all_packages():
+	for pkg in matches:
 		if pkg.is_installed():
 			deps = pkg.get_runtime_deps()
 			for x in deps:
@@ -611,7 +605,7 @@ def main():
 	# delegates the commandline stuff to functions
 	pointer = 2
 	# short/long opts mapping
-	shortopts = map(lambda x: "-" + x[0], options.values())
+	shortopts = ["-"+x[0] for x in options.values()]
 	short2long = {}
 	for k,v in options.items():
 		short2long[v[0]] = k
@@ -634,8 +628,24 @@ def main():
 		help()
 		sys.exit(1)
 	else:
+		try:
+			matches = gentoolkit.find_packages(query)
+		except KeyError, e:
+			print red("!!!"), "Invalid syntax: missing operator"
+			print red("!!!"), "If you want only specific versions please use one of"
+			print red("!!!"), "the following operators as prefix for the package name:"
+			print red("!!!"), "   >  >=  =  <=  <"
+			print red("!!!"), "Example to only match gcc versions greater or equal 3.2:"
+			print red("!!!"), "   >=sys-devel/gcc-3.2"
+			sys.exit(2)
+		except ValueError, epkg:
+			print red("!!!"), "Ambiguous package name \"%s\"" % query
+			print red("!!!"), "Please use one of the following long names:"
+			for p in epkg[0]:
+				print red("!!!"), "    "+p
+			sys.exit(2)
 		function = globals()[action]
-		function(query)
+		function(query, matches)
 	
 if __name__ == "__main__":
 	try:
