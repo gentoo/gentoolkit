@@ -2,14 +2,25 @@
 #
 # $Header$
 #
-#  Distributed under the terms of the GNU General Public License v2
-#  Copyright (c) 2003 Karl Trygve Kalleberg
+# Distributed under the terms of the GNU General Public License v2
+# Copyright (c) 2003 Karl Trygve Kalleberg
+#
+# Based on previous versions, by
+#  - Brandon Low <lostlogic@gentoo.org>
+#  - Jochem Kossen <j.kossen@home.nl>
+#  - Leo Lipelis <aeoo@gentoo.org>
 
 from dialog import Dialog
 import portage
 import time
 import re
 import os
+
+__author__ = "Karl Trygve Kalleberg"
+__email__ = "karltk@gentoo.org"
+__version__ = "0.2.0"
+__productname__ = "etc-update"
+__description__ = "Interactive config file updater"
 
 globals = portage.settings.configdict["globals"]
 
