@@ -1,7 +1,11 @@
-2003-01-12 Marius Mauch <genone@gentoo.org>
+2004-01-23 Marius Mauch <genone@gentoo.org>
+	* now catches Exceptions thrown by portage
+	* minor bugfixes
+
+2004-01-12 Marius Mauch <genone@gentoo.org>
 	* added mask, keyword and slot information to list command
 
-2003-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
+2004-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Renamed to equery
 	* Added Makefile
 	

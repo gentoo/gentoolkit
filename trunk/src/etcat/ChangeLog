@@ -1,4 +1,7 @@
-
+2004-01-23 Marius Mauch <genone@gentoo.org>
+	- now catches exceptions thrown by portage
+	- minor bugfixes
+	
 2004-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added man page from app-portage/gentoolkit
 	* Added Makefile
