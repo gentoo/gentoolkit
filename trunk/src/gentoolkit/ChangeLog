@@ -1,3 +1,6 @@
+2004-09-27: Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added find_installed_packages
+
 2004-09-08: Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Reworked printing functions
 

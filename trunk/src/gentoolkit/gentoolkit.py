@@ -215,6 +215,20 @@ def find_packages(search_key, masked=False):
 			raise ValueError(e)
 	return [Package(x) for x in t]
 
+def find_installed_packages(search_key, masked=False):
+	"""Returns a list of Package objects that matched the search key."""
+	try:
+			t = vartree.dbapi.match(search_key)
+	# catch the "amgigous package" Exception
+	except ValueError, e:
+		if type(e[0]) == types.ListType:
+			t=[]
+			for cp in e[0]:
+				t += vartree.dbapi.match(cp)
+		else:
+			raise ValueError(e)
+	return [Package(x) for x in t]
+
 def find_best_match(search_key):
 	"""Returns a Package object for the best available installed candidate that
 	matched the search key. Doesn't handle virtuals perfectly"""
