@@ -1,3 +1,7 @@
+2003-01-12 Marius Mauch <genone@gentoo.org>
+	* fixed traceback in equery
+	* added more information on "equery list"
+
 2004-01-10 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added src/ego
 
