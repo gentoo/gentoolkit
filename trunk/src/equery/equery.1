@@ -85,6 +85,45 @@ output the md5sum of each file
 .br
 .B \-\-type
 output the type of each file
+.br
+.B \-\-filter=<rules>
+filter output based on files type or path
+.br
+.B \t<rules>
+is a comma separated list of filtering rules. Available rules are:
+.br
+.B \t\tdir\ 
+regular directories
+.br
+.B \t\tobj\ 
+regular files
+.br
+.B \t\tsym\ 
+symbolic links
+.br
+.B \t\tdev\ 
+device nodes
+.br
+.B \t\tfifo
+named pipes
+.br
+.B \t\tpath
+shortest paths where some files where installed
+.br
+.B \t\tconf
+configuration files (based on $CONFIG_PROTECT)
+.br
+.B \t\tcmd\ 
+user commands (based on $PATH)
+.br
+.B \t\tdoc\ 
+documentation files (from /usr/share/doc)
+.br
+.B \t\tman\ 
+manpages (from /usr/share/man)
+.br
+.B \t\tinfo
+info pages (from /usr/share/info)
 .PP
 .TP
 .B list <local\-opts> pkgspec

@@ -56,6 +56,11 @@ our $FUse_mask      = "/etc/make.profile/use.mask";
 #our $FUse_local = "use.local.desc";#$PORTDIR/profiles/use.local.desc
 #our $FUse_mask = "use.mask";#/etc/make.profile/use.mask
 
+if (-f "/etc/make.profile/parent") { 
+	print "euse doesn't support cascading profiles yet\n";
+	exit(0);
+}
+
 #BEGIN Main
 MAIN: {
     Getopt::Long::Configure("no_ignore_case");

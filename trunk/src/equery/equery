@@ -22,10 +22,11 @@ import types
 
 # portage (output module) and gentoolkit need special path modifications
 sys.path.insert(0, "/usr/lib/portage/pym")
-#sys.path.insert(0, "/usr/lib/gentoolkit/pym")
+sys.path.insert(0, "/usr/lib/gentoolkit/pym")
 
 import gentoolkit
 import portage
+import portage_checksum
 
 import gentoolkit.pprinter as pp
 from gentoolkit.pprinter import print_info, print_error, print_warn, die
@@ -57,8 +58,11 @@ def fileAsStr(name, fdesc, showType=0, showMD5=0, showTimestamp=0):
         stamp = timestampAsStr(int(fdesc[1].replace(")","")))
         tgt = fdesc[2].split()[0]
         fname = pp.path_symlink(name + " -> " + tgt)
+    elif fdesc[0] == "fif":
+        type = "fifo"
+        fname = name
     else:
-        raise "Unknown type: " + fdesc[0]
+        raise Exception(fdesc[1] + " has unknown type: " + fdesc[0])
 
     s = ""
     if showType:
@@ -104,7 +108,8 @@ class CmdListFiles(Command):
         self.default_options = {
             "showType": 0,
             "showTimestamp": 0,
-            "showMD5": 0
+            "showMD5": 0,
+            "filter": None
             }
 
     def parseArgs(self,args):
@@ -120,6 +125,8 @@ class CmdListFiles(Command):
                 opts["showTimestamp"] = 1
             elif x in ["--type"]:
                 opts["showType"] = 1
+            elif x[:9] == "--filter=":
+                opts["filter"] = string.split(x[9:],',')
             else:
                 query = x
 
@@ -128,7 +135,81 @@ class CmdListFiles(Command):
             sys.exit(-1)
             
         return (query, opts)
-    
+
+    def filterContents(self, cnt, filter):
+        if filter in [None,[]]:
+            return cnt
+        
+        mycnt = {}
+        
+        for mytype in filter:
+            # Filter elements by type (as recorded in CONTENTS).
+            if mytype in ["dir","obj","sym","dev","fif"]:
+                for mykey in cnt.keys():
+                    if cnt[mykey][0] == mytype:
+                        mycnt[mykey] = cnt[mykey]
+        
+        if "cmd" in filter:
+            # List files that are in $PATH.
+            userpath = map(os.path.normpath,os.environ["PATH"].split(os.pathsep))
+            for mykey in cnt.keys():
+                if cnt[mykey][0] in ['obj','sym'] \
+                   and os.path.dirname(mykey) in userpath:
+                    mycnt[mykey] = cnt[mykey]
+        
+        if "path" in filter:
+            # List only dirs where some files where actually installed,
+            # and also skip their subdirs.
+            mykeys = cnt.keys()
+            mykeys.sort()
+            while len(mykeys):
+                mykey = mykeys.pop(0)
+                if cnt[mykey][0] == 'dir':
+                    i = 0
+                    while i < len(mykeys) :
+                        if cnt[mykeys[i]][0] != "dir" \
+                           and os.path.dirname(mykeys[i]) == mykey:
+                            mycnt[mykey] = cnt[mykey]
+                            break
+                        i += 1
+                    if i < len(mykeys):
+                        while len(mykeys) \
+                              and len(mykey+"/") < len(mykeys[0]) \
+                              and mykey+"/" == mykeys[0][:len(mykey)+1]:
+                            mykeys.pop(0)
+        
+        if "conf" in filter:
+            # List configuration files.
+            conf_path = gentoolkit.settings["CONFIG_PROTECT"].split()
+            conf_mask_path = gentoolkit.settings["CONFIG_PROTECT_MASK"].split()
+            conf_path = map(os.path.normpath, conf_path)
+            conf_mask_path = map(os.path.normpath, conf_mask_path)
+            for mykey in cnt.keys():
+                is_conffile = False
+                if cnt[mykey][0] == 'obj':
+                    for conf_dir in conf_path:
+                        if conf_dir+"/" == mykey[:len(conf_dir)+1]:
+                            is_conffile = True
+                            for conf_mask_dir in conf_mask_path:
+                                if conf_mask_dir+"/" == mykey[:len(conf_mask_dir)+1]:
+                                    is_conffile = False
+                                    break
+                            break
+                    if is_conffile:
+                        mycnt[mykey] = cnt[mykey]
+              
+        
+        for mydoctype in ["doc","man","info"]:
+            # List only files from /usr/share/{doc,man,info}
+            mydocpath = "/usr/share/"+mydoctype+"/"
+            if mydoctype in filter:
+                for mykey in cnt.keys():
+                    if cnt[mykey][0] == 'obj' \
+                       and mykey[:len(mydocpath)] == mydocpath :
+                        mycnt[mykey] = cnt[mykey]
+        
+        return mycnt
+
     def perform(self, args):
 
         (query, opts) = self.parseArgs(args)
@@ -144,7 +225,7 @@ class CmdListFiles(Command):
         
             print_info(1, pp.section("* ") + "Contents of " + pp.cpv(x.get_cpv()) + ":")
 
-            cnt = x.get_contents()
+            cnt = self.filterContents(x.get_contents(),opts["filter"])
 
             filenames = cnt.keys()
             filenames.sort()
@@ -165,9 +246,23 @@ class CmdListFiles(Command):
                "Note: category and version parts are optional. \n" + \
                "\n" + \
                pp.localoption("<local-opts>") + " is either of: \n" + \
-               "  " + pp.localoption("--timestamp") + "  - append timestamp\n" + \
-               "  " + pp.localoption("--md5sum") + "     - append md5sum\n" + \
-               "  " + pp.localoption("--type") + "       - prepend file type"               
+               "  " + pp.localoption("--timestamp") + "      - append timestamp\n" + \
+               "  " + pp.localoption("--md5sum") + "         - append md5sum\n" + \
+               "  " + pp.localoption("--type") + "           - prepend file type\n" + \
+               "  " + pp.localoption("--filter=<rules>") + " - filter output\n" + \
+               "  " + pp.localoption("<rules>") + " is a comma separated list of elements you want to see:\n" + \
+               "  " + "  " + pp.localoption("dir") + \
+                      ", " + pp.localoption("obj") + \
+                      ", " + pp.localoption("sym") + \
+                      ", " + pp.localoption("dev") + \
+                      ", " + pp.localoption("fifo") + \
+                      ", " + pp.localoption("path") + \
+                      ", " + pp.localoption("conf") + \
+                      ", " + pp.localoption("cmd") + \
+                      ", " + pp.localoption("doc") + \
+                      ", " + pp.localoption("man") + \
+                      ", " + pp.localoption("info")
+
     def shortHelp(self):
         return pp.localoption("<local-opts> ") + pp.pkgquery("pkgspec") + " - list files owned by " + pp.pkgquery("pkgspec")
 
@@ -236,13 +331,16 @@ class CmdListBelongs(Command):
 
         if not Config["piping"]:
             print_info(3, "[ Searching for file(s) " + pp.regexpquery(string.join(query,",")) + " in " + pp.cpv(cat) + "... ]")
-            
-        matches = gentoolkit.find_all_installed_packages(filter_fn)
+        
+        matches = portage.db["/"]["vartree"].dbapi.cpv_all()
+        #matches = gentoolkit.find_all_installed_packages(filter_fn)
 
         found = 0
 
         def dumpToPipe(pkg):
-            cnt = pkg.get_contents()
+            mysplit = pkg.split("/")
+            cnt = portage.dblink(mysplit[0], mysplit[1], "/", gentoolkit.settings).getcontents()
+            #cnt = pkg.get_contents()
             if not cnt: return
             for file in cnt.keys():
                 if rx.search(file):
@@ -253,7 +351,9 @@ class CmdListBelongs(Command):
             pass
             
         def dumpToScreen(pkg):
-            cnt = pkg.get_contents()
+            mysplit = pkg.split("/")
+            cnt = portage.dblink(mysplit[0], mysplit[1], "/", gentoolkit.settings).getcontents()
+            #cnt = pkg.get_contents()
             if not cnt: return
             for file in cnt.keys():
                 if rx.search(file):
@@ -693,8 +793,9 @@ class CmdCheckIntegrity(Command):
             
         return (query, opts)
 
-    def checkMD5sum(self, file):
-        return 1
+    def getMD5sum(self, file):
+        md5sum, filesize = portage_checksum.md5hash(file)
+        return md5sum
     
     def perform(self, args):
         (query, opts) = self.parseArgs(args)
@@ -721,12 +822,13 @@ class CmdCheckIntegrity(Command):
                             raise CheckException(file + " exists, but is not a directory")
                     elif type == "obj":
                         mtime = files[file][1]
+                        md5sum = files[file][2]
+                        if opts["checkMD5sum"]:
+                            if self.getMD5sum(file) != md5sum:
+                                raise CheckException(file + " has incorrect md5sum")
                         if opts["checkTimestamp"]:
                             if st.st_mtime != int(mtime):
-                                raise CheckException(white(file) + (" has wrong mtime (is %d, should be %s)" % (st.st_mtime, mtime)))
-                        if opts["checkMD5sum"]:
-                            if not self.checkMD5sum(file):
-                                raise CheckException(file + " has incorrect md5sum")
+                                raise CheckException(file + (" has wrong mtime (is %d, should be %s)" % (st.st_mtime, mtime)))
                     elif type == "sym":
                         # FIXME: nastry strippery; portage should have this fixed!
                         t = files[file][2]
@@ -736,17 +838,18 @@ class CmdCheckIntegrity(Command):
                         tgt = os.readlink(file)
                         if tgt != target:
                             raise CheckException(file + " does not point to " + target)
-                            
+                    elif type == "fif":
+                        pass
                     else:
                         pp.print_error(file)
                         pp.print_error(files[file])
                         pp.print_error(type)
-                        raise "Unknown type"
+                        raise CheckException(file + " has unknown type " + type)
                     good_files += 1
                 except CheckException, (e):
                     print_error(e.s)
                 except OSError:
-                    print_error(path(file) + " does not exist")
+                    print_error(file + " does not exist")
                 checked_files += 1
             print_info(0, pp.section(" * ") + pp.number(str(good_files)) + " out of " +  pp.number(str(checked_files)) + " files good")
                     
@@ -756,7 +859,7 @@ class CmdCheckIntegrity(Command):
         return "Check package's files against recorded MD5 sums and timestamps" + \
                 "\n" + \
                 "Syntax:\n" + \
-                "  " + pp.command("size") + pp.pkgquery(" pkgspec")
+                "  " + pp.command("check") + pp.pkgquery(" pkgspec")
 
 class CmdDisplayStatistics(Command):
     """Display statistics about installed and uninstalled packages"""
@@ -803,7 +906,7 @@ class CmdWhich(Command):
         if matches:
             print_info(0, os.path.normpath(matches[-1].get_ebuild_path()))
         else:
-            print_error("No masked or unmasked packages found for " + pkgquery(query))
+            print_error("No masked or unmasked packages found for " + pp.pkgquery(query))
                     
     def shortHelp(self):
         return pp.pkgquery("pkgspec") + " - print full path to ebuild for package " + pp.pkgquery("pkgspec")
@@ -1037,13 +1140,13 @@ class CmdListPackages(Command):
         name = ".*"
         ver = ".*"
         cat = ".*"
-        
+
         if query != "":
             (cat, name, ver, rev) = gentoolkit.split_package_name(query)
 
             if rev == "r0": rev = ".*"
             if name == "": name = ".*"
-            if ver == "": ver = ".*"
+            if ver == "": ver = "[^-]*"
             if cat == "": cat = ".*"
             
         package_finder = None
@@ -1056,13 +1159,12 @@ class CmdListPackages(Command):
             package_finder = gentoolkit.find_all_uninstalled_packages
 
         if not package_finder:
-            die(2, "You must specify one of ") + yellow("-i") + red(", ") + yellow("-p") + red(" or ") + yellow("-o")
+            die(2, "You must specify one of -i, -p or -o")
 
         filter_fn = None
 
         if query != "":
-            rx = re.compile(cat + "/" + name)
-            filter_fn = lambda x: rx.search(x)
+            filter_fn = lambda x: re.match(cat+"/"+name, x)
         else:
             filter_fn = lambda x: True
             
@@ -1219,7 +1321,7 @@ class CmdFindUSEs(Command):
             package_finder = gentoolkit.find_all_uninstalled_packages
 
         if not package_finder:
-            die(2,"You must specify one of " + yellow("-i") + red(", ") + yellow("-p") + red(" or ") + yellow("-o"))
+            die(2,"You must specify one of -i, -p or -o")
 
         filter_fn = lambda x: True
             
@@ -1299,7 +1401,7 @@ Known_commands = {
     "files" : CmdListFiles(),
     "belongs" : CmdListBelongs(),
     "depends" : CmdListDepends(),
-    "hasuses" : CmdFindUSEs(),
+    "hasuse" : CmdFindUSEs(),
     "uses" : CmdDisplayUSEs(),
     "depgraph" : CmdDisplayDepGraph(),
     "changes" : CmdDisplayChanges(),
@@ -1319,7 +1421,7 @@ Short_commands = {
     "d" : "depends",
     "f" : "files",
     "g" : "depgraph",
-    "h" : "hasuses",
+    "h" : "hasuse",
     "k" : "check",
     "l" : "list",
     "s" : "size",
@@ -1469,7 +1571,7 @@ if __name__ == "__main__":
             sys.exit(2)
         except ValueError, e:
             if e and type(e[0]) == types.ListType:
-                print_error("Ambiguous package name " + white("\"" + local_opts[0] + "\""))
+                print_error("Ambiguous package name " + pp.emph("\"" + local_opts[0] + "\""))
                 print_error("Please use one of the following long names:")
                 for p in e[0]:
                     print_error("    " + p)
