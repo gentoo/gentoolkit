@@ -26,6 +26,10 @@ sys.path.insert(0, "/usr/lib/portage/pym")
 from output import *
 import gentoolkit
 
+from gentoolkit import warn
+from gentoolkit import error
+from gentoolkit import info
+
 # Auxiliary functions
 
 def fileAsStr(name, fdesc, showType=0, showMD5=0, showTimestamp=0):
@@ -220,19 +224,22 @@ class CmdListBelongs(Command):
         if cat != "*":
             filter_fn = lambda x: x.find(cat+"/")==0
 
-        if Config["verbosityLevel"] >= 3 and not Config["piping"]:
-            print "Searching for file '" + query + "' in " + cat + "..."
+        info(3, "Searching for file '" + query + "' in " + cat + "...")
             
         matches = gentoolkit.find_all_installed_packages(filter_fn)
 
         # Act intelligently on the query
-        if opts["fullRegex"]: 
-            rx = re.compile(query)
-        elif len(query) and query[0] == "/":
-            rx = re.compile("^" + query + "$")
-        else:
-            rx = re.compile("/" + query + "$")
-
+        try: 
+            if opts["fullRegex"]: 
+                rx = re.compile(query)
+            elif len(query) and query[0] == "/":
+                rx = re.compile("^" + query + "$")
+            else:
+                rx = re.compile("/" + query + "$")
+        except:
+            error("The query '" + query + "' does not appear to be a valid regular expression")
+            sys.exit(-2)
+        
         found = 0
         for pkg in matches:
             cnt = pkg.get_contents()
