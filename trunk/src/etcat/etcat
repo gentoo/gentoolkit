@@ -375,7 +375,7 @@ def uses(query, matches):
 				except KeyError:
 					desc = ""
 
-			if u in useflags: inuse = 1
+			if u in p.get_settings("USE"): inuse = 1
 			if u in used: inused = 1
 				
 			output.append((inuse, inused, u, desc))
