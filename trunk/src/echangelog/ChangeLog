@@ -1,3 +1,7 @@
+09 Nov 2004 Aron Griffis <agriffis@gentoo.org>
+	* change "cvs diff -fU 0" => "cvs -f diff U0" because -f is a
+	  global option, not a diff option
+
 08 Nov 2004 Aron Griffis <agriffis@gentoo.org>
 	* call cvs with -f to refrain from using .cvsrc, which might
 	  contain conflicting options
