@@ -50,7 +50,7 @@ you can make a release in the following fashion:
 (NOTE! This only works for -dev at the moment)
 
 1) Add a notice in the ChangeLog about the release you are making.
-2) Do VERSION="x.y.z" ./release.sh
+2) Do VERSION="x.y.z" ./release.sh dev
 3) Test the package: ACCEPT_KEYWORDS="~arch" emerge gentoolkit-dev
 4) Do a repoman ci -m "Released x.y.z" in your 
    CVS/app-portage/gentoolkit-dev directory.
