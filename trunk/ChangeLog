@@ -1,3 +1,7 @@
+2004-11-29 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* branched v0-3-0: major rework in equery is in progess. the main
+	branch is reserved for minor and incremental fixups.
+
 2004-10-20 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* release.sh: New script that automates the relase of a new
 		gentoolkit relase. Only works for gentoolkit-dev at the
