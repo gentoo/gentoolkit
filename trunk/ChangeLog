@@ -1,3 +1,6 @@
+2004-10-18 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* gentoolkit: collapsed ChangeLog into base ChangeLog
+	
 2004-10-17 Marius Mauch <genone@gentoo.org>
 	* equery: fix for bug #67473 (checking md5sums of prelinked binaries)
 	* equery: fix for bug #67275 (--nocolor didn't work as configure was 
@@ -20,8 +23,12 @@
 	* equery: added filter patch for `equery files` from bug 43422, thanks to degrenier@easyconnect.fr
 	* Released gentoolkit-0.2.0_pre10
 
+2004-10-11 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* gentoolkit: Split gentoolkit.py into helpers.py and package.py
+
 2004-10-10 Karl Trygve Kalleberg <karltk@gentoo.org>
-	* Fixed Makefiles to work with posix-compatible shells
+	* gentoolkit: Fixed Makefiles to work with posix-compatible shells
+	* gentoolkit: Fixed is_overlay() to report properly, #53432.
 
 2004-10-06 Marius Mauch <genone@gentoo.org>
 	* glsa.py: Convert Unicode strings to ascii before passing them to portage
@@ -32,8 +39,19 @@
 	* glsa-check: added a --verbose option to show the warnings about invalid GLSAs
 
 2004-09-27 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* gentoolkit: Added find_installed_packages
 	* Released gentoolkit-0.2.0_pre9
 	* Released gentoolkit-dev-0.2.0_pre4
+
+2004-09-08 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* gentoolkit: Reworked printing functions
+
+2004-08-29 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* gentoolkit: Added printing functions
+
+2004-08-22 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* gentoolkit: Fixed Package.get_env_var to use the correct tree db.
+	* gentoolkit: Renamed Package.get_use_vars to Package.get_use_flags
 
 2004-08-01 Marius Mauch <genone@gentoo.org>
 	* Fixed grep expression for `qpkg -f`
