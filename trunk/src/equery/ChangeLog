@@ -1,3 +1,7 @@
+2004-08-29 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added check for bad regexp in belongs, fixes #58494
+	* Added proper error reporting to stderr, fixes #57580
+
 2004-08-22 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Searches now include masked packages, when installed.
 	* Fixed output to be piping-friendly
