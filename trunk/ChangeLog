@@ -1,6 +1,7 @@
 2004-10-18 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* gentoolkit: collapsed ChangeLog into base ChangeLog
-	
+	* equery: collapsed ChangeLog into base ChangeLog
+		
 2004-10-17 Marius Mauch <genone@gentoo.org>
 	* equery: fix for bug #67473 (checking md5sums of prelinked binaries)
 	* equery: fix for bug #67275 (--nocolor didn't work as configure was 
@@ -23,6 +24,10 @@
 	* equery: added filter patch for `equery files` from bug 43422, thanks to degrenier@easyconnect.fr
 	* Released gentoolkit-0.2.0_pre10
 
+2004-10-10 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added unit tests for all supported commands
+	* equery: Fixed printing order and recognition of overlay, #53432.
+
 2004-10-11 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* gentoolkit: Split gentoolkit.py into helpers.py and package.py
 
@@ -38,23 +43,54 @@
 	* glsa-check: added color support 
 	* glsa-check: added a --verbose option to show the warnings about invalid GLSAs
 
+2004-09-30 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added unit tests for --help
+	* equery: Added unit tests for 'files'
+
 2004-09-27 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* gentoolkit: Added find_installed_packages
+	* equery: Added short commands
+	* equery: Fixed copyright dates
+	* equery: Fixed belongs to search only installed packages
+	* equery: Fixed reporting bug in uses command
+	* equery: Fixed reference to cppv
+	* equery: Added import of die
+	* equery: Added searching header to uses
+	* equery: Fixed hasuses to report properly
 	* Released gentoolkit-0.2.0_pre9
 	* Released gentoolkit-dev-0.2.0_pre4
 
 2004-09-08 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added man page rewrites by Katerina Barone-Adesi <katerinab@gmail.com>,
+				fixes #63045
+	* equery: Fixed spacing issues with files, fixes #63036.
+	* equery: Added depends command by Olivier Crete <tester@gentoo.org>, fixes
+				#40830.
+	* equery: Reworked output yet again.
+	* equery: Belongs handles multiple files on the command line, partially 
+				fixes #62361.
 	* gentoolkit: Reworked printing functions
 
 2004-08-29 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* gentoolkit: Added printing functions
+	* equery: Added check for bad regexp in belongs, fixes #58494
+	* equery: Added proper error reporting to stderr, fixes #57580
 
 2004-08-22 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* gentoolkit: Fixed Package.get_env_var to use the correct tree db.
 	* gentoolkit: Renamed Package.get_use_vars to Package.get_use_flags
+	* equery: Searches now include masked packages, when installed.
+	* equery: Fixed output to be piping-friendly
+	* equery: Added -N option to force non-piping output
+	* equery: Added hasuses command
 
 2004-08-01 Marius Mauch <genone@gentoo.org>
 	* Fixed grep expression for `qpkg -f`
+
+2004-05-04 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added a -f/--full-regex option to belongs and some logic
+				so users can do belongs ant, belongs /usr/bin/ant and belongs -f 
+				".*ant.*" while getting sensible results. Fixes #37637.
 
 2004-04-14 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Released gentoolkit-dev-0.2.0_pre3
@@ -68,6 +104,8 @@
 		- they are only temporary for testing, so no manpage/ChangeLog
 		- their CVS home is in gentoo-projects
 	* fixed bugs #42160, #40935, #43389
+	* equery: fixing descriptions for local USE flags
+	* equery: more checking on exceptions
 
 2004-02-08 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added ebump
@@ -83,35 +121,55 @@
 
 2004-01-23 Marius Mauch <genone@gentoo.org>
 	* lots of bugfixes
+	* equery: now catches Exceptions thrown by portage
+	* equery: minor bugfixes
 
 2004-01-14 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added src/ego to gentoolkit-dev
 
-2003-01-12 Marius Mauch <genone@gentoo.org>
-	* fixed traceback in equery
-	* added more information on "equery list"
+2004-01-12 Marius Mauch <genone@gentoo.org>
+	* equery: added mask, keyword and slot information to list command
+	* equery: fixed traceback in equery
+	* equery: added more information on "equery list"
 
 2004-01-10 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added src/ego
 
 2004-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added Makefile
 	* Added new build system
 	* Added src/old-scripts, the scripts from app-portage/gentoolkit
 	* Renamed gentool to equery
 	* Released 0.2.0_pre1
+
+2003-12-31 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added which command
+	* equery: Added check command (not finished)
+
+2003-12-12 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added size command
+	* equery: Added depgraph command
+
+2003-12-11 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added list command
+	* equery: Added uses command
         
 2003-12-08 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Removed emerge-rsync, emerge-webrsync
 	* Added moo
 	* Added skeleton man pages to all packages
 	* Added Makefile
+
+2003-10-05 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added files command
+	* equery: Added belongs command
 	
 2003-10-04 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Rewrote dep-clean to python
 		
 2003-06-31 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Rewrote more of etcat; many of the functions now employ
-	gentoolkit.
+		gentoolkit.
 	* Replaced qpkg with stubs of a reimplementation in python.
 
 2003-06-27 Karl Trygve Kalleberg <karltk@gentoo.org>
@@ -120,8 +178,7 @@
 2003-06-26 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added echangelog, by agenkin
 	* Added ekeyword, by agenkin
-	* Added gentoolkit, the common python library for all Gentoolkit
-	tools.
+	* Added gentoolkit, the common python library for all Gentoolkit tools.
 	* Revived pkg-size as a testbed for the gentoolkit library
 	* Fixed some minor issues in qpkg
 	* Added revdep-rebuild-1
@@ -137,3 +194,4 @@
 2002-08-06 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Created separate CVS module for Gentoolkit
 	* Restructured directory hierarchy
+	
