@@ -13,7 +13,9 @@
 ID='$Id$'
 VERSION=0.`echo ${ID} | cut -d\  -f3`
 
-TMP="/tmp/qpkg-${$}/"
+umask 0077
+
+TMP="$(mktemp -d -t qpkg-XXXXXX)"
 rm -rf ${TMP}
 mkdir -p ${TMP}
 
@@ -228,6 +230,7 @@ ${YL}Examples${NO}:
 			the older ones will have \"damaged\" files.
   ${PROG} -f /bin/ls	print package(s) that own /bin/ls
 "
+	rm -rf ${TMP}
 	exit
 fi
 
@@ -292,6 +295,7 @@ fi
 					-e "s:-[0-9].*$::" \
 					-e "s:\(^[^/]*/\)\(.*\):${BR}\1${CY}\2${NO}:"|uniq
 	fi
+	rm -rf ${TMP}
 	exit
 fi
 
