@@ -25,10 +25,16 @@ test_files() {
 
 test_files_timestamp() {
 	equery files --timestamp bash > ${tmpfile}
+
+	x=$(grep "/bin/bash .*....-..-.. ..:..:.." ${tmpfile} | wc -l)
+	assert_eq ${FUNCNAME} $x 1
 }
 
 test_files_md5sum() {
 	equery files --md5sum bash > ${tmpfile}
+	
+	x=$(egrep "/bin/bash .*[0-9a-z]{30}" ${tmpfile} | wc -l)
+	assert_eq ${FUNCNAME} $x 1
 }
 
 test_files_type() {
