@@ -6,6 +6,8 @@
 	* equery: minor syntactical cleanups.
 	* equery: minor documentation improvements
 	* equery: added errors module that will hold various types of internal errors raised.
+	* equery: added try block around on md5sum check, which fails on various conditions like
+				insufficient permission or stale temporary checksum files.
 	
 2004-10-17 Marius Mauch <genone@gentoo.org>
 	* equery: fix for bug #67473 (checking md5sums of prelinked binaries)

@@ -822,6 +822,11 @@ class CmdCheckIntegrity(Command):
 						mtime = files[file][1]
 						md5sum = files[file][2]
 						if opts["checkMD5sum"]:
+							try: 
+								actual_checksum = self.getMD5sum(file)
+							except:
+								raise CheckException("Failed to calculate MD5 sum for " + file)
+								
 							if self.getMD5sum(file) != md5sum:
 								raise CheckException(file + " has incorrect md5sum")
 						if opts["checkTimestamp"]:
