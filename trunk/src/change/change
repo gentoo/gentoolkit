@@ -3,7 +3,7 @@
 # Copyright 1999-2002 Gentoo Technologies, Inc.
 # Distributed under the terms of the GNU General Public License v2
 # Author: Dan Armak <danarmak@gentoo.org>
-# $Header: $
+# $Header: /space/gentoo/cvsroot/gentoolkit/src/change/change,v 1.2 2002/08/11 13:32:12 karltk Exp $
 
 eval `grep PORTDIR= /etc/make.globals`
 eval `grep PORTDIR= /etc/make.conf`
@@ -262,10 +262,9 @@ wrap_list() {
 
 # do the actual work on te changelog file passed as $1
 process() {
-
     # figure out category and package names
-    name=${1//${PORTDIR}\/}
-    name=${name//${MYPORTDIR}\/}
+    name=${1//${PORTDIR}}
+    name=${name//${MYPORTDIR}}
     name=${name//\/ChangeLog}
     
     OLDIFS="$IFS"
@@ -282,7 +281,7 @@ process() {
     # create header
     echo \
 "# ChangeLog for $CATEGORY/$PACKAGE
-# Copyright 2002 Gentoo Technologies, Inc.; Distributed under the GPL
+# Copyright 2002 Gentoo Technologies, Inc.; Distributed under the GPL v2
 # \$Header: \$
 " > $TMPHEADER
 
@@ -299,10 +298,9 @@ process() {
     echo >> $TMPENTRY
 
     # get the original changelog, minus the old header
-    sed -e "
-/# ChangeLog for $CATEGORY\/$PACKAGE/ D
-/# Copyright 2002 Gentoo Technologies, Inc.; Distributed under the GPL/ D
-/^# \$Header: \$" $1 > $TMPOLDLOG
+    sed -e '/^# ChangeLog for/ D
+	    /^# Copyright 2002 Gentoo Technologies/ D
+	    /^# \$Header:/ D' $1 > $TMPOLDLOG
 
     # join everything together
     cat $TMPHEADER $TMPENTRY $TMPMESSAGE $TMPOLDLOG > $TMPCHANGELOG
