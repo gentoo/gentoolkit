@@ -676,7 +676,11 @@ class CmdWhich(Command):
 		matches = gentoolkit.find_packages(query)
 		matches = gentoolkit.sort_package_list(matches)
 
-		print os.path.normpath(matches[-1].get_ebuild_path())
+		if matches:
+			print os.path.normpath(matches[-1].get_ebuild_path())
+		else:
+			print red("!!!"), "no unmasked packages found for %s" % query
+			print
 					
 	def shortHelp(self):
 		return turquoise("pkgspec") + " - print full path to ebuild for package " + turquoise("pkgspec")
