@@ -1,0 +1,72 @@
+#! /usr/bin/python
+#
+# $Header$
+#
+#  Distributed under the terms of the GNU General Public License v2
+#  Copyright (c) 2003 Karl Trygve Kalleberg
+
+import portage
+import re
+import os
+
+globals = portage.settings.configdict["globals"]
+
+for i in globals["CONFIG_PROTECT"].split():
+    print i
+
+# list all files in all CONFIG_PROTECT dirs
+# list them in the gui
+# one-by-one:
+#  - is update to header only? 
+#  - is the original unmodified from the previous package? (not checkable - duh!)
+#  - 
+
+class Config:
+    pass
+
+def loadConfig():
+    cfg = Config()
+    globals = portage.settings.configdict["globals"]
+    cfg.config_protect = globals["CONFIG_PROTECT"].split()
+    return cfg
+
+def _recurseFiles(path):
+    files = []
+    if os.path.exists(path):
+        try:
+            tmpfiles = os.listdir(path)
+            for i in tmpfiles:
+                fn = path + "/" + i
+                if os.path.isdir(fn):
+                    files += _recurseFiles(fn)
+                elif os.path.isfile(fn):
+                    m = re.search("\._cfg...._",fn)
+                    if m:
+                        files.append(fn)
+                else:
+                    print "What is this anyway?:", fn
+        except OSError:
+            print "Access denied:", path
+            
+    return files
+                
+def findAllFiles(config):
+    files = []
+    for i in config.config_protect:
+        files += _recurseFiles(i)
+    return files
+
+def displayFiles(config,files):
+    print files
+
+def main():
+    config = loadConfig()
+    files = findAllFiles(config)
+    displayFiles(config,files)
+    
+    
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print "Operation aborted!"

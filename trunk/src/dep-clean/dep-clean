@@ -1,4 +1,4 @@
-#!/bin/bash
+#! /bin/bash
 #Shows unrequired packages and missing dependencies.
 #Author/Maintainer: Brandon Low <lostlogic@gentoo.org>
 #Author: Jerry Haltom <ssrit@larvalstage.net>

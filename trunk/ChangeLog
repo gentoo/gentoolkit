@@ -1,4 +1,16 @@
 
+2003-06-26 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added echangelog, by agenkin
+	* Added ekeyword, by agenkin
+	* Added gentoolkit, the common python library for all Gentoolkit
+	tools.
+	* Revived pkg-size as a testbed for the gentoolkit library
+	* Fixed some minor issues in qpkg
+	* Added revdep-rebuild-1
+	* Added revdep-rebuild-2
+	* Restructuring etcat
+	* Fixed some minor issues in dep-clean
+
 2002-11-21 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Renamed pkg-size to gentool-package-size
 	* Renamed pst-package-count to gentool-package-count
