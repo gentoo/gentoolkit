@@ -1,7 +1,8 @@
 
 2003-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
-        * Added new build system
-        * Added src/old-scripts, the scripts from app-portage/gentoolkit
+	* Added new build system
+	* Added src/old-scripts, the scripts from app-portage/gentoolkit
+	* Renamed gentool to equery
         
 2003-12-08 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Removed emerge-rsync, emerge-webrsync

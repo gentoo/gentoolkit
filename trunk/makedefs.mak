@@ -7,10 +7,11 @@
 # Override this on command line when making a release, ie 'dist'
 
 VERSION=9.9.9
+RELEASE_TAG=
 PYVERSION="`python-config | sed 's/-l//' | sed 's/ -lm.*//'`"
 DESTDIR=
 
-docdir=$(DESTDIR)/usr/share/doc/gentoolkit-$(VERSION)
+docdir=$(DESTDIR)/usr/share/doc/gentoolkit-$(VERSION)$(RELEASE_TAG)
 bindir=$(DESTDIR)/usr/bin
 sbindir=$(DESTDIR)/usr/sbin
 mandir=$(DESTDIR)/usr/share/man/man1
