@@ -1,0 +1,259 @@
+#! /usr/bin/env python2.2
+#
+# Copyright 2003 Karl Trygve Kalleberg
+# Copyright 2003 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2
+#
+# $Header$
+# Author: Karl Trygve Kalleberg <karltk@gentoo.org>
+
+__author__ = "Karl Trygve Kalleberg"
+__email__ = "karltk@gentoo.org"
+__version__ = "0.1.0"
+__productname__ = "gentool"
+__description__ = "Gentoo Package Query Tool"
+
+
+import sys
+import time
+import gentoolkit
+from output import *
+
+
+
+class Command:
+    def __init__(self):
+        pass
+    def shortHelp(self):
+        return "short help description"
+    def longHelp(self):
+        return "help for syntax and options"
+    def perform(self, args):
+        pass
+    def parseArgs(self, args):
+        pass
+
+    
+class CmdListFiles(Command):
+    """List files owned by a particular package"""
+    def __init__(self):
+        self.default_options = {
+            "showType": 0,
+            "showTimestamp": 0,
+            "showMD5": 0
+            }
+
+    def parseArgs(self,args):
+        query = ""
+        need_help = 0
+        opts = self.default_options
+        for x in args:
+            if x in ["-h", "--help"]:
+                need_help = 1
+            elif x in ["--md5sum"]:
+                opts["showMD5"] = 1
+            elif x in ["--timestamp"]:
+                opts["showTimestamp"] = 1
+            elif x in ["--type"]:
+                opts["showType"] = 1
+            else:
+                query = x
+
+        if need_help or query == "":
+            print self.longHelp()
+            sys.exit(-1)
+            
+        return (query, opts)
+    
+    def _timestamp(self, timestamp):
+        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
+    
+    def perform(self, args):
+
+        (query, opts) = self.parseArgs(args)
+
+        if Config["verbosityLevel"] >= 3:
+            print "Searching for packages matching '" + query + "'..."
+            
+        pkgs = gentoolkit.find_packages(query)
+        for x in pkgs:
+
+            if not x.is_installed():
+                continue
+            
+            if Config["verbosityLevel"] >= 1:
+                print "Contents of " + x.get_cpv() + ":"
+                
+            cnt = x.get_contents()
+            
+            for name in cnt:
+                info = cnt[name]
+                type = ""
+                fname = ""
+                stamp = ""
+                md5sum = ""
+                if info[0] == 'obj':
+                    type = "file"
+                    fname = name
+                    stamp = self._timestamp(int(info[1]))
+                    md5sum = info[2]
+                elif info[0] == "dir":
+                    type = "dir"
+                    fname = white(name)
+                elif info[0] == "sym":
+                    type = "symlink"
+                    stamp = self._timestamp(int(info[1].replace(")","")))
+                    tgt = info[2].split()[0]
+                    fname = turquoise(name + " -> " + tgt)
+                else:
+                    raise "Unknown " + file[0]
+
+                s = ""
+                if opts["showType"]:
+                    s += "%6s" % type
+                s += " " + fname
+                if opts["showTimestamp"]:
+                    s += " " + stamp
+                if opts["showMD5"]:
+                    s += " " + md5sum
+                print s
+        
+    def longHelp(self):
+        return "List files owned by a particular package\n" + \
+               "\n" + \
+               "Syntax:\n" + \
+               "  " + green("files") + yellow(" <local-opts> <cat/>packagename<-version>") + "\n" + \
+               "\n" + \
+               "Note: category and version parts are optional. \n" + \
+               "\n" + \
+               yellow("<local-opts>") + " is either of: \n" + \
+               "  " + yellow("--timestamp") + "  - append timestamp\n" + \
+               "  " + yellow("--md5sum") + "     - append md5sum\n" + \
+               "  " + yellow("--type") + "       - prepend file type"
+               
+    def shortHelp(self):
+        return yellow("<local-opts> ") + green("query") + " - list files owned by " + green("query")
+
+    
+class CmdListDepends(Command):
+    """List all packages directly or indirectly depending on pkgQuery"""
+    def __init__(self):
+        pass
+    def perform(self, args):
+        merged = gentoolkit.find_all_installed_packages()
+        for pkg in merged:
+            files = pkg.get_contents()
+    def shortHelp(self):
+        return yellow("<local-opts> ") + green("query") + " - list all packages depending on " + green("query")
+
+def cmdBelongs(file_spec):
+    """List all packages owning file_spec"""
+    pass
+
+def cmdDisplayUSEs(query):
+    """Advanced report of a package's USE flags"""
+    pass
+
+def cmdDisplayDepGraph(pkgQuery):
+    """Display tree graph of deps for pkgQuery"""
+    pass
+
+def cmdDisplayReverseDepGraph(pkgQuery):
+    """Display tree graph of reverse deps for pkgQuery"""
+    pass
+
+def cmdDisplayChanges(pkgQuery):
+    """Display changes for pkgQuery"""
+    pass
+
+def cmdDisplaySize(pkgQuery):
+    """Display disk size consumed by pkgQuery"""
+    pass
+
+def cmdCheckIntegrity(pkgQuery):
+    """Check timestamps and md5sums for files owned by pkgQuery"""
+    pass
+
+def cmdPortageStatistics():
+    """Display statistics about installed and uninstalled packages"""
+    pass
+
+Known_commands = {
+    "files": CmdListFiles(),
+    "depends": CmdListDepends()
+    }
+
+Config = {
+    # Query will include packages installed on the system
+    "installedPackages":  1,
+    # Query will include packages available for installation
+    "uninstalledPackages": 0,
+    # Query will include overlay packages (iff uninstalledPackages==1)
+    "overlayPackages": 1,
+    # Query will include masked packages (iff uninstalledPackages==1)
+    "maskedPackages": 0,
+    # Query will only consider packages in the following categories, empty means all.
+    "categoryFilter": [],
+    # Enable color output (-1 = use Portage setting, 0 = force off, 1 = force on)
+    "color": -1,
+    # Level of detail on the output
+    "verbosityLevel": 3,
+    # Query will display info for multiple SLOTed versions
+    "considerDuplicates": 1
+}
+    
+def printVersion():
+    print __productname__ + "(" + __version__ + ") - " + \
+          __description__
+    print "Author(s): " + __author__
+    
+def printUsage():
+    print white("Usage: ") + turquoise("gentool") + yellow(" <global-opts> ") + green("command") + yellow(" <local-opts>")
+    print "where " + yellow("<global-opts>") + " is one of"
+    print yellow(" -q, --quiet") + "   - minimal output"
+    print yellow(" -C, --nocolor") + " - turn off colours"
+    print yellow(" -h, --help") + "    - this help screen"
+    print yellow(" -V, --version") + " - display version info"
+    
+    print "where " + green("command") + " is one of"
+    for x in Known_commands.keys():
+        print " " + green(x) + " " + Known_commands[x].shortHelp()
+
+def parseArgs(args):
+
+    command = None
+    local_opts = []
+
+    for i in xrange(len(args)):
+        x = args[i]
+        if 0:
+            pass
+        elif x in ["-h","--help"]:
+            printUsage()
+            sys.exit(0)
+        elif x in ["-V","--version"]:
+            printVersion()
+            sys.exit(0)
+        elif x in ["-C","--nocolor"]:
+            Config.color = 0
+        elif x in ["-q","--quiet"]:
+            Config["verbosityLevel"] = 0
+        elif x in ["files", "depends"]:
+            command = Known_commands[x]
+            local_opts = args[i+1:]
+            break
+        
+    # Set up colour output correctly
+    if (Config["color"] == -1 and \
+        ((not sys.stdout.isatty()) or \
+         (gentoolkit.settings["NOCOLOR"] in ["yes","true"]))) \
+         or \
+         Config["color"] == 0:
+            nocolor()
+
+    return (command, local_opts)
+    
+if __name__ == "__main__":
+    (cmd, local_opts) = parseArgs(sys.argv[1:])
+    if cmd:
+        cmd.perform(local_opts)
