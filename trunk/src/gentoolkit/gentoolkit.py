@@ -216,7 +216,7 @@ def find_system_packages(prefilter=None):
 			else:
 				unresolved.append(cpv)
 	return (resolved, unresolved)
-			  
+
 def find_world_packages(prefilter=None):
 	"""Returns a tuple of lists, first list is resolved world packages,
 	seond is unresolved package names."""
