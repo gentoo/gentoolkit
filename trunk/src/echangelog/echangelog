@@ -45,17 +45,13 @@ if (-f 'ChangeLog') {
         $text =~ s/^\*.*//ms;   # don't need the fake entry
         $text =~ s/<CATEGORY>/$category/;
         $text =~ s/<PACKAGE_NAME>/$package_name/;
-        # Okay, now we have a starter ChangeLog to work with.
-        # The text will be added just like with any other ChangeLog below.  
-        # Add the new ChangeLog to cvs before continuing.
-        system("cvs add ChangeLog");
     } else {
         die "This should be run in a directory with ebuilds...\n";
     }
 }
 
 # Figure out what has changed around here
-open C, 'cvs -n up 2>&1 |' or die "Can't run cvs -n up: $!\n";
+open C, 'cvs -fn up 2>&1 |' or die "Can't run cvs -fn up: $!\n";
 while (<C>) {
     /ChangeLog/ and next;
     /^\? (\S+)/ and push @unknown, $1;
@@ -68,7 +64,7 @@ if (@unknown) {
 Cvs reports the following unknown files.  Please use "cvs add" before
 running echangelog, or remove the files in question.
 EOT
-    print STDERR "? ", join("\n ?", @unknown), "\n";
+    print STDERR "? ", join("\n? ", @unknown), "\n";
     exit 1;
 }
 
@@ -77,7 +73,7 @@ EOT
 @ebuilds = grep /\.ebuild$/, @files;
 @files = grep !/\.ebuild$/, @files;
 if (@ebuilds) {
-    open C, "cvs diff -U 0 @ebuilds 2>&1 |" or die "Can't run cvs diff: $!\n";
+    open C, "cvs diff -fU 0 @ebuilds 2>&1 |" or die "Can't run cvs diff: $!\n";
     $_ = <C>;
     while (defined $_) {
         if (/^cvs diff: (([^\/]*?)\.ebuild) was removed/) { 
@@ -277,5 +273,12 @@ close D;
 # Move things around and show the ChangeLog diff
 system 'diff -Nu ChangeLog ChangeLog.new';
 rename 'ChangeLog.new', 'ChangeLog' or die "Can't rename ChangeLog.new: $!\n";
+
+# Okay, now we have a starter ChangeLog to work with.
+# The text will be added just like with any other ChangeLog below.  
+# Add the new ChangeLog to cvs before continuing.
+if (open F, "CVS/Entries") {
+    system("cvs -f add ChangeLog") unless (scalar grep /^\/ChangeLog\//, <F>);
+}
 
 # vim:sw=4 ts=8 expandtab
