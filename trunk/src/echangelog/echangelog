@@ -15,7 +15,7 @@ use POSIX qw(strftime getcwd setlocale);
 setlocale(&POSIX::LC_ALL, "C");
 
 use Text::Wrap;
-$Text::Wrap::columns = 79;
+$Text::Wrap::columns = 77;
 $Text::Wrap::unexpand = 0;
 
 # Global variables
@@ -154,7 +154,7 @@ if ($ARGV[0]) {
 die "Empty entry; aborting\n" unless $input =~ /\S/;
 
 # If there are any long lines, then wrap the input at $columns chars
-# (leaving 2 chars on each end after adding indentation below).
+# (leaving 2 chars on left, one char on right, after adding indentation below).
 $input =~ s/^\s*(.*?)\s*\z/$1/s;  # trim whitespace
 $input = Text::Wrap::fill('', '', $input) if ($input =~ /^.{80}/m);
 $input =~ s/^/  /gm;        # add indentation
