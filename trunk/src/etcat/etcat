@@ -42,6 +42,8 @@
 # 
 # --| Changes |------------------------------------------------------
 #
+#  * etcat-0.3.1 (10 Oct 2004) [karltk]
+#	- Fixed changes help examples
 #  * etcat-0.3.1 (08 Jan 2004) [genone]
 #	- adding missing python searchpath modification
 #	- fixing sort order
@@ -111,7 +113,7 @@ options = {
 "changes": \
 ("c","Outputs the changelog entry to screen. It is possible to give a version number along with the package name.",
 ["etcat changes mozilla", 
- "etcat changes mozilla-1.1-r1", 
+ "etcat changes =mozilla-1.1-r1", 
  "etcat changes gkrellm$"]),
 "depends": \
 ("d","Finds all packages that are directly dependent to a regex search string.",
