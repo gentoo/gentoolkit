@@ -1,0 +1,89 @@
+.TH EUSE 1 2003-05-01 "Gentoo Linux" "Gentoo Toolkit"
+.SH NAME
+euse \- command line USE flag editor for Gentoo Linux
+.SH SYNOPSIS
+.B euse
+\fI[options]\fB
+.SH DESCRIPTION
+.PP
+.I euse
+is used to set(disable/enable) USE flags /etc/make.conf without having to edit
+the file directly. It is also used to get detail information about use flags
+like description, status of flags(enabled/disabled), type of flag(global/local)
+etc. It can also be queried for viewing the current use flag settings in
+/etc/make.conf, /etc/make.defaults and environment.
+.SH OPTIONS 
+.TP
+\fB-c, --conf\fI
+Print the USE flag setting in /etc/make.conf
+.TP
+\fB-d, --defaults\fI
+Print the USE flag setting in /etc/make.profile/make.defaults
+.TP
+\fB-e, --env\fI
+Print the USE flag setting in environment
+.TP
+\fB-E, --enable\fI
+Enables USE flag(s) in make.conf. It accepts one or more USE flags space
+separted as parameters. Please read README for all the different cases it
+handles.
+.TP
+\fB-D, --disable\fI
+Disables USE flag(s) in make.conf. Puts a '-' sign infront of the use flag and
+appends to USE setting of make.conf. It accepts one or more USE flags space
+separted as parameters. Please read README for all the different cases it
+handles.
+.TP
+\fB-i, --info\fI
+Prints detail information about the USE flag(s). If no arguments are given then
+all the USE flag(global & local) information is printed. If one or more
+arguments are given(space separated) then information of only those flags are
+printed. 
+.sp
+.RS
+The output is in the following format:
+.br
+alpha         [-] [ ] [G] indicates that architecture ...
+.br
+moznocompose  [+] [C] [L] [net-www/mozilla] : If you  ... 
+.br
+The column descriptions are:
+.IP flag_name
+name of the use flag
+.IP flag_status
+indicates whether the USE flag is enabled or disabled. - indicates disabled, +
+indicates enabled.
+.IP flag_location
+indicates where the USE flag is enabled or disabled.
+C indicates make.conf, D indicates make.defaults, E indicates environment.
+.IP flag_type
+indicates if the flag is global USE flag or a local USE flag.If it is local USE
+flag, then the description column begins with the package which it belongs to
+in square brackets. See moznocompose example above.
+.IP description
+gives a short description of the USE flag
+.TP
+\fB-h, --help\fI
+Show the help message listing all the available flags and a short description
+.TP
+\fB-v, --version\fI
+Show the version information
+.SH FILES
+/etc/make.conf
+.br
+/etc/make.profile/make.defaults
+.br
+$PORTDIR/profiles/use.desc
+.br
+$PORTDIR/profiles/use.local.desc
+.br
+/etc/make.profile/use.mask
+.SH AUTHOR
+Arun Bhanu <codebear@gentoo.org>
+.SH BUGS
+No reported bugs yet.
+.SH "SEE ALSO"
+.BR ufed(8), 
+.BR README
+.TP
+The \fI/usr/bin/euse\fR script. 

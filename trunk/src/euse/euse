@@ -1,0 +1,1038 @@
+#!/usr/bin/perl
+# Name             : euse
+# Purpose          : Command line USE flag editor
+# Author           : Arun Bhanu
+# Version          : 0.1.0
+# Copyright        : GNU GPL v2
+
+use warnings;
+use strict;
+
+use Getopt::Long;
+use File::Copy;
+use Env qw(USE);
+
+# Define constants
+use constant FLAG_TYPE=>['G', 'L'];
+use constant FLAG_MASK=>['+', '-', 'M'];
+use constant FLAG_SITE=>['E', 'C', 'A', 'D', ' '];
+use constant SITE_DESC=>['environment', 'make.conf', 'auto', 'make.defaults'];
+
+# parse_wo_args & parse_with_args populate command line arguments into
+# these. The argument and variable names has to match because we make use
+# of symbolic references. Yeah, I know these are not good names.
+our $h = 0;     # -h|help, boolean 
+our $v = 0;     # -v|version, boolean
+our $c = 0;     # -c|conf, boolean
+our $d = 0;     # -d|defaults, boolean
+our $e = 0;     # -e|env, boolean
+our @i = ();    # -i|info, info accepts many optional values.
+our @p = ();    # -p|package argument, package accepts many values.
+our @E = ();    # -E|enable, enable use flags in make.conf
+our @D = ();    # -D|disable, disable use flags in make.conf. Not a physical 
+                #  delete, but just minus sign in front of the given use flag.
+
+# arguments that does not take values.
+our $Args_Wo_Param = "hvcde"; 
+our $Non_Arg = " ";
+our $Curr_Arg; # Argument being parsed. 
+our %Unknown_Args;  # All unknown arguments are populate here.
+
+our %Uf_warnings;
+
+our $Version = "0.1.0";
+
+# Paths to all the reqd files
+our $FMake_conf     = "/etc/make.conf";
+our $FMake_defaults = "/etc/make.profile/make.defaults";
+our $FUse_desc      = "/etc/make.profile/../use.desc"; 
+our $FUse_local     = "/etc/make.profile/../use.local.desc";
+our $FUse_mask      = "/etc/make.profile/use.mask";
+
+# For my local testing
+#our $FMake_conf = "make.conf"; #/etc/make.conf
+#our $FMake_defaults = "make.defaults"; #/etc/make.profile/make.defaults
+#our $FUse_desc = "use.desc"; #$PORTDIR/profiles/use.desc
+#our $FUse_local = "use.local.desc";#$PORTDIR/profiles/use.local.desc
+#our $FUse_mask = "use.mask";#/etc/make.profile/use.mask
+
+#BEGIN Main
+MAIN: {
+    Getopt::Long::Configure("no_ignore_case");
+    # help, version does not accept arguments
+    # info accepts optional agruments.
+    # package requires arguments.
+    GetOptions(
+        "h|help" => \&parse_wo_args,        # Show usage info.
+        
+        "v|version" => \&parse_wo_args,     # Show version info.
+        
+        "i|info:s" => \&parse_with_args,    # Show use flags info. 
+                                            # Show all use flags if none 
+                                            # specified. (Optional values)
+                                            
+       #"p|package:s" => \&parse_with_args, # Show use flag info for all 
+                                            # given packages (Mandatory values)
+                                            
+        "E|enable:s" => \&parse_with_args,  # enable use flag from make.conf 
+                                            # e.g. mozilla
+                                            
+        "D|disable:s" => \&parse_with_args, # disable use flag from make.conf 
+                                            # e.g. -mozilla.
+
+        "c|conf" => \&parse_wo_args,        # print the contents of make.conf
+                                            # use flag setting
+
+        "d|defaults" => \&parse_wo_args,    # print the contents of 
+                                            # make.defaults use flag setting
+
+        "e|env" => \&parse_wo_args,         # print the contents of 
+                                            # environment use flag setting
+
+        "<>" => \&handle_unknown            # all unknown arguments.
+    ) or usage();
+
+
+    # If no options are entered show usage.
+    if ((my $opts = $h + 
+                    $v + 
+                    ($c or $d or $e) + 
+                    defined(@i) + 
+                    defined(@p) +
+                    (defined(@E) or defined(@D))) < 1) {
+        usage();
+    }
+
+    # If any arguments are provided for options which are boolean show usage.
+    if (%Unknown_Args) {
+        print ("Unknown arguments: \n");
+        foreach (sort keys %Unknown_Args) {
+            print "\t$_ => " . join (" ", @{$Unknown_Args{$_}}) . "\n";
+        }
+        usage();
+    }
+
+    # Only one of -h, -v, -i, -p, -c/-d/-e or -E/-D allowed
+    if ((my $opts = $h + 
+                    $v + 
+                    ($c or $d or $e) + 
+                    defined(@i) + 
+                    defined(@p) +
+                    (defined(@E) or defined(@D))) > 1) {
+        usage("Only one of -h, -v, -i, -p or -E/-D allowed");
+    }
+
+    # Mandatory argument field check if arguments have been entered
+    my @reqd_args = ();
+    if (defined(@E)) {
+        if ($E[0] eq '') {
+            push @reqd_args, "-E"; 
+        }
+    }
+    if (defined(@D)) {
+        if ($D[0] eq '') {
+            push @reqd_args, "-D"; 
+        }
+    }
+    if ($#reqd_args >= 0) {
+        print join(", ", @reqd_args), " require argument(s). \n"; 
+        usage();
+    } 
+
+    # If -h,--help is entered show usage.
+    if ($h) {
+        #check_permissions("rw"); #just for testing purposes
+        usage();
+    }
+
+    # If -v,--version is entered show version.
+    if ($v) {
+        version();
+    }
+
+    if ($c || $d || $e) {
+        #Check the permissions for all the reqd files and sets their path
+        #If not enough permission don't proceed.
+        check_permissions("r");
+        if ($d) {
+            my $defaults_uf_list_ref = parse_make($FMake_defaults);
+            print "USE setting in make.defaults: \n";
+            print (join (" ", @$defaults_uf_list_ref) . "\n\n");
+        }
+
+        if ($c) {
+            my $conf_uf_list_ref = parse_make($FMake_conf);
+            print "USE setting in make.conf: \n";
+            print (join (" ", @$conf_uf_list_ref) . "\n\n");
+        }
+
+        if ($e) {
+            my $env_uf_list_ref = parse_env($USE);
+            print "USE setting in environment: \n";
+            print (join (" ", @$env_uf_list_ref) . "\n\n");
+        }
+        exit(0);
+    }
+    
+    check_permissions("r");
+
+    # Read /usr/portage/profiles/use.desc
+    my %use_flags;
+    parse_use($FUse_desc, \%use_flags);
+
+    # Read /usr/portage/profiles/use.local.desc
+    parse_use_local($FUse_local, \%use_flags);
+
+    # Read /etc/make.profile/use.mask, if exists.
+    parse_use_mask($FUse_mask, \%use_flags) if (-e $FUse_mask);
+
+    # If a -* is found in env, make.conf & make.defaults is skipped.
+    # If a -* is found in make.conf, make.defaults is skipped.
+    # If a -* is found in all the elements in front of -* is skipped.
+    # In each of the case all the elements in front of -* is also skipped.
+    # Read ENV{USE}
+    my (@env_uf_list, @conf_uf_list, @defaults_uf_list) = ();
+    my $env_uf_list_ref = \@env_uf_list;
+    my $conf_uf_list_ref = \@conf_uf_list;
+    my $defaults_uf_list_ref = \@defaults_uf_list;
+
+    $env_uf_list_ref = parse_env($USE) if (defined($USE));     
+    unless (is_all_disabled($env_uf_list_ref)) {
+        # Read /etc/make.conf
+        $conf_uf_list_ref = parse_make($FMake_conf);
+
+        unless (is_all_disabled($conf_uf_list_ref)) {
+            # Read /etc/make.profile/make.defaults
+            $defaults_uf_list_ref = parse_make($FMake_defaults);
+        }
+    }
+
+    # is this the correct way of check the length of an array reference??
+    parse_use_flag($defaults_uf_list_ref, \%use_flags, 3)
+        unless ($#{@$defaults_uf_list_ref} < 0);
+    parse_use_flag($conf_uf_list_ref, \%use_flags, 1)
+        unless ($#{@$conf_uf_list_ref} < 0);
+    parse_use_flag($env_uf_list_ref, \%use_flags, 0) 
+        unless ($#{@$env_uf_list_ref} < 0);
+
+
+    # If -i, --info is entered print all USE flags if no arguments given or 
+    # print the description for the given USE flags.
+    if (defined(@i)) {
+        
+        #if -i mozilla mozilla is entered the extra mozilla is removed.
+        remove_duplicates(\@i);
+        
+        my @use_flag_list = ();
+        my $max_len = 0;
+        my $curr_key_len = 0;
+
+        # Retrieve the objects to be send to the formatting function as an 
+        # array.
+        if ($i[0] eq '') {
+            #Display all USE flags
+            foreach (sort keys %use_flags) {
+                $curr_key_len = length($_);
+                $max_len = $curr_key_len if $curr_key_len > $max_len;
+                push @use_flag_list, $use_flags{$_};
+            }
+        }
+        else {
+            #Display USE flags for given arguments
+            foreach (sort @i) {
+                if (exists($use_flags{$_})) {
+                    $curr_key_len = length($_);
+                    $max_len = $curr_key_len if $curr_key_len > $max_len;
+                    push @use_flag_list, $use_flags{$_} ;
+                }
+                else {
+                    # Invalid use flag
+                    add_warning($_, "Querying an invalid use flag.");
+                }
+            }
+        }
+
+        format_output(\@use_flag_list, \$max_len);
+        format_warning();
+        exit(0);
+    }
+
+    # Enable USE flags and disable USE flags
+    if (defined(@E) || defined(@D)) {
+
+        check_permissions("rw");
+        
+        # Enable the last occurence of the USE flag.  Check if already exists
+        # in make.conf. If exist and enabled leave it alone. If exists and
+        # disabled enable it. If not found, put an entry at the end. Why end?
+        # -* may be in effect somewhere in the USE flag.  So adding in at the
+        # end will make sure it gets enabled.  euse -E "*" or euse -E all will
+        # look for a -* in make.conf. If found removes it.
+        if (defined(@E)) {
+            remove_duplicates(\@E);
+            rearrange_args(\@E);
+            enable_use_flag($conf_uf_list_ref, \%use_flags);
+        }
+
+        # Disable the last occurence of the USE flag. 
+        # euse -D "*" will put a -* at the end of USE flag setting in make.conf.
+        if (defined(@D)) {
+            remove_duplicates(\@D);
+            rearrange_args(\@D);
+            disable_use_flag($conf_uf_list_ref, \%use_flags);
+        }
+        format_warning();
+        exit(0);
+    }
+    exit(0);
+}
+#END Main
+
+# Show usage. Accepts optional argument. If given prints them as warning msg.
+sub usage {
+    warn "@_\n" if @_;
+    die <<EOF;
+'*' leading an option indicates not-yet-implemented
+Usage:
+    -h, --help     - print this message
+    -v, --version  - print version information
+    -i, --info     - print USE flag information for the the given USE flags.
+                     Optional argument.
+    -c, --conf     - print USE flag setting in make.conf
+    -d, --defaults - print USE flag setting in make.defaults
+    -e, --env      - print USE flag setting in environment variable USE
+   *-p, --package  - requires a package name to be given for which you 
+                     want to see USE flags.
+    -E, --enable   - enable use flag to make.conf e.g. -E mozilla puts mozilla 
+                     in make.conf. Mandatory argument.
+    -D, --disable  - disable use flag from make.conf e.g. -D mozilla 
+                     puts -mozilla in make.conf. Mandatory argument.
+
+Please see the README file for more details.
+
+EOF
+
+}
+
+# Show version
+sub version
+{
+    die <<EOF;
+EUSE version $Version
+Copyright (C) 2003 - Arun Bhanu
+This program may be freely distributed under the terms of the GNU GPL v2.
+
+EOF
+
+}
+
+# check permissions for all reqd files
+sub check_permissions 
+{
+    my ($r, $w) = split(//, shift());
+
+    #make.conf requires rw permissions. all the other files require read
+    #permission
+    my $errors = "";
+
+    # for make.conf
+    if ((defined($r) && $r eq "r") && (defined($w) && $w eq "w")) {
+        #print "rw defined \n";
+        unless (-e $FMake_conf && -r _ && -w _) {
+            $errors .= "requires read,write permissions for $FMake_conf. \n";
+        }
+    }
+    elsif (defined($r) && $r eq "r") {
+        #print "r defined \n";
+        unless (-e $FMake_conf && -r _) {
+            $errors .= "requires read,write permissions for $FMake_conf. \n";
+        }
+    }
+
+    # for all the other files
+    if (defined($r) && $r eq "r") {
+        #print "r defined \n";
+        unless (-e $FMake_defaults && -r _) {
+            $errors .= "requires read permissions for $FMake_defaults. \n";
+        }
+        unless (-e $FUse_desc && -r _) {
+            $errors .= "requires read permissions for $FUse_desc. \n";
+        }
+
+        unless (-e $FUse_local && -r _) {
+            $errors .= "requires read permissions for $FUse_local. \n";
+        }
+
+        if (-e $FUse_mask) {
+            unless (-r $FUse_mask) {
+                $errors .= "requires read permissions for $FUse_mask. \n";
+            }
+        }
+    }
+
+    die "EUSE exiting with following errors: \n$errors" unless ($errors eq "");
+}
+
+# clean up reqd
+sub handle_unknown
+{
+    no strict 'refs';
+    if (defined $Curr_Arg) {
+        my $option = $Curr_Arg;
+        if ($option =~ /[$Args_Wo_Param]/) {
+            #print "param not required \n";
+            #print "Option: $option " . join (",", @_) . "\n";
+            push @{$Unknown_Args{$option}}, @_;
+        }
+        else {
+            #print "param is okay \n";
+            push @$option, @_;
+        }
+    }
+    else {
+        #print "curr flag not defined \n";
+        push @{$Unknown_Args{$Non_Arg}}, @_;
+    }
+}
+
+sub parse_with_args
+{
+    no strict 'refs';
+    my ($option, $value) = @_;
+    #print "parse with handle: " . $option . " " . $value . "\n";
+
+    push @$option, $value; #do not allow comma separated.
+    $Curr_Arg = $option;
+
+}
+
+sub parse_wo_args
+{
+    no strict 'refs';
+    my ($option, $value) = @_;
+    #print "parse wo handle: " . $option . " " . $value . "\n";
+    $$option = $value;
+    $Curr_Arg = $option;
+}
+
+# Generic subroutine to read a file. 
+# Returns an array of lines in array context or returns the whole file in a 
+# single scalar in scalar context.
+sub read_file {
+    my $file_name = shift();
+    if (open FILE, $file_name) {
+        local $/ = undef unless wantarray;
+        return <FILE>;
+    }
+    else {
+        die "Couldn't read file $file_name. $! \n";
+    }
+    #return; # returns undef in scalar context, () in list context
+}
+
+sub parse_use
+{
+    my $file_name = shift();
+    my $use_flags_ref = shift();
+    my @lines = read_file($file_name);
+    chomp @lines;
+    foreach (@lines) {
+        if (/^\s*([-a-z0-9_+]+)\s+-\s*(.*)$/i) {
+            $use_flags_ref->{$1} = create_use_flag($1, $2, FLAG_TYPE->[0]);
+        }
+    }
+}
+
+sub parse_use_local
+{
+    my $file_name = shift();
+    my $use_flags_ref = shift();
+    my @lines = read_file($file_name);
+    chomp @lines;
+    foreach (@lines) {
+        if (m{^\s*([-a-z0-9_/+]*):([-a-z0-9_/+]*)\s*-\s*(.*)$}i)
+        {
+            my $pkg_name = $1;
+            my $use_flag = $2;
+            my $use_desc = $3;
+            $use_flags_ref->{$use_flag} = 
+                create_use_flag($use_flag, $use_desc, FLAG_TYPE->[1], 
+                    FLAG_MASK->[1], $pkg_name);
+        }
+    }
+}
+
+sub parse_use_mask
+{
+
+    my $file_name = shift();
+    my $use_flags_ref = shift();
+    my @lines = read_file($file_name);
+    chomp @lines;
+    my @use_mask;
+    foreach (@lines) {
+        if (m/^\s*([-a-z0-9_+]+)\s*$/i)
+        {
+            my $use_flag = $1;
+            if (exists $use_flags_ref->{$use_flag}) {
+                $use_flags_ref->{$use_flag}->[3] = FLAG_MASK->[2];
+            }
+            else {
+                add_warning($use_flag, "Found in use.mask, but is not a valid use flag.");
+            }
+        }
+    }
+
+
+    #return \@use_mask;
+}
+
+sub add_warning
+{
+    my $use_flag = shift();
+    my $msg = shift();
+    if (exists $Uf_warnings{$use_flag}) {
+        push @{$Uf_warnings{$use_flag}}, $msg;
+        
+    }
+    else {
+        my @warn_list = ($msg);
+        $Uf_warnings{$use_flag} = \@warn_list;
+    }
+}
+
+sub parse_make
+{
+    my $file_name = shift();
+    my $lines = read_file($file_name);
+    my @site_uf_list;
+    if ($lines =~ m/^\s*USE[\s\n]*=[\s\n]*"([^"]*)"/ms) 
+    {
+        my $use_var = $1;
+        $use_var =~ s/[\r\n]/ /g;
+        @site_uf_list = split(' ', $use_var);
+    }
+    #print ("Make: \n" . join (" ", @site_uf_list) . "\n");
+    return \@site_uf_list;
+}
+
+sub parse_env
+{
+    my $env = shift();
+    $env = "" unless (defined($env));
+    #print "USE: $env \n";
+    my @site_uf_list = split(' ', $env);
+    #print ("Env: " . join (" ", @site_uf_list) . "\n");
+    return \@site_uf_list;
+}
+
+sub parse_use_flag
+{
+    my $site_uf_list_ref = shift();
+    my $use_flags_ref = shift();
+    my $site_index = shift();
+
+    #print "Flag site: $site_index -> " . FLAG_SITE->[$site_index] . "\n";
+    #print "Flag desc: $site_index -> " . SITE_DESC->[$site_index] . "\n";
+    my ($isenabled, $use_wo_sign, $use_with_sign);
+    # recurse from back to front. if -* is found the rest of the elements in
+    # front is ignored.
+    for (my $i = $#{@$site_uf_list_ref}; $i >= 0; $i--) {
+        my $curr_flag = $site_uf_list_ref->[$i];
+        #print "curr flag: $curr_flag \n";
+        last if ($curr_flag =~ m/^-\*$/);
+        $isenabled = 1; # sign = 1 is enabled, sign = 0 is disabled.
+        $use_wo_sign = $use_with_sign = $curr_flag;
+        if ($use_with_sign =~ /^-(.*)/) {
+            $use_wo_sign = $1;
+            $isenabled = 0;
+        } 
+
+        if (exists $use_flags_ref->{$use_wo_sign}) {
+            $use_flags_ref->{$use_wo_sign}->[5] = FLAG_SITE->[$site_index];
+            if ($use_flags_ref->{$use_wo_sign}->[3] eq FLAG_MASK->[2]) {
+                add_warning($use_wo_sign, "$use_with_sign found in " . 
+                    SITE_DESC->[$site_index] . " is masked. You shouldn't be " .
+                    "setting this use flag.");
+            }
+            #if ($use_flags_ref->{$use_wo_sign}->[3] eq FLAG_MASK->[3] ) {
+            #    add_warning($use_wo_sign, "$use_with_sign found in " . 
+            #        SITE_DESC->[$site_index] . " is an internal flag. You " .
+            #        "shouldn't be setting this use flag.");
+            #}
+            if ($isenabled) {
+                $use_flags_ref->{$use_wo_sign}->[3] = FLAG_MASK->[0];
+            }
+            else {
+                $use_flags_ref->{$use_wo_sign}->[3] = FLAG_MASK->[1];
+            }
+            
+        }
+        else {
+            add_warning($use_wo_sign, "$use_with_sign found in " . 
+                SITE_DESC->[$site_index] . " not a valid use flag.");
+        }
+    }
+}
+
+# checks if -* is found in any given site - environment, make.conf, 
+# make.defaults
+# Return 1 if -* is found, return 0 otherwise.
+sub is_all_disabled
+{
+    my $site_uf_list_ref = shift();
+    #print (join (" ", @$site_uf_list_ref) . "\n");
+    foreach (@$site_uf_list_ref) {
+        return 1 if (m/^-\*$/);
+    }
+    return 0;
+}
+
+sub enable_use_flag
+{
+    my $conf_uf_list_ref = shift();
+    my $use_flags_ref = shift();
+    # if -* is found in env, should we enable the flag in environment instead
+    # of make.conf
+    #print "Enabling in make.conf... \n";
+    my @add_flags;
+    my @del_flags;
+    my $enable_all = 0;
+    #my $disable_start = 0;
+    my $disable_found = 0;
+    EFLAG: foreach my $eflag (@E) {
+        if ($eflag eq "*" or $eflag eq "all") {
+            #print "$eflag need to del -* use flag.. \n"; 
+            $enable_all = 1;
+            $eflag = "*";
+            push @del_flags, $eflag;
+            foreach my $cflag (@$conf_uf_list_ref) {
+                if ($cflag eq "-*") {
+                    $disable_found = 1;
+                    last;
+                }
+            }
+            next EFLAG;
+        }
+        if (exists $use_flags_ref->{$eflag}) {
+            if ($use_flags_ref->{$eflag}->[3] eq FLAG_MASK->[2]) {
+                add_warning($eflag, "$eflag is masked. Enabling a masked " . 
+                    "flag.");
+                next EFLAG;
+            }
+            my $count = 0;
+            for (my $i = $#{@$conf_uf_list_ref}; $i >= 0; $i--) {
+                my $curr_flag = $conf_uf_list_ref->[$i];
+                #print "curr flag: $curr_flag eflag: $eflag \n";
+                
+                if ($curr_flag eq $eflag) {
+                    #print "flag exists.. \n"; 
+                    next EFLAG;
+                }
+
+                my $eflag_sign = "-".$eflag;
+                if ($curr_flag eq $eflag_sign) {
+                    #print "need to del use flag.. \n"; 
+                    push @del_flags, $eflag;
+                    next EFLAG;
+                }
+
+                if ($curr_flag eq "-*") {
+                    $count++;
+                    if ($enable_all) {
+                        if ($disable_found && ($count == 1)) {
+                            next;
+                        }
+                        else {
+                            push @add_flags, $eflag;
+                            next EFLAG;
+                        }
+                    }
+                    else {
+                        push @add_flags, $eflag;
+                        next EFLAG;
+                    }
+                    
+                }
+            }
+            #print "$eflag - need to enable this flag...\n";
+            push @add_flags, $eflag;
+        } 
+        else {
+            add_warning($eflag, "Enabling invalid use flag.");
+        }
+    }
+    
+    # should I use timestamp instead of .old suffix?
+    if (@add_flags || @del_flags) {
+    
+        my $make_conf = read_file($FMake_conf);
+        #my $timestamp = get_timestamp();
+        #copy ($FMake_conf, "$FMake_conf.$timestamp");
+        copy ($FMake_conf, "$FMake_conf.bkeuse");
+        if (@add_flags) {
+            #print "these are flags to add...\n";
+            my $eflags = join (" ", @add_flags);
+            #print ($eflags . "\n");
+            $make_conf =~ 
+                s/(^\s*USE[\s\n]*=[\s\n]*")([^"]*)(")/$1$2 $eflags$3/ms;
+
+            # If there is no USE flag setting in make.conf include it and
+            # add the flags.
+            unless (defined($1)) {
+                #print "There are flags to add but no USE setting \n";
+                $make_conf =~ s/(^\s*#\s*Host)/USE="$eflags"\n$1/ms;
+            }
+        }
+        
+        my $use_setting = "";
+        if (@del_flags) {
+            #print "these are flags to del...\n";
+            my $dflags = join (" ", @del_flags);
+            #print ($dflags . "\n");
+
+            if ($make_conf =~ /^\s*USE[\s\n]*=[\s\n]*"([^"]*)"/ms) {
+                $use_setting = $1;
+            }
+            foreach my $dflag (@del_flags) {
+                if ($dflag eq "*") {
+                    $use_setting =~ s/^(.*)-\*(.*)$/$1$2/ms;
+                }
+                else {
+                    # \Q, \E prevents flags like libg++ to bonk
+                    $use_setting =~ s/^(.*)(-\Q$dflag\E)(.*)$/$1$dflag$3/ms;
+                }
+            }
+            $make_conf =~ 
+                s/(^\s*USE[\s\n]*=[\s\n]*")([^"]*)(")/$1$use_setting$3/ms;
+        }
+        open(OUTFILE, ">$FMake_conf") or 
+            die("couldn't open make.conf");
+        print OUTFILE $make_conf;
+        close OUTFILE;
+    }
+    print "USE setting in make.conf after enabling: \n";
+    my $make_conf = read_file($FMake_conf);
+    my $use_setting = "";
+    $make_conf =~ /^\s*USE[\s\n]*=[\s\n]*"([^"]*)"/ms; 
+    if (defined($1)) {
+        $use_setting = $1;
+    }
+    #print "$use_setting \n";
+    print (join(" ", split(' ', $use_setting)));
+    print "\n";
+}
+
+sub disable_use_flag
+{
+    my $conf_uf_list_ref = shift();
+    my $use_flags_ref = shift();
+    my @add_flags;
+    my @del_flags;
+    my $disable_all = 0;
+    #my $disable_start = 0;
+    my $disable_found = 0;
+
+    foreach my $cflag (@$conf_uf_list_ref) {
+        if ($cflag eq "-*") {
+            $disable_found = 1;
+            last;
+        }
+    }
+
+    DFLAG: foreach my $dflag (@D) {
+        
+        if ($dflag eq "*" or $dflag eq "all") {
+            #print "$dflag need $disable_found to add -* use flag.. \n"; 
+            $disable_all = 1;
+            $dflag = "-*";
+            push @del_flags, $dflag if ($disable_found);
+            next DFLAG;
+        }
+
+        if (exists $use_flags_ref->{$dflag}) {
+            if ($use_flags_ref->{$dflag}->[3] eq FLAG_MASK->[2]) {
+                add_warning($dflag, "$dflag is masked. Disabling a masked " . 
+                    "flag.");
+                next DFLAG;
+            }
+
+            for (my $i = $#{@$conf_uf_list_ref}; $i >= 0; $i--) {
+                my $curr_flag = $conf_uf_list_ref->[$i];
+                #print "curr flag: $curr_flag dflag: $dflag \n";
+
+                if ($disable_all) {
+                    if ($disable_found) {
+                        push @del_flags, "-".$dflag;
+                        next DFLAG;
+                    }
+                    else {
+                        my $dflag_sign = "-".$dflag;
+                        if ($curr_flag eq $dflag_sign) {
+                            #print "flag exists.. \n"; 
+                            next DFLAG;
+                        }
+                        if ($curr_flag eq $dflag) {
+                            push @add_flags, $dflag;
+                            next DFLAG;
+                        }
+                    }
+                }
+                else {
+                    my $dflag_sign = "-".$dflag;
+                    if ($curr_flag eq $dflag_sign) {
+                        #print "flag exists.. \n"; 
+                        next DFLAG;
+                    }
+                    if ($curr_flag eq $dflag) {
+                        push @add_flags, $dflag;
+                        next DFLAG;
+                    }
+
+                    if ($disable_found) {
+                        if ($curr_flag eq "-*") {
+                            push @del_flags, "-".$dflag;
+                            next DFLAG;
+                        }
+                    }
+                }
+            }
+            unless ($disable_found) {
+                #print "$dflag - need to disable this flag...\n";
+                push @del_flags, "-".$dflag;
+            }
+        } 
+        else {
+            add_warning($dflag, "Disabling invalid use flag.");
+        }
+    }
+
+    my $make_conf = read_file($FMake_conf);
+    copy ($FMake_conf, "$FMake_conf.bkeuse");
+    if ($disable_all && !$disable_found) {
+        $make_conf =~ 
+            s/(^\s*USE[\s\n]*=[\s\n]*")([^"]*)(")/$1-* $2$3/ms;
+    }
+
+    if (@add_flags || @del_flags) {
+        #my $timestamp = get_timestamp();
+        #copy ($FMake_conf, "$FMake_conf.$timestamp");
+        
+        if (@del_flags) {
+            print "these are flags to disable...\n";
+            my $dflags = join (" ", @del_flags);
+            #print ($dflags . "\n");
+            $make_conf =~ 
+                s/(^\s*USE[\s\n]*=[\s\n]*")([^"]*)(")/$1$2 $dflags$3/ms;
+
+            # If there is no USE flag setting in make.conf include it and
+            # disable the flags.
+            unless (defined($1)) {
+                print "There are flags to del but no USE setting \n";
+                $make_conf =~ s/(^\s*#\s*Host)/USE="$dflags"\n$1/ms;
+            }
+        }
+
+        my $use_setting = "";
+        if (@add_flags) {
+            #print "these are flags to enable...\n";
+            my $eflags = join (" ", @add_flags);
+            #print ($eflags . "\n");
+            if ($make_conf =~ /^\s*USE[\s\n]*=[\s\n]*"([^"]*)"/ms) {
+                $use_setting = $1;
+            }
+            foreach my $eflag (@add_flags) {
+                # should only enable the last one occurence 
+                # Is there are better regex for this to avoid backtracking?
+                # \Q, \E prevents flags like libg++ to bonk
+                $use_setting =~ s/(.*)\Q$eflag\E(.*)/$1-$eflag$2/s;
+            }
+            $make_conf =~ 
+                s/(^\s*USE[\s\n]*=[\s\n]*")([^"]*)(")/$1$use_setting$3/ms;
+
+        }
+
+    }
+
+    open(OUTFILE, ">$FMake_conf") or 
+        die("couldn't open make.conf");
+    print OUTFILE $make_conf;
+    close OUTFILE;
+
+    print "USE setting in make.conf after disabling: \n";
+    $make_conf = read_file($FMake_conf);
+    my $use_setting = "";
+    $make_conf =~ /^\s*USE[\s\n]*=[\s\n]*"([^"]*)"/ms; 
+    if (defined($1)) {
+        $use_setting = $1;
+    }
+    #print "$use_setting \n";
+    print (join(" ", split(' ', $use_setting)));
+    print "\n";
+}
+
+# is there a better way of rearranging? This works, but any better solutions?
+sub rearrange_args
+{
+    my $arg_array_ref = shift();
+    my @new_arg_array = ();
+    foreach my $arg (@$arg_array_ref) {
+        if ($arg eq "*" or $arg eq "all") {
+            unshift @new_arg_array, $arg; 
+        }
+        else {
+            push @new_arg_array, $arg;
+        }
+    }
+    @$arg_array_ref = @new_arg_array;
+}
+
+# removes duplicate elements of an array
+sub remove_duplicates
+{
+    my $arg_array_ref = shift();
+    my %arg_hash;
+    my @unique_args = grep { !$arg_hash{$_} ++ } @$arg_array_ref;
+    @$arg_array_ref = @unique_args;
+}
+
+sub get_timestamp
+{
+    my ($sec, $min, $hour, $day, $mon, $year) = (localtime)[0..5];
+    $mon += 1;
+    $year  += 1900;
+    # need to format hour, min, second, day, mon to 2 digits.
+    my $timestamp = sprintf ('%4u%02u%02u%02u%02u%02u', 
+        $year, $mon, $day, $hour, $min, $sec);
+    print "$timestamp\n";
+    return $timestamp;
+}
+
+
+
+
+#array[name, desc, type, mask, pkg, site]
+# name - name of the use flag (Required)
+# desc - description for the use flag (Required)
+# type - where the use flag is found. Acceptable values (global,local). Global
+#        means use.desc and local means use.local.desc (Required)
+# mask - whether the use flag is enabled, disabled or masked. Acceptable values
+#        (enabled,disabled,masked,internal) (Optional)
+# pkg  - for local use flags, package which it belongs to. For global use flags
+#      - it is empty.
+# site - if the use flag is enabled where is it enabled. Acceptable values 
+#        (E,C,A,D,-) (Optional)
+#        E - environment
+#        C - make.conf
+#        A - auto
+#        D - make.defaults
+#        - - not enabled
+sub create_use_flag(\$\$\$;\$\$\$)
+{
+    my ($name, $desc, $type) = ($_[0], $_[1], $_[2]);
+    my $mask = (defined($_[3]) ? $_[3] : FLAG_MASK->[1]);
+    my $pkg  = (defined($_[4]) ? $_[4] : "");
+    my $site = (defined($_[5]) ? $_[5] : FLAG_SITE->[4]);
+    my @use_flag = ($name, $desc, $type, $mask, $pkg, $site);
+    #print (join (" ", @use_flag) . "\n");
+    return \@use_flag;
+}
+
+# to format all the warning messages
+sub format_warning
+{
+    if (%Uf_warnings) {
+        print "EUSE WARNINGS!! \n";
+        my $max_len = 0;
+        my $curr_key_len = 0;
+        foreach (sort keys %Uf_warnings) {
+            $curr_key_len = length($_);
+            $max_len = $curr_key_len if $curr_key_len > $max_len;
+        }
+        
+        my ($use_flag_name, $warning_msg);
+        
+        my $warn_format = "format WARNINGS_FORMAT= \n" .
+'@' . ('<'x($max_len-1)) . ' => ' . '^' . ('<'x(80-$max_len-4-1)) . "\n" .
+'$use_flag_name, $warning_msg' ."\n" .
+(' 'x($max_len+4)) . '^' . ('<'x(80-$max_len-4-1-2)) . '~~' . "\n" . 
+'$warning_msg' . "\n" .
+".\n";
+        eval $warn_format;
+        #print $warn_format;
+
+        my $warn_bot_format = "format WARNINGS_BOT_FORMAT= \n" .
+(' 'x($max_len)) . ' => ' . '^' . ('<'x(80-$max_len-4-1)) . "\n" . 
+'$warning_msg' . "\n" .
+(' 'x($max_len+4)) . '^' . ('<'x(80-$max_len-4-1-2)) . '~~' . "\n" . 
+'$warning_msg' . "\n" .
+".\n";
+
+        eval $warn_bot_format;
+        #print $warn_bot_format;
+
+        foreach (sort keys %Uf_warnings) {
+            $use_flag_name = $_;
+            my $count = 0;
+            foreach (@{$Uf_warnings{$_}}) {
+                $~ = ($count++ == 0) ? 
+                        'WARNINGS_FORMAT' : 'WARNINGS_BOT_FORMAT';
+                $warning_msg = $_;
+                write;
+            }
+        }
+    }
+}
+
+# formatted output for euse -i
+sub format_output
+{
+    my @use_flag_list = @{shift()};
+    my $max_len = ${shift()};
+    #print "Use flag list: $#use_flag_list \n";
+    #print "Key Length: $max_len \n";
+    if ($#use_flag_list < 0) {
+        print ("No matching use flags to display!! \n");
+        return;
+    }
+    my @use_flag;
+    my ($use_flag_name, $use_flag_desc, $use_flag_type, $use_flag_mask, 
+        $use_flag_site);
+    
+    # No of columns = 80
+    # -1 to compensate for < or @ char in format
+    # -2 to compensate for ~~ in format
+    # No of other chars excluding use flag name = 14
+    my $use_flag_format = "format USE_FLAG_FORMAT= \n" .
+'@' . ('<'x($max_len-1)) . ' [@]' . ' [@] [@] ' . '^' . ('<'x(80-$max_len-13-1)) . "\n" .
+'$use_flag_name, $use_flag_mask, $use_flag_site, $use_flag_type, $use_flag_desc' ."\n" .
+(' 'x($max_len+13)) . '^' . ('<'x(80-$max_len-13-1-2)) . '~~' . "\n" . 
+'$use_flag_desc' . "\n" .
+".\n";
+
+    eval $use_flag_format;
+    #print $use_flag_format;
+
+
+    $~ = 'USE_FLAG_FORMAT';
+    foreach (@use_flag_list) {
+        @use_flag = @{$_};
+        $use_flag_name = $use_flag[0];
+        $use_flag_desc = ($use_flag[4] eq "" ? 
+            $use_flag[1] : "[" . $use_flag[4] . "] : " . $use_flag[1]);
+        $use_flag_type = $use_flag[2];
+        $use_flag_mask = $use_flag[3];
+        $use_flag_site = $use_flag[5];
+        write;
+    }
+
+}
+
+# TODO:
+# 1. -p feature
+# 2. pipe the output to less to implement paging.
+# 3. flag to disable all warnings.
+# 4. filters - all global, local, enabled through make.conf,
+#    make.defaults, env. All enabled flags, all disabled flags.
+# 5. combine -d, -c, -e with -i to give detailed output.
+# 
