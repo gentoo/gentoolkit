@@ -1,3 +1,6 @@
+2004-10-12 Marius Mauch <genone@gentoo.org>
+	* equery: fix for bug #67210
+
 2004-10-10 Marius Mauch <genone@gentoo.org>
 	* Removed old-scripts directory from gentoolkit
 	* euse: added a errormessage that it doesn't support cascading profiles
@@ -6,6 +9,7 @@
 	* equery: added MD5 verification to `equery check`
 	* equery: renamed 'hasuses' to 'hasuse'
 	* equery: added filter patch for `equery files` from bug 43422, thanks to degrenier@easyconnect.fr
+	* Released gentoolkit-0.2.0_pre10
 
 2004-10-10 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Fixed Makefiles to work with posix-compatible shells
