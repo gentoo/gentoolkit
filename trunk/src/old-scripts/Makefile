@@ -12,11 +12,11 @@ all:
 dist:
 	mkdir -p ../../$(distdir)/src/old-scripts/
 	cp Makefile ../../$(distdir)/src/old-scripts/
-	cp dep-clean{,.1} ../../$(distdir)/src/old-scripts/
-	cp pkg-clean{,.1} ../../$(distdir)/src/old-scripts/
-	cp ewhich{,.1} ../../$(distdir)/src/old-scripts/
-	cp mkebuild{,.1} ../../$(distdir)/src/old-scripts/
-	cp pkg-size{,.1} ../../$(distdir)/src/old-scripts/
+	cp dep-clean dep-clean.1 ../../$(distdir)/src/old-scripts/
+	cp pkg-clean pkg-clean.1 ../../$(distdir)/src/old-scripts/
+	cp ewhich ewhich.1 ../../$(distdir)/src/old-scripts/
+	cp mkebuild mkebuild.1 ../../$(distdir)/src/old-scripts/
+	cp pkg-size pkg-size.1 ../../$(distdir)/src/old-scripts/
 
 install:
 	install -m 0755 dep-clean $(bindir)/
