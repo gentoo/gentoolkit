@@ -1,3 +1,6 @@
+2004-10-11: Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Split gentoolkit.py into helpers.py and package.py
+
 2004-10-10: Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Fixed is_overlay() to report properly, #53432.
 
