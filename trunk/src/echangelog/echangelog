@@ -1,0 +1,168 @@
+#!/usr/bin/perl -w
+#
+# echangelog: Update the ChangeLog for an ebuild.  For example:
+#
+#   $ echangelog 'Add ~alpha to KEYWORDS'
+#   4a5,7
+#   >   10 Feb 2003; Aron Griffis <agriffis@gentoo.org> oaf-0.6.8-r1.ebuild :
+#   >   Add ~alpha to KEYWORDS
+#   >
+
+use strict;
+use POSIX qw(strftime getcwd setlocale);
+
+# Fix bug 21022 by restricting to C locale
+setlocale(&POSIX::LC_ALL, "C");
+
+use Text::Wrap;
+$Text::Wrap::columns = 79;
+$Text::Wrap::unexpand = 0;
+
+my @files = ();
+my ($input, $entry, $user, $date, $text, $version);
+my %versions = ();
+
+# Read the current ChangeLog
+if (-f 'ChangeLog') {
+    open I, '<ChangeLog' or die "Can't open ChangeLog for input: $!\n";
+    { local $/ = undef; $text = <I>; }
+    close I;
+} else {
+    # No ChangeLog here, maybe we should make one...
+    if (<*.ebuild>) {
+        open I, '<../../skel.ChangeLog' 
+            or die "Can't open ../../skel.ChangeLog for input: $!\n";
+        { local $/ = undef; $text = <I>; }
+        close I;
+        my ($cwd) = getcwd();
+        $cwd =~ m|.*/(\w+-\w+)/([^/]+)| 
+            or die "Can't figure out category/package.. sorry!\n";
+        my ($category, $package_name) = ($1, $2);
+        $text =~ s/^\*.*//ms;   # don't need the fake entry
+        $text =~ s/<CATEGORY>/$category/;
+        $text =~ s/<PACKAGE_NAME>/$package_name/;
+        # Okay, now we have a starter ChangeLog to work with.
+        # The entry will be added just like with any other ChangeLog.
+    } else {
+        die "This should be run in a directory with ebuilds...\n";
+    }
+}
+
+# Figure out what has changed around here
+open C, 'cvs diff --brief 2>&1 |' or die "Can't run cvs diff: $!\n";
+while (<C>) {
+    /ChangeLog/ and next;
+	if (/^cvs.*?: (([^\/]*?)\.ebuild) was removed/) { 
+		push @files, $1;
+		$versions{$2} = 0;	# existing ebuild that was removed
+	}
+    elsif (/^cvs.*?: (\S+) was removed/) {
+		push @files, $1;
+		# existing file that has been removed
+	}
+	elsif (/^Index: (([^\/]*?)\.ebuild)\s*$/) { 
+		push @files, $1;
+		$versions{$2} = 0;	# existing ebuild that has changed
+	}
+	elsif (/^Index: (\S+)/) {
+		push @files, $1;
+		# existing file, but not an ebuild, so no %version entry
+	}
+	elsif (/^cvs.*?: (([^\/]*?)\.ebuild) is a new entry/) { 
+		push @files, $1;
+		$versions{$2} = -1;	# new ebuild, will create a new entry
+	}
+	elsif (/^cvs.*?: (\S+) is a new entry/) {
+        push @files, $1;
+		# new file, but not an ebuild, so no %version entry
+	}
+	# other cvs output is ignored
+}
+close C;
+die "No changed files found (did you forget to cvs add?)\n" unless @files;
+
+# Get the input from the cmdline or stdin
+if ($ARGV[0]) {
+    $input = "@ARGV";
+} else {
+    local $/ = undef;
+    print "Please type the log entry, finish with ctrl-d\n";
+    $input = <>;
+}
+die "Empty entry; aborting\n" unless $input =~ /\S/;
+
+# If there are any long lines, then wrap the input at $columns chars
+# (leaving 2 chars on each end after adding indentation below).
+$input =~ s/^\s*(.*?)\s*\z/$1/s;  # trim whitespace
+$input = Text::Wrap::fill('', '', $input) if ($input =~ /^.{80}/m);
+$input =~ s/^/  /gm;        # add indentation
+
+# Prepend the user info to the input
+$user = $ENV{'ECHANGELOG_USER'} ||
+        sprintf("%s <%s\@gentoo.org>", (getpwuid($<))[6,0]);
+# Make sure that we didn't get "root"
+die "Please set ECHANGELOG_USER or run as non-root\n" if $user =~ / root@/;
+$date = strftime("%d %b %Y", localtime);
+$entry = "$date; $user ";
+$entry .= join ', ', grep !/files.digest|Manifest/, @files;  # don't list digests
+$entry .= ':';
+$entry = Text::Wrap::fill('  ', '  ', $entry);  # does not append a \n
+$entry .= "\n$input";                           # append user input
+
+# Find the version that's highest in the file (or determine if we're
+# adding a new version).  Note that existing ebuilds have version=0,
+# new ebuilds have version=-1 to make them automatically rise to the
+# top.
+if (%versions) {
+    for (keys %versions) {
+        $versions{$_} = index $text, $_ unless $versions{$_};
+    }
+    $version = (sort { $versions{$a} <=> $versions{$b} } keys %versions)[0];
+}
+
+# Each one of these regular expressions will eat the whitespace
+# leading up to the next entry (except the two-space leader on the
+# front of a dated entry), so it needs to be replaced with a
+# double carriage-return.  This helps to normalize the spacing in
+# the ChangeLogs.
+#
+# NOTE: The first two branches here are disabled via '&& 0'
+# because they use the new but unsanctioned ChangeLog format.
+if (0 && !defined $version) { # <--- NOTE disabled via '0'
+	# Changing a patch or something, not an ebuild, so put the entry
+	# after the first *version line (really guessing)
+	$text =~ s/^( \*.*? )             # find the *version line
+				\s*\n(?=\ \ \d|\*|\z) # suck up trailing whitespace
+				/$1\n\n$entry\n\n/mx
+		or die "Failed to insert new entry (1)\n";
+} elsif (0 && $versions{$version} > -1) { # <--- NOTE disabled via '0'
+	# Insert after the *version line
+	$text =~ s/^( \*\Q$version\E )    # find the *version line = $1
+				(?:\.|\.ebuild)?      # some poorly formed entries
+				\s+ ( \(.*\) )        # (date) = $2
+				\s*\n(?=\ \ \d|\*|\z) # suck up trailing whitespace
+				/$1 $2\n\n$entry\n\n/mx
+		or die "Failed to insert new entry (2)\n";
+} elsif (!defined $version || $versions{$version} > -1) {
+	# Changing an existing patch or ebuild, no new version marker
+	# required
+	$text =~ s/^( .*? )				  # grab header
+				\s*\n(?=\ \ \d|\*|\z) # suck up trailing whitespace
+				/$1\n\n$entry\n\n/sx
+		or die "Failed to insert new entry (3)\n";
+} else {
+	# Insert at the top with a new version marker
+	$text =~ s/^( .*? )				  # grab header
+				\s*\n(?=\ \ \d|\*|\z) # suck up trailing whitespace
+				/$1\n\n*$version ($date)\n\n$entry\n\n/sx
+		or die "Failed to insert new entry (4)\n";
+}
+
+# Write the new ChangeLog
+open O, '>ChangeLog.new' or die "Can't open ChangeLog.new for output: $!\n";
+print O $text            or die "Can't write ChangeLog.new: $!\n";
+close O                  or die "Can't close ChangeLog.new: $!\n";
+
+# Move things around
+system 'diff -Nu ChangeLog ChangeLog.new';
+rename 'ChangeLog.new', 'ChangeLog' or die "Can't rename: $!\n";

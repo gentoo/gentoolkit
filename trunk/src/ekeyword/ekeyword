@@ -1,0 +1,38 @@
+#!/usr/bin/perl -w
+#
+# Copyright 2003, Gentoo Technologies, Inc.
+# Author: Aron Griffis <agriffis@gentoo.org>
+#
+# ekeyword: Update the KEYWORDS in an ebuild.  For example:
+#
+#   $ ekeyword ~alpha oaf-0.6.8-r1.ebuild
+#   12c12
+#   < KEYWORDS="x86 ppc sparc"
+#   ---
+#   > KEYWORDS="x86 ppc sparc ~alpha"
+
+
+die "syntax: ekeyword { arch | ~arch | -arch } ebuild...\n" unless @ARGV > 1;
+
+my $kw = shift @ARGV;
+(my $arch = $kw) =~ s|^[-~]||;
+
+die "$kw doesn't look like a keyword to me\n" unless $arch =~ /^\w+$/;
+
+for my $f (@ARGV) {
+    open I, "<$f"       or die "Can't read $f: $!\n";
+    open O, ">$f.new"   or die "Can't create $f.new: $!\n";
+    select O;
+
+    while (<I>) {
+        /^KEYWORDS/ or print, next;
+        s/[-~]?$arch/$kw/ || s/(.*?['"].*?)\s*(?=['"])/$1 $kw/;
+        print $_, <I> or die "Can't write $f.new: $!\n";
+    }
+
+    close I;
+    close O;
+
+    system "diff $f $f.new"; # don't die because the files might be the same
+    rename "$f.new", "$f"       or die "Can't rename: $!\n";
+}
