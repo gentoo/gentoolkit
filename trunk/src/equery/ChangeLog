@@ -2,6 +2,7 @@
 	* Searches now include masked packages, when installed.
 	* Fixed output to be piping-friendly
 	* Added -N option to force non-piping output
+	* Added hasuses command
 
 2004-05-04 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added a -f/--full-regex option to belongs and some logic
