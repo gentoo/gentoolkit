@@ -1,4 +1,8 @@
 2005-03-01 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Dropped epkgmove from the -dev
+	* Released gentoolkit-dev-0.2.3
+
+2005-03-01 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Released gentookit-dev-0.2.2
 	
 2004-12-09 Marius Mauch <genone@gentoo.org>
