@@ -1,3 +1,10 @@
+2004-02-06 Marius Mauch <genone@gentoo.org>
+	* fixed bugs #40159, #39798, #39652, #39596, #39293
+	* changed etcat and equery behavior for ambigous package names,
+		they now return values for all matching packages rather
+		than erroring out
+	* added "will be phased out" messages to etcat and qpkg
+
 2004-01-23 Marius Mauch <genone@gentoo.org>
 	* lots of bugfixes
 
