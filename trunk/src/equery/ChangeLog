@@ -1,3 +1,9 @@
+2004-05-04 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added a -f/--full-regex option to belongs and some logic
+          so users can do belongs ant, belongs /usr/bin/ant and
+          belongs -f ".*ant.*" while getting sensible results. 
+          Fixes #37637.
+
 2004-03-13 Marius Mauch <genone@gentoo.org>
 	* fixing descriptions for local USE flags
 	* more checking on exceptions
