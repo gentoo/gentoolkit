@@ -1,0 +1,116 @@
+Euse is a command line USE flag editor for Gentoo Linux.
+
+What does it do? 
+================
+USE flags are central to Gentoo Linux. When you want to compile (in Gentoo
+terminology emerge) a new package you can set a few USE flags to customize the
+behavior of the build. At present you do this by editing the /etc/make.conf and
+change the USE variable there. 
+
+With euse you don't have to open the file to edit anymore. You can directly
+add/delete/view USE flags from make.conf. When you want to enable a particular
+USE flag you might want to find out what this flag does. At present, you can
+grep on use.desc and use.local.desc to find the details of an USE flag. With
+euse -i flag you can directly find out the details about an USE flag without
+grepping many files. Read ahead to view the usage.
+
+Usage
+=====
+# euse -c -d -e
+Prints out the current setting of USE variable in make.conf, make.defaults,
+environment variable USE respectively. You can use them individually. E.g.
+# euse -c
+
+# euse -i
+Prints all the use flags with descriptions and their current status.
+1st Column - Use flag
+2nd Column - Shows if the USE flag is enabled or disabled.
+3rd Column - If USE flag is enabled this columns show where it has been
+             enabled. C means make.conf, D means make.defaults, E means
+             enviroment variable USE.
+4th Column - Shows if the use flag is a global or local use flags.
+             For local use flags the desc field(next column) begins with
+             showing which package it belongs to in square brackets.
+5th Column - Use flag description.
+Use Flag | Enabled/Disabled | Conf/Env/Defaults | Global/Local | Desc
+alpha            [-] [ ] [G] indicates that architecture is 64-bit Alpha
+alsa             [+] [C] [G] Adds support for media-libs/alsa-lib (Advanced
+                             Linux Sound Architecture)
+moznocompose     [+] [C] [L] [net-www/mozilla] : If you do NOT want the web page
+                             composer built with mozilla
+
+# euse -i mozilla
+Prints details of just mozilla.
+mozilla          [-] [ ] [G] Adds mozilla support
+
+# euse -E mozilla alsa
+Enables mozilla alsa in make.conf. Accepts one or more arguments to enable.
+
+Case 1:
+If before executing this command the USE in make.conf looks like this:
+USE="tiff doc"
+After executing it becomes:
+USE="tiff doc mozilla alsa"
+
+Case 2:
+If before executing this command the USE in make.conf looks like this:
+USE="tiff doc -mozilla -alsa"
+After executing it becomes:
+USE="tiff doc mozilla alsa"
+
+There are lot of other cases, but you get the idea.
+
+# euse -D mozilla alsa
+Disables mozilla alsa in make.conf. Accepts one or more arguments to enable.
+
+Case 1:
+If before executing this command the USE in make.conf looks like this:
+USE="tiff doc"
+After executing it becomes:
+USE="tiff doc -mozilla -alsa"
+
+Case 2:
+If before executing this command the USE in make.conf looks like this:
+USE="tiff mozilla doc  alsa"
+After executing it becomes:
+USE="tiff -mozilla doc -alsa"
+
+There are lot of other cases, but you get the idea.
+
+Special Case:
+all is special flag. It is equivalent to * in USE setting. You can use "*"
+instead. But is NOT recommended. There are high chances you'll just type *
+instead of "*" and Euse will spit out some warnings. Note that * has be quoted
+to prevent bash expanding the wildchar. You can use all with -E and -D. With -E
+it will remove the last occurrence of -* from the make.conf. With -D it will
+will include -* to the end of the USE setting in make.conf if a -* is already
+present. If not it'll put a -* at the beginning of USE. If it is confusing, try
+it to find out.
+So this is how you use it:
+# euse -E mozilla alsa all
+Case 1:
+If before executing this command the USE in make.conf looks like this:
+USE="-* tiff -mozilla doc -alsa"
+After executing it becomes:
+USE="tiff mozilla doc alsa"
+
+# euse -D mozilla alsa all
+If before executing this command the USE in make.conf looks like this:
+USE="tiff mozilla doc alsa"
+After executing it becomes:
+USE="-* tiff -mozilla doc -alsa"
+
+Note: 
+1. -E and -D flags can be used together like:
+# euse -D mozilla -E alsa
+To enable alsa and disable mozilla in the same command.
+
+
+Author's Note
+=============
+If you have any comments(both good and bad) about the code or any features in
+this program feel free to mail me codebear@gentoo.org.
+
+
+Enjoy!!
+                                                                        --Arun
