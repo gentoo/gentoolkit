@@ -1,7 +1,8 @@
 #!/usr/bin/perl -w
 #
-# Copyright 2003, Gentoo Technologies, Inc.
-# Author: Aron Griffis <agriffis@gentoo.org>
+# Copyright 2003-2004, Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# Written by Aron Griffis <agriffis@gentoo.org>
 #
 # ekeyword: Update the KEYWORDS in an ebuild.  For example:
 #
@@ -12,7 +13,7 @@
 #   > KEYWORDS="x86 ppc sparc ~alpha"
 
 
-my ($kw_re) = '^(?:([-~^]?)(\w+)|([-^]\*))$';
+my ($kw_re) = '^(?:([-~^]?)(\w[\w-]*)|([-^]\*))$';
 my (@kw);
 
 # make sure the cmdline consists of keywords and ebuilds
@@ -43,8 +44,8 @@ for my $f (@ARGV) {
 	# extract the quoted section from KEYWORDS
 	(my $quoted = $_) =~ s/^.*["'](.*?)["'].*/$1/s;
 
-	# replace -* with -star for our convenience below
-	$quoted =~ s/-\*/-star/;
+	# replace -* with -STAR for our convenience below
+	$quoted =~ s/-\*/-STAR/;
 
 	for my $k (@kw) {
 	    my ($leader, $arch, $star) = ($k =~ /$kw_re/o);
@@ -52,7 +53,7 @@ for my $f (@ARGV) {
 	    # handle -* and ^*
 	    if (defined $star) {
 		$leader = substr $star,0,1;
-		$arch = 'star';
+		$arch = 'STAR';
 	    }
 
 	    # remove keywords
@@ -73,7 +74,7 @@ for my $f (@ARGV) {
 		    # modify or add keyword
 		    unless ($quoted =~ s/[-~]?\Q$arch\E\b/$leader$arch/) {
 			# modification failed, need to add
-			if ($arch eq 'star') {
+			if ($arch eq 'STAR') {
 			    $quoted = "$leader$arch $quoted";
 			} else {
 			    $quoted .= " $leader$arch";
@@ -83,8 +84,8 @@ for my $f (@ARGV) {
 	    }
 	}
 
-	# replace -star with -*
-	$quoted =~ s/-star\b/-*/;
+	# replace -STAR with -*
+	$quoted =~ s/-STAR\b/-*/;
 
 	# fixup spacing
 	$quoted =~ s/^\s*(.*?)\s*$/$1/;	# leading/trailing
