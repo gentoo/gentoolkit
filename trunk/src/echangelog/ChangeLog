@@ -1,3 +1,6 @@
+23 Mar 2005 Aron Griffis <agriffis@gentoo.org>
+	* handle package moves without adding new version lines
+
 08 Mar 2005 Aron Griffis <agriffis@gentoo.org>
 	* don't complain about cvs add of digests #84377
 	* use gmtime instead of localtime
