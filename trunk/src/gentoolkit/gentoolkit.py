@@ -18,6 +18,8 @@ __productname__ = "gentoolkit"
 __description__ = "Gentoolkit Common Library"
 
 import os
+import sys
+sys.path.insert(0, "/usr/lib/portage/pym")
 import portage
 import re
 import string
@@ -38,6 +40,8 @@ class Package:
     def __init__(self,cpv):
         self._cpv = cpv
         self._scpv = portage.catpkgsplit(self._cpv)
+        if not self._scpv:
+            raise Exception("invalid cpv: %s" % cpv)
         self._db = None
         self._settings = None
     def get_name(self):
@@ -124,7 +128,7 @@ class Package:
             return string.join(sp[:-1],"/")
     def get_env_var(self, var):
         """Returns one of the predefined env vars DEPEND, RDEPEND, SRC_URI,...."""
-        r=vartree.dbapi.aux_get(self._cpv,[var])
+        r=porttree.dbapi.aux_get(self._cpv,[var])
         if not r:
             raise "WTF??"
         if len(r)!=1:
@@ -146,7 +150,7 @@ class Package:
     def compare_version(self,other):
         """Compares this package's version to another's CPV; returns -1, 0, 1"""
         v1=self._scpv
-        v2=portage.catpkgsplit(other)
+        v2=portage.catpkgsplit(other.get_cpv())
         if v1[0] != v2[0] or v1[1] != v2[1]:
             return None
         return portage.pkgcmp(v1[1:],v2[1:])
@@ -233,18 +237,16 @@ def find_world_packages(prefilter=None):
 def find_all_installed_packages(prefilter=None):
     """Returns a list of all installed packages, after applying the prefilter
     function"""
-    t=vartree.getallcpv()
+    t=vartree.cpv_all()
     if prefilter:
         t=filter(prefilter,t)
-    return map(lambda x: Package(x), t)
+    return [Package(x) for x in t]
 
 def find_all_uninstalled_packages(prefilter=None):
     """Returns a list of all uninstalled packages, after applying the prefilter
     function"""
-    t=porttree.getallcpv()
-    if prefilter:
-        t=filter(prefilter,t)
-    return map(lambda x: Package(x), t)
+    alist = find_all_packages(prefilter)
+    return [x for x in alist if not x.is_installed()]
 
 def find_all_packages(prefilter=None):
     """Returns a list of all known packages, installed or not, after applying
@@ -255,7 +257,7 @@ def find_all_packages(prefilter=None):
     t2=[]
     for x in t:
         t2 += portage.portdb.cp_list(x)
-    return map(lambda x: Package(x), t2)
+    return [Package(x) for x in t2]
 
 def split_package_name(name):
     """Returns a list on the form [category, name, version, revision]. Revision will
@@ -271,6 +273,12 @@ def split_package_name(name):
     if r[0] == 'null':
         r[0] = ''
     return r
+
+def sort_package_list(pkglist):
+	"""Returns the list ordered in the same way portage would do with lowest version
+	at the head of the list."""
+	pkglist.sort(Package.compare_version)
+	return pkglist
 
 if __name__ == "__main__":
     print "This module is for import only"
