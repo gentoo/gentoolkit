@@ -6,6 +6,8 @@
 # This program is distributed under the terms of GPL version 2.
 #
 # Maintainer: Brandon Low <lostlogic@gentoo.org>
+# Additional code thanks to:
+#	      Josh Goebel <dreamer@firesedge.org>
 #
 # $Header$
 ID='$Id$'
@@ -16,6 +18,7 @@ PROG=`basename ${0}`
 # Parse args
 verb=0
 group="*"
+params=${#}
 while [ ${#} -gt 0 ]
 do
 	a=${1}
@@ -295,7 +298,9 @@ else
 		    ipak=`echo ${ipak}|sed -e "s: :\n:g"|grep ${group}`
 		fi
 		if [ ${arg} ]; then
-		    ipak=`echo ${ipak}|sed -e "s: :\n:g"|grep ${arg}`
+			# avoid ${arg}="db" from pulling in every installed package
+			temp="/var/db/pkg/.*${arg}"	
+			ipak=`echo ${ipak}|sed -e "s: :\n:g"|grep ${temp}`
 		fi
 	fi
 	# not installed packages (yet:-)
@@ -317,10 +322,20 @@ for p in ${ipak} ${upak} -;do
 
 	# cut common prefix from ebuild name and mark installed/uninstalled packages
 	# Note: iii/uuu will be replaced by the pipe at the end
-	n=`echo $p | sed -e "s:^/var/db/pkg/${X}/${X}/${X}.ebuild:iii \1/\3:" \
-		-e "s:^/usr/portage/${X}/${X}/${X}\.ebuild:uuu \1/\3:"`
-	d=`dirname ${p}`
+	n=${p%.ebuild}
+	var_db_pkg="/var/db/pkg/"
+	n=${n/${var_db_pkg}/iii }
+	usr_portage="/usr/portage/"
+	n=${n/${usr_portage}/uuu }
+	n=${n/\/*\//\/}
+
+	d=${p%\/*.ebuild} # faster d=`dirname ${p}`
 	echo ${n}
+	
+	# if we have no passed parameters then 
+	# we can skip the extra conditional checks
+	[[ ${params} == 0 ]] && continue;
+	
 	if [ ${verb} -gt 1 ];then
 		echo "vvv    ${p}"
 	fi
