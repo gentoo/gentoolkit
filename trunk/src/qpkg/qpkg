@@ -410,7 +410,7 @@ for p in ${ipak} ${upak} -;do
 				for flag in $(< ${deppkg}/USE)
 				do
 					if [[ "${flag:0:1}" == "-" ]]; then
-						rdepend=$(echo ${rdepend} | sed "s/${flag:1}? ( [[:alnum:][:punct:]]* )//")
+						rdepend="$(echo ${rdepend} | sed 's/${flag:1}? ( [[:alnum:][:punct:]]* )//')"
 					fi
 				done
 
@@ -421,9 +421,9 @@ for p in ${ipak} ${upak} -;do
 		else
 			grep -R "${package}" /var/db/pkg/*/*/RDEPEND | \
 			cut -f5,6 -d"/" | sed -e "s:^:\t${color}:;s:$:${NO}:" | sort -u
-			if [[ $(grep -R "*${package}" /etc/make.profile/packages) != "" ]]; then
-				echo -e "\t${color}SYSTEM PROFILE${NO}"
-			fi
+		fi
+		if [[ $(grep -R "*${package}" /etc/make.profile/packages) != "" ]]; then
+			echo -e "\t${color}SYSTEM PROFILE${NO}"
 		fi
 	fi
 
