@@ -3,6 +3,7 @@
 	* Added new build system
 	* Added src/old-scripts, the scripts from app-portage/gentoolkit
 	* Renamed gentool to equery
+	* Released 0.2.0_pre1
         
 2003-12-08 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Removed emerge-rsync, emerge-webrsync
