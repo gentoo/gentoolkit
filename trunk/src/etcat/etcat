@@ -160,118 +160,7 @@ def wrap_print(string, indent=0, width=74):
     for line in lines:
 	print " "*indent + line
 
-def pkgcmp(a,b):
-    raise "This is not present"
-    # strips out package name and returns the result of vercmp
-    awords = a.split("-")
-    bwords = b.split("-")
-    apkg = [awords[0]]
-    bpkg = [bwords[0]]
-    DIGITS = ['0','1','2','3','4','5','6','7','8','9']
-    
-    for w in awords[1:]:
-	if w[0] in DIGITS:
-	    break
-	else:
-	    apkg.append(w)
-    aver = awords[len(apkg):]
-    apkg_str = string.join(apkg, "-")
-    aver_str = string.join(aver, "-")
-    
-    for w in bwords[1:]:
-	if w[0] in DIGITS:
-	    break
-	else:
-	    bpkg.append(w)
-    bver = bwords[len(bpkg):]
-    bpkg_str = string.join(bpkg, "-")
-    bver_str = string.join(bver, "-")    
-    
-    if apkg_str > bpkg_str:
-	return 1
-    elif bpkg_str > apkg_str:
-	return -1
-    else:
-	return gentoolkit.compare_versions(aver_str, bver_str)
-    
-# .-------------------------------------------------------.
-# | Simple Package Search Function                        |
 # +-------------------------------------------------------+
-# | Given a search key, returns a list of packages that   |
-# | satisfy the regex.                                    |
-# | Results are in the form ["net-www/mozilla"]           |
-# `-------------------------------------------------------'
-def search(search_key):
-    matches = []    
-    for package in portage.portdb.cp_all():
-	package_parts=package.split("/")
-	if re.search(search_key.lower(), package_parts[1].lower()):
-	    matches.append(package)
-    return matches
-
-# .-------------------------------------------------------.
-# | Package Name Guesser                                  |
-# +-------------------------------------------------------+
-# | A smart (eg. dodgy) version of portage.catpkgsplit()  |
-# | that determines the category, package, version and    |
-# | revision given a string. If it doesn't know, it'll    |
-# | leave the field blank.                                |
-# |                                                       |
-# | Returns a list like :                                 |
-# |  [ "net-www", "mozilla", "1.1", "r1"]                 |
-# `-------------------------------------------------------'    
-
-def smart_pkgsplit(query):
-    raise "Use something else"
-    cat = ''
-    pkg = ''
-    ver = ''
-    rev = ''
-    
-    if len(query.split('/')) == 2:
-	cat = query.split('/')[0]
-	query = query.split('/')[1]
-    
-    components = query.split('-')
-    name_components = []
-    ver_components = []
-	
-    # seperate pkg-ver-rev
-    for c in components:
-	if ver_components:
-	    ver_components.append(c)
-	elif ord(c[0]) > 47 and ord(c[0]) < 58:
-	    ver_components.append(c)
-	else:
-	    name_components.append(c)
-    pkg = '-'.join(name_components)
-	
-    # check if there is a revision number
-    if len(ver_components) > 0 and ver_components[-1][0] == 'r':
-	rev = ver_components[-1]
-	ver_components = ver_components[:-1]
-	
-    # check for version number
-    if len(ver_components) > 0:
-	ver = '-'.join(ver_components)
-    
-    return [cat, pkg, ver, rev]
-
-# .-------------------------------------------------------.
-# | Return the Location of the Ebuild                     |
-# +-------------------------------------------------------+
-# | Guesses the version that you want. Eg. if one is      |
-# | specified, then we use it, otherwise, the latest one  |
-# `-------------------------------------------------------'
-
-def smart_ebuild(query):
-    pkg = gentoolkit.find_packages(query)
-    if len(pkg)>1:
-        raise "Too many packages to handle"
-    return pkg[0].get_ebuild_path()
-    
-
-# .-------------------------------------------------------.
 # | Pretty Print Log                                      |
 # +-------------------------------------------------------+
 # | Extracts and prints out the log entry corresponding   |
@@ -312,7 +201,7 @@ def output_log(lines, package_ver=""):
 
 def changes(query):
     matches=gentoolkit.find_packages(query)
-    if not report_matches(query,matches):
+    if not report_matches(query,matches,installed_only=0):
         return
 
     for pkg in matches:
@@ -380,26 +269,21 @@ def versions(query):
         print
 
 # .-------------------------------------------------------.
-# | List USE flags for a single ebuild                    |
+# | List USE flags for a single ebuild, if it's installed |
 # +-------------------------------------------------------+
 # | Just uses the new IUSE parameter in ebuilds           |
 # `-------------------------------------------------------' 
-def uses(query): # FIXME: Use gentoolkit
+def uses(query):
     
-    tup = smart_pkgsplit(query)
-    if tup[0] and tup[1]:
-	matches = [ tup[0] + "/" + tup[1] ]
-    elif tup[1]:
-	matches = gentoolkit.find_packages(tup[1])
+    matches = gentoolkit.find_packages(query)
 	
-    useflags = portage.config()["USE"].split()    
+    useflags = gentoolkit.settings["USE"].split()    
     usedesc = {}
     uselocaldesc = {}
-    # open up use.desc
-    
+
+    # Load global USE flag descriptions
     try:
-	# TODO: use portage settings
-	fd = open("/usr/portage/profiles/use.desc")
+	fd = open(gentoolkit.settings["PORTDIR"]+"/profiles/use.desc")
 	usedesc = {}
 	for line in fd.readlines():
 	    if line[0] == "#":
@@ -409,10 +293,10 @@ def uses(query): # FIXME: Use gentoolkit
 		usedesc[fields[0].strip()] = fields[1].strip()
     except IOError:
 	pass
-		
+
+    # Load local USE flag descriptions
     try:
-	# TODO: use portage.settings
-	fd = open("/usr/portage/profiles/use.local.desc")
+	fd = open(gentoolkit.settings["PORTDIR"]+"/profiles/use.local.desc")
 	for line in fd.readlines():
 	    if line[0] == "#":
 		continue
@@ -430,37 +314,24 @@ def uses(query): # FIXME: Use gentoolkit
     print "[ Colour Code : " + green("set") + " " + red("unset") + " ]"
     print "[ Legend      : (U) Col 1 - Current USE flags        ]"
     print "[             : (I) Col 2 - Installed With USE flags ]"
-    
+
+    # Iterate through matches, printing a report for each package
     for p in matches:
-	curver = portage.db["/"]["porttree"].dbapi.match(p)
-	bestver = portage.best(curver)
-	if bestver:
-	    try:
-		iuse = portage.db["/"]["porttree"].dbapi.aux_get(bestver,["IUSE"])
-	    except KeyError:
-		print "[ Error Occured. Ebuild not found for :", white(p), "]"
-		continue
-	else:
-	    print "[ * No USE flags found for :", white(p), "]"
-	    continue
+        if not p.is_installed():
+            continue
+    
+	bestver = p.get_cpv()
+        iuse = p.get_env_var("IUSE")
 	
-	if iuse: usevar = iuse[0].split()
+	if iuse: usevar = iuse.split()
 	else: usevar = []
 	
-	# find flags in use for this package if installed
 	inuse = []
-	installed = glob.glob("/var/db/pkg/" + p + "-*")
-	if installed:
-	    try:
-		used = open(installed[-1] + "/USE").read().split()
-	    except IOError:
-		used = []
-	else:
-	    used = []
+        used = p.get_use_vars().split()
 
 	# store (inuse, inused, flag, desc)
 	output = []
-	
+
 	for u in usevar:
 	    inuse = 0
 	    inused = 0
@@ -502,209 +373,77 @@ def uses(query): # FIXME: Use gentoolkit
 		else:
 		    print ": unknown"
 	else:
-	    print "[ No USE flags found for :", white(p), "]"	    
+	    print "[ No USE flags found for :", white(p.get_cpv()), "]"	    
 
     return
-
-    # deprecated - this was a hack anyway
-    #print "[ Can't find IUSE variable in : " + white(os.path.basename(ebuild)[:-7]) + " ]"
-    #print turquoise("*") + " Applying search manually .."
-    #old_uses(query)
-    
-# .-------------------------------------------------------.
-# | Uses a general rules that has all use's with either   |
-# |  `use alsa` or in the DEPENDS/RDEPENDS field of the   |
-# | ebuild suffixed by a "?"                              |
-# `-------------------------------------------------------' 
-
-def old_uses(query):
-    ebuild = smart_ebuild(query)
-    useflags = portage.config()["USE"].split()
-    uses = {}
-    # TODO : can't handle 2 or more 'use blah' in one line
-    re_use_sh = re.compile('`use ([a-zA-Z0-9]*)`')
-    re_depend = re.compile('[R]?DEPEND="')
-    re_use_dep = re.compile('([a-zA-Z0-9]+)\?')
-    is_depend = 0
-    
-    for line in open(ebuild).readlines():
-	if len(line.strip()) and line.strip()[0] == "#":
-	    continue
-	
-	# find uses in DEPEND and RDEPEND variables
-	if is_depend:
-	    if re.search('"[\s]*$',line): is_depend = 0 # end of depend	    
-	    is_use = re_use_dep.search(line)
-	    if is_use: uses[is_use.group(1)] = 1
-	    continue
-	    
-	if re_depend.search(line):
-	    is_depend = 1 # start of depend
-	    is_use = re_use_dep.search(line)
-	    if is_use: uses[is_use.group(1)] = 1
-	    continue
-	
-	# find uses in other places like if [ -n "`use blah`" ]
-	is_use = re_use_sh.search(line)
-	if is_use:
-	    uses[is_use.group(1)] = 1
-    if uses:
-	iuse = uses.keys()
-	iuse.sort()
-	for u in iuse:
-	    if u in useflags:
-		print "+", green(u)
-	    else:
-		print "-", red(u)
-    else:
-	print red("*") + " Unable to find any USE variables."
 
 # .-------------------------------------------------------.
 # | Graphs the Dependency Tree for a package              |
 # +-------------------------------------------------------+
 # | Naive graphing of dependencies
 # `-------------------------------------------------------'
-graphcache = []
 
-def graph(query): # FIXME: Use gentoolkit
-    print "attempt to graph dependencies"
-    print red("warning, this is BETA, will probably report the wrong results")
-    rgraph(query, [])
+def graph(query):
+    matches = gentoolkit.find_packages(query)
+    if not report_matches(query, matches):
+        return
 
-# return string of deps that are valid
-def depuseparse(depstring):
-    raw_deps = depstring.strip().split()
-    out_deps = []
-    uselist = portage.config()["USE"].split()
-    
-    dep_len = len(raw_deps)
-    i = 0
-    uselevel = 0
-    orlevel = 0
-    ordone = 0
-    
-    while i < dep_len:
-	#---- if we encounter a use? ( ) 
-	if raw_deps[i][-1] == "?":
-	    if raw_deps[i][:-1] in uselist:
-		uselevel += 1
-	    else:
-		# read until we find a ")"
-		i += 1
-		while i < dep_len:
-		    if raw_deps[i] == ")":
-			break
-		    else:
-			i += 1
-	#---- if we encounter a || or use?
-        elif raw_deps[i] == "||":
-	    orlevel += 1
-	elif orlevel > 0 or uselevel > 0:
-	    if raw_deps[i] == "(":
-		pass
-	    elif raw_deps[i] == ")":
-		if uselevel > 0:
-		    uselevel -= 1
-		elif orlevel > 0:
-		    orlevel -= 1
-		    ordone = 0
-	    else:
-		if orlevel and ordone == 0:
-		    ordone += 1
-		    out_deps.append(raw_deps[i])
-		elif uselevel > 0:
-		    out_deps.append(raw_deps[i])
-	#---- good 'ole plain deps
-        elif raw_deps not in [")","("]:
-	    out_deps.append(raw_deps[i])
-	# increment counter
-	i+=1
-	
-    return out_deps
-	    
-def graph_node_print(path, dep):
-    indent = len(path)-1
-    if path == []:
-	print dep
-    else:
-	print "  " + "  "*indent + "`-- " + dep
+    for pkg in matches:
+        if not pkg.is_installed():
+            continue
+        rgraph(pkg)
 
-def rgraph(dep, path):
-    global graphcache
-    
-    # stop circular deps
-    if dep in path:
-	return "  "*len(path) + "!! circular dependency"
-    
-    # find in portage
-    matches = portage.db["/"]["porttree"].dbapi.match(dep)
-    x = portage.best(matches)
-    
-    # skip if we've already included this in the tree
-    if x in graphcache:
-	return []
-    else:
-	graphcache.append(x)
+def rgraph(pkg,level=0,pkgtbl=[],suffix=""):
 
-    # try open up this package's deps
-    try:
-	f = open("/var/cache/edb/dep/%s" % x)
-	f.readline() # read RDEPENDS
-	depends = depuseparse(f.readline())
-	graph_node_print(path, x)
-	for d in depends:
-	    if d in graphcache:
-		continue
-	    if d in portage.db["/"]["virtuals"].keys():
-		virtual = portage.db["/"]["virtuals"][d]
-		graphcache += rgraph(virtual, path + [dep])
-	    else:
-		graphcache += rgraph(d, path + [dep])
-    except IOError:
-	# silent this for the moment
-	#print "! Error findind deps."
-	return []
+    cpv=pkg.get_cpv()
 
-    return depends
-	
+    print level*" " + "`-- " + cpv + suffix
+    pkgtbl.append(cpv)
+    
+    for x in pkg.get_runtime_deps():
+        suffix=""
+        cpv=x[2]
+        pkg=gentoolkit.find_best_match(x[0] + cpv)
+        if not pkg:
+            continue
+        if pkg.get_cpv() in pkgtbl:
+            continue
+        if cpv.find("virtual")==0:
+            suffix+=" (" + cpv + ")"
+        if len(x[1]):
+            suffix+=" [ " + string.join(x[1]) + " ]"
+        pkgtbl=rgraph(pkg,level+1,pkgtbl,suffix)
+    return pkgtbl
+
 # .-------------------------------------------------------.
 # | Required By Function                                  |
 # +-------------------------------------------------------+
 # | Find what packages require a given package name       |
 # `-------------------------------------------------------'
 
-def depends(query): # FIXME: Use gentoolkit
+def depends(query):
     
     print "[ Results for search key : " + white(query) + " ]"
 
-    isdepend = re.compile(r'([^\s]*' + query + '[^\s]*)')
+    isdepend = gentoolkit.split_package_name(query)
     
-    match_depend = {}
-    match_rdepend = {}
-
-#    for x in gentoolkit.find_all_packages():
-        
-    # get all installed packages
-    for x in os.listdir(portage.root + "var/cache/edb/dep"):
-        # for each category, we just grep for the deps, slowly
-        for dep in os.listdir(portage.root + "var/cache/edb/dep/" + x):
-            f = open("%s/var/cache/edb/dep/%s/%s" % (portage.root, x, dep))
-	    depend = f.readline()
-            rdepend = f.readline()
-	    f.close()
-	    match = isdepend.search(rdepend)
-	    if match:
-		match_rdepend[x+"/"+dep] = match.groups()
-	    match = isdepend.search(depend)
-            if match:
-		match_depend[x+"/"+dep] = match.groups()
-		
-	    if match_depend.has_key(x+"/"+dep):
-		print turquoise("*"), white(x+"/"+dep)
-		for line in match_depend[x+"/"+dep]:
-		    print "  " + line
-    
-    
+    for pkg in gentoolkit.find_all_packages():
+        if pkg.is_installed():
+            deps = pkg.get_runtime_deps()
+            for x in deps:
+                cpvs=gentoolkit.split_package_name(x[2])
+                cat_match=0
+                ver_match=0
+                name_match=0
+                if not isdepend[0] or isdepend[0] == cpvs[0]:
+                    cat_match=1
+                if not isdepend[2] or \
+                   (isdepend[2] == cpvs[2] and isdepend[3] == cpvs[3]):
+                    ver_match=1
+                if isdepend[1] == cpvs[1]:
+                    name_match=1
+                if cat_match and ver_match and name_match:
+                    print turquoise("*"), white(pkg.get_cpv()), white("[ ") + string.join(x[1]), white("]")
 
 # .-------------------------------------------------------.
 # | Belongs to which package                              |
@@ -712,7 +451,7 @@ def depends(query): # FIXME: Use gentoolkit
 # | Finds what package a file belongs to                  |
 # `-------------------------------------------------------'	    
 	    
-def belongs(query): # FIXME: use gentoolkit
+def belongs(query):
 
     q = query.split()
 
@@ -727,43 +466,14 @@ def belongs(query): # FIXME: use gentoolkit
 
     print "Searching for " + item + " in " + cat + " ..."
 
-    matches = gentoolkit.find_all_packages(fn)
+    matches = gentoolkit.find_all_installed_packages(fn)
     rx = re.compile(item)
 
-    # FIXME: Speedup
-    # FIXME: Add category selection
     for pkg in matches:
         for fn in pkg.get_contents().keys():
             if rx.search(fn):
                 print pkg.get_cpv()
-    return
-        
-    query = query.split()
-    # FIXME: use portage.settings
-    dbdir = "/var/db/pkg"
-
-    q_regex = re.sub(r'\.',r'\.',query[0])
-    q_regex = re.sub(r'\*',r'\[^\s]*', q_regex)
-    
-    reobj = re.compile(r'^[a-zA-Z]{3}[\s](' + q_regex + r')[\s]', re.M)
-    
-    if len(query) >= 2:
-	category = query[1]
-    else:
-	category = "*"
-	
-    print "Searching for", query[0], "in", category, "..."
-	
-    for catdir in glob.glob(dbdir + "/" + category):
-	cat =  catdir.split("/")[-1]
-	for pkg in os.listdir(catdir):
-	    try:
-		contents = open(catdir + "/" + pkg + "/CONTENTS").read()
-		matches = reobj.search(contents)
-		if matches:
-		    print cat + "/" + pkg
-	    except IOError:
-		pass
+                break # We know this pkg matches, look for any more matches
     return
 	
 # .-------------------------------------------------------.
@@ -775,14 +485,14 @@ def size(query):
     packages = gentoolkit.find_packages(query)
     if not report_matches(query, packages):
         return
+
     for pkg in packages:
         if not pkg.is_installed():
             continue
         x=pkg.size()
-        cpv=x[0]
-        size=x[1]
-        files=x[2]
-        uncounted=x[3]
+        size=x[0]
+        files=x[1]
+        uncounted=x[2]
         print turquoise("*") + " " + white(pkg.get_cpv())
         print string.rjust(" Total Files : ",25) + str(files)
         if uncounted:
@@ -790,17 +500,20 @@ def size(query):
         print string.rjust(" Total Size : ",25) + "%.2f KB" % (size/1024.0)
 
 
-def report_matches(query, matches):
-    print "[ Results for search key : " + white(query) + " ]"
-    print "[ Applications found : " + white(str(len(matches))) + " ]"
+def report_matches(query, matches, installed_only=1):
+    print "[ Results for search key       : " + white(query) + " ]"
+    print "[ Candidate applications found : " + white(str(len(matches))) + " ]"
     print
-    
-    if matches:
-#	print " Only printing found installed programs."
+
+    if installed_only and matches:
+	print " Only printing found installed programs."
 	print
+    elif installed_only:
+	print "No packages found."
+
+    if matches:
         return 1
     else:
-	print "No packages found."
         return 0
 
 
@@ -810,9 +523,7 @@ def report_matches(query, matches):
 # | Lists all the files in a package                      |
 # `-------------------------------------------------------'	    
 def files(query):
-
     matches = gentoolkit.find_packages(query)
-
     if not report_matches(query, matches):
         return
     
@@ -904,3 +615,5 @@ if __name__ == "__main__":
 	main()
     except KeyboardInterrupt:
 	print "Operation Aborted!"
+
+

@@ -1,7 +1,8 @@
 Maintainer:
-Brandon Low <lostlogic@gentoo.org>
+Karl Trygve Kalleberg <karltk@gentoo.org>
 
 Authors:
 Jerry Haltom <ssrit@larvalstage.net> (dep-clean)
 Brandon Low <lostlogic@gentoo.org> (dep-clean)
 Paul Belt <gaarde@users.sourceforge.net> (man page)
+Brandon Low <lostlogic@gentoo.org> (dep-clean)

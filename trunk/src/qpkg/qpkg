@@ -10,7 +10,7 @@
 #
 # qpkg - query portage package system for various information
 #
-# This is a reimplementation of the qpkg written in bash, by 
+# This is a reimplementation of the previous qpkg, written in bash, by 
 # Vitaly Kushneriuk <vitaly_kushneriuk@yahoo.com>,
 # Brandon Low <lostlogic@gentoo.org>,
 # Josh Goebel <dreamer@firesedge.org>
@@ -49,20 +49,21 @@ def showUsage():
     print blue("-d,   --dups") + "\t\tprint packages that have multiple versions installed"
     print blue("-s,   --slot") + "\t\tmake " + blue("-d") + " SLOT only print dups of the same SLOT"
 
-    print "\n" + white("Selection:")
+    print "\n" + white("Package selection:")
     print blue("-f,   --find-file") + "\tfinds package that owns file <file>"
     print blue("-fp,  --find-pattern") + "\tfinds package that owns file matching *<pattern>*"
+    print blue("-m,   --masked") + "\tinclude " + yellow("only") + " masked packages"
+    print blue("-n,   --non-masked") + "\tinclude " + yellow("only") + " installed packages"
+    print blue("-U,   --uninstalled") + "\tinclude " + yellow("only") + " uninstalled packages"
+    print blue("-g,   --group") + "\t\tfind by group (can be combined with other searches"
+
+    print "\n" + white("Information selection:")
+    print blue("-l,   --list") + "\t\tlist package content"
+    print blue("-i,   --info") + "\t\tget package description and home page")
+    print blue("-ct,  --check-time")
+    print blue("-tc,  --time-check") + "\tverify package files' time stamps"
+    
     """
-
-${BR}Package Selection:
-  ${BL}-f,  --find-file${NO}${T}finds package that owns file <file>
-  ${BL}-fp, --find-pattern${NO}${T}finds to package that owns file matching *<pattern>*
-  ${BL}-m,  --masked${NO}${T}Include${YL} only${NO} masked packages
-  ${BL}-n,  --non-masked${NO}${T}Include${YL} only${NO} non-masked packages
-  ${BL}-I,  --installed${NO}${T}Include${YL} only${NO} installed packages
-  ${BL}-U,  --uninstalled${NO}${T}Include${YL} only${NO} uninstalled packages
-  ${BL}-g,  --group${NO}${T}${T}Find by goup (can be combined with other searches)
-
 ${BR}Information Selection:
   ${BL}-l,  --list${NO}${T}${T}List package content
   ${BL}-i,  --info${NO}${T}${T}Get package description and home page.

@@ -1,4 +1,9 @@
 	
+2003-06-31 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Rewrote more of etcat; many of the functions now employ
+	gentoolkit.
+	* Replaced qpkg with stubs of a reimplementation in python.
+
 2003-06-27 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added patch to echangelog to consider PORTDIR, fixes #23881.
 	
