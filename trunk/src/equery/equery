@@ -64,9 +64,9 @@ def fileAsStr(name, fdesc, showType=0, showMD5=0, showTimestamp=0):
         s += "%6s " % type
     s += fname
     if showTimestamp:
-        s += stamp + " "
+        s += " " + stamp + " "
     if showMD5:
-        s += md5sum + " "
+        s += " " + md5sum + " "
     return s
 
 def timestampAsStr(timestamp):
@@ -719,7 +719,7 @@ class CmdCheckIntegrity(Command):
                 except OSError:
                     print_error(path(file) + " does not exist")
                 checked_files += 1
-            print_info(0, yellow(" * ") + number(str(good_files)) + " out of " +  number(str(checked_files)) + " files good")
+            print_info(0, yellow(" * ") + pnumber(str(good_files)) + " out of " +  pnumber(str(checked_files)) + " files good")
                     
     def shortHelp(self):
         return pkgquery("pkgspec") + " - check package's files against recorded MD5 sums and timestamps"
