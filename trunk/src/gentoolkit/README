@@ -1,0 +1,17 @@
+
+Package : gentoolkit
+Version : see __init__.py
+Author  : See AUTHORS
+
+MOTIVATION
+
+This is the Python API for Gentoolkit. It contains common functionality shared
+by the Gentoolkit tools written in Python.
+
+MECHANICS
+
+N/A
+
+IMPROVEMENTS
+
+N/A
