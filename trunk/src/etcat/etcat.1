@@ -16,9 +16,9 @@ More specifically, it lists the versions available highlighted by their status (
 .LP 
 It also employes a smarter package query syntax than emerge where examples such as:
 .LP .IP 
-mozilla\-1.1.br 
+mozilla\-1.1
+.br 
 mozilla\-1.*
-
 .LP 
 are accepted.
 
@@ -28,7 +28,7 @@ are accepted.
 .br 
 \fBbelongs\fR <\fI/path/to/file\fR> [\fIcategory\fR]
 .IP 
-Searches for the package which a file belongs to with an option to restrict a search to a single or multiple category. Wildcards in the category name is accepted (eg. etcat belongs /usr/lib/libmpeg.so "media\-*")
+Searches for the package which a file belongs to with an option to restrict a search to a single or multiple category. Wildcards in the category name is accepted to speed up searching. (eg. etcat belongs /usr/lib/libmpeg.so "media\-*")
 
 .LP 
 \fB\-c\fR <\fIpackage\-[version]\fR>
