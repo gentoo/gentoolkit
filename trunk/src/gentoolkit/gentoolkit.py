@@ -23,6 +23,7 @@ sys.path.insert(0, "/usr/lib/portage/pym")
 import portage
 import re
 import string
+import types
 
 settings = portage.config(clone=portage.settings)
 porttree = portage.db[portage.root]["porttree"]
@@ -183,10 +184,22 @@ class Package:
 
 def find_packages(search_key, masked=False):
 	"""Returns a list of Package objects that matched the search key."""
-	if masked:
-		t=portage.portdb.xmatch("match-all", search_key)
-	else:
-		t=portage.portdb.match(search_key)
+	try:
+		if masked:
+			t=portage.portdb.xmatch("match-all", search_key)
+		else:
+			t=portage.portdb.match(search_key)
+	# catch the "amgigous package" Exception
+	except ValueError, e:
+		if type(e[0]) == types.ListType:
+			t=[]
+			for cp in e[0]:
+				if masked:
+					t += portage.portdb.xmatch("match-all", cp)
+				else:
+					t += portage.portdb.match(cp)
+		else:
+			raise ValueError(e)
 	return [Package(x) for x in t]
 
 def find_best_match(search_key):
