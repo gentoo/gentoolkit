@@ -134,7 +134,10 @@ class Package:
 			return string.join(sp[:-1],"/")
 	def get_env_var(self, var):
 		"""Returns one of the predefined env vars DEPEND, RDEPEND, SRC_URI,...."""
-		r=porttree.dbapi.aux_get(self._cpv,[var])
+		mytree = vartree
+		if not self.is_installed():
+			mytree = porttree
+		r = mytree.dbapi.aux_get(self._cpv,[var])
 		if not r:
 			raise "WTF??"
 		if len(r)!=1:
