@@ -237,7 +237,7 @@ def find_world_packages(prefilter=None):
 def find_all_installed_packages(prefilter=None):
     """Returns a list of all installed packages, after applying the prefilter
     function"""
-    t=vartree.cpv_all()
+    t=vartree.dbapi.cpv_all()
     if prefilter:
         t=filter(prefilter,t)
     return [Package(x) for x in t]
