@@ -1,4 +1,7 @@
-	
+
+2003-10-04 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Rewrote dep-clean to python
+		
 2003-06-31 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Rewrote more of etcat; many of the functions now employ
 	gentoolkit.
