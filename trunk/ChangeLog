@@ -1,4 +1,10 @@
 
+2003-12-08 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Removed emerge-rsync, emerge-webrsync
+	* Added moo
+	* Added skeleton man pages to all packages
+	* Added Makefile
+	
 2003-10-04 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Rewrote dep-clean to python
 		
