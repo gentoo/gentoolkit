@@ -1,3 +1,9 @@
+* etcat-0.2.0 (06 May 2003)
+  06 May 2003; Alastair Tse <liquidx@gentoo.org>
+  Trying to add a dependency graph feature. kind of works with
+  some weird hacks parsing the depenency string. probably needs
+  to use functions in portage to parse it properly.
+
 * etcat-0.1.4 (27 Apr 2003)
 
   27 Apr 2003; Alastair Tse <liquidx@gentoo.org>
