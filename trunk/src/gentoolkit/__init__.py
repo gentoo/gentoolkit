@@ -13,7 +13,7 @@
 
 __author__ = "Karl Trygve Kalleberg"
 __email__ = "karltk@gentoo.org"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __productname__ = "gentoolkit"
 __description__ = "Gentoolkit Common Library"
 
@@ -31,7 +31,7 @@ vartree  = portage.db[portage.root]["vartree"]
 virtuals = portage.db[portage.root]["virtuals"]
 
 Config = {
-    "verbosityLevel": 3
+	"verbosityLevel": 3
 }
 
 from helpers import *

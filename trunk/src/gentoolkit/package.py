@@ -7,6 +7,8 @@
 #
 # $Header$
 
+from errors import FatalError
+
 class Package:
 	"""Package descriptor. Contains convenience functions for querying the
 	state of a package, its contents, name manipulation, ebuild info and
@@ -16,7 +18,7 @@ class Package:
 		self._cpv = cpv
 		self._scpv = portage.catpkgsplit(self._cpv)
 		if not self._scpv:
-			raise Exception("invalid cpv: %s" % cpv)
+			raise FatalError("invalid cpv: %s" % cpv)
 		self._db = None
 		settings.setcpv(self._cpv)
 		self._settings = portage.config(clone=settings)
@@ -27,9 +29,9 @@ class Package:
 
 	def get_version(self):
 		"""Returns version of package, with revision number"""
-		v=self._scpv[2]
+		v = self._scpv[2]
 		if self._scpv[3] != "r0":
-			v+="-"+self._scpv[3]
+			v += "-" + self._scpv[3]
 		return v
 
 	def get_category(self):
@@ -56,41 +58,41 @@ class Package:
 	def get_runtime_deps(self):
 		"""Returns a linearised list of first-level compile time dependencies for this package, on
 		the form [(comparator, [use flags], cpv), ...]"""
-		cd=self.get_env_var("RDEPEND").split()
-		r,i=self._parse_deps(cd)
+		cd = self.get_env_var("RDEPEND").split()
+		r,i = self._parse_deps(cd)
 		return r
 
 	def get_compiletime_deps(self):
 		"""Returns a linearised list of first-level compile time dependencies for this package, on
 		the form [(comparator, [use flags], cpv), ...]"""
-		rd=self.get_env_var("DEPEND").split()
-		r,i=self._parse_deps(rd)
+		rd = self.get_env_var("DEPEND").split()
+		r,i = self._parse_deps(rd)
 		return r
 
 	def _parse_deps(self,deps,curuse=[],level=0):
 		# store (comparator, [use predicates], cpv)
-		r=[]
-		comparators=["~","<",">","=","<=",">="]
-		end=len(deps)
-		i=0
+		r = []
+		comparators = ["~","<",">","=","<=",">="]
+		end = len(deps)
+		i = 0
 		while i < end:
-			tok=deps[i]
+			tok = deps[i]
 			if tok == ')':
 				return r,i
 			if tok[-1] == "?" or tok[0] == "!":
-				tok=tok.replace("?","")
+				tok = tok.replace("?","")
 				sr,l = self._parse_deps(deps[i+2:],curuse=curuse+[tok],level=level+1)
 				r += sr
-				i+=l+3
+				i += l + 3
 				continue
 			# pick out comparator, if any
-			cmp=""
+			cmp = ""
 			for c in comparators:
 				if tok.find(c) == 0:
-					cmp=c
-			tok=tok[len(cmp):]
+					cmp = c
+			tok = tok[len(cmp):]
 			r.append((cmp,curuse,tok))
-			i+=1
+			i += 1
 		return r,i
 
 	def is_installed(self):
@@ -99,7 +101,8 @@ class Package:
 		return os.path.exists(self._db.getpath())
 
 	def is_overlay(self):
-		dir,ovl=portage.portdb.findname2(self._cpv)
+		"""Returns true if the package is in an overlay."""
+		dir,ovl = portage.portdb.findname2(self._cpv)
 		return ovl != settings["PORTDIR"]
 
 	def is_masked(self):
@@ -117,8 +120,8 @@ class Package:
 
 	def get_package_path(self):
 		"""Returns the path to where the ChangeLog, Manifest, .ebuild files reside"""
-		p=self.get_ebuild_path()
-		sp=p.split("/")
+		p = self.get_ebuild_path()
+		sp = p.split("/")
 		if len(sp):
 			return string.join(sp[:-1],"/")
 
@@ -129,9 +132,9 @@ class Package:
 			mytree = porttree
 		r = mytree.dbapi.aux_get(self._cpv,[var])
 		if not r:
-			raise "WTF??"
-		if len(r)!=1:
-			raise "Should only get one element!"
+			raise FatalError("Could not find the package tree")
+		if len(r) != 1:
+			raise FatalError("Should only get one element!")
 		return r[0]
 
 	def get_use_flags(self):
@@ -151,8 +154,8 @@ class Package:
 
 	def compare_version(self,other):
 		"""Compares this package's version to another's CPV; returns -1, 0, 1"""
-		v1=self._scpv
-		v2=portage.catpkgsplit(other.get_cpv())
+		v1 = self._scpv
+		v2 = portage.catpkgsplit(other.get_cpv())
 		if v1[0] != v2[0] or v1[1] != v2[1]:
 			return 0
 		return portage.pkgcmp(v1[1:],v2[1:])
@@ -161,9 +164,9 @@ class Package:
 		"""Estimates the installed size of the contents of this package, if possible.
 		Returns [size, number of files in total, number of uncounted files]"""
 		contents = self.get_contents()
-		size=0
+		size = 0
 		uncounted = 0
-		files=0
+		files = 0
 		for x in contents:
 			try:
 				size += os.stat(x).st_size
@@ -176,6 +179,6 @@ class Package:
 		"""Internal helper function; loads package information from disk,
 		when necessary"""
 		if not self._db:
-			cat=self.get_category()
-			pnv=self.get_name()+"-"+self.get_version()
-			self._db=portage.dblink(cat,pnv,"/",settings)
+			cat = self.get_category()
+			pnv = self.get_name()+"-"+self.get_version()
+			self._db = portage.dblink(cat,pnv,"/",settings)
