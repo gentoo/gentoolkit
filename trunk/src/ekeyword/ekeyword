@@ -17,7 +17,7 @@ my ($kw_re) = '^(?:([-~^]?)(\w[\w-]*)|([-^]\*))$';
 my (@kw);
 
 # make sure the cmdline consists of keywords and ebuilds
-unless (@ARGV > 1 && $ARGV[0] =~ /$kw_re/o) {
+unless (@ARGV > 0) {
     die "syntax: ekeyword { arch | ~[arch] | -[arch] } ebuild...\n" 
 }
 for my $a (@ARGV) {
@@ -87,9 +87,14 @@ for my $f (@ARGV) {
 	# replace -STAR with -*
 	$quoted =~ s/-STAR\b/-*/;
 
-	# fixup spacing
-	$quoted =~ s/^\s*(.*?)\s*$/$1/;	# leading/trailing
-	$quoted =~ s/\s+/ /g;		# inner
+	# sort keywords and fix spacing
+	$quoted = join " ", sort {
+	    (my $sa = $a) =~ s/^\W//;
+	    (my $sb = $b) =~ s/^\W//;
+	    return -1 if $sa eq '*';
+	    return +1 if $sb eq '*';
+	    $sa cmp $sb;
+	} split " ", $quoted;
 
 	# re-insert quoted to KEYWORDS
 	s/(["']).*?["']/$1$quoted$1/;
