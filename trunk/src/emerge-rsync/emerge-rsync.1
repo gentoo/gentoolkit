@@ -1,0 +1,25 @@
+\" Process this file with
+.\" groff -man -Tascii emerge-rsync.1
+.\"
+.TH emerge 1 "JUL 2002" Linux "Gentoo Linux"
+.SH NAME
+emerge-rsync \- extends the portage emerge rsync with friendly output
+.SH SYNOPSIS
+.B emerge-rsync [--clean -c]
+.SH DESCRIPTION
+.B emerge-rsync 
+extends the portage 
+.BR emerge (1) 
+rsync program showing
+a colored list of new ebuild files along with the description of each.
+Removed files (only if invoked with --clean) are listed in red.
+ Otherwise the program behaves exactly like 
+.BR emerge (1) 
+rsync.
+.SH BUGS
+The command should be integrated in 
+.BR emerge (1)
+.SH AUTHOR
+Marko Mikulicic <marko@seul.org>
+.SH "SEE ALSO"
+.BR emerge (1)
