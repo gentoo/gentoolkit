@@ -1,9 +1,0 @@
-#! /bin/sh
-
-pcnt=`find /usr/portage/ -type f -name "*.ebuild" | sed "s/-[0-9].*//" | sort | uniq | wc -l`
-numebuilds=`find /usr/portage/ -type f -name "*.ebuild" | wc -l`
-numcat=`find /usr/portage/ -type d -name "*-*" -maxdepth 1 | wc -l`
-
-echo "Number of categories : $numcat"
-echo "Number of ebuilds    : $numebuilds"
-echo "Unique packages      : $pcnt"

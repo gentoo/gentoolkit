@@ -18,22 +18,36 @@ all:
 
 dist:
 	echo "Err0r: Must use either dist-gentoolkit or dist-gentoolkit-dev"
+	exit 1
 
 dist-gentoolkit-dev:
-	echo "You wish..."
+	mkdir -p release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)
+	for x in ekeyword echangelog ; do \
+		( cd src/$$x ; make distdir=release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG) dist ) \
+	done
+	cp {Makefile,AUTHORS,README,README.Developer,TODO,COPYING,NEWS,ChangeLog} release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/
+	cat makedefs.mak | \
+		sed "s/^VERSION=.*/VERSION=$(VERSION)/" | \
+		sed "s/^RELEASE_TAG=.*/RELEASE_TAG=$(RELEASE_TAG)/" | \
+		sed "s:^docdir=.*:docdir=\$$(DESTDIR)/usr/share/doc/gentoolkit-dev-\$$(VERSION)\$$(RELEASE_TAG):" \
+		> release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/makedefs.mak
+	( cd release ; tar zcf gentoolkit-dev-$(VERSION)$(RELEASE_TAG).tar.gz gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/ )
 
 dist-gentoolkit:
-	mkdir -p dist/gentoolkit-$(VERSION)
-	for x in gentool etcat euse qpkg revdep-rebuild old-scripts ; do \
-		( cd src/$$x ; make distdir=dist/gentoolkit-$(VERSION) dist ) \
+	mkdir -p release/gentoolkit-$(VERSION)$(RELEASE_TAG)
+	for x in equery etcat euse qpkg revdep-rebuild old-scripts ; do \
+		( cd src/$$x ; make distdir=release/gentoolkit-$(VERSION)$(RELEASE_TAG) dist ) \
 	done
-	cp {Makefile,AUTHORS,README,TODO,COPYING,NEWS,ChangeLog} dist/gentoolkit-$(VERSION)/
-	cat makedefs.mak | sed "s/^VERSION=.*/VERSION=$(VERSION)/" > dist/gentoolkit-$(VERSION)/makedefs.mak
-	( cd dist ; tar zcf gentoolkit-$(VERSION).tar.gz gentoolkit-$(VERSION)/ )
+	cp {Makefile,AUTHORS,README,TODO,COPYING,NEWS,ChangeLog} release/gentoolkit-$(VERSION)$(RELEASE_TAG)/
+	cat makedefs.mak | \
+		sed "s/^VERSION=.*/VERSION=$(VERSION)/" | \
+		sed "s/^RELEASE_TAG=.*/RELEASE_TAG=$(RELEASE_TAG)/" \
+		> release/gentoolkit-$(VERSION)$(RELEASE_TAG)/makedefs.mak
+	( cd release ; tar zcf gentoolkit-$(VERSION)$(RELEASE_TAG).tar.gz gentoolkit-$(VERSION)$(RELEASE_TAG)/ )
 
 install:
 	echo "Err0r: Must use either install-gentoolkit or install-gentoolkit-dev"
-
+	exit 1
 
 install-gentoolkit:
 
@@ -44,21 +58,20 @@ install-gentoolkit:
 
 	install -m 0644 {AUTHORS,ChangeLog,COPYING,NEWS,README,TODO} $(docdir)/
 
-	for x in gentool etcat euse qpkg revdep-rebuild old-scripts ; do \
+	for x in equery etcat euse qpkg revdep-rebuild old-scripts ; do \
 		( cd src/$$x ; make DESTDIR=$(DESTDIR) install )  \
 	done
 
+# FIXME: If run from the CVS tree, the documentation will be installed in
+#        $(DESTDIR)/usr/share/doc/gentoolkit-$(VERSION), not gentoolkit-dev-$(VERSION)
 install-gentoolkit-dev:
-
-# FIXME: we override the docdir for the -dev package, should be prettier
-	docdir=$(DESTDIR)/usr/share/doc/gentoolkit-dev-$(VERSION)
 
 	install -d $(docdir)
 	install -d $(bindir)
-	install -d $(sbindir)
 	install -d $(mandir)
 
 	install -m 0644 {AUTHORS,ChangeLog,COPYING,NEWS,README,README.Developer,TODO} $(docdir)/
 
-	for x in ekeyword echangelog ; do
-		( cd src/$(x) ; make DESTDIR=$(DESTDIR) install ) 
+	for x in ekeyword echangelog ; do \
+		( cd src/$$x ; make DESTDIR=$(DESTDIR) install ) \
+	done

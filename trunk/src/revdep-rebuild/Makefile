@@ -15,7 +15,7 @@ dist:
 
 install:
 
-	install -m 0755 revdep-rebuild $(sbindir)/
+	install -m 0755 revdep-rebuild $(bindir)/
 	install -d $(docdir)/revdep-rebuild	
 	install -m 0644 {AUTHORS,README,TODO} $(docdir)/revdep-rebuild/
 	install -m 0644 revdep-rebuild.1 $(mandir)/

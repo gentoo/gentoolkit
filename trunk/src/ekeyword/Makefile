@@ -4,7 +4,7 @@
 #
 # $Header$
 
-include ../../makdefs.mak
+include ../../makedefs.mak
 
 all:
 	echo "ALBACETE (AL-ba-seet n.) A single surprisingly long hair growing in the middle of nowhere."

@@ -1,3 +1,9 @@
+
+2004-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added man page from app-portage/gentoolkit
+	* Added Makefile
+	* Added sys.path workaround for Portage >=2.0.50
+	
 * etcat-0.2.0 (06 May 2003)
   06 May 2003; Alastair Tse <liquidx@gentoo.org>
   Trying to add a dependency graph feature. kind of works with

@@ -10,7 +10,7 @@
 __author__ = "Karl Trygve Kalleberg"
 __email__ = "karltk@gentoo.org"
 __version__ = "0.1.0"
-__productname__ = "gentool"
+__productname__ = "equery"
 __description__ = "Gentoo Package Query Tool"
 
 import re
@@ -61,7 +61,7 @@ class Command:
     def __init__(self):
         pass
     def shortHelp(self):
-        return "short help description"
+        return " - not implemented yet"
     def longHelp(self):
         return "help for syntax and options"
     def perform(self, args):
@@ -845,7 +845,7 @@ def printVersion():
     print "Author(s): " + __author__
     
 def printUsage():
-    print white("Usage: ") + turquoise("gentool") + yellow(" <global-opts> ") + green("command") + yellow(" <local-opts>")
+    print white("Usage: ") + turquoise(__productname__) + yellow(" <global-opts> ") + green("command") + yellow(" <local-opts>")
     print "where " + yellow("<global-opts>") + " is one of"
     print yellow(" -q, --quiet") + "   - minimal output"
     print yellow(" -C, --nocolor") + " - turn off colours"
