@@ -25,7 +25,7 @@ LD_LIBRARY_MASK="libodbcinst.so libodbc.so libjava.so libjvm.so"
 # List of directories to be searched (feel free to edit it)
 # Note /usr/libexec and /usr/local/subprefix cotradicts FHS, but are present
 # /var/something is for cgi and similar scripts
-SEARCH_DIRS="/lib /bin /sbin /usr/lib /usr/bin /usr/sbin /usr/libexec /usr/X11R6/lib /usr/X11R6/bin /usr/X11R6/sbin  /usr/e1* /usr/local /usr/qt* /usr/kde/*/lib /usr/*-*-linux-gnu /opt /var/qmail /var/vpopmail /home/httpd/cgi-bin"
+SEARCH_DIRS="/lib /bin /sbin /usr/lib /usr/bin /usr/sbin /usr/libexec /usr/X11R6/lib /usr/X11R6/bin /usr/X11R6/sbin  /usr/e1* /usr/local /usr/qt* /usr/kde/*/bin /usr/kde/*/lib /usr/*-*-linux-gnu /opt /var/qmail /var/vpopmail /home/httpd/cgi-bin"
 
 # Base of temporary files names.
 LIST=~/.revdep-rebuild
