@@ -22,7 +22,7 @@ dist:
 
 dist-gentoolkit-dev:
 	mkdir -p release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)
-	for x in ekeyword echangelog ; do \
+	for x in ekeyword echangelog ego ; do \
 		( cd src/$$x ; make distdir=release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG) dist ) \
 	done
 	cp {Makefile,AUTHORS,README,README.Developer,TODO,COPYING,NEWS,ChangeLog} release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/

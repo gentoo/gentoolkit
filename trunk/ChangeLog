@@ -1,3 +1,6 @@
+2004-01-14 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added src/ego to gentoolkit-dev
+
 2003-01-12 Marius Mauch <genone@gentoo.org>
 	* fixed traceback in equery
 	* added more information on "equery list"
