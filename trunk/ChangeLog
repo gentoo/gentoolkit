@@ -1,3 +1,6 @@
+2004-10-10 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Fixed Makefiles to work with posix-compatible shells
+
 2004-10-06 Marius Mauch <genone@gentoo.org>
 	* glsa.py: Convert Unicode strings to ascii before passing them to portage
 	* glsa.py: Some formatting fixes for dump()

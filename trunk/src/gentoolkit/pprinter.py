@@ -23,7 +23,7 @@ def print_warn(s):
     sys.stderr.write("!!! " + s + "\n")
     
 def die(err, s):
-    error(s)
+    print_error(s)
     sys.exit(-err)
 
 # Colour settings

@@ -25,7 +25,7 @@ dist-gentoolkit-dev:
 	for x in ekeyword echangelog ego ebump gensync epkgmove; do \
 		( cd src/$$x ; make distdir=release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG) dist ) \
 	done
-	cp {Makefile,AUTHORS,README,README.Developer,TODO,COPYING,NEWS,ChangeLog} release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/
+	cp Makefile AUTHORS README README.Developer TODO COPYING NEWS ChangeLog release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/
 	cat makedefs.mak | \
 		sed "s/^VERSION=.*/VERSION=$(VERSION)/" | \
 		sed "s/^RELEASE_TAG=.*/RELEASE_TAG=$(RELEASE_TAG)/" | \
@@ -39,7 +39,7 @@ dist-gentoolkit:
 	for x in equery etcat euse qpkg gentoolkit revdep-rebuild old-scripts glsa-check; do \
 		( cd src/$$x ; make distdir=release/gentoolkit-$(VERSION)$(RELEASE_TAG) dist ) \
 	done
-	cp {Makefile,AUTHORS,README,TODO,COPYING,NEWS,ChangeLog} release/gentoolkit-$(VERSION)$(RELEASE_TAG)/
+	cp Makefile AUTHORS README TODO COPYING NEWS ChangeLog release/gentoolkit-$(VERSION)$(RELEASE_TAG)/
 	cat makedefs.mak | \
 		sed "s/^VERSION=.*/VERSION=$(VERSION)/" | \
 		sed "s/^RELEASE_TAG=.*/RELEASE_TAG=$(RELEASE_TAG)/" \
@@ -57,7 +57,7 @@ install-gentoolkit:
 	install -d $(sbindir)
 	install -d $(mandir)
 
-	install -m 0644 {AUTHORS,ChangeLog,COPYING,NEWS,README,TODO} $(docdir)/
+	install -m 0644 AUTHORS ChangeLog COPYING NEWS README TODO $(docdir)/
 
 	for x in equery etcat euse qpkg gentoolkit revdep-rebuild old-scripts glsa-check ; do \
 		( cd src/$$x ; make DESTDIR=$(DESTDIR) install )  \
@@ -71,7 +71,7 @@ install-gentoolkit-dev:
 	install -d $(bindir)
 	install -d $(mandir)
 
-	install -m 0644 {AUTHORS,ChangeLog,COPYING,NEWS,README,README.Developer,TODO} $(docdir)/
+	install -m 0644 AUTHORS ChangeLog COPYING NEWS README README.Developer TODO $(docdir)/
 
 	for x in ekeyword echangelog ego ebump gensync epkgmove ; do \
 		( cd src/$$x ; make DESTDIR=$(DESTDIR) install ) \

@@ -19,7 +19,7 @@ dist:
 install: all
 	install -m 0755 gensync $(bindir)/
 	install -d $(docdir)/gensync
-	install -m 0644 {AUTHORS,README,TODO,ChangeLog} $(docdir)/gensync/
+	install -m 0644 AUTHORS README TODO ChangeLog $(docdir)/gensync/
 	install -m 0644 gensync.1 $(mandir)/
 	install -d $(DESTDIR)/etc/gensync
-	install -m 0644 gensync.conf {bmg-main,bmg-gnome-current}.syncsource $(DESTDIR)/etc/gensync/
+	install -m 0644 gensync.conf bmg-main.syncsource bmg-gnome-current.syncsource $(DESTDIR)/etc/gensync/

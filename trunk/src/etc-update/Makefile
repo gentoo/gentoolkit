@@ -11,10 +11,10 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/etc-update
-	cp {Makefile,AUTHORS,README,TODO,ChangeLog,etc-update,etc-update.1} ../../$(distdir)/src/etc-update/
+	cp Makefile AUTHORS README TODO ChangeLog etc-update etc-update.1 ../../$(distdir)/src/etc-update/
 
 install:
 	install -m 0755 etc-update $(bindir)/
 	install -d $(docdir)/etc-update
-	install -m 0644 {AUTHORS,ChangeLog,README} $(docdir)/etc-update/
+	install -m 0644 AUTHORS ChangeLog README $(docdir)/etc-update/
 	install -m 0644 etc-update.1 $(mandir)/
