@@ -221,7 +221,7 @@ for my $e (grep /\.ebuild$/, readdir D) {
 
 	# Attempt the substitution and compare
 	$netext = update_copyright($etext);
-	last if $netext eq $etext;
+	next if $netext eq $etext; # skip this file if no change.
 
 	# Write the new ebuild
 	open E, ">$e.new" or warn("Can't open $e.new\n"), next;

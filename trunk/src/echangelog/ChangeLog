@@ -1,3 +1,7 @@
+27 Mar 2004  Michael Sterrett <mr_bones_@gentoo.org>
+	* don't fall out of the loop if update_copyright() didn't change
+	anything. Just go on to the next file.
+
 21 Mar 2004 Aron Griffis <agriffis@gentoo.org>
 	* Fix typo $0 -> 0
 
