@@ -203,10 +203,9 @@ class CmdListBelongs(Command):
 
 		found = 0
 		for pkg in matches:
-			# ignore meta ebuilds and injected packages
+			cnt = pkg.get_contents()
 			if not cnt:
 				continue
-			cnt = pkg.get_contents()
 			for file in cnt.keys():
 				if rx.search(file):
 					print pkg.get_cpv() + " (" + fileAsStr(file, cnt[file]) + ")"
