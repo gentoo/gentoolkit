@@ -1,3 +1,12 @@
+- rename gentool to equery
+ - add changelog <from> <to> [--last] [--lastentry] [--current]
+  - displays changelog entries
+ - add installed [cat]
+  - displays installed packages (optionally only in a given cat)
+ - add check <pkg-spec> [--full] [--display=pkgnames,full]
+  - check md5 and timestamps (optionally also in CONFIG_PROTECT dirs)
+ - add which
+  - as ewhich
 - merge dep-clean and pkg-clean to use gentoolkit
 - rewrite ekeywords and echangelog to use gentoolkit
 - add deep depends to etcat
