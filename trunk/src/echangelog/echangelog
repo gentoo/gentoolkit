@@ -163,7 +163,7 @@ $input =~ s/^/  /gm;        # add indentation
 $user = $ENV{'ECHANGELOG_USER'} ||
         sprintf("%s <%s\@gentoo.org>", (getpwuid($<))[6,0]);
 # Make sure that we didn't get "root"
-die "Please set ECHANGELOG_USER or run as non-root\n" if $user =~ / root@/;
+die "Please set ECHANGELOG_USER or run as non-root\n" if $user =~ /<root@/;
 $date = strftime("%d %b %Y", localtime);
 $entry = "$date; $user ";
 $entry .= join ', ', map "$actions{$_}$_", grep !/files.digest|Manifest/, @files;
