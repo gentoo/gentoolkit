@@ -5,6 +5,11 @@ if [ "$(whoami)" == "karltk" ] ; then
 	publish_public_path="http://dev.gentoo.org/~karltk/projects/gentoolkit/releases"
 	portdir=/home/karltk/source/oss/gentoo/gentoo-x86/
 	export ECHANGELOG_USER="Karl Trygve Kalleberg <karltk@gentoo.org>"
+elif [ "$(whoami)" == "port001" ] ; then
+	publish_path=dev.gentoo.org:public_html/distfiles/gentoolkit/releases
+	publish_public_path="http://dev.gentoo.org/~port001/distfiles/gentoolkit/releases"
+	portdir=/home/port001/Gentoo/gentoo-x86/
+	export ECHANGELOG_USER="Ian Leitch <port001@gentoo.org>"
 else
 	echo "!!! Don't know who $(whoami) is, can't release"
 	exit 1
