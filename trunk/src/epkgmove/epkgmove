@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-# Copyright 1999-2003 Gentoo Technologies, Inc.
+# Copyright 1999-2004 Gentoo Technologies, Inc.
 # Distributed under the terms of the GNU General Public License v2
 # $Header$
 #
@@ -7,6 +7,10 @@
 #  Ian Leitch <port001@gentoo.org>
 #
 # ChangeLog:
+#
+#  12 Feb 2004 - epkgmove-0.4,
+#    - Set PORTDIR to pwd if not in PORTDIR
+#    - Formatting fixes
 #
 #  02 Jan 2004 - epkgmove-0.3,
 #    - Check exit status of commands, die if non zero
@@ -28,14 +32,24 @@
 #  28 Dec 2003 - pkgmove-0.1,
 #    - 0.1 Beta Release
 #
+# TODO:
+#
+#  - A complete rewrite. This was my first ever Python script and although I believe it to be safe to use,
+#    it is not well structured at all.
+#
 
-import os, re, portage, signal
+import os
+import re
+import sys
+import signal
+
+import portage
 from output import *
 
 __author__ 	=	"Ian Leitch"
 __email__ 	=	"port001@gentoo.org"
 __productname__	= 	"epkgmove"
-__version__ 	=	"0.3"
+__version__ 	=	"0.4"
 __description__	= 	"A simple tool for moving packages in CVS"
 
 def main():
@@ -67,6 +81,7 @@ def main():
     AddUpdate()
     CleanUp()
     print "%s %s successfully moved to %s." % (green(" *"), turquoise(location), yellow(destination))
+    sys.exit(0)
 
 def help():
 
@@ -101,9 +116,12 @@ def sighandler(signal_number=None, stack_frame=None):
 
 def Checkcwd():
 
-    if os.getcwd() != portdir:    
-        err("I'm not in PORTDIR, take me there!")
-        sys.exit(1)
+    global portdir
+
+    if os.getcwd() != portdir:
+        print "%s Not in PORTDIR!" % yellow(" *")
+        print "%s Setting to: %s" % (yellow("   *"), os.getcwd())
+        portdir = os.getcwd()
 
     files = os.listdir(portdir)
     
@@ -117,7 +135,7 @@ def Checkcwd():
 
 def UpdateCats():
 
-    print "%s Updating %s & %s..." % (green("   *"), locategory, decategory)
+    print "%s Updating %s & %s..." % (green(" *"), locategory, decategory)
 
     os.chdir(os.path.join(portdir, locategory))
     docmd(cvsupcmd)
@@ -224,7 +242,7 @@ def AddPackage():
     print "%s Running 'echangelog 'Moved from %s to %s.''..." % (green("      *"), location, destination) 
     docmd("echangelog 'Moved from %s to %s.' %s" % (location, destination, devnull))
 
-    print "%s Running '%s'..." % (green("      *"), cvscommitcmd)
+    print "%s Running '%s 'Moved from %s to %s.''..." % (green("      *"), cvscommitcmd, location, destination)
     docmd("%s 'Moved from %s to %s.' %s" % (cvscommitcmd, location, destination, devnull))
 
     print "%s %s successfully added to CVS." % (green("   *"), turquoise(destination))
