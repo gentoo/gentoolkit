@@ -135,6 +135,13 @@ if "new" in params:
 if "all" in params:
 	glsalist = completelist
 	params.remove("all")
+
+# remove invalid parameters
+for p in params[:]:
+	if not (p in completelist or os.path.exists(p)):
+		print "(removing %s from parameter list as it isn't a valid GLSA specification)" % p
+		params.remove(p)
+
 glsalist.extend([g for g in params if g not in glsalist])
 
 # list short information for given or new GLSA
