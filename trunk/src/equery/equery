@@ -315,8 +315,10 @@ class CmdDisplayUSEs(Command):
 			bestver = p.get_cpv()
 			iuse = p.get_env_var("IUSE")
 
-			if iuse: usevar = iuse.split()
-			else: usevar = []
+			if iuse:
+				usevar = iuse.split()
+			else:
+				usevar = []
 
 			inuse = []
 			used = p.get_use_vars().split()
@@ -335,8 +337,10 @@ class CmdDisplayUSEs(Command):
 					except KeyError:
 						desc = ""
 
-				if u in useflags: inuse = 1
-				if u in used: inused = 1
+				if u in useflags:
+					inuse = 1
+				if u in used:
+					inused = 1
 
 				output.append((inuse, inused, u, desc))
 
@@ -357,7 +361,7 @@ class CmdDisplayUSEs(Command):
 					else:
 						print " %s %s" % (flag[inuse], flag[inused]),
 
-						print colour[inuse](u.ljust(maxflag_len)),
+					print colour[inuse](u.ljust(maxflag_len)),
 
 					# print description
 					if desc:
