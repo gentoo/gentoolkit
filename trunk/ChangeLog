@@ -1,3 +1,6 @@
+2004-10-20 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* etcat: fixed get_use_vars to get_use_flags, fixes #67349.
+
 2004-10-18 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* gentoolkit: collapsed ChangeLog into base ChangeLog
 	* gentoolkit: reverted indenting back to tabs, due to loud protests from Marius;)
