@@ -8,6 +8,13 @@
 #
 # ChangeLog:
 #
+#  4 Jun 2004 - epkgmove-0.5
+#    - Fixed bug where epkgmove would fail if files/ contained subdirectories
+#    - Add the package to its new location before removing it from the original
+#    - Filter out non-update files in profiles/updates
+#    - Backup to /tmp/__productname__/package and make a little extra effort to keep clean
+#    - Small input validation fix
+#
 #  12 Feb 2004 - epkgmove-0.4,
 #    - Set PORTDIR to pwd if not in PORTDIR
 #    - Formatting fixes
@@ -49,7 +56,7 @@ from output import *
 __author__ 	=	"Ian Leitch"
 __email__ 	=	"port001@gentoo.org"
 __productname__	= 	"epkgmove"
-__version__ 	=	"0.4"
+__version__ 	=	"0.5"
 __description__	= 	"A simple tool for moving packages in CVS"
 
 def main():
@@ -76,8 +83,8 @@ def main():
     CheckArgs()
     print "%s Moving %s to %s..." % (green(" *"), turquoise(location), yellow(destination))
     BackupPkg()
-    RemovePackage()
     AddPackage()
+    RemovePackage()
     AddUpdate()
     CleanUp()
     print "%s %s successfully moved to %s." % (green(" *"), turquoise(location), yellow(destination))
@@ -146,7 +153,12 @@ def CheckArgs():
     
     global fulllocation, location, fulldestination, destination, locategory, lopkg, decategory
 
-    (locategory, lopkg) = sys.argv[1].strip('/').split('/')
+    try:
+        (locategory, lopkg) = sys.argv[1].strip('/').split('/')
+    except:
+        err("'%s' Invalid 'category/pkg'." % (sys.argv[1]))
+	sys.exit(1)
+
     location = os.path.join(locategory, lopkg)
     decategory = sys.argv[2].strip('/')
     fulllocation = os.path.join(portdir, location)
@@ -181,8 +193,10 @@ def CheckArgs():
 
 def BackupPkg():
 
-    print "%s Backing-up %s to /tmp..." % (green("   *"), turquoise(location))
-    docmd("cp -R %s /tmp" % (fulllocation))
+    print "%s Backing-up %s to /tmp/%s..." % (green("   *"), turquoise(location), __productname__)
+    if not os.path.exists("/tmp/%s" % __productname__):
+        os.mkdir("/tmp/%s" % __productname__)
+    docmd("cp -R %s /tmp/%s/%s" % (fulllocation, __productname__, lopkg))
 
 def RemovePackage():
     
@@ -216,19 +230,22 @@ def AddPackage():
     def AddFiles(arg, dir, files):
         global dirhi
 	dirhi = ""
+	dest = ""
         if os.path.basename(dir) not in ignore:
             if os.path.basename(dir) != lopkg:
-                (rubbish, dirhi) = dir.split("tmp/%s/" % (lopkg))
+		(rubbish, dirhi) = dir.split("tmp/%s/%s/" % (__productname__, lopkg))
                 print "      >>> %s/" % (dirhi)
 		os.mkdir(os.path.join(fulldestination, dirhi))
-                docmd("%s %s" % (cvsaddcmd, os.path.basename(dir)))
-	        os.chdir(os.path.join(fulldestination, dirhi))
+                docmd("%s %s" % (cvsaddcmd, dirhi))
 	    for file in files:
                 if not os.path.isdir(os.path.join(dir, file)):
-                    print "      >>> %s" % (os.path.join(dirhi, os.path.basename(file)))
-  	            docmd("cp %s ." % (os.path.join(dir, file)))
-                    docmd("%s %s" % (cvsaddcmd, file))
-            os.chdir(fulldestination)
+		    print "      >>> %s" % (os.path.join(dirhi, os.path.basename(file)))
+		    if dirhi:	
+		    	dest = dirhi
+		    else:
+		    	dest = "."
+		    docmd("cp %s %s" % (os.path.join(dir, file), dest))
+                    docmd("%s %s" % (cvsaddcmd, os.path.join(dirhi, file)))
 
     print "%s Adding %s to CVS:" % (green("   *"), turquoise(destination))
 
@@ -237,7 +254,7 @@ def AddPackage():
     os.mkdir(lopkg)
     docmd("%s %s" % (cvsaddcmd,lopkg))
     os.chdir(lopkg)
-    os.path.walk("/tmp/%s" % (lopkg), AddFiles , None)
+    os.path.walk("/tmp/%s/%s" % (__productname__, lopkg), AddFiles , None)
     os.chdir(fulldestination)
     print "%s Running 'echangelog 'Moved from %s to %s.''..." % (green("      *"), location, destination) 
     docmd("echangelog 'Moved from %s to %s.' %s" % (location, destination, devnull))
@@ -250,13 +267,17 @@ def AddPackage():
 def AddUpdate():
     
     updatefiles = []
+    fileregex = "^[\d]Q-[\d]{4}$"
+
+    p_fileregex = re.compile(fileregex)
     
     print "%s Logging move in 'profiles/updates'..." % (green("   *")) 
     os.chdir(os.path.join(portdir, "profiles/updates"))
     docmd(cvsupcmd)
 
     for file in os.listdir("."):
-        if file not in ignore:
+        o_fileregex = p_fileregex.match(file)
+        if file not in ignore and o_fileregex:
 	    (q, y) =  file.split("-")
 	    updatefiles.append(y + "-" + q)
 	    
@@ -277,7 +298,9 @@ def AddUpdate():
 def CleanUp():
 
     print "%s Removing back-up..." % (green("   *")) 
-    docmd("rm -rf /tmp/%s" % (lopkg))
+    docmd("rm -rf /tmp/%s/%s" % (__productname__, lopkg))
+    if len(os.listdir("/tmp/%s" % __productname__)) == 0:
+        docmd("rmdir /tmp/%s" % __productname__)
 
 if __name__ == "__main__":
     main()
