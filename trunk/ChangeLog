@@ -1,3 +1,10 @@
+2004-10-20 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* release.sh: New script that automates the relase of a new
+		gentoolkit relase. Only works for gentoolkit-dev at the
+		moment.
+	* src/echangelog/Makefile: Fixed spurious '}'
+	* Released gentoolkit-dev-0.2.1
+
 2004-10-31 Marius Mauch <genone@gentoo.org>
 	* qpkg: security fix for bug #68846
 
