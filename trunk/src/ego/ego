@@ -1,0 +1,86 @@
+echo1() { 
+  echo "$1"
+}
+
+ego() {
+  local portdir tmpdir category pkg target
+  
+  # This is WAY faster than portageq:
+  #   portdir=$(portageq portdir)
+  #   tmpdir=$(portageq envvar PORTAGE_TMPDIR)/portage
+  eval $(
+    . /etc/make.globals 
+    . /etc/make.conf
+    export PORTDIR PORTAGE_TMPDIR
+    export | sed -n '
+      s/^declare -x PORTDIR=/portdir=/p
+      s/^declare -x PORTAGE_TMPDIR=\(.*\)/tmpdir=\1\/portage/p'
+  )
+
+  case $1 in
+    *-*/*)
+      pkg=${1##*/}
+      category=${1%/*} 
+      ;;
+
+    ?*)    
+      pkg=$1 
+      # require an ebuild so that we can block deprecated packages
+      # such as dev-libs/rep-gtk
+      category=$(echo1 $portdir/*-*/$pkg/*.ebuild)
+      [[ -f $category ]] || category=$(echo1 $portdir/*-*/$pkg*/*.ebuild)
+      [[ -f $category ]] || category=$(echo1 $portdir/*-*/*$pkg/*.ebuild)
+      [[ -f $category ]] || category=$(echo1 $portdir/*-*/*$pkg*/*.ebuild)
+      if [[ ! -f $category ]]; then
+	echo "Can't find $pkg in $portdir" >&2
+	return 1
+      fi
+      pkg=${category%/*}
+      pkg=${pkg##*/}
+      category=${category#$portdir/}
+      category=${category%%/*}
+      ;;
+
+    *)
+      # Check if we're under $portdir first
+      pkg=${PWD##*/}
+      category=${PWD%/*}
+      category=${category##*/}
+      if [[ ! -d $portdir/$category/$pkg ]]; then
+	# Next check if we're in PORTAGE_TMPDIR
+	if [[ $PWD = $tmpdir/* ]]; then
+	  pkg=${PWD#$tmpdir/}
+	  pkg=${pkg%%/*}
+	  pkg=${pkg%%-[0-9]*}  # not really a valid assumption
+	  category=$(echo1 $portdir/*-*/$pkg/*.ebuild)
+	  if [[ ! -f $category ]]; then
+	    echo "Can't find $pkg in $portdir" >&2
+	    return 1
+	  fi
+	  category=${category#$portdir/}
+	  category=${category%%/*}
+	else
+	  echo "syntax: ego [pkgname]" >&2
+	  echo "or simply ego from a dir under $portdir or $tmpdir" >&2
+	  return 1
+	fi
+      fi
+      ;;
+  esac
+
+  # go to tmpdir or portdir?
+  if [[ $PWD/ = */$category/$pkg/* ]]; then
+    [[ -n $tmpdir ]] || tmpdir=$(portageq envvar PORTAGE_TMPDIR)/portage
+    target=$(command ls -1td $tmpdir/$pkg-* 2>/dev/null | head -n 1)
+    if [[ -z $target ]]; then
+      echo "No matches found for $tmpdir/$pkg-*" >&2
+      return 1
+    fi
+    cd $target/work/$pkg* 2>/dev/null ||
+    cd $target/work 2>/dev/null ||
+    cd $target
+  else
+    cd $portdir/$category/$pkg
+  fi
+}
+
