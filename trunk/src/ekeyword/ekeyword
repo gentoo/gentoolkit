@@ -72,7 +72,7 @@ for my $f (@ARGV) {
 		    $quoted =~ s/(^|\s)[-~]?(?=\w)/$1$leader/g;
 		} else {
 		    # modify or add keyword
-		    unless ($quoted =~ s/[-~]?\Q$arch\E\b/$leader$arch/) {
+		    unless ($quoted =~ s/[-~]?\Q$arch\E(\s|$)/$leader$arch$1/) {
 			# modification failed, need to add
 			if ($arch eq 'STAR') {
 			    $quoted = "$leader$arch $quoted";
