@@ -21,8 +21,8 @@ us a mail at tools-portage@gentoo.org if you need an immediate release.
 The release manager (big words;) will then do
 
 1) make VERSION=major.minor.patch RELEASE_TAG=<optional> dist-gentoolkit
-2) copy dist/gentoolkit-${VERSION}-${RELEASE_TAG}.tar.gz to 
-   emu.gentoo.org/space/distfiles-local/
+2) copy release/gentoolkit-${VERSION}-${RELEASE_TAG}.tar.gz to 
+   dev.gentoo.org/space/distfiles-local/
 3) make a new ebuild, app-portage/gentoolkit/gentoolkit-${VERSION}.ebuild
    with a SRC_URI that points to 
    mirror://gentoo/gentoolkit-${VERSION}-${RELEASE_TAG}.tar.gz

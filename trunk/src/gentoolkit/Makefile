@@ -11,10 +11,13 @@ all:
 
 dist:
 	mkdir -p ../../${distdir}/src/gentoolkit
-	cp {Makefile,AUTHORS,README,ChangeLog,TODO,gentoolkit.py} ../../${distdir}/src/gentoolkit/
+	cp {Makefile,AUTHORS,README,ChangeLog,TODO,gentoolkit.py,pprinter.py,__init__.py} ../../${distdir}/src/gentoolkit/
 
 install:
 	install -d $(docdir)/gentoolkit
 	install -m 0644 {AUTHORS,README,TODO,ChangeLog} $(docdir)/gentoolkit/
-	install -d $(DESTDIR)/usr/lib/gentoolkit/pym
-	install -m 0644 gentoolkit.py $(DESTDIR)/usr/lib/gentoolkit/pym/
+	install -d $(DESTDIR)/usr/lib/gentoolkit/pym/gentoolkit
+	install -m 0644 gentoolkit.py $(DESTDIR)/usr/lib/gentoolkit/pym/gentoolkit/
+	install -m 0644 pprinter.py $(DESTDIR)/usr/lib/gentoolkit/pym/gentoolkit/
+	install -m 0644 __init__.py $(DESTDIR)/usr/lib/gentoolkit/pym/gentoolkit/
+	

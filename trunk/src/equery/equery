@@ -22,7 +22,7 @@ import types
 
 # portage (output module) and gentoolkit need special path modifications
 sys.path.insert(0, "/usr/lib/portage/pym")
-#sys.path.insert(0, "/usr/lib/gentoolkit/pym")
+sys.path.insert(0, "/usr/lib/gentoolkit/pym")
 
 import gentoolkit
 import portage
