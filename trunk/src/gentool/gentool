@@ -13,14 +13,49 @@ __version__ = "0.1.0"
 __productname__ = "gentool"
 __description__ = "Gentoo Package Query Tool"
 
-
+import re
 import sys
 import time
 import gentoolkit
 from output import *
 
 
+# Auxiliary functions
 
+def fileAsStr(name, fdesc, showType=0, showMD5=0, showTimestamp=0):
+
+    type = ""; fname = ""; stamp = ""; md5sum = ""
+
+    if fdesc[0] == 'obj':
+        type = "file"
+        fname = name
+        stamp = timestampAsStr(int(fdesc[1]))
+        md5sum = fdesc[2]
+    elif fdesc[0] == "dir":
+        type = "dir"
+        fname = white(name)
+    elif fdesc[0] == "sym":
+        type = "symlink"
+        stamp = timestampAsStr(int(fdesc[1].replace(")","")))
+        tgt = fdesc[2].split()[0]
+        fname = turquoise(name + " -> " + tgt)
+    else:
+        raise "Unknown type: " + fdesc[0]
+
+    s = ""
+    if showType:
+        s += "%6s " % type
+    s += fname
+    if showTimestamp:
+        s += stamp + " "
+    if showMD5:
+        s += md5sum + " "
+    return s
+
+def timestampAsStr(timestamp):
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
+
+    
 class Command:
     def __init__(self):
         pass
@@ -65,9 +100,6 @@ class CmdListFiles(Command):
             
         return (query, opts)
     
-    def _timestamp(self, timestamp):
-        return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp))
-    
     def perform(self, args):
 
         (query, opts) = self.parseArgs(args)
@@ -87,36 +119,12 @@ class CmdListFiles(Command):
             cnt = x.get_contents()
             
             for name in cnt:
-                info = cnt[name]
-                type = ""
-                fname = ""
-                stamp = ""
-                md5sum = ""
-                if info[0] == 'obj':
-                    type = "file"
-                    fname = name
-                    stamp = self._timestamp(int(info[1]))
-                    md5sum = info[2]
-                elif info[0] == "dir":
-                    type = "dir"
-                    fname = white(name)
-                elif info[0] == "sym":
-                    type = "symlink"
-                    stamp = self._timestamp(int(info[1].replace(")","")))
-                    tgt = info[2].split()[0]
-                    fname = turquoise(name + " -> " + tgt)
-                else:
-                    raise "Unknown " + file[0]
-
-                s = ""
-                if opts["showType"]:
-                    s += "%6s" % type
-                s += " " + fname
-                if opts["showTimestamp"]:
-                    s += " " + stamp
-                if opts["showMD5"]:
-                    s += " " + md5sum
-                print s
+                print fileAsStr(name,
+                                cnt[name],
+                                showType=opts["showType"],
+                                showTimestamp=opts["showTimestamp"],
+                                showMD5=opts["showMD5"])
+                              
         
     def longHelp(self):
         return "List files owned by a particular package\n" + \
@@ -129,25 +137,90 @@ class CmdListFiles(Command):
                yellow("<local-opts>") + " is either of: \n" + \
                "  " + yellow("--timestamp") + "  - append timestamp\n" + \
                "  " + yellow("--md5sum") + "     - append md5sum\n" + \
-               "  " + yellow("--type") + "       - prepend file type"
-               
+               "  " + yellow("--type") + "       - prepend file type"               
     def shortHelp(self):
         return yellow("<local-opts> ") + green("query") + " - list files owned by " + green("query")
 
     
-class CmdListDepends(Command):
-    """List all packages directly or indirectly depending on pkgQuery"""
+class CmdListBelongs(Command):
+    """List all packages owning file_spec"""
     def __init__(self):
-        pass
+        self.default_opts = {
+            "category": "*",
+            "earlyOut": 0
+            }
+
+    def parseArgs(self, args):
+
+        query = ""
+        need_help = 0
+        opts = self.default_opts
+        skip = 0
+        
+        for i in xrange(len(args)):
+
+            if skip:
+                skip -= 1
+                continue
+            x = args[i]
+            
+            if x in ["-h","--help"]:
+                need_help = 1
+                break
+            elif x in ["-c", "--category"]:
+                opts["category"] = args[i+1]
+                skip = 1
+            elif x in ["-e", "--earlyout"]:
+                opts["earlyOut"] = 1
+            else:
+                query = x
+
+        if need_help or query == "":
+            print self.longHelp()
+            sys.exit(-1)
+            
+        return (query, opts)
+                
     def perform(self, args):
-        merged = gentoolkit.find_all_installed_packages()
-        for pkg in merged:
-            files = pkg.get_contents()
+        (query, opts) = self.parseArgs(args)
+
+        cat = opts["category"]
+        filter_fn = None
+        if cat != "*":
+            filter_fn = lambda x: x.find(cat+"/")==0
+
+        if Config["verbosityLevel"] >= 3:
+            print "Searching for " + query + " in " + cat + "..."
+            
+        matches = gentoolkit.find_all_installed_packages(filter_fn)
+        rx = re.compile(query)
+
+        found = 0
+        for pkg in matches:
+            cnt = pkg.get_contents()
+            for file in cnt.keys():
+                if rx.search(file):
+                    print pkg.get_cpv() + " (" + fileAsStr(file, cnt[file]) + ")"
+                    if opts["earlyOut"]:
+                        found = 1
+                        break
+            if found:
+                break
+                    
     def shortHelp(self):
         return yellow("<local-opts> ") + green("query") + " - list all packages depending on " + green("query")
-
-def cmdBelongs(file_spec):
-    """List all packages owning file_spec"""
+    def longHelp(self):
+        return "List all packages owning a particular file" + \
+               "\n" + \
+               "Syntax:\n" + \
+               "  " + green("belongs") + yellow(" <local-opts> ") + green("filename") + \
+               "\n" + \
+               yellow("<local-opts>") + " is either of: \n" + \
+               "  " + yellow("-c, --category cat") + " - only search in category " + yellow("cat") + "\n" + \
+               "  " + yellow("-e, --earlyout") + "     - stop when first match found\n"
+    
+def cmdDepends(file_spec):
+    """List all packages directly or indirectly depending on pkgQuery"""
     pass
 
 def cmdDisplayUSEs(query):
@@ -180,7 +253,7 @@ def cmdPortageStatistics():
 
 Known_commands = {
     "files": CmdListFiles(),
-    "depends": CmdListDepends()
+    "belongs": CmdListBelongs()
     }
 
 Config = {
@@ -238,7 +311,7 @@ def parseArgs(args):
             Config.color = 0
         elif x in ["-q","--quiet"]:
             Config["verbosityLevel"] = 0
-        elif x in ["files", "depends"]:
+        elif x in Known_commands.keys():
             command = Known_commands[x]
             local_opts = args[i+1:]
             break

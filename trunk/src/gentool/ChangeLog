@@ -1,6 +1,7 @@
 
 2002-10-05 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added files command to gentool
+	* Added belongs command to gentool
 	
 2002-11-22 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Fixed the nasty thinko whereby the old revisions were removed
