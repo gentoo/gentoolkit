@@ -11,76 +11,101 @@ import output
 import sys
 
 def print_error(s):
-    sys.stderr.write(output.red("!!! ") + s + "\n")
+	"""Prints an error string to stderr."""
+	sys.stderr.write(output.red("!!! ") + s + "\n")
 
 def print_info(lv, s, line_break = True):
-    if gentoolkit.Config["verbosityLevel"] >= lv:
-        sys.stdout.write(s)
-        if line_break:
-            sys.stdout.write("\n")
+	"""Prints an informational string to stdout."""
+	if gentoolkit.Config["verbosityLevel"] >= lv:
+		sys.stdout.write(s)
+		if line_break:
+			sys.stdout.write("\n")
 
 def print_warn(s):
-    sys.stderr.write("!!! " + s + "\n")
-    
+	"""Print a warning string to stderr."""
+	sys.stderr.write("!!! " + s + "\n")
+	
 def die(err, s):
-    print_error(s)
-    sys.exit(-err)
+	"""Print an error string and die with an error code."""
+	print_error(s)
+	sys.exit(-err)
 
 # Colour settings
 
 def cpv(s):
-    return output.green(s)
+	"""Print a category/package-<version> string."""
+	return output.green(s)
 
 def slot(s):
-    return output.white(s)
-    
+	"""Print a slot string"""
+	return output.white(s)
+	
 def useflag(s):
-    return output.blue(s)
+	"""Print a USE flag strign"""
+	return output.blue(s)
 
 def useflagon(s):
-    return output.red(s)
+	"""Print an enabled USE flag string"""
+	# FIXME: Collapse into useflag with parameter
+	return output.red(s)
 
 def useflagoff(s):
-    return output.blue(s)
-    
+	"""Print a disabled USE flag string"""
+	# FIXME: Collapse into useflag with parameter
+	return output.blue(s)
+	
 def maskflag(s):
-    return output.red(s)
+	"""Print a masking flag string"""
+	return output.red(s)
 
 def installedflag(s):
-    return output.white(s)
-    
+	"""Print an installed flag string"""
+	return output.white(s)
+	
 def number(s):
-    return output.turquoise(s)
+	"""Print a number string"""
+	return output.turquoise(s)
 
 def pkgquery(s):
-    return output.white(s)
+	"""Print a package query string."""
+	return output.white(s)
 
 def regexpquery(s):
-    return output.white(s)
+	"""Print a regular expression string"""
+	return output.white(s)
 
 def path(s):
-    return output.white(s)
+	"""Print a file or directory path string"""
+	return output.white(s)
 
 def path_symlink(s):
-    return output.turquoise(s)
+	"""Print a symlink string."""
+	return output.turquoise(s)
 
 def productname(s):
-    return output.turquoise(s)
-    
+	"""Print a product name string, i.e. the program name."""
+	return output.turquoise(s)
+	
 def globaloption(s):
-    return output.yellow(s)
+	"""Print a global option string, i.e. the program global options."""
+	return output.yellow(s)
 
 def localoption(s):
-    return output.green(s)
+	"""Print a local option string, i.e. the program local options."""
+	return output.green(s)
 
 def command(s):
-    return output.green(s)
-    
+	"""Print a program command string."""
+	return output.green(s)
+	
 def section(s):
-    return output.turquoise(s)    
+	"""Print a string as a section header."""
+	return output.turquoise(s)	
 
 def subsection(s):
-    return output.turquoise(s)
-    
+	"""Print a string as a subsection header."""
+	return output.turquoise(s)
+	
 def emph(s):
-    return output.white(s)    
+	"""Print a string as emphasized."""
+	return output.white(s)

@@ -1,7 +1,12 @@
 2004-10-18 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* gentoolkit: collapsed ChangeLog into base ChangeLog
+	* gentoolkit: reverted indenting back to tabs, due to loud protests from Marius;)
 	* equery: collapsed ChangeLog into base ChangeLog
-		
+	* equery: reverted indenting back to tabs, due to loud protests from Marius;)
+	* equery: minor syntactical cleanups.
+	* equery: minor documentation improvements
+	* equery: added errors module that will hold various types of internal errors raised.
+	
 2004-10-17 Marius Mauch <genone@gentoo.org>
 	* equery: fix for bug #67473 (checking md5sums of prelinked binaries)
 	* equery: fix for bug #67275 (--nocolor didn't work as configure was 
