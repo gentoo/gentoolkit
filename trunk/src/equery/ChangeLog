@@ -1,3 +1,6 @@
+2003-01-12 Marius Mauch <genone@gentoo.org>
+	* added mask, keyword and slot information to list command
+
 2003-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Renamed to equery
 	* Added Makefile
