@@ -1,3 +1,8 @@
+03 Nov 2004 Aron Griffis <agriffis@gentoo.org>
+	* abort when there are unresolved files (files that aren't under
+	  revision control) just like repoman
+	* auto-add to cvs when a new ChangeLog is created
+
 15 Sep 2004 Aron Griffis <agriffis@gentoo.org>
 	* fix the wrapping to fit in 80 columns properly.  It was
 	  previously possible to get lines with 81 chars.  Thanks to
