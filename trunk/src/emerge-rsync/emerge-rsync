@@ -1,6 +1,7 @@
 #!/bin/sh
 BASE=/var/cache
 USE_COLORS=yes
+USE_WEBRSYNC=no
 
 # end user configuration section
 . /etc/make.globals
@@ -19,9 +20,22 @@ function portagetree () {
  find $PORTDIR -type d -mindepth 2 -maxdepth 2
 }
 
+function dorsync () {
+if [ "$USE_WEBRSYNC" == "yes" ]; then
+ emerge-webrsync $@
+else
+ emerge $@ rsync 
+fi
+}
+
+# avoid syntax errors
+function inherits () {
+ return
+}
+
 # do it
 portagetree >$BEFORE
-emerge $@ rsync 
+dorsync
 portagetree >$AFTER
 diff $BEFORE $AFTER | grep ">" | sed "s/> //g" > $NEW
 diff $BEFORE $AFTER | grep "<" | sed "s/< //g" > $REMOVED
