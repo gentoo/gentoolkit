@@ -1,3 +1,9 @@
+20 Feb 2004 Aron Griffis <agriffis@gentoo.org>
+	* Only update copyrights on modified ebuilds, otherwise if you run
+	  echangelog again, it reports that all the ebuilds have been updated!
+	  The copyright year issue would be better solved on Jan 1 of each year by
+	  a separate script.
+
 17 Feb 2004 Aron Griffis <agriffis@gentoo.org>
 	* Update copyrights on all ebuilds, not just the modified ones
 
