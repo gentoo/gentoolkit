@@ -454,9 +454,9 @@ for p in ${ipak} ${upak} -;do
 			if [ ${verb} -gt 0 ]; then
 				cat
 			else
-				sed -e "s:\(^obj \)\([^ ]*\)\(.*$\):\1${BR}\2${NO}:;
-				        s:\(^sym \)\([^ ]*\)\( -> \)\([^ ]*\)\(.*$\):\1${CY}\2${NO}\3\4:;
-				        s:\(^dir \)\([^ ]*\)\(.*$\):\1${YL}\2${NO}:"
+				sed -e "s:\(^obj \)\(.*\)\( .*\)\{2\}$:\1${BR}\2${NO}:;
+				        s:\(^sym \)\(.*\)\( -> \)\(.*\)\( .*\)\{2\}$:\1${CY}\2${NO}\3\4:;
+				        s:\(^dir \)\(.*\)$:\1${YL}\2${NO}:"
 			fi
 		fi
 
@@ -489,40 +489,49 @@ for p in ${ipak} ${upak} -;do
 			unset mtime
 			unset _mtime
 			unset err
-
-			name=${line[1]}
+			unset len
+			
+			len="${#line[*]}"
+			if [ "${line[0]}" = "obj" ]; then
+				name=
+				for i in `seq 1 $((${len}-3))`; do
+					[ "${name}" ] && name="${name} ${line[${i}]}" || name="${line[${i}]}"
+				done
+			else
+				name="${line[1]}"
+			fi
 			
 			missing=
-			[ ! -e ${name} ] && missing=1
+			[ ! -e "${name}" ] && missing=1
 			
 			# colorize name and compute mtime/md5
-			if [ "obj" = ${line[0]} ]; then
-				[ -e ${name} ] && {
-					[ "${tcheck}" ] && mtime=${line[3]}
-					[ "${tcheck}" ] && _mtime=`date -r ${name} +%s`
+			if [ "obj" = "${line[0]}" ]; then
+				[ -e "${name}" ] && {
+					[ "${tcheck}" ] && mtime="${line[$((${len}-1))]}"
+					[ "${tcheck}" ] && _mtime=`date -r "${name}" +%s`
 
-					[ "${mcheck}" ] && md5=${line[2]}
-					[ "${mcheck}" ] && _md5=`md5sum ${name}|cut -f1 -d" "`
+					[ "${mcheck}" ] && md5=${line[$((${len}-2))]}
+					[ "${mcheck}" ] && _md5=`md5sum "${name}"|cut -f1 -d" "`
 				}
 
-				name=${BR}${name}${NO}
+				name="${BR}${name}${NO}"
 
-			elif [ "sym" = ${line[0]} ]; then
-				name=${CY}${name}${NO}
+			elif [ "sym" = "${line[0]}" ]; then
+				name="${CY}${name}${NO}"
 
-			elif [ "dir" = ${line[0]} ]; then
-				name=${YL}${name}${NO}
+			elif [ "dir" = "${line[0]}" ]; then
+				name="${YL}${name}${NO}"
 			fi
 			
 			# compare
-			if [ "$missing" ]; then
+			if [ "${missing}" ]; then
 				err=1
 				name="${name} ${RD}!not exist!${NO}"
 			fi
 			if [ "${md5}" != "${_md5}" ]; then
 				#If the md5 fails the first time check it with
 				#everything changed to lowercase :-D
-				md5=`echo "${md5}"|tr A-Z a-z`
+				md5="$(echo ${md5}|tr A-Z a-z)"
 				if [ "${md5}" != "${_md5}" ]; then
 					err=1
 					name="${name} ${RD}!md5!${NO}"
@@ -533,15 +542,15 @@ for p in ${ipak} ${upak} -;do
 				name="${name} ${RD}!mtime!${NO}"
 			fi
 
-			[ ${verb} -gt 1 ] && echo -e ${name}
-			[[ ${verb} -eq 1 ]] && [[ $err -eq 1 ]] && echo -e ${name}
+			[ "${verb}" -gt 1 ] && echo -e "${name}"
+			[[ "${verb}" -eq 1 ]] && [[ "${err}" -eq 1 ]] && echo -e "${name}"
 
 			fe=$((fe + err))
 		done
-		if [ "$fe" = "0" ]; then
-			echo -e ${YL}$fe${CY}/$fs${NO}
+		if [ "${fe}" = "0" ]; then
+			echo -e "${YL}${fe}${CY}/${fs}${NO}"
 		else
-			echo -e ${RD}$fe${CY}/$fs${NO}
+			echo -e "${RD}${fe}${CY}/${fs}${NO}"
 		fi
 		echo
 		)
