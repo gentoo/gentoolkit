@@ -2,7 +2,8 @@
 	* Fixed portage import, fixes #45079.
 	* Added all sources sync patch from Adam Ashley
         <adam_ashley@softhome.net>, fixes #45079.
-
+	* Fixed config dir scanning, suggested by burrelln@colorado.edu,
+	fixes #47390.
 
 2004-02-08 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Initial import

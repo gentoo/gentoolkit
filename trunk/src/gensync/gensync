@@ -119,7 +119,8 @@ class SyncSourceManager:
 		self._load_source_info()
 	def _load_source_info(self):
 		for x in os.listdir(Config.confdir):
-			if x.rfind(".syncsource") > 0:
+			if x.rfind(".syncsource") > 0 and \
+				x.endswith(".syncsource"):
 				ss = SyncSource(Config.confdir + "/" + x)
 				self.sources.append(ss)
 	def list_sources(self):
