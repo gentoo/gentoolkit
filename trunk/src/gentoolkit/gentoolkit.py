@@ -25,8 +25,6 @@ import re
 import string
 import types
 
-from output import *
-
 settings = portage.config(clone=portage.settings)
 porttree = portage.db[portage.root]["porttree"]
 vartree  = portage.db[portage.root]["vartree"]
@@ -167,7 +165,7 @@ class Package:
 		v1=self._scpv
 		v2=portage.catpkgsplit(other.get_cpv())
 		if v1[0] != v2[0] or v1[1] != v2[1]:
-			return None
+			return 0
 		return portage.pkgcmp(v1[1:],v2[1:])
 	def size(self):
 		"""Estimates the installed size of the contents of this package, if possible.
@@ -192,26 +190,7 @@ class Package:
 			pnv=self.get_name()+"-"+self.get_version()
 			self._db=portage.dblink(cat,pnv,"/",settings)
 
-#
-# Output 
-#
 
-def print_error(s):
-	sys.stderr.write(red("!!! ") + s + "\n")
-
-def print_info(lv, s, line_break = True):
-	if Config["verbosityLevel"] >= lv:
-		sys.stdout.write(s)
-		if line_break:
-			sys.stdout.write("\n")
-
-def print_warn(s):
-	sys.stderr.write("!!! " + s + "\n")
-	
-def die(err, s):
-	error(s)
-	sys.exit(-err)
-	
 #
 # Global helper functions
 #
