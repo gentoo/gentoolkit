@@ -5,6 +5,8 @@
 
 import os,string,sys
 sys.path.insert(0, "/usr/lib/gentoolkit/pym")
+sys.path.insert(0, "/usr/lib/portage/pym")
+from output import *
 from getopt import getopt,GetoptError
 
 __program__ = "glsa-check"
@@ -18,6 +20,7 @@ optionmap = [
 ["-p", "--pretend", "show the necessary commands to apply this GLSA"],
 ["-f", "--fix", "try to auto-apply this GLSA (experimental)"],
 ["-i", "--inject", "inject the given GLSA into the checkfile"],
+["-n", "--nocolor", "disable colors"],
 ["-h", "--help", "show this help message"],
 ["-v", "--version", "some information about this tool"]
 ]
@@ -34,10 +37,15 @@ sys.stderr.write("before using this tool AND before reporting a bug.\n\n")
 args = []
 params = []
 try:
-	args, params = getopt(sys.argv[1:], "dplfchivt", \
-		["dump", "print", "list", "pretend", "fix", "inject", "help", "info", "version", "test"])
+	args, params = getopt(sys.argv[1:], "dplfchinvt", \
+		["dump", "print", "list", "pretend", "fix", "inject", "help", "info", "version", "test", "nocolor"])
 	args = [a for a,b in args]
 	
+	for option in ["--nocolor", "-n"]:
+		if option in args:
+			nocolor()
+			args.remove(option)
+
 	# sanity checking
 	if len(args) <= 0:
 		print "no option given: what should I do ?"
@@ -51,8 +59,8 @@ try:
 		for m in optionmap:
 			if args in [o for o in m[:-1]]:
 				mode = m[1][2:]
-except GetoptError:
-	print "unknown option given"
+except GetoptError, e:
+	print "unknown option given:", e
 	mode = "help"
 
 # we need a set of glsa for most operation modes
@@ -123,9 +131,9 @@ glsalist.extend([g for g in params if g not in glsalist])
 
 # list short information for given or new GLSA
 if mode == "list":
-	print "[A] means this GLSA was already applied,"
-	print "[U] means the system is not affected and"
-	print "[N] indicates that the system might be affected."
+	print white("[A]")+" means this GLSA was already applied,"
+	print green("[U]")+" means the system is not affected and"
+	print red("[N]")+" indicates that the system might be affected."
 	print
 	for myid in glsalist:
 		try:
@@ -135,11 +143,14 @@ if mode == "list":
 			continue
 		if myglsa.isApplied():
 			status = "[A]"
+			color = white
 		elif myglsa.isVulnerable():
 			status = "[N]"
+			color = red
 		else:
 			status = "[U]"
-		print myglsa.nr, status, myglsa.title, "(", 
+			color = green
+		print color(myglsa.nr), color(status), myglsa.title, "(", 
 		for pkg in myglsa.packages.keys()[:3]:
 			print pkg,
 		if len(myglsa.packages) > 3:
