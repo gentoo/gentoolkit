@@ -1,0 +1,8 @@
+  25 Feb 2003; Brandon Low <lostlogic@gentoo.org> dep-clean, dep-clean.1:
+  * Update to work with current everything
+  * Add -q and change the default behaviour and the verbose behavior
+  * Make a lot faster by rewriting most everything
+  * Make script much more readable
+  * Make pay attention to PORTDIR_OVERLAY
+  * Bring back from the dead as it give more info
+    than the depclean action in portage.

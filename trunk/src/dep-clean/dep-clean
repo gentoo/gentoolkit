@@ -1,16 +1,21 @@
 #!/bin/bash
 #Shows unrequired packages and missing dependencies.
+#Author/Maintainer: Brandon Low <lostlogic@gentoo.org>
 #Author: Jerry Haltom <ssrit@larvalstage.net>
 
 PROG=`basename ${0}`
 
 tmp="/tmp/$$"
+
+#Get PORTDIR_OVERLAY from portage
+PORTDIR_OVERLAY="$(/usr/lib/portage/bin/portageq portdir_overlay)"
+
 rm -rf ${tmp} > /dev/null 2>&1
 mkdir ${tmp} > /dev/null 2>&1
 
 declare -i i
 
-set -- `getopt -n ${PROG} -o N,R,U,I,v,C,h -l needed,removed,unneeded,interactive,verbose,nocolor,help -- ${*/ --/};[ $? != 0 ] && echo "y"`
+set -- `getopt -n ${PROG} -o N,R,U,I,v,q,C,h -l needed,removed,unneeded,interactive,verbose,quiet,nocolor,help -- ${*/ --/};[ $? != 0 ] && echo "y"`
 
 while [ ${#} -gt 0 ]
 do
@@ -36,6 +41,10 @@ do
 
 		-v|--verbose)
 				verb=y
+				;;
+
+		-q|--quiet)
+				quiet=y
 				;;
 
 		-C|--nocolor)
@@ -76,21 +85,14 @@ if [ ! "${nocolor}" ]; then
 		RD="\x1b[31;01m"
 		YL="\x1b[33;01m"
 		BL="\x1b[34;01m"
-elif [ ! ${verb} ] && (
+elif [ ${quiet} ] && (
 	   ( [ ${needed} ] && [ ${unneeded} ] ) ||
 	   ( [ ${unneeded} ] && [ ${removed} ] ) ||
 	   ( [ ${removed} ] && [ ${needed} ] )
 	 ); then
-		NEED=" N"
+	NEED=" N"
 	UNNE=" U"
 	REMO=" R"
-fi
-
-if [ `whoami` != "root" ]
-then
-	echo -e "${RD}Only root can run ${PROG}${NO}"
-	rm -rf ${tmp}
-	exit 1
 fi
 
 if [ ${usage} ]; then
@@ -113,6 +115,7 @@ ${BR}OPTIONS:
   ${GR}-C, --nocolor${NO}		output without color, if necessary, package types are 
 			noted with ${GR}U, N${NO} and ${GR}R${NO} respectively
   ${GR}-v, --verbose${NO}		be more verbose
+  ${GR}-q, --quiet${NO}			be quiet (just output the packages, no extra info)
 
 ${BR}NOTES:
   ${GR}*${NO} If this script is run on a system that is not up-to-date or which hasn't 
@@ -127,66 +130,62 @@ fi
 X="\([^/]*\)"
 
 #Retrieve currently merged packages.
-[ ${verb} ] && \
-echo -e "${CY}Retrieving currently merged packages.${NO}"
+if [ ${verb} ];then
+	echo -e "${CY}Retrieving currently merged packages.${NO}"
+fi
 find /var/db/pkg -name '*.ebuild' | \
 	sed -e "s:/var/db/pkg/::" \
 		-e "s:${X}/${X}/${X}:\1/\2:" | \
 	sort | uniq >> ${tmp}/current
 
-[ ${verb} ] && \
-echo -e "${CY}"`cat ${tmp}/current | wc -l` "currently merged packages.${NO}"
-[ ${verb} ] && \
-echo -e
+if [ ${verb} ]; then
+	echo -e "${CY}"`cat ${tmp}/current | wc -l` "currently merged packages.${NO}"
+	echo -e
+fi
 
 #Retrieve system packages and add to image.
-[ ${verb} ] && \
-echo -e "${CY}Retrieving system packages.${NO}"
+if [ ${verb} ];then
+	echo -e "${CY}Retrieving system packages.${NO}"
+fi
 emerge system -eup | \
-	grep ebuild | \
-	sed -e "s:^.*] ::" \
-		-e "s: to /::" | \
+	sed -e "/ebuild/s:^.*] \([^ ]*\) *:\1:p;d" | \
 	sort | uniq \
 	> ${tmp}/system
-#		-e "s:-r[0-9]*::" \
-#		-e "s:-[0-9].*::" | \
 
-[ ${verb} ] && \
-echo -e "${CY}"`cat ${tmp}/system | wc -l 2> /dev/null` "packages contained in system.${NO}"
-[ ${verb} ] && \
-echo -e
+if [ ${verb} ]; then
+	echo -e "${CY}"`cat ${tmp}/system | wc -l 2> /dev/null` "packages contained in system.${NO}"
+	echo -e
+	echo -e "${CY}Preparing world file.${NO}"
+fi
 
 #Create local copy of world and ask user to verify it.
-[ ${verb} ] && \
-echo -e "${CY}Preparing world file.${NO}"
 cp /var/cache/edb/world ${tmp}/world
 
-[ ${interactive} ] && \
-${EDITOR} ${tmp}/world
-
-[ ${verb} ] && \
-echo -e "${CY}"`cat ${tmp}/world | wc -l` "packages contained in world.${NO}"
-[ ${verb} ] && \
-echo -e
+if [ ${interactive} ]; then
+	${EDITOR} ${tmp}/world
+fi
 
 #Retrieve world packages and dependencies and add to image.
-[ ${verb} ] && \
-echo -e "${CY}Listing world and total dependencies.${NO}"
+if [ ${verb} ]; then
+	echo -e
+	echo -e "${CY}Preparing list of installed world packages.${NO}"
+	echo -e
+fi
 
-qpkg -I -nc -vv | \
-	 grep ebuild | \
-	 fgrep "`cat ${tmp}/world`" | \
-	 cut -f5,6 -d"/" > ${tmp}/world.all
+cat ${tmp}/current | grep -f ${tmp}/world | sort > ${tmp}/world.inst
+find /usr/portage ${PORTDIR_OVERLAY} -iname '*.ebuild' | \
+	cut -f4,6 -d/ | sed -e 's:\.ebuild::' > ${tmp}/ebuilds
+grep -xf ${tmp}/world.inst ${tmp}/ebuilds >> ${tmp}/world.new
 
-cat ${tmp}/world.all | sed -e s:$:xxx: | \
-	fgrep "`find /usr/portage/ -iname '*.ebuild'|cut -f4,6 -d/ | \
-		sed -e s:\\.ebuild:xxx:`" | \
-		sed -e "s:^:\\\=:" -e "s:xxx::" > ${tmp}/world.new
+if [ ${verb} ]; then
+	echo -e "${CY}"`cat ${tmp}/ebuilds | wc -l`"\tebuilds available.${NO}"
+	echo -e "${CY}"`cat ${tmp}/world.new | wc -l`"\tpackages contained in final world file.${NO}"
+	echo -e
+	echo -e "${CY}List prepared, checking dependencies with emerge -eup${NO}"
+fi
 
-sort ${tmp}/world.new | uniq | \
-	xargs emerge -eup | tee ${tmp}/log | \
-	grep ebuild | \
-	sed -e "s:^.*] :: ; s: to /::" > ${tmp}/image.unsorted
+sort ${tmp}/world.new |sed -e 's:^:\\\=:' | uniq | xargs emerge -eup | \
+	tee ${tmp}/log | sed -e '/ebuild/s:^.*] \([^ ]*\) *$:\1:p;d' > ${tmp}/image.unsorted
 
 depends=`cat ${tmp}/image.unsorted|wc -l`
 
@@ -206,61 +205,61 @@ cat ${tmp}/system >> ${tmp}/image.unsorted
 #Cleanup image
 sort ${tmp}/image.unsorted | uniq > ${tmp}/image
 
-[ ${verb} ] && \
-echo -e "${CY}"`cat ${tmp}/image | wc -l` "packages contained in final image.${NO}"
+if [ ${verb} ];then
+	echo -e "${CY}"`cat ${tmp}/image | wc -l` "packages contained in final image.${NO}"
+	echo -e
+fi
 
 #Determine packages that exist in current but not in image.
 #These packages are safe to clean up.
 if [ ${unneeded} ]; then
-	[ ${verb} ] && \
-	echo -e
-	[ ${verb} ] && \
-	echo -e "${CY}These packages have no other packages depending on them.${NO}"
-	i=0
-	for pkg in `cat ${tmp}/current`; do
-		if [ "`cat ${tmp}/image | grep -x ${pkg} | wc -l`" -eq "0" ]; then
-			echo -e "${GR}${pkg}${CY}${UNNE}${NO}"
-			i=${i}+1
-		fi
+	if [ ! ${quiet} ]; then
+		echo -e "${CY}These packages have no other packages depending on them.${NO}"
+	fi
+
+	grep -vxf ${tmp}/image ${tmp}/current > ${tmp}/unneeded
+	for line in `cat ${tmp}/unneeded`;do
+		echo -e "${GR}${line}${CY}${UNNE}${NO}"
 	done
-	[ ${verb} ] && \
-	echo -e "${CY}Total of ${i} unneeded packages.${NO}"
+
+	if [ ! ${quiet} ];then
+		echo -e "${CY}Total of"`cat ${tmp}/unneeded|wc -l` "unneeded packages.${NO}"
+	fi
 fi
 
 #Determine packages that exist in image but not in current.
 #These packages should be added.
 if [ ${needed} ]; then
-	[ ${verb} ] && \
-	echo -e
-	[ ${verb} ] && \
-	echo -e "${CY}These packages are depended upon but are not present on the system.${NO}"
-	i=0
-	for pkg in `cat ${tmp}/image`; do
-		if [ "`cat ${tmp}/current | grep -x ${pkg} | wc -l`" -eq "0" ]; then
-			echo -e "${RD}${pkg}${CY}${NEED}${NO}"
-			i=${i}+1
-		fi
+	if [ ! ${quiet} ];then
+		echo -e
+		echo -e "${CY}These packages are depended upon but are not present on the system.${NO}"
+	fi
+
+	grep -vxf ${tmp}/current ${tmp}/image > ${tmp}/needed
+	for line in `cat ${tmp}/needed`;do
+		echo -e "${RD}${line}${CY}${NEED}${NO}"
 	done
-	[ ${verb} ] && \
-	echo -e "${CY}Total of ${i} needed packages.${NO}"
+
+	if [ ! ${quiet} ];then
+		echo -e "${CY}Total of"`cat ${tmp}/needed|wc -l` "needed packages.${NO}"
+	fi
 fi
 
 #Determine packages that are installed but not currently in portage
 if [ ${removed} ]; then
-	[ ${verb} ] && \
-	echo -e
-	[ ${verb} ] && \
-	echo -e "${CY}These packages are installed but not in the portage tree.${NO}"
-	cat ${tmp}/current | sed -e s:$:xxx: | \
-		fgrep -v "`find /usr/portage/ -iname '*.ebuild'|cut -f4,6 -d/ | \
-			sed -e s:\\\.ebuild:xxx:`" | \
-		sed -e "s:xxx:${CY}${REMO}${YL}:" > ${tmp}/world
-	echo -ne "${YL}"
-	cat ${tmp}/world
-	echo -ne "${NO}"
-	[ ${verb} ] && \
-	echo -e "${CY}Total of" `cat ${tmp}/world|wc -l` "removed packages.${NO}"
+	if [ ! ${quiet} ];then
+		echo -e
+		echo -e "${CY}These packages are installed but not in the portage tree.${NO}"
+	fi
+	grep -xf ${tmp}/current ${tmp}/ebuilds > ${tmp}/hascurrent
+	grep -vxf ${tmp}/hascurrent ${tmp}/current > ${tmp}/removed
+	for line in `cat ${tmp}/removed`;do
+		echo -e "${YL}${line}${CY}${REMO}${NO}"
+	done
+
+	if [ ! ${quiet} ];then
+		echo -e "${CY}Total of"`cat ${tmp}/removed|wc -l` "removed packages.${NO}"
+	fi
 fi
 
 rm -rf ${tmp} > /dev/null 2>&1
-
