@@ -1,10 +1,13 @@
+2005-03-12 Aron Griffis <agriffis@gentoo.org>
+	* Added eviewcvs to -dev, utility for generating viewcvs URLs
+
 2005-03-01 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Dropped epkgmove from the -dev
 	* Released gentoolkit-dev-0.2.3
 
 2005-03-01 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Released gentookit-dev-0.2.2
-	
+
 2004-12-09 Marius Mauch <genone@gentoo.org>
 	* glsa.py: Another stupid bug, this time revisionMatch() broke as ~foobar-rN isn't valid anymore
 
@@ -15,7 +18,7 @@
 	* glsa.py: changed the outfile parameter in Glsa.dump() to outstream so we don't
 	           have to open/close a file which breaks pipes
 	* glsa.py: checks now for python versions below 2.3 and throws an exception
-	
+
 2004-11-29 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* branched v0-3-0: major rework in equery is in progess. the main
 	branch is reserved for minor and incremental fixups.
@@ -43,7 +46,7 @@
 	* equery: added errors module that will hold various types of internal errors raised.
 	* equery: added try block around on md5sum check, which fails on various conditions like
 				insufficient permission or stale temporary checksum files.
-	
+
 2004-10-17 Marius Mauch <genone@gentoo.org>
 	* equery: fix for bug #67473 (checking md5sums of prelinked binaries)
 	* equery: fix for bug #67275 (--nocolor didn't work as configure was 
@@ -136,7 +139,7 @@
 
 2004-04-14 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Released gentoolkit-dev-0.2.0_pre3
-	
+
 2004-03-31 Marius Mauch <genone@gentoo.org>
 	* glsa-check updates, fixing #45528 and #45522, adding support for
 		rXX operators and passing filenames as arguments to Glsa()
@@ -153,7 +156,7 @@
 	* Added ebump
 	* Added gensync
 	* Added epkgmove, closes #36663.
-	
+
 2004-02-06 Marius Mauch <genone@gentoo.org>
 	* fixed bugs #40159, #39798, #39652, #39596, #39293
 	* changed etcat and equery behavior for ambigous package names,
@@ -195,7 +198,7 @@
 2003-12-11 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* equery: Added list command
 	* equery: Added uses command
-        
+
 2003-12-08 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Removed emerge-rsync, emerge-webrsync
 	* Added moo
@@ -205,10 +208,10 @@
 2003-10-05 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* equery: Added files command
 	* equery: Added belongs command
-	
+
 2003-10-04 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Rewrote dep-clean to python
-		
+
 2003-06-31 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Rewrote more of etcat; many of the functions now employ
 		gentoolkit.
@@ -216,7 +219,7 @@
 
 2003-06-27 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added patch to echangelog to consider PORTDIR, fixes #23881.
-	
+
 2003-06-26 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added echangelog, by agenkin
 	* Added ekeyword, by agenkin

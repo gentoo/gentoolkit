@@ -22,7 +22,7 @@ dist:
 
 dist-gentoolkit-dev:
 	mkdir -p release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)
-	for x in ekeyword echangelog ego ebump gensync epkgmove ; do \
+	for x in ekeyword echangelog ego ebump gensync epkgmove eviewcvs ; do \
 		( cd src/$$x ; make distdir=release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG) dist ) \
 	done
 	cp Makefile AUTHORS README README.Developer TODO COPYING NEWS ChangeLog release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/
@@ -73,6 +73,6 @@ install-gentoolkit-dev:
 
 	install -m 0644 AUTHORS ChangeLog COPYING NEWS README README.Developer TODO $(docdir)/
 
-	for x in ekeyword echangelog ego ebump gensync epkgmove ; do \
+	for x in ekeyword echangelog ego ebump gensync epkgmove eviewcvs ; do \
 		( cd src/$$x ; make DESTDIR=$(DESTDIR) install ) \
 	done
