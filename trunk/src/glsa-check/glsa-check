@@ -20,9 +20,10 @@ optionmap = [
 ["-p", "--pretend", "show the necessary commands to apply this GLSA"],
 ["-f", "--fix", "try to auto-apply this GLSA (experimental)"],
 ["-i", "--inject", "inject the given GLSA into the checkfile"],
-["-n", "--nocolor", "disable colors"],
+["-n", "--nocolor", "disable colors (option)"],
 ["-h", "--help", "show this help message"],
-["-v", "--version", "some information about this tool"]
+["-V", "--version", "some information about this tool"],
+["-v", "--verbose", "print more messages (option)"],
 ]
 
 # print a warning as this is beta code
@@ -45,13 +46,19 @@ try:
 		if option in args:
 			nocolor()
 			args.remove(option)
+			
+	verbose = False
+	for option in ["--verbose", "-v"]:
+		if option in args:
+			verbose = True
+			args.remove(option)
 
 	# sanity checking
 	if len(args) <= 0:
 		print "no option given: what should I do ?"
 		mode="help"
 	elif len(args) > 1:
-		print "please use only one option per call"
+		print "please use only one command per call"
 		mode = "help"
 	else:
 		# in what mode are we ?
@@ -59,6 +66,7 @@ try:
 		for m in optionmap:
 			if args in [o for o in m[:-1]]:
 				mode = m[1][2:]
+
 except GetoptError, e:
 	print "unknown option given:", e
 	mode = "help"
@@ -139,7 +147,8 @@ if mode == "list":
 		try:
 			myglsa = Glsa(myid, glsaconfig)
 		except GlsaTypeException, e:
-			#print "invalid GLSA: %s (error message was: %s)" % (myid, e)
+			if verbose:
+				print "invalid GLSA: %s (error message was: %s)" % (myid, e)
 			continue
 		if myglsa.isApplied():
 			status = "[A]"
@@ -164,7 +173,8 @@ if mode in ["dump", "fix", "inject", "pretend"]:
 		try:
 			myglsa = Glsa(myid, glsaconfig)
 		except GlsaTypeException, e:
-			#print "invalid GLSA: %s (error message was: %s)" % (myid, e)
+			if verbose:
+				print "invalid GLSA: %s (error message was: %s)" % (myid, e)
 			continue
 		if mode == "dump":
 			myglsa.dump()
@@ -210,7 +220,8 @@ if mode == "test":
 		try:
 			myglsa = Glsa(myid, glsaconfig)
 		except GlsaTypeException, e:
-			#print "invalid GLSA: %s (error message was: %s)" % (myid, e)
+			if verbose:
+				print "invalid GLSA: %s (error message was: %s)" % (myid, e)
 			continue
 		if myglsa.isVulnerable():
 			outputlist.append(myglsa.nr)

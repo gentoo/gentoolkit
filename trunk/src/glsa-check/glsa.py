@@ -24,6 +24,7 @@ import portage
 opMapping = {"le": "<=", "lt": "<", "eq": "=", "gt": ">", "ge": ">=", 
 			 "rge": ">=~", "rle": "<=~", "rgt": " >~", "rlt": " <~"}
 NEWLINE_ESCAPE = "!;\\n"	# some random string to mark newlines that should be preserved
+SPACE_ESCAPE = "!;_"		# some random string to mark spaces that should be preserved
 
 def center(text, width):
 	"""
@@ -68,12 +69,17 @@ def wrap(text, width, caption=""):
 	"""
 	rValue = ""
 	line = caption
+	text = text.replace(2*NEWLINE_ESCAPE, NEWLINE_ESCAPE+" "+NEWLINE_ESCAPE)
 	words = text.split()
 	indentLevel = len(caption)+1
+	
 	for w in words:
-		if len(line)+len(w)+1 > width:
+		if line[-1] == "\n":
+			rValue += line
+			line = " "*indentLevel
+		if len(line)+len(w.replace(NEWLINE_ESCAPE, ""))+1 > width:
 			rValue += line+"\n"
-			line = " "*indentLevel+w
+			line = " "*indentLevel+w.replace(NEWLINE_ESCAPE, "\n")
 		elif w.find(NEWLINE_ESCAPE) >= 0:
 			if len(line.strip()) > 0:
 				rValue += line+" "+w.replace(NEWLINE_ESCAPE, "\n")
@@ -87,6 +93,7 @@ def wrap(text, width, caption=""):
 				line += w
 	if len(line) > 0:
 		rValue += line.replace(NEWLINE_ESCAPE, "\n")
+	rValue = rValue.replace(SPACE_ESCAPE, " ")
 	return rValue
 
 def checkconfig(myconfig):
@@ -154,6 +161,8 @@ def getListElements(listnode):
 	if not listnode.nodeName in ["ul", "ol"]:
 		raise GlsaFormatException("Invalid function call: listnode is not <ul> or <ol>")
 	for li in listnode.childNodes:
+		if li.nodeType != xml.dom.Node.ELEMENT_NODE:
+			continue
 		rValue.append(getText(li, format="strip"))
 	return rValue
 
@@ -193,21 +202,23 @@ def getText(node, format):
 			if subnode.nodeName == "p":
 				for p_subnode in subnode.childNodes:
 					if p_subnode.nodeName == "#text":
-						rValue += p_subnode.data
+						rValue += p_subnode.data.strip()
 					elif p_subnode.nodeName in ["uri", "mail"]:
 						rValue += p_subnode.childNodes[0].data
 						rValue += " ( "+p_subnode.getAttribute("link")+" )"
 				rValue += NEWLINE_ESCAPE
 			elif subnode.nodeName == "ul":
 				for li in getListElements(subnode):
-					rValue += "- "+li+NEWLINE_ESCAPE+" "
+					rValue += "-"+SPACE_ESCAPE+li+NEWLINE_ESCAPE+" "
 			elif subnode.nodeName == "ol":
 				i = 0
 				for li in getListElements(subnode):
 					i = i+1
-					rValue += str(i)+". "+li+NEWLINE_ESCAPE+" "
+					rValue += str(i)+"."+SPACE_ESCAPE+li+NEWLINE_ESCAPE+" "
 			elif subnode.nodeName == "code":
 				rValue += getText(subnode, format="keep").replace("\n", NEWLINE_ESCAPE)
+				if rValue[-1*len(NEWLINE_ESCAPE):] != NEWLINE_ESCAPE:
+					rValue += NEWLINE_ESCAPE
 			elif subnode.nodeName == "#text":
 				rValue += subnode.data
 			else:
@@ -215,7 +226,7 @@ def getText(node, format):
 	if format == "strip":
 		rValue = rValue.strip(" \n\t")
 		rValue = re.sub("[\s]{2,}", " ", rValue)
-	return rValue
+	return str(rValue)
 
 def getMultiTagsText(rootnode, tagname, format):
 	"""
@@ -249,9 +260,10 @@ def makeAtom(pkgname, versionNode):
 	@rtype:		String
 	@return:	the portage atom
 	"""
-	return opMapping[versionNode.getAttribute("range")] \
-			+pkgname \
-			+"-"+getText(versionNode, format="strip")
+	rValue = opMapping[versionNode.getAttribute("range")] \
+				+ pkgname \
+				+ "-" + getText(versionNode, format="strip")
+	return str(rValue)
 
 def makeVersion(versionNode):
 	"""
@@ -266,6 +278,24 @@ def makeVersion(versionNode):
 	"""
 	return opMapping[versionNode.getAttribute("range")] \
 			+getText(versionNode, format="strip")
+
+def match(atom, portdbname):
+	"""
+	wrapper that calls revisionMatch() or portage.dbapi.match() depending on 
+	the given atom.
+	
+	@type	atom: string
+	@param	atom: a <~ or >~ atom or a normal portage atom that contains the atom to match against
+	@type	portdb: portage.dbapi
+	@param	portdb:	one of the portage databases to use as information source
+	
+	@rtype:		list of strings
+	@return:	a list with the matching versions
+	"""
+	if atom[2] == "~":
+		return revisionMatch(atom, portage.db["/"][portdbname].dbapi)
+	else:
+		return portage.db["/"][portdbname].dbapi.match(atom)
 
 def revisionMatch(revisionAtom, portdb):
 	"""
@@ -310,35 +340,34 @@ def getMinUpgrade(vulnerableList, unaffectedList):
 				the installed version.
 	"""
 	rValue = None
+	v_installed = []
+	u_installed = []
 	for v in vulnerableList:
-		if v[2] == "~":
-			installed = revisionMatch(v, portage.db["/"]["vartree"].dbapi)
+		v_installed += match(v, "vartree")
+
+	for u in unaffectedList:
+		u_installed += match(u, "vartree")
+	
+	install_unaffected = True
+	for i in v_installed:
+		if i not in u_installed:
+			install_unaffected = False
+
+	if install_unaffected:
+		return []
+	
+	for u in unaffectedList:
+		if u[2] == "~":
+			mylist = revisionMatch(u, portage.db["/"]["porttree"].dbapi)
 		else:
-			installed = portage.db["/"]["vartree"].dbapi.match(v)
-		if not installed:
-			continue
-		for u in unaffectedList:
-			install_unaffected = True
-			for i in installed:
-				if u[2] == "~":
-					myinstalledlist = revisionMatch(u, portage.db["/"]["vartree"].dbapi)
-				else:
-					myinstalledlist = portage.db["/"]["vartree"].dbapi.match(u)
-				if not i in myinstalledlist:
-					install_unaffected = False
-			if install_unaffected:
-				break
-			if u[2] == "~":
-				mylist = revisionMatch(u, portage.db["/"]["porttree"].dbapi)
-			else:
-				mylist = portage.db["/"]["porttree"].dbapi.match(u)
-			for c in mylist:
-				c_pv = portage.catpkgsplit(c)
-				i_pv = portage.catpkgsplit(portage.best(installed))
-				if portage.pkgcmp(c_pv[1:], i_pv[1:]) > 0 and (rValue == None or portage.pkgcmp(c_pv[1:], rValue) < 0):
-					rValue = c_pv[0]+"/"+c_pv[1]+"-"+c_pv[2]
-					if c_pv[3] != "r0":		# we don't like -r0 for display
-						rValue += "-"+c_pv[3]
+			mylist = portage.db["/"]["porttree"].dbapi.xmatch("match-all", u)
+		for c in mylist:
+			c_pv = portage.catpkgsplit(c)
+			i_pv = portage.catpkgsplit(portage.best(v_installed))
+			if portage.pkgcmp(c_pv[1:], i_pv[1:]) > 0 and (rValue == None or portage.pkgcmp(c_pv[1:], rValue) < 0):
+				rValue = c_pv[0]+"/"+c_pv[1]+"-"+c_pv[2]
+				if c_pv[3] != "r0":		# we don't like -r0 for display
+					rValue += "-"+c_pv[3]
 	return rValue
 
 # simple Exception classes to catch specific errors
@@ -479,7 +508,7 @@ class Glsa:
 		"""
 		myfile = codecs.open(outfile, "w", encoding)
 		width = int(self.config["PRINTWIDTH"])
-		myfile.write(center("GLSA %s: %s" % (self.nr, self.title), width)+"\n")
+		myfile.write(center("GLSA %s: \n%s" % (self.nr, self.title), width)+"\n")
 		myfile.write((width*"=")+"\n")
 		myfile.write(wrap(self.synopsis, width, caption="Synopsis:         ")+"\n")
 		myfile.write("Announced on:      %s\n" % self.announced)
@@ -514,9 +543,10 @@ class Glsa:
 		myfile.write("\n"+wrap(self.impact_text, width, caption="Impact:           "))
 		myfile.write("\n"+wrap(self.workaround, width, caption="Workaround:       "))
 		myfile.write("\n"+wrap(self.resolution, width, caption="Resolution:       "))
-		myfile.write("\nReferences:        ")
+		myreferences = ""
 		for r in self.references:
-			myfile.write(r+"\n"+19*" ")
+			myreferences += (r.replace(" ", SPACE_ESCAPE)+NEWLINE_ESCAPE+" ")
+		myfile.write("\n"+wrap(myreferences, width, caption="References:       "))
 		myfile.write("\n")
 		myfile.close()
 	
@@ -535,11 +565,10 @@ class Glsa:
 			pkg = self.packages[k]
 			for path in pkg:
 				if path["arch"] == "*" or self.config["ARCH"] in path["arch"].split():
-					vList += path["vul_atoms"]
-		for v in vList:
-			rValue = rValue \
-					or (len(portage.db["/"]["vartree"].dbapi.match(v)) > 0 \
-						and getMinUpgrade(vList, path["unaff_atoms"]))
+					for v in path["vul_atoms"]:
+						rValue = rValue \
+							or (len(match(v, "vartree")) > 0 \
+								and getMinUpgrade(path["vul_atoms"], path["unaff_atoms"]))
 		return rValue
 	
 	def isApplied(self):
