@@ -68,8 +68,8 @@ for my $f (@ARGV) {
 	    # add or modify keywords
 	    else {
 		if ($arch eq 'all') {
-		    # modify every keyword in the list
-		    $quoted =~ s/(^|\s)[-~]?(?=\w)/$1$leader/g;
+		    # modify all non-masked keywords in the list
+		    $quoted =~ s/(^|\s)~?(?=\w)/$1$leader/g;
 		} else {
 		    # modify or add keyword
 		    unless ($quoted =~ s/[-~]?\Q$arch\E(\s|$)/$leader$arch$1/) {
