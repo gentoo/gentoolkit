@@ -48,7 +48,7 @@ print_usage() {
 #
 load_options() {
 
-    # FIXME: Sourcing config files like this is really a bad idea; users may 
+    # FIXME: Sourcing config files like this is really a bad idea; users may
     # easily override any function in this program inside his config files.
 
     if [ -f /etc/gentoolkit/ebump.conf ] ; then
@@ -81,7 +81,7 @@ find_ebuild() {
 # splitname (version|name|revision) package-name-version-revision
 #
 splitname() {
-    case $1 in 
+    case $1 in
 	version)
 	    echo ${2} | sed -r "s/.*-([0-9].*)/\1/"
 	    ;;
@@ -141,7 +141,7 @@ process_ebuild() {
 	die "Could not find ${ebuild_arg}"
     fi
     einfo "Processing ebuild ${ebuild_name}"
-    
+
     #
     # Bump revision suffix (or add one)
     #
@@ -170,14 +170,14 @@ process_ebuild() {
 
         # Gather list of auxiliary files in files/ that has a versioned
 	# filename, where the version matches our current version.
-    
+
 	bumplist=""
 	for x in $(echo files/*) ; do
 	    if [ ! -z $(echo $x | grep "${PV}$") ] ; then
 		bumplist="${bumplist} ${x}"
 	    fi
 	done
-	
+
         # Bump version of all matches
 
 	for x in ${bumplist} ; do
@@ -221,6 +221,7 @@ process_ebuild() {
 #    echo "addfiles ${addfiles}"
 #    echo "delfiles ${delfiles}"
 
+	filelist="${addfiles}"
     #
     # (Optional) Add ChangeLog entry
     #
@@ -238,17 +239,20 @@ process_ebuild() {
 
 	    # Write new entry
 
-	    echo "*${newPF} ${curdate}" 
+	    echo "*${newPF} (${curdate})"
 	    echo
 	    echo "  ${curdate}; ${AUTHORNAME} <${AUTHOREMAIL}> ${filelist}"
 
 	    # If we don't have a commit message, add comment
-	    if [ -z "${opt_commitmessage}" ] ; then 
+	    if [ -z "${opt_commitmessage}" ] ; then
 		echo "  # INSERT ENTRY HERE"
-		echo 
+		if [ "${opt_delete_old}" == "y" ] && [ ! -z "${delfiles}" ] ; then
+			echo "  Removed ${delfiles}."
+		fi
+		echo
 	    else
 		echo "  ${opt_commitmessage}"
-		echo 
+		echo
 	    fi
 
 	    # Write tail of old ChangeLog
@@ -260,7 +264,7 @@ process_ebuild() {
 	einfo "Added ChangeLog entry"
     fi
 
-    # 
+    #
     # (Optional) Add CVS entry for all new files
     #
 
@@ -269,12 +273,12 @@ process_ebuild() {
 	# Add all new files to CVS
 	for x in ${addfiles} ; do
 	    if [ -d ${x} ] ; then
-		find ${x} | xargs echo cvs add 
+		find ${x} | xargs echo cvs add
 	    else
 		cvs add ${x}
 	    fi
 	done
-	einfo "Added ${addfiles} to CVS"    
+	einfo "Added ${addfiles} to CVS"
     fi
 
 
@@ -314,7 +318,7 @@ while [ ${#} -gt 0 ] ; do
     if [ ${skip} -gt 0 ] ; then
 	skip=$[skip-1]
     else
-	case ${arg} in 
+	case ${arg} in
 	    -h|--help)
 		print_usage
 		exit 0

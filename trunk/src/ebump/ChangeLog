@@ -1,3 +1,6 @@
+2004-06-21 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Fixed handling of deletion.
+
 2004-03-11 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Fixed incorrect cut'ing of wc -l output when updating ChangeLog
 	
