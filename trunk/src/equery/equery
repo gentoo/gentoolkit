@@ -610,8 +610,7 @@ class CmdCheckIntegrity(Command):
 					elif type == "sym":
 						# FIXME: nastry strippery; portage should have this fixed!
 						t = files[file][2]
-						i = t.find("(")
-						target = t[0:i].strip()
+						target = os.path.normpath(t.strip())
 						if not os.path.islink(file):
 							raise CheckException(file + " exists, but is not a symlink")
 						tgt = os.readlink(file)
@@ -944,7 +943,7 @@ if __name__ == "__main__":
 					print red("!!!"), "    "+p
 			else:
 				print red("!!!"), "Internal portage error, terminating"
-				if len(e[0])):
+				if len(e[0]):
 					print red("!!!"), e[0]
 			sys.exit(2)
 	else:
