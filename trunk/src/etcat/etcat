@@ -210,10 +210,8 @@ def pkgcmp(a,b):
 def search(search_key):
     
     matches = []    
-    cache = portage.db["/"]["vartree"]
     for package in portage.portdb.cp_all():
 	package_parts=package.split("/")
-	masked=0
 	if re.search(search_key.lower(), package_parts[1].lower()):
 	    matches.append(package)
     return matches
@@ -533,15 +531,16 @@ def uses(query):
     print "[             : (I) Col 2 - Installed With USE flags ]"
     
     for p in matches:
-	curver = portage.db["/"]["vartree"].dep_bestmatch(p)
-	
-	if curver:
+	curver = portage.db["/"]["porttree"].dbapi.match(p)
+	bestver = portage.best(curver)
+	if bestver:
 	    try:
-		iuse = portage.db["/"]["porttree"].dbapi.aux_get(curver,["IUSE"])
+		iuse = portage.db["/"]["porttree"].dbapi.aux_get(bestver,["IUSE"])
 	    except KeyError:
 		print "[ Error Occured. Ebuild not found for :", white(p), "]"
+		continue
 	else:
-	    print "[ No USE flags found for :", white(p), "]"
+	    print "[ * No USE flags found for :", white(p), "]"
 	    continue
 	
 	if iuse: usevar = iuse[0].split()
@@ -553,8 +552,10 @@ def uses(query):
 	if installed:
 	    try:
 		used = open(installed[-1] + "/USE").read().split()
-	    except:
+	    except IOError:
 		used = []
+	else:
+	    used = []
 
 	# store (inuse, inused, flag, desc)
 	output = []
@@ -578,7 +579,7 @@ def uses(query):
 	# pretty print
 	if output:
 	    print
-	    print white(" U I ") + "[ Found these USE variables in : " + white(p) + " ]"
+	    print white(" U I ") + "[ Found these USE variables in : " + white(bestver) + " ]"
 	    maxflag_len = 0
 	    for inuse, inused, u, desc in output:
 		if len(u) > maxflag_len:
