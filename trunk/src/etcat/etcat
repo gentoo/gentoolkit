@@ -242,10 +242,12 @@ def changes(query, matches):
 # `-------------------------------------------------------'		
 		
 def versions(query, matches):
+	# this function should also report masked packages
+	matches = gentoolkit.find_packages(query, masked=True)
 	if not report_matches(query,matches):
 		return
 
-		# sorting result list
+	# sorting result list
 	matches = gentoolkit.sort_package_list(matches)
 		
 	# FIXME: old version printed result of regex search on name,
@@ -651,7 +653,7 @@ def main():
 					print red("!!!"), "    "+p
 			else:
 				print red("!!!"), "Internal portage error, terminating"
-				if len(e[0])):
+				if len(e[0]):
 					print red("!!!"), e[0]
 			sys.exit(2)
 		function = globals()[action]
