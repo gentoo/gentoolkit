@@ -44,7 +44,7 @@ class Package:
 		if not self._scpv:
 			raise Exception("invalid cpv: %s" % cpv)
 		self._db = None
-		self._settings = None
+		self._settings = settings.setcpv(self._cpv)
 	def get_name(self):
 		"""Returns base name of package, no category nor version"""
 		return self._scpv[1]
