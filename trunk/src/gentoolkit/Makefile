@@ -4,6 +4,8 @@
 #
 # $Header$
 
+include ../../makedefs.mak
+
 all:
 	echo "LISTOWEL (n.) The small mat on the bar designed to be more absorbent than the bar, but not as absorbent as your elbows."
 

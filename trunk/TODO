@@ -25,5 +25,10 @@
 - write a Gentoolkit Guide
 - write efeatures for turning on/off FEATURES in make.conf
 - look at ekeys, ewatch
+- should be removed:
+ - etc-update
+ - epm
+ - useflag
+- add 'clean' target
 
 + check esearch, eupdatedb: separate package for now

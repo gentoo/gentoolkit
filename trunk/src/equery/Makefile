@@ -10,11 +10,11 @@ all:
 	echo "YADDLETHORPE (vb.) (Of offended pooves.) To exit huffily from a boutique."
 
 dist:
-	mkdir -p ../../$(distdir)/src/gentool/
-	cp {Makefile,AUTHORS,README,TODO,ChangeLog,gentool,gentool.1} ../../$(distdir)/src/gentool/
+	mkdir -p ../../$(distdir)/src/equery/
+	cp {Makefile,AUTHORS,README,TODO,ChangeLog,equery,equery.1} ../../$(distdir)/src/equery/
 
 install:
-	install -m 0755 gentool $(bindir)/
-	install -d $(docdir)/gentool
-	install -m 0644 {README,AUTHORS} $(docdir)/gentool/
-	install -m 0644 gentool.1 $(mandir)/
+	install -m 0755 equery $(bindir)/
+	install -d $(docdir)/equery
+	install -m 0644 {README,AUTHORS} $(docdir)/equery/
+	install -m 0644 equery.1 $(mandir)/
