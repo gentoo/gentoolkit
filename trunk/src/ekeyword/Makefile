@@ -11,7 +11,7 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/ekeyword
-	cp {AUTHORS,README,TODO,ChangeLog,ekeyword,ekeyword.1} ../../$(distdir)/src/ekeyword/
+	cp {Makefile,AUTHORS,README,TODO,ChangeLog,ekeyword,ekeyword.1} ../../$(distdir)/src/ekeyword/
 
 install:
 	install -m 0755 ekeyword $(bindir)/

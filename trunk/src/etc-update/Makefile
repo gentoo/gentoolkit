@@ -11,7 +11,7 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/etc-update
-	cp {AUTHORS,README,TODO,ChangeLog,etc-update,etc-update.1} ../../$(distdir)/src/etc-update/
+	cp {Makefile,AUTHORS,README,TODO,ChangeLog,etc-update,etc-update.1} ../../$(distdir)/src/etc-update/
 
 install:
 	install -m 0755 etc-update $(bindir)/

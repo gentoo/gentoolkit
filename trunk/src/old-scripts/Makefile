@@ -11,6 +11,7 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/old-scripts/
+	cp Makefile ../../$(distdir)/src/old-scripts/
 	cp dep-clean{,.1} ../../$(distdir)/src/old-scripts/
 	cp pkg-clean{,.1} ../../$(distdir)/src/old-scripts/
 	cp ewhich{,.1} ../../$(distdir)/src/old-scripts/
@@ -19,9 +20,9 @@ dist:
 
 install:
 	install -m 0755 dep-clean $(bindir)/
-	install -m 0755 pkg-clean $(bindir)/
+	install -m 0755 pkg-clean $(sbindir)/
 	install -m 0755 ewhich $(bindir)/
-	install -m 0755 mkebuild $(bindir)/
+	install -m 0755 mkebuild $(sbindir)/
 	install -m 0755 pkg-size $(bindir)/
 
 	install -m 0644 dep-clean.1 $(mandir)/

@@ -11,7 +11,7 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/echangelog/
-	cp {AUTHORS,README,TODO,ChangeLog,echangelog,echangelog.1} ../../$(distdir)/src/echangelog/
+	cp {Makefile,AUTHORS,README,TODO,ChangeLog,echangelog,echangelog.1} ../../$(distdir)/src/echangelog/
 
 install:
 	install -m 0755 echangelog $(bindir)/

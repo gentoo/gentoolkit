@@ -9,7 +9,7 @@ all:
 
 dist:
 	mkdir -p ../../${distdir}/src/gentoolkit
-	cp {AUTHORS,README,ChangeLog,TODO,gentoolkit.py} ../../${distdir}/src/gentoolkit/
+	cp {Makefile,AUTHORS,README,ChangeLog,TODO,gentoolkit.py} ../../${distdir}/src/gentoolkit/
 
 install:
 	install -d $(docdir)/gentoolkit

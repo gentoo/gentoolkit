@@ -11,7 +11,7 @@ all:
 
 dist:
 	mkdir -p ../../${distdir}/src/qpkg
-	cp {README,AUTHORS,ChangeLog,TODO,qpkg,qpkg.1} ../../${distdir}/src/qpkg/
+	cp {Makefile,README,AUTHORS,ChangeLog,TODO,qpkg,qpkg.1} ../../${distdir}/src/qpkg/
 
 install:
 	install -m 0755 qpkg $(bindir)/

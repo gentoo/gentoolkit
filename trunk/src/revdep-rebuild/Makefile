@@ -11,7 +11,7 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/revdep-rebuild
-	cp {AUTHORS,README,TODO,ChangeLog,revdep-rebuild,revdep-rebuild.1} ../../$(distdir)/src/revdep-rebuild/
+	cp {Makefile,AUTHORS,README,TODO,ChangeLog,revdep-rebuild,revdep-rebuild.1} ../../$(distdir)/src/revdep-rebuild/
 
 install:
 

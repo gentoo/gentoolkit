@@ -11,7 +11,7 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/gentool/
-	cp {AUTHORS,README,TODO,ChangeLog,gentool,gentool.1} ../../$(distdir)/src/gentool/
+	cp {Makefile,AUTHORS,README,TODO,ChangeLog,gentool,gentool.1} ../../$(distdir)/src/gentool/
 
 install:
 	install -m 0755 gentool $(bindir)/
