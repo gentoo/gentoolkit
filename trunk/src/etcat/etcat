@@ -473,7 +473,7 @@ def depends(query, matches):
 # | Finds what package a file belongs to				  |
 # `-------------------------------------------------------'			
 			
-def belongs(query):
+def belongs(query,matches):
 
 	q = query.split()
 
@@ -485,10 +485,10 @@ def belongs(query):
 		item=q[0]
 		cat="*"
 		fn=None
+	matches = gentoolkit.find_all_installed_packages(fn)
 
 	print "Searching for " + item + " in " + cat + " ..."
 
-	matches = gentoolkit.find_all_installed_packages(fn)
 	rx = re.compile(item)
 
 	for pkg in matches:
@@ -504,7 +504,7 @@ def belongs(query):
 # +-------------------------------------------------------+
 # | Finds the size of installed packages				  |
 # `-------------------------------------------------------'			
-def size(query):
+def size(query,packages):
 	packages = gentoolkit.find_packages(query)
 	if not report_matches(query, packages):
 		return
@@ -545,8 +545,7 @@ def report_matches(query, matches, installed_only=1):
 # +-------------------------------------------------------+
 # | Lists all the files in a package					  |
 # `-------------------------------------------------------'			
-def files(query):
-	matches = gentoolkit.find_packages(query)
+def files(query,matches):
 	if not report_matches(query, matches):
 		return
 	
