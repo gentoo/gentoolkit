@@ -814,6 +814,9 @@ def main():
 	    action = "versions"
 	    query = ' '.join(sys.argv[pointer:])
 	    break
+	elif arg in ["-nc"]:
+	    # i don't know if i want to publish this
+	    nocolor()
 	else:
 	    pointer += 1
 	
