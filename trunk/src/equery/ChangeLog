@@ -2,6 +2,10 @@
 	* Added short commands
 	* Fixed copyright dates
 	* Fixed belongs to search only installed packages
+	* Fixed reporting bug in uses command
+	* Fixed reference to cppv
+	* Added import of die
+	* Added searching header to uses
 
 2004-09-08 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added man page rewrites by Katerina Barone-Adesi <katerinab@gmail.com>,
