@@ -1,2 +1,6 @@
+- clean up colours for output!
+ - error, warning, info
+ - package, searchterm, useflag, number, ...
+ - structured output, to allow for XML, piping and tty?
 - list all global useflags
 - list all local useflags

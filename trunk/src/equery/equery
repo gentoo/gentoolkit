@@ -271,6 +271,7 @@ class CmdDisplayUSEs(Command):
     """Advanced report of a package's USE flags"""
     def __init__(self):
         self.default_opts = {
+            "installedOnly" : True
             }
     def parseArgs(self, args):
 
@@ -289,6 +290,8 @@ class CmdDisplayUSEs(Command):
             if x in ["-h","--help"]:
                 need_help = 1
                 break
+            elif x in ["-a", "--all"]:
+                opts["installedOnly"] = False
             else:
                 query = x
 
@@ -305,7 +308,8 @@ class CmdDisplayUSEs(Command):
         matches = gentoolkit.find_packages(query, True)
 
         if not matches:
-            print yellow("No matching packages found for \"%s\"" % query)
+            print red("!!! No matching packages found for \"") + white(query) + red("\"")
+            print
             return
 
         useflags = gentoolkit.settings["USE"].split()    
@@ -344,19 +348,15 @@ class CmdDisplayUSEs(Command):
             if Config["verbosityLevel"] >= 5:
                 print "Warning: Could not load USE flag descriptions from " + gentoolkit.settings["PORTDIR"] + "/profiles/use.desc"
 
-        if not Config["piping"]: 
+        if Config["verbosityLevel"] >= 2 and not Config["piping"]: 
             print "[ Colour Code : " + green("set") + " " + red("unset") + " ]"
             print "[ Legend    : Left column  (U) - USE flags from make.conf              ]"
             print "[           : Right column (I) - USE flags packages was installed with ]"
 
-        if filter(gentoolkit.Package.is_installed, matches):
-            only_installed = True
-        else:
-            only_installed = False
-
         # Iterate through matches, printing a report for each package
+        printed_matches = 0
         for p in matches:
-            if not p.is_installed() and only_installed:
+            if not p.is_installed() and opts["installedOnly"]:
                 continue
     
             bestver = p.get_cpv()
@@ -423,9 +423,18 @@ class CmdDisplayUSEs(Command):
                             print ":", desc
                         else:
                             print ": unknown"
+                printed_matches += 1
             else:
                 if not Config["piping"]:
                     print "[ No USE flags found for :", white(p.get_cpv()), "]"
+
+        if Config["verbosityLevel"] >= 2:
+            if printed_matches == 0:
+                s = ""
+                if opts["installedOnly"]:
+                    s = "installed "
+                print red("!!! No " + s + "packages found for \"") + white(query) + "\""
+                
                     
     def shortHelp(self):
         return yellow("<local-opts> ") + turquoise("pkgspec") + " - display USE flags for " + turquoise("pkgspec")
@@ -435,7 +444,8 @@ class CmdDisplayUSEs(Command):
                "Syntax:\n" + \
                "  " + green("uses") + yellow(" <local-opts> ") + turquoise("pkgspec") + \
                "\n" + \
-               yellow("<local-opts>") + " is either of: \n"
+               yellow("<local-opts>") + " is either of: \n" + \
+               "  " + yellow("-a, --all") + "     - include non-installed packages\n"
 
 
 class CmdDisplayDepGraph(Command):
