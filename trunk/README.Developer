@@ -5,6 +5,12 @@ The CVS module 'gentoolkit' contains all the scripts and stuff for both the
 gentoolkit and the gentoolkit-dev package. The gentoolkit-dev package is
 an optional add-on, that is only intented for the Gentoo developers.
 
+STYLE POLICY
+
+If you're touching any of the python scripts please don't change the indentation
+style (if it's using tabs, you should use tabs too). Especially don't mix
+spaces and tabs as that makes the code completely unreadable.
+
 MAKING A RELEASE
 
 Releases should only be made by members of the tools-portage team. See
