@@ -1,4 +1,4 @@
-#!/usr/bin/python -tO
+#!/usr/bin/python -O
 # Copyright 2004 Ian Leitch
 # Copyright 1999-2004 Gentoo Foundation
 # $Header$
@@ -22,7 +22,7 @@ from output import *
 __author__	=	"Ian Leitch"
 __email__ 	=	"port001@gentoo.org"
 __productname__ =	"epkgmove"
-__version__	=	"1.1 - \"p-p-puffin da 'erb\""
+__version__	=	"1.3.1 - \"Moving Fusion + Bandages + Plasters\""
 __description__ =	"A tool for moving and renaming packages in CVS"
 
 def print_usage():
@@ -189,7 +189,7 @@ def do_cmd(cmd):
 	        print "    %s %s" % (red("!"), line)
 	sys.exit(1)
        
-class Package:
+class CVSAbstraction:
 
     def __init__(self, portdir, oldcatpkg, newcatpkg, cvscmd, options):
     
@@ -287,7 +287,7 @@ class Package:
 		except KeyboardInterrupt:
 		    error("Interrupted by user.")
 		    sys.exit(1)
-		if choice.lower() != "yes":
+		if choice.strip().lower() != "yes":
 		    error("Bailing on forced removal.")
 		    sys.exit(1)
 	    else:
@@ -299,6 +299,7 @@ class Package:
     def _perform_move(self):
 
         self.__add_new_package()
+        self.__regen_manifest()
         self.__update_dependents(self.__get_reverse_deps())
 	self.__remove_old_package()
 	
@@ -340,33 +341,54 @@ class Package:
 	os.path.walk("/tmp/%s/%s" % (__productname__, self._old_package), rename_files , None)
 	do_cmd("mv /tmp/%s/%s /tmp/%s/%s" % (__productname__, self._old_package, __productname__, self._new_package))
 
+    def __regen_manifest(self, path=None, dep=False):
+
+        if dep:
+	    print "%s Regenerating Manifest..." % green("      *")
+        else:
+            print "%s Regenerating Manifest..." % green("   *")
+	if path:
+	    os.chdir(path)
+	else:
+            os.chdir(os.path.join(self._portdir, self._new_catpkg))
+        for ebuild in os.listdir("."):
+            if ebuild.endswith(".ebuild"):
+                do_cmd("/usr/lib/portage/bin/ebuild %s manifest" % ebuild)
+                break
+
+        self.__gpg_sign(dep)
+
     def __regen_digests(self):
 
-	print "%s Regenerating digests:" % green("   *")
-	os.chdir(os.path.join(self._portdir, self._new_catpkg))
+        print "%s Regenerating digests:" % green("   *")
+        os.chdir(os.path.join(self._portdir, self._new_catpkg))
 	for digest in os.listdir("files/"):
 	    if digest.startswith("digest-"):
 	        os.unlink("files/%s" % digest)
 	for ebuild in os.listdir("."):
 	    if ebuild.endswith(".ebuild"):
-	        print "      >>> %s" % ebuild	
+                print "      >>> %s" % ebuild	
 	        do_cmd("/usr/lib/portage/bin/ebuild %s digest" % ebuild)
 
         self.__gpg_sign()
 
-    def __gpg_sign(self):
+    def __gpg_sign(self, dep=False):
 
         gpg_cmd = ""
 
+        os.chdir(os.path.join(self._portdir, self._new_catpkg))
+
         if "sign" in portage.features:
-            print "%s GPG Signing Manifest..." % green("   *")
-	    os.chdir(os.path.join(self._portdir, self._new_catpkg))
+            if dep:
+                print "%s GPG Signing Manifest..." % green("      *")
+            else:
+                print "%s GPG Signing Manifest..." % green("   *")
 	    gpg_cmd = "gpg --quiet --sign --clearsign --yes --default-key %s" % portage.settings["PORTAGE_GPG_KEY"]
 	    if portage.settings.has_key("PORTAGE_GPG_DIR"):
 	        gpg_cmd = "%s --homedir %s" % (gpg_cmd, portage.settings["PORTAGE_GPG_DIR"])
 	    do_cmd("%s Manifest" % gpg_cmd)
 	    do_cmd("mv Manifest.asc Manifest")
-	    do_cmd("%s 'GPG Signed'" % self._cvscmd["commit"])
+	do_cmd("%s 'Manifest recommit'" % self._cvscmd["commit"])
 
     def __rename_file_contents(self, file):
         
@@ -658,7 +680,8 @@ class Package:
 	    os.chdir(os.path.join(self._portdir, category, pkg_split[0]))
             do_cmd("echangelog 'Dependency update: %s -> %s.'" % (self._old_catpkg, self._new_catpkg))
 	    do_cmd("%s 'Dependency update: %s -> %s.'" % (self._cvscmd["commit"], self._old_catpkg, self._new_catpkg))
-
+	    self.__regen_manifest(path=os.path.join(self._portdir, category, pkg_split[0]), dep=True)
+            
     def __get_reverse_deps(self):
 
         dep_list = []
@@ -849,14 +872,14 @@ if __name__ == "__main__":
     if randint(1, 100) == 50:
         print "%s I put on my robe and wizard hat..." % green(" *")
  
-    portdir = check_cwd(portage.settings["PORTDIR"][:-1])
+    portdir = check_cwd(portage.settings["PORTDIR"].rstrip("/"))
     check_repos(portdir)
     (oldcatpkg, newcatpkg) = check_args(args, portdir, options, cvscmd)
     
     if options.commit_queue:
         check_commit_queue()
 
-    ThisPackage = Package(portdir, oldcatpkg, newcatpkg, cvscmd, options)
+    ThisPackage = CVSAbstraction(portdir, oldcatpkg, newcatpkg, cvscmd, options)
 
     ThisPackage.perform_action()
     ThisPackage.log_move()
