@@ -1,0 +1,138 @@
+#! /usr/bin/env python
+#
+# Copyright(c) 2002, Gentoo Technologies, Inc
+# Copyright(c) 2002, Karl Trygve Kalleberg <karltk@gentoo.org>
+# Distributed under the terms of the GNU General Public License v2
+#
+
+import sys
+import string
+import os
+import os.path
+
+base = "/var/db/pkg"
+
+def getdirs(path):
+    files = os.listdir(path)
+    dirs = []
+    for i in files:
+        if os.path.isdir(path + "/" + i):
+            dirs.append(i)
+    return dirs
+
+def findContentFile(spec):
+    k = string.split(spec,"/")
+
+    if len(k) == 2:
+        cat = k[0]
+        pnm = k[1]
+    else:
+        cat = ""
+        pnm = k[0]
+
+    if cat:
+        dirlist = os.listdir(base + "/" + cat)
+        for pkg in dirlist:
+            if string.find(pkg, pnm) == 0:
+                return (cat, pkg, base + "/" + cat + "/" + pkg + "/CONTENTS")
+    else:
+        cats = getdirs(base)
+        for cat in cats:
+            pkgs = getdirs(base + "/" + cat)
+            for pkg in pkgs:
+                if string.find(pkg, pnm) == 0:
+                    return (cat, pkg, base + "/" + cat + "/" + pkg + "/CONTENTS")
+    return None
+
+def main():
+    spec=sys.argv[1]
+
+    try:
+        (cat, pkg, contents) = findContentFile(spec)
+    except:
+        print "No package resembling '" + spec + "' found"
+        sys.exit(-1)
+        
+    ins = open(contents)
+    
+    files = []
+    inaccurate = 0
+    total = 0
+    for i in ins.readlines():
+        k = string.split(i)
+        if len(k) and k[0] == "obj":
+            files.append(k[1])
+    for i in files:
+        try:
+            total+=os.path.getsize(i)
+        except os.error:
+            inaccurate=1
+    k = str(total) + " (" + str(total/1024) + "kiB)"
+    if inaccurate:
+        k += " ~"
+    print cat + "/" + pkg + " " + k
+            
+if __name__ == "__main__":
+    main()
+
+"""
+#!/bin/sh
+
+# Copyright(c) 2002, Gentoo Technologies, Inc
+# Author: Karl Trygve Kalleberg <karltk@gentoo.org>
+
+spec=$1
+
+name=`echo $1 | sed "s/\([^/]*\)\///"`
+category=`echo $1 | sed "s/\/.*//"`
+
+if [ "$category" == "$name" ] ; then
+	category=
+fi
+
+function tryfile() {
+	local foo
+	foo=/var/db/pkg/$1/CONTENTS
+	bar=`ls $foo 2> /dev/null`
+	for i in $bar ; do
+		if [ -f "$i" ] ; then
+			echo $i
+			break
+		fi
+	done
+}
+
+file=`tryfile "${category}/${name}"`
+if [ -z $file ] ; then
+ file=`tryfile "${category}/${name}*"`
+ if [ -z $file ] ; then
+  file=`tryfile "${category}*/${name}"`
+  if [ -z $file ] ; then
+   file=`tryfile "${category}*/${name}*"`
+   if [ -z $file ] ; then
+    echo "!!! Package resembling ${category}/${name} not found"
+    exit 1
+   fi
+  fi
+ fi
+fi
+
+pkgname=`echo $file | sed -e "s:\/var\/db\/pkg\/::" -e "s:\/CONTENTS::"`
+
+filelist=`cat $file|grep "obj"|awk '{ print $2 }' | sed "s/ /\\ /"`
+
+size=0
+for i in $filelist ; do
+    if [ -e $i ] ; then
+	s=`du -s $i | cut -f1`
+	size=$[size + s]
+    fi
+done
+#size=0
+#for i in $totals ; do 
+#	size=$[size+i]
+#done
+
+echo "$pkgname $size ($[size/1024]KB)"
+
+"""
