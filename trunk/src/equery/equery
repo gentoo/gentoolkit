@@ -183,7 +183,7 @@ class CmdListBelongs(Command):
 
     def parseArgs(self, args):
 
-        query = ""
+        query = []
         need_help = 0
         opts = self.default_opts
         skip = 0
@@ -206,7 +206,7 @@ class CmdListBelongs(Command):
             elif x in ["-f", "--full-regex"]:
                 opts["fullRegex"] = 1
             else:
-                query = x
+                query.append(x)
 
         if need_help or query == "":
             print_info(0, self.longHelp())
@@ -218,15 +218,16 @@ class CmdListBelongs(Command):
         (query, opts) = self.parseArgs(args)
 
         # Act intelligently on the query
-        try: 
+        try:
+            q = string.join(query, "|") 
             if opts["fullRegex"]: 
-                rx = re.compile(query)
-            elif len(query) and query[0] == "/":
-                rx = re.compile("^" + query + "$")
+                rx = re.compile(q)
+            elif len(q) and q[0] == "/":
+                rx = re.compile("^" + q + "$")
             else:
-                rx = re.compile("/" + query + "$")
+                rx = re.compile("/" + q + "$")
         except:
-            die(2, "The query '" + regexpquery(query) + "' does not appear to be a valid regular expression")
+            die(2, "The query '" + pp.regexpquery(q) + "' does not appear to be a valid regular expression")
 
         # Pick out only selected categories
         cat = opts["category"]
@@ -235,31 +236,46 @@ class CmdListBelongs(Command):
             filter_fn = lambda x: x.find(cat+"/")==0
 
         if not Config["piping"]:
-            print_info(3, "[ Searching for file " + pp.regexpquery(query) + " in " + pp.cpv(cat) + "... ]")
+            print_info(3, "[ Searching for file(s) " + pp.regexpquery(string.join(query,",")) + " in " + pp.cpv(cat) + "... ]")
             
         matches = gentoolkit.find_all_installed_packages(filter_fn)
 
         found = 0
-        for pkg in matches:
+
+        def dumpToPipe(pkg):
             cnt = pkg.get_contents()
-            if not cnt:
-                continue
+            if not cnt: return
+            for file in cnt.keys():
+                if rx.search(file):
+                    print pkg.get_cpv()
+                    return
+
+        class DummyExp:
+            pass
+            
+        def dumpToScreen(pkg):
+            cnt = pkg.get_contents()
+            if not cnt: return
             for file in cnt.keys():
                 if rx.search(file):
                     s = pp.cpv(pkg.get_cpv())
-                    if not Config["piping"]:
-                        s += " (" + pp.path(fileAsStr(file, cnt[file])) + ")"
+                    s += " (" + pp.path(fileAsStr(file, cnt[file])) + ")"
                     print_info(0, s)
                     if opts["earlyOut"]:
-                        found = 1
-                        break
-            if found:
-                break
-                    
+                        raise DummyExp
+
+        try: 
+            if Config["piping"]:
+                map(dumpToPipe, matches)
+            else:
+                map(dumpToScreen, matches)
+        except DummyExp:
+            pass
+            
     def shortHelp(self):
-        return pp.localoption("<local-opts> ") + pp.path("file") + " - list all packages owning " + pp.path("file")
+        return pp.localoption("<local-opts> ") + pp.path("files...") + " - list all packages owning " + pp.path("files...")
     def longHelp(self):
-        return "List all packages owning a particular file" + \
+        return "List all packages owning a particular set of files" + \
                "\n" + \
                "\n" + \
                pp.emph("Note: ") + "Normally, only one package will own a file. If multiple packages own the same file, it usually consitutes a problem, and should be reported.\n" + \
