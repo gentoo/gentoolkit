@@ -18,6 +18,7 @@ __description__ = "Gentoolkit Common Library"
 import os
 import portage
 import re
+import string
 
 settings = portage.settings
 porttree = portage.db[portage.root]["porttree"]
@@ -63,14 +64,17 @@ class Package:
         """Returns true if this package is installed (merged)"""
         self._initdb()
         return os.path.exists(self._db.getpath())
+    def is_overlay(self):
+        dir,ovl=portage.portdb.findname2(self._cpv)
+        return ovl
     def is_masked(self):
         """Returns true if this package is masked against installation. Note: We blindly assume that
         the package actually exists on disk somewhere."""
-        unmasked = portage.portdb.xmatch("match-visible", self.get_category()+"/"+self.get_name())
+        unmasked = portage.portdb.xmatch("match-visible", "=" + self._cpv)
         return self._cpv not in unmasked
     def get_ebuild_path(self):
         """Returns the complete path to the .ebuild file"""
-        return porttree.getname(self._cpv)
+        return portage.portdb.findname(self._cpv)
     def get_package_path(self):
         """Returns the path to where the ChangeLog, Manifest, .ebuild files reside"""
         p=self.get_ebuild_path()
@@ -79,7 +83,10 @@ class Package:
             return string.join(sp[:-1],"/")
     def get_env_var(self, var):
         """Returns one of the predefined env vars DEPEND, RDEPEND, SRC_URI,...."""
-        return porttree.dbapi.aux_get(self._cpv,[var])
+        r=porttree.dbapi.aux_get(self._cpv,[var])
+        if len(r)!=1:
+            raise "Should only get one element!"
+        return r[0]
     def get_contents(self):
         """Returns the full contents, as a dictionary, on the form
         [ '/bin/foo' : [ 'obj', '1052505381', '45ca8b8975d5094cd75bdc61e9933691' ], ... ]"""
@@ -125,10 +132,15 @@ def find_packages(search_key):
     t=portage.portdb.match(search_key)
     return map(lambda x: Package(x), t)
 
-def find_all_packages():
+def find_all_packages(prefilter=None):
     """Returns a list of all known packages, installed or not."""
     t=portage.portdb.cp_all()
-    return map(lambda x: Package(x), t)
+    if prefilter:
+        t=filter(prefilter,t)
+    t2=[]
+    for x in t:
+        t2 += portage.portdb.cp_list(x)
+    return map(lambda x: Package(x), t2)
 
 if __name__ == "__main__":
     print "This module is for import only"
