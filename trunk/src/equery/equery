@@ -939,7 +939,7 @@ if __name__ == "__main__":
 			sys.exit(2)
 		except ValueError, e:
 			if type(e[0]) == types.ListType:
-				print red("!!!"), "Ambiguous package name \"%s\"" % query
+				print red("!!!"), "Ambiguous package name \"%s\"" % local_opts[0]
 				print red("!!!"), "Please use one of the following long names:"
 				for p in e[0]:
 					print red("!!!"), "    "+p

@@ -579,6 +579,9 @@ def help():
 	margin_ex = 8
 	
 	ver()
+	print yellow("NOTICE: ") + "This tool will be phased out at some point in"
+	print "        the future, please use equery instead."
+	print "        Bugs are still fixed, but new features won't be added."
 	print
 	print white("Usage: ") + turquoise(__productname__) + " [ " + green("options") + " ] [ " + turquoise("action") + " ] [ " + turquoise("package") + " ]"
 	print

@@ -164,6 +164,10 @@ find packages owning files on your filesystem, check the integrity
 of installed packages, and do other queries against installed or
 uninstalled packages.
 
+NOTICE: This tool will be phased out at some point in the 
+        future, please use equery instead.
+        Bugs are still fixed but new features won't be added.
+
 ${BR}Usage:
 ${T}${CY}${PROG}${NO} [${BR}options${NO}] [${YL}pkgname${NO}] [${BL}-g${YL} group${NO}] [${BL}-f${YL} <file>${NO}|${BL}-fp${YL} <pattern>${NO}]
 ${T}${CY}${PROG}${NO} ${BL}--dups${NO} [${BL}--slot${NO}]
@@ -373,8 +377,11 @@ for p in ${ipak} ${upak} -;do
 	fi
 	
 	if [ "${info}" ]; then
-		home=`grep HOMEPAGE ${p}| cut -d\" -f2`
-		desc=`grep DESCRIPTION ${p}| cut -d\" -f2`
+		source ${p} 2> /dev/null
+		home="${HOMEPAGE}"
+		desc="${DESCRIPTION}"
+		#home=`grep HOMEPAGE ${p}| cut -d\" -f2`
+		#desc=`grep DESCRIPTION ${p}|cut -d= -f2-|cat`
 		echo -e "${T}${BL}${desc}${NO} [ ${YL}${home}${NO} ]"
 		if [ ${verb} -gt 0 ]; then
 			pdir=${p/$(basename ${p})/}
