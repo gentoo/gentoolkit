@@ -344,7 +344,7 @@ class CmdListBelongs(Command):
             if not cnt: return
             for file in cnt.keys():
                 if rx.search(file):
-                    print pkg.get_cpv()
+                    print pkg
                     return
 
         class DummyExp:
@@ -357,8 +357,7 @@ class CmdListBelongs(Command):
             if not cnt: return
             for file in cnt.keys():
                 if rx.search(file):
-                    s = pp.cpv(pkg.get_cpv())
-                    s += " (" + pp.path(fileAsStr(file, cnt[file])) + ")"
+                    s = pkg + " (" + pp.path(fileAsStr(file, cnt[file])) + ")"
                     print_info(0, s)
                     if opts["earlyOut"]:
                         raise DummyExp
