@@ -494,61 +494,57 @@ class Glsa:
 		self.services = self.affected.getElementsByTagName("service")
 		return None
 
-	def dump(self, outfile="/dev/stdout", encoding="latin1"):
+	def dump(self, outstream=sys.stdout):
 		"""
 		Dumps a plaintext representation of this GLSA to I{outfile} or 
 		B{stdout} if it is ommitted. You can specify an alternate
 		I{encoding} if needed (default is latin1).
 		
-		@type	outfile: String
-		@param	outfile: Filename to dump the output in 
-						 (defaults to "/dev/stdout")
-		@type	encoding: The encoding that should be used when writing 
-						  to I{outfile}.
+		@type	outstream: File
+		@param	outfile: Stream that should be used for writing
+						 (defaults to sys.stdout)
 		"""
-		myfile = codecs.open(outfile, "w", encoding)
 		width = int(self.config["PRINTWIDTH"])
-		myfile.write(center("GLSA %s: \n%s" % (self.nr, self.title), width)+"\n")
-		myfile.write((width*"=")+"\n")
-		myfile.write(wrap(self.synopsis, width, caption="Synopsis:         ")+"\n")
-		myfile.write("Announced on:      %s\n" % self.announced)
-		myfile.write("Last revised on:   %s\n\n" % self.revised)
+		outstream.write(center("GLSA %s: \n%s" % (self.nr, self.title), width)+"\n")
+		outstream.write((width*"=")+"\n")
+		outstream.write(wrap(self.synopsis, width, caption="Synopsis:         ")+"\n")
+		outstream.write("Announced on:      %s\n" % self.announced)
+		outstream.write("Last revised on:   %s\n\n" % self.revised)
 		if self.glsatype == "ebuild":
 			for k in self.packages.keys():
 				pkg = self.packages[k]
 				for path in pkg:
 					vul_vers = string.join(path["vul_vers"])
 					unaff_vers = string.join(path["unaff_vers"])
-					myfile.write("Affected package:  %s\n" % k)
-					myfile.write("Affected archs:    ")
+					outstream.write("Affected package:  %s\n" % k)
+					outstream.write("Affected archs:    ")
 					if path["arch"] == "*":
-						myfile.write("All\n")
+						outstream.write("All\n")
 					else:
-						myfile.write("%s\n" % path["arch"])
-					myfile.write("Vulnerable:        %s\n" % vul_vers)
-					myfile.write("Unaffected:        %s\n\n" % unaff_vers)
+						outstream.write("%s\n" % path["arch"])
+					outstream.write("Vulnerable:        %s\n" % vul_vers)
+					outstream.write("Unaffected:        %s\n\n" % unaff_vers)
 		elif self.glsatype == "infrastructure":
 			pass
 		if len(self.bugs) > 0:
-			myfile.write("\nRelated bugs:      ")
+			outstream.write("\nRelated bugs:      ")
 			for i in range(0, len(self.bugs)):
-				myfile.write(self.bugs[i])
+				outstream.write(self.bugs[i])
 				if i < len(self.bugs)-1:
-					myfile.write(", ")
+					outstream.write(", ")
 				else:
-					myfile.write("\n")				
+					outstream.write("\n")				
 		if self.background:
-			myfile.write("\n"+wrap(self.background, width, caption="Background:       "))
-		myfile.write("\n"+wrap(self.description, width, caption="Description:      "))
-		myfile.write("\n"+wrap(self.impact_text, width, caption="Impact:           "))
-		myfile.write("\n"+wrap(self.workaround, width, caption="Workaround:       "))
-		myfile.write("\n"+wrap(self.resolution, width, caption="Resolution:       "))
+			outstream.write("\n"+wrap(self.background, width, caption="Background:       "))
+		outstream.write("\n"+wrap(self.description, width, caption="Description:      "))
+		outstream.write("\n"+wrap(self.impact_text, width, caption="Impact:           "))
+		outstream.write("\n"+wrap(self.workaround, width, caption="Workaround:       "))
+		outstream.write("\n"+wrap(self.resolution, width, caption="Resolution:       "))
 		myreferences = ""
 		for r in self.references:
 			myreferences += (r.replace(" ", SPACE_ESCAPE)+NEWLINE_ESCAPE+" ")
-		myfile.write("\n"+wrap(myreferences, width, caption="References:       "))
-		myfile.write("\n")
-		myfile.close()
+		outstream.write("\n"+wrap(myreferences, width, caption="References:       "))
+		outstream.write("\n")
 	
 	def isVulnerable(self):
 		"""

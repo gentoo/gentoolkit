@@ -1,7 +1,9 @@
 2004-12-08 Marius Mauch <genone@gentoo.org>
 	* equery: implemented the --category option
 	* glsa-check: fixed the bug where it wanted to unnecessary merge masked packages
-	
+	* glsa.py: changed the outfile parameter in Glsa.dump() to outstream so we don't
+	           have to open/close a file which breaks pipes
+
 2004-11-29 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* branched v0-3-0: major rework in equery is in progess. the main
 	branch is reserved for minor and incremental fixups.
