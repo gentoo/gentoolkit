@@ -53,6 +53,7 @@ if (-f 'ChangeLog') {
 # Figure out what has changed around here
 open C, 'cvs -fn up 2>&1 |' or die "Can't run cvs -fn up: $!\n";
 while (<C>) {
+    #print STDERR "cvs: $_";
     /ChangeLog/ and next;
     /^\? (\S+)/ and push @unknown, $1;
     /^([ARMC]) (\S+)/ or next;
@@ -72,10 +73,13 @@ EOT
 # the changed files we have
 @ebuilds = grep /\.ebuild$/, @files;
 @files = grep !/\.ebuild$/, @files;
+#print STDERR '@ebuilds = [', join('],[', @ebuilds), "]\n";
+#print STDERR '@files = [', join('],[', @files), "]\n";
 if (@ebuilds) {
-    open C, "cvs diff -fU 0 @ebuilds 2>&1 |" or die "Can't run cvs diff: $!\n";
+    open C, "cvs -f diff -U0 @ebuilds 2>&1 |" or die "Can't run cvs diff: $!\n";
     $_ = <C>;
     while (defined $_) {
+        #print STDERR "cvs: $_";
         if (/^cvs diff: (([^\/]*?)\.ebuild) was removed/) { 
             push @files, $1;
             $versions{$2} = 0;	# existing ebuild that was removed
