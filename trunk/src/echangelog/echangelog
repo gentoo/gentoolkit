@@ -53,7 +53,6 @@ if (-f 'ChangeLog') {
 # Figure out what has changed around here
 open C, 'cvs -fn up 2>&1 |' or die "Can't run cvs -fn up: $!\n";
 while (<C>) {
-    #print STDERR "cvs: $_";
     /ChangeLog/ and next;
     /^\? (\S+)/ and push @unknown, $1;
     /^([ARMC]) (\S+)/ or next;
@@ -161,7 +160,6 @@ if (@ebuilds) {
     open C, "cvs -f diff -U0 @ebuilds 2>&1 |" or die "Can't run cvs diff: $!\n";
     $_ = <C>;
     while (defined $_) {
-        #print STDERR "cvs: $_";
         if (/^cvs diff: (([^\/]*?)\.ebuild) was removed/) { 
             push @files, $1;
         }
