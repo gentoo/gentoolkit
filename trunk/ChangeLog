@@ -1,3 +1,8 @@
+2004-02-08 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added ebump
+	* Added gensync
+	* Added epkgmove, closes #36663.
+	
 2004-02-06 Marius Mauch <genone@gentoo.org>
 	* fixed bugs #40159, #39798, #39652, #39596, #39293
 	* changed etcat and equery behavior for ambigous package names,

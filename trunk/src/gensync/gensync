@@ -1,0 +1,207 @@
+#!/usr/bin/python
+#
+# Simple program to rsync from various 3rd party ebuild servers. 
+#
+#
+# Copyright (c) 2004, Matthew Schick <matt@breakmygentoo.net> (original author)
+# Copyright (c) 2004, Gentoo Technologies, Inc
+# Copyright (c) 2004, Karl Trygve Kalleberg <karltk@gentoo.org>
+#
+# Distributed under the terms of the GNU General Public License v2
+
+__author__ = "Matt Schick <matt@breakmygentoo.net>, Karl Trygve Kalleberg <karltk@gentoo.org>"
+__email__ = "karltk@gentoo.org"
+__version__ = "0.1.0"
+__productname__ = "gensync"
+__description__ = "Gentoo Overlay Sync Tool"
+
+
+import fileinput
+import portage
+import sys
+import os
+from output import *
+
+class ConfigDefaults:
+	def __init__(self):
+		self.rsync_timeout = 0
+		self.base_overlay = "/usr/local/overlays"
+		self.confdir = '/etc/gensync'
+		self._init_from_file()
+		self._setup_rsync()
+	def _init_from_file(self):
+		try:
+			ins = open("/etc/gensync/gensync.conf")
+			for x in ins.readlines():
+				# Skip line if it's a comment or not well-formed
+				if x.find("=") == -1 or \
+				       (len(x) and x[0] == "#"):
+					continue
+				(attrib, value) = x.split()
+				value = value.strip().strip('"')
+				if attrib == "rsync_timeout":
+					self.rsync_timeout = value
+				elif attrib == "base_overlay":
+					self.base_overlay = value
+		except:
+			pass
+
+	def _setup_rsync(self):
+		if self.rsync_timeout == 0:
+			try:
+				self.rsync_timeout = portage.settings["RSYNC_TIMEOUT"]
+			except:
+				self.rsync_timeout = 180
+		self.rsync_command = "/usr/bin/rsync " + \
+				     "-rlptDvz --progress " + \
+				     "--delete --delete-after " + \
+				     "--timeout=" + str(self.rsync_timeout) + " " \
+				     "--exclude='distfiles/*' " + \
+				     "--exclude='local/*' " + \
+				     "--exclude='packages/*' "
+
+Config = ConfigDefaults()
+
+class SyncSource:
+	"""Contains all details about an upstream rsync source."""
+	def __init__(self,filename):
+		self.id = "#unset#"
+		self.name = "#unset#"
+		self.url = "#unset#"
+		self.overlay = "#unset#"
+		self._init_from_file(filename)
+
+		if self.overlay == "#unset#":
+			self.overlay = Config.base_overlay + "/" + self.id
+		elif len(self.overlay) and self.overlay[0] != "/":
+			self.overlay = Config.base_overlay + "/" + self.overlay
+		elif len(self.overlay) and self.overlay[0] == "/":
+			pass
+		else:
+			print "Malformed overlay, '" + self.overlay + "'"
+			sys.exit(-2)
+
+	def _init_from_file(self, filename):
+		"""Loads configuration settings from a .syncsource file."""
+		ins = open(filename)
+		for x in ins.readlines():
+			# Skip line if it's a comment or not well-formed
+			if x.find("=") == -1 or \
+			       (len(x) and x[0] == "#"):
+				continue
+			attrib,value = x.split("=")
+			value = value.strip().strip('"')
+			if attrib == "id":
+				self.id = value
+			elif attrib == "description":
+				self.name = value
+			elif attrib == "rsync":
+				self.url = value
+			elif attrib == "overlay":
+				self.overlay = value
+	def perform_sync(self):
+		"""Syncs with upstream source."""
+		cmd = Config.rsync_command + self.url +"/* " + self.overlay
+		exitcode = portage.spawn(cmd, portage.settings, free=1)
+
+	def dump(self,ous=sys.stdout):
+		ous.write("id     =\"%s\"\n" % (self.id) + \
+			  "name   =\"%s\"\n" % (self.name) + \
+			  "rsync  =\"%s\"\n" % (self.url) + \
+			  "overlay=\"%s\"\n\n" % (self.overlay))
+
+class SyncSourceManager:
+	"""Holds information on all known upstream rsync sources."""
+	def __init__(self):
+		self.sources = []
+		self._load_source_info()
+	def _load_source_info(self):
+		for x in os.listdir(Config.confdir):
+			if x.rfind(".syncsource") > 0:
+				ss = SyncSource(Config.confdir + "/" + x)
+				self.sources.append(ss)
+	def list_sources(self):
+		for x in self.sources:
+			x.dump()
+	def get_sync_source(self, source_id):
+		for x in self.sources:
+			if x.id == source_id:
+				return x
+		return None
+		
+def print_version():
+	print __productname__ + "(" + __version__ + ") - " + \
+		  __description__
+	print "Author(s): " + __author__
+
+def print_usage():
+	print white("Usage: ") + turquoise(__productname__) + \
+	      yellow(" <options> ") + green("repo-id-1 repo-id-2 ...")
+	print "where " + yellow("<options>") + " is one of"
+	print yellow(" -l, --list-sources") + " - list known rsync sources"
+	print yellow(" -C, --no-color") + "      - turn off colours"
+	print yellow(" -h, --help") + "         - this help screen"
+	print yellow(" -V, --version") + "      - display version info"
+
+
+def parse_args(cliargs):
+
+	cmd = "sync-sources"
+	args = []
+	options = []
+	
+	for x in cliargs:
+		if x in ["-V", "--version"]:
+			cmd = "print-version"
+			break
+		elif x in ["-h", "--help"]:
+			cmd = "print-usage"
+			break
+		elif x in ["-C", "--no-color"]:
+			options.append("nocolor")
+			break
+		elif x in ["-l", "--list-sources"]:
+			cmd = "list-sources"
+		else:
+			args.append(x)
+	return (cmd, args, options)
+
+def main():
+	
+	# Setup colors, as per system defaults
+	if (not sys.stdout.isatty()) or \
+	       (portage.settings["NOCOLOR"] in ["yes","true"]):
+		nocolor()
+
+	# Parse arguments
+	(cmd, args, options) = parse_args(sys.argv[1:])
+
+	# Turn off color, if specified by cmdline switch
+	if "nocolor" in options:
+		nocolor()
+		
+	# Initialise sync source manager
+	ssmgr = SyncSourceManager()
+
+	# Perform selected command
+	if cmd == "list-sources":
+		ssmgr.list_sources()
+	elif cmd == "print-version":
+		print_version()
+	elif cmd == "print-usage":
+		print_usage()
+	elif cmd == "sync-sources":
+		for x in args:
+			repo = ssmgr.get_sync_source(x)
+			if repo:
+				print "Syncing '%s' into '%s'" % \
+				      (repo.id, repo.overlay)
+				repo.perform_sync()
+	else:
+		print red("Unknown command '" + cmd + "'")
+
+if __name__ == "__main__":
+	try:
+		main()
+	except KeyboardInterrupt:
+		print "Operation aborted by user keypress!"

@@ -1,0 +1,16 @@
+
+Package : gensync
+Version : 0.1.0
+Author  : See AUTHORS
+
+MOTIVATION
+
+Gensync handles rsyncing to multiple sync sources. 
+
+MECHANICS
+
+N/A
+
+IMPROVEMENTS
+
+N/A

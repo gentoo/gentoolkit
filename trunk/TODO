@@ -25,6 +25,11 @@
 - write a Gentoolkit Guide
 - write efeatures for turning on/off FEATURES in make.conf
 - look at ekeys, ewatch
+- revision bump tool
+ - bump versioned files in filesdir
+ - -m for changelog entry
+ - use ~/.gentoo/gentoolkit/ebump.conf
+ - use /etc/gentoolkit/ebump.conf
 - should be removed:
  - etc-update
  - epm
@@ -32,3 +37,4 @@
 - add 'clean' target
 
 + check esearch, eupdatedb: separate package for now
+ 
