@@ -1,3 +1,11 @@
+2004-10-06 Marius Mauch <genone@gentoo.org>
+	* glsa.py: Convert Unicode strings to ascii before passing them to portage
+	* glsa.py: Some formatting fixes for dump()
+	* glsa.py: changed the matching routines so the reports are hopefully 
+				more accurate
+	* glsa-check: added color support 
+	* glsa-check: added a --verbose option to show the warnings about invalid GLSAs
+
 2004-09-27 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Released gentoolkit-0.2.0_pre9
 	* Released gentoolkit-dev-0.2.0_pre4
