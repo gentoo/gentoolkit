@@ -22,7 +22,7 @@ import portage
 import re
 import string
 
-settings = portage.settings
+settings = portage.config(clone=portage.settings)
 porttree = portage.db[portage.root]["porttree"]
 vartree  = portage.db[portage.root]["vartree"]
 virtuals = portage.db[portage.root]["virtuals"]
@@ -36,9 +36,10 @@ class Package:
     state of a package, its contents, name manipulation, ebuild info and
     similar."""
     def __init__(self,cpv):
-        self._cpv=cpv
-        self._scpv=portage.catpkgsplit(self._cpv)
-        self._db=None
+        self._cpv = cpv
+        self._scpv = portage.catpkgsplit(self._cpv)
+        self._db = None
+        self._settings = None
     def get_name(self):
         """Returns base name of package, no category nor version"""
         return self._scpv[1]
@@ -170,7 +171,7 @@ class Package:
         if not self._db:
             cat=self.get_category()
             pnv=self.get_name()+"-"+self.get_version()
-            self._db=portage.dblink(cat,pnv,"")
+            self._db=portage.dblink(cat,pnv,"",settings)
 
 #
 # Global helper functions
@@ -240,13 +241,10 @@ def find_all_installed_packages(prefilter=None):
 def find_all_uninstalled_packages(prefilter=None):
     """Returns a list of all uninstalled packages, after applying the prefilter
     function"""
-    t=porttree.getallnodes()
+    t=porttree.getallcpv()
     if prefilter:
         t=filter(prefilter,t)
-    t2 = []
-    for x in t:
-        t2 += porttree.dep_match(x)
-    return map(lambda x: Package(x), t2)
+    return map(lambda x: Package(x), t)
 
 def find_all_packages(prefilter=None):
     """Returns a list of all known packages, installed or not, after applying
@@ -277,6 +275,4 @@ def split_package_name(name):
 if __name__ == "__main__":
     print "This module is for import only"
 
-# - get dependencies
-# - walk dependency tree
 

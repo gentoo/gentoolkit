@@ -7,7 +7,13 @@ import signal
 
 CONFDIR="/tmp/moo"
 
+class Config:
+    pass
 
+def die(code, msg):
+    sys.stdout.write(msg + "\n")
+    sys.edit(code)
+    
 def printUsage():
     print "Usage: moo <options> [command] <command-options>\n" + \
               "Where [command] is one of:\n" + \
@@ -19,9 +25,12 @@ def scanNetworks():
     pass
 
 def runCmd(cmd):
-    print "Executing \"" + cmd + "\""
+    if Config.verbosity > 5:
+        print "Executing \"" + cmd + "\""
     v = os.system(cmd)
-    print "Result: " + str(v)
+    if Config.verbosity > 5:
+        print "Result: " + str(v)
+    return v
 
 class ProfileHandler:
     def __init__(self):
@@ -54,11 +63,13 @@ class Profile:
         self.broadcast = ""
         self.gateway = ""
         self.exclusive = "no"
+        self.netmask = ""
+        self.nameserver = ""
 
         ins = open(filename)
         for s in ins.readlines():
             for x in ["description","ifaceName","ip","broadcast",
-                      "gateway","exclusive"]:
+                      "gateway","exclusive","nameserver","wepkey"]:
                 if s.find(x+"=") == 0:
                     val=s.replace(x+"=","").strip()
                     self.__dict__[x] = val
@@ -68,7 +79,8 @@ class Profile:
               "ip          = " + self.ip + "\n" + \
               "broadcast   = " + self.broadcast + "\n" + \
               "gateway     = " + self.gateway + "\n" + \
-              "exclusive   = " + self.exclusive + "\n"
+              "gateway     = " + self.nameserver + "\n" + \
+              "exclusive   = " + self.exclusive + "\n" 
 
 class Interface:
     def __init__(self, name):
@@ -77,17 +89,29 @@ class Interface:
         self.broadcast = ""
         self.ip = ""
         self.gateway = ""
+        self.nameserver = ""
+        self.wepkey = ""
         self._loadIPV4Info()
     def _loadIPV4Info(self):
         pass
+    def getNameserver(self):
+        return self.nameserver
     def getNetmask(self):
         return self.netmask
     def getName(self):
         return self.name
     def getBroadcast(self):
         return self.broadcast
+    def getWEPKey(self):
+        return self.wepkey
     def getGateway(self):
         return self.gateway
+    def setNameserver(self,nameserver):
+        self.nameserver = nameserver
+    def setIP(self, ip):
+        self.ip = ip
+    def setWEPKey(self,key):
+        self.wepkey = key
     def setGateway(self,gw):
         self.gateway = gw
     def setBroadcast(self,broadcast):
@@ -105,15 +129,37 @@ class Interface:
             os.kill(pid,signal.SIGTERM)
             time.sleep(1)
     def up(self):
+        options = ""
+
+        if self.wepkey:
+            if runCmd("iwconfig eth1 key " + self.wepkey):
+              die(4, "Failed to set WEP key for " + self.name)
+              
         if self.ip:
             options += self.ip + " "
         if self.broadcast:
             options += "broadcast " + self.broadcast + " "
         if self.netmask:
             options += "netmask " + self.netmask + " "
-        runCmd("ifconfig " + self.name + " " + options + " up")
+
+        if runCmd("ifconfig " + self.name + " " + options + " up"):
+            die(2, "Failed to bring up " + self.name)
+            
         if self.gateway:
-            runCmd("route add default gw " + self.gateway + " " + self.name)
+            if runCmd("route add default gw " + self.gateway + " " + self.name):
+                die(3, "Failed to set default gateway for " + self.name)
+            
+        if self.nameserver:
+            if Config.verbosity > 5:
+                print("Using nameserver " + self.nameserver)
+            try: 
+                ous = open("/etc/resolv.conf","w")
+                ous.write("nameserver " + self.nameserver)
+                ous.close()
+            except OSError:
+                die("Failed to set nameserver")
+        if Config.verbosity > 3:
+            print "Brough interface " + self.name + " up"
             
 class InterfaceHandler:
     def __init__(self):
@@ -151,16 +197,23 @@ class Moo:
         if prof.ip == "dhcp":
             iface.runDHCP()
         else:
-            iface.setIPAddr(prof.ip)
+            iface.setIP(prof.ip)
             iface.setBroadcast(prof.broadcast)
             iface.setNetmask(prof.netmask)
             iface.setGateway(prof.gateway)
+            iface.setNameserver(prof.nameserver)
             iface.up()
             
     def listProfiles(self,detailed=0):
         self.profileHandler.listProfiles(detailed)
-        
+
+def initConfig():
+    Config.verbosity = 3
+    
 def main():
+
+    initConfig()
+    
     if len(sys.argv) < 2:
         printUsage()
         sys.exit(1)
