@@ -6,6 +6,7 @@
 	* Fixed reference to cppv
 	* Added import of die
 	* Added searching header to uses
+	* Fixed hasuses to report properly
 
 2004-09-08 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added man page rewrites by Katerina Barone-Adesi <katerinab@gmail.com>,

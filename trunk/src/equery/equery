@@ -1229,13 +1229,8 @@ class CmdFindUSEs(Command):
             else:
                 status = 2
 
-            # Drop all packages without the USE flag
-            useflags = []
-            if status == 1:
-                useflags = pkg.get_use_flags()
-            else:
-                useflags = pkg.get_env_var("IUSE")
-            
+            useflags = pkg.get_env_var("IUSE").split()
+
             if query not in useflags:
                 continue 
                 
