@@ -1,3 +1,6 @@
+2004-10-10: Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Fixed is_overlay() to report properly, #53432.
+
 2004-09-27: Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added find_installed_packages
 

@@ -1,5 +1,6 @@
 2004-10-10 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added unit tests for all supported commands
+	* Fixed printing order and recognition of overlay, #53432.
 
 2004-09-30 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added unit tests for --help
