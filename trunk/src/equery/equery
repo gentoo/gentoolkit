@@ -381,7 +381,7 @@ class CmdDisplayUSEs(Command):
                     except KeyError:
                         desc = ""
 
-                if u in useflags:
+                if u in p.get_settings("USE"):
                     inuse = 1
                 if u in used:
                     inused = 1

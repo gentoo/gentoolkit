@@ -44,7 +44,8 @@ class Package:
 		if not self._scpv:
 			raise Exception("invalid cpv: %s" % cpv)
 		self._db = None
-		self._settings = settings.setcpv(self._cpv)
+		settings.setcpv(self._cpv)
+		self._settings = portage.config(clone=settings)
 	def get_name(self):
 		"""Returns base name of package, no category nor version"""
 		return self._scpv[1]
@@ -57,6 +58,10 @@ class Package:
 	def get_category(self):
 		"""Returns category of package"""
 		return self._scpv[0]
+	def get_settings(self, key):
+		"""Returns the value of the given key for this package (useful 
+		for package.* files."""
+		return self._settings[key]
 	def get_cpv(self):
 		"""Returns full Category/Package-Version string"""
 		return self._cpv
