@@ -184,7 +184,10 @@ print O $text            or die "Can't write ChangeLog.new: $!\n";
 close O                  or die "Can't close ChangeLog.new: $!\n";
 
 # Update affected ebuild copyright dates
-for my $e (grep /\.ebuild$/, @files) {
+#for my $e (grep /\.ebuild$/, @files) {
+# Update all ebuild copyright dates -- according to Mr_Bones_ this is
+# the right thing to do
+for my $e (<*.ebuild>) {
 	my ($etext, $netext);
 	open E, "<$e" or warn("Can't read $e to update copyright year\n"), next;
 	{ local $/ = undef; $etext = <E>; }
@@ -200,7 +203,7 @@ for my $e (grep /\.ebuild$/, @files) {
 	close E or warn("Can't write $e.new\n"), next;
 
 	# Move things around and show the diff
-	system "diff -u $e $e.new";
+	system "diff -U 0 $e $e.new";
 	rename "$e.new", $e or warn("Can't rename $e.new: $!\n");
 }
 
