@@ -1,0 +1,106 @@
+#!/bin/bash
+# $Header$
+#
+# Copyright 2005, Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# Written by Aron Griffis <agriffis@gentoo.org>
+#
+# eviewcvs - generate viewcvs urls for some files
+#
+
+if [[ -t 1 ]]; then
+	blue="[34;01m"
+	cyan="[36;01m"
+	green="[32;01m"
+	red="[31;01m"
+	off="[0m"
+else
+	unset blue cyan green red off
+fi
+
+startdir="$PWD"
+url="http://www.gentoo.org/cgi-bin/viewcvs.cgi"
+unset diffs
+
+chdir() {
+	cd "$1" || return
+
+	# Figure out where we are, hopefully
+	unset cwd root
+	if [[ -f CVS/Repository ]]; then
+		cwd=$(<CVS/Repository)
+		root=${cwd%%/*}
+		cwd=${cwd#*/}
+	elif [[ $PWD == */portage/* || $PWD == */gentoo-x86/* ]]; then
+		cwd=${PWD#*/portage}
+		cwd=${PWD#*/gentoo-x86}
+	fi
+}
+
+# Default to all files in directory
+[[ -n $* ]] || set -- *
+
+for f in "$@"; do
+	if [[ ! -f $f ]]; then
+		echo "$f is not a file" >&2
+		continue
+	fi
+
+	# Determine the directory settings
+	if [[ $f == */* ]]; then
+		chdir ${f%/*}
+		f=${f##*/}
+	else
+		chdir ${startdir}
+	fi
+
+	# Default to the directory settings
+	froot=$root
+	fwd=$cwd
+
+	# Get the header for this file, from which we can extract the root,
+	# directory and revision
+	header=$(egrep -m1 -o '\$(Header|Id):[^$]*\$' "$f")
+	frev=$(cut -d' ' -f3 <<<"$header")
+	case ${header} in
+		?Header:\ /var/cvsroot/*/*/*) 
+			fwd=$(cut -d' ' -f2 <<<"$header")	# /var/cvsroot/gentoo-src/keychain/keychain.sh,v
+			f=${fwd##*/}						# keychain.sh,v
+			f=${f%,v}							# keychain.sh
+			froot=${fwd#/var/cvsroot/}          # gentoo-src/keychain/keychain.sh,v
+			froot=${froot%%/*}					# gentoo-src
+			fwd=${fwd#/var/cvsroot/*/}          # gentoo-src/keychain/keychain.sh,v
+			fwd=${fwd%/*}						# keychain
+			;;
+		?Header:\ /var/cvsroot/*/*) 
+			f=$(cut -d' ' -f2 <<<"$header")     # /var/cvsroot/gentoo-x86/skel.ebuild,v
+			froot=${f%/*}						# /var/cvsroot/gentoo-x86
+			froot=${froot##*/}					# gentoo-x86
+			f=${f##*/}							# skel.ebuild,v
+			f=${f%,v}							# skel.ebuild
+			;;
+		'')
+			[[ -d CVS ]] && frev=$(cvs log "$f" 2>/dev/null | awk '/^head:/{print $2}')
+			;;
+	esac
+	[[ -n ${frev} ]] || continue
+
+	# gentoo-x86 is the default root
+	[[ -n ${froot} ]] || continue
+	[[ ${froot} == gentoo-x86 ]] && unset froot
+
+	# Here is the simple URL to view it
+	echo "${url}/${fwd:+$fwd/}${green}${f}${off}?rev=${frev}${froot:+&root=$froot}&content-type=text/vnd.viewcvs-markup"
+
+	# Also supply a diff URL if possible
+	if [[ ${frev##*.} -gt 1 ]]; then
+		orev=($(sed 's/\(.*\)\.\(.*\)/\1 \2/g' <<<"$frev"))
+		(( orev[1]-- ))
+		diffs="${diffs:+$diffs
+}${url}/${fwd:+$fwd/}${blue}${f}${off}?r1=${orev[0]}.${orev[1]}&r2=${frev}${froot:+&root=$froot}"
+	fi
+done
+
+if [[ -n ${diffs} ]]; then
+	echo "${diffs}"
+fi
