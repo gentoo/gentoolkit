@@ -12,11 +12,12 @@ tmpfile=$(tempfilename)
 test_list() {
 	equery list > ${tmpfile}
 
-	pkgs=$(cat ${tmpfile} | wc -l)
-	x=$(grep "[I--]" ${tmpfile} | wc -l)
-	assert_eq ${FUNCNAME} ${pkgs} ${x]
+# should test tty output as well
+#	pkgs=$(cat ${tmpfile} | wc -l)
+#	x=$(grep "[I--]" ${tmpfile} | wc -l)
+#	assert_eq ${FUNCNAME} ${pkgs} ${x}
 	
-	x=$(grep "app-shells/bash" | wc -l)
+	x=$(grep "app-shells/bash" ${tmpfile} | wc -l)
 	assert_ge ${FUNCNAME} $x 1
 }
 

@@ -13,7 +13,7 @@ test_depends() {
 #	equery skel gcc > ${tmpfile}
 
 #	x=$(grep "app-shells/bash" ${tmpfile} | wc -l)
-	
+	true
 #	assert_eq ${FUNCNAME} ${x} 1
 	
 #	x=$(grep "virtual/libc" ${tmpfile} | wc -l)

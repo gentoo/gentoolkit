@@ -24,7 +24,7 @@ test_uses_all() {
 	equery uses -a uclibc > ${tmpfile}
 
 	x=$(grep "static" ${tmpfile} | wc -l)
-	assert_eq ${FUNCNAME} ${pkgs} ${x]
+	assert_ge ${FUNCNAME} ${x} 1
 	
 	x=$(cat ${tmpfile} | wc -l)
 	assert_ge ${FUNCNAME} $x 5

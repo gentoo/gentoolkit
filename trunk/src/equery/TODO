@@ -1,3 +1,9 @@
+- sqlite
+ - regexp comparisons
+ - check /var/log/emerge.log for database up-to-dateness
+
+ 
+-------------------------
 - pkgquery language:
  Query ::= NewStyle | OldStyle | with OldStyle NewStyle
  NewStyle ::= NameVar in /RegExp/
