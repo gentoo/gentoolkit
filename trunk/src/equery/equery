@@ -13,6 +13,7 @@ __version__ = "0.1.2"
 __productname__ = "equery"
 __description__ = "Gentoo Package Query Tool"
 
+import os
 import re
 import sys
 import time
@@ -23,11 +24,11 @@ import types
 sys.path.insert(0, "/usr/lib/portage/pym")
 #sys.path.insert(0, "/usr/lib/gentoolkit/pym")
 
-from output import *
 import gentoolkit
+import portage
 
-from gentoolkit import print_warn, print_error, print_info, die
-from gentoolkit import pcpv, ppath, pslot, pnumber, pmaskflag, pinstalledflag, puseflag, ppkgquery, pregexpquery
+import gentoolkit.pprinter as pp
+from gentoolkit.pprinter import print_info, print_error, print_warn
 
 # Auxiliary functions
 
@@ -50,12 +51,12 @@ def fileAsStr(name, fdesc, showType=0, showMD5=0, showTimestamp=0):
         md5sum = fdesc[2]
     elif fdesc[0] == "dir":
         type = "dir"
-        fname = white(name)
+        fname = pp.path(name)
     elif fdesc[0] == "sym":
         type = "symlink"
         stamp = timestampAsStr(int(fdesc[1].replace(")","")))
         tgt = fdesc[2].split()[0]
-        fname = turquoise(name + " -> " + tgt)
+        fname = pp.path_symlink(name + " -> " + tgt)
     else:
         raise "Unknown type: " + fdesc[0]
 
@@ -123,7 +124,7 @@ class CmdListFiles(Command):
                 query = x
 
         if need_help or query == "":
-            info(0, self.longHelp())
+            print_info(0, self.longHelp())
             sys.exit(-1)
             
         return (query, opts)
@@ -132,7 +133,8 @@ class CmdListFiles(Command):
 
         (query, opts) = self.parseArgs(args)
 
-        print_info(3, "[ Searching for packages matching " + ppkgquery(query) + "... ]")
+        if not Config["piping"]:
+            print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
             
         pkgs = gentoolkit.find_packages(query, True)
         for x in pkgs:
@@ -140,7 +142,7 @@ class CmdListFiles(Command):
             if not x.is_installed():
                 continue
         
-            print_info(1, turquoise("* ") + "Contents of " + pcpv(x.get_cpv()) + ":")
+            print_info(1, pp.section("* ") + "Contents of " + pp.cpv(x.get_cpv()) + ":")
 
             cnt = x.get_contents()
 
@@ -158,16 +160,16 @@ class CmdListFiles(Command):
         return "List files owned by a particular package\n" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("files") + yellow(" <local-opts> <cat/>packagename<-version>") + "\n" + \
+               "  " + pp.command("files") + pp.localoption(" <local-opts> ") + pp.pkgquery("<cat/>packagename<-version>") + "\n" + \
                "\n" + \
                "Note: category and version parts are optional. \n" + \
                "\n" + \
-               yellow("<local-opts>") + " is either of: \n" + \
-               "  " + yellow("--timestamp") + "  - append timestamp\n" + \
-               "  " + yellow("--md5sum") + "     - append md5sum\n" + \
-               "  " + yellow("--type") + "       - prepend file type"               
+               pp.localoption("<local-opts>") + " is either of: \n" + \
+               "  " + pp.localoption("--timestamp") + "  - append timestamp\n" + \
+               "  " + pp.localoption("--md5sum") + "     - append md5sum\n" + \
+               "  " + pp.localoption("--type") + "       - prepend file type"               
     def shortHelp(self):
-        return yellow("<local-opts> ") + turquoise("pkgspec") + " - list files owned by " + turquoise("pkgspec")
+        return pp.localoption("<local-opts> ") + pp.pkgquery("pkgspec") + " - list files owned by " + pp.pkgquery("pkgspec")
 
     
 class CmdListBelongs(Command):
@@ -232,7 +234,8 @@ class CmdListBelongs(Command):
         if cat != "*":
             filter_fn = lambda x: x.find(cat+"/")==0
 
-        print_info(3, "[ Searching for file " + pregexpquery(query) + " in " + pcpv(cat) + "... ]")
+        if not Config["piping"]:
+            print_info(3, "[ Searching for file " + pp.regexpquery(query) + " in " + pp.cpv(cat) + "... ]")
             
         matches = gentoolkit.find_all_installed_packages(filter_fn)
 
@@ -243,9 +246,9 @@ class CmdListBelongs(Command):
                 continue
             for file in cnt.keys():
                 if rx.search(file):
-                    s = pcpv(pkg.get_cpv())
+                    s = pp.cpv(pkg.get_cpv())
                     if not Config["piping"]:
-                        s += " (" + ppath(fileAsStr(file, cnt[file])) + ")"
+                        s += " (" + pp.path(fileAsStr(file, cnt[file])) + ")"
                     print_info(0, s)
                     if opts["earlyOut"]:
                         found = 1
@@ -254,21 +257,21 @@ class CmdListBelongs(Command):
                 break
                     
     def shortHelp(self):
-        return yellow("<local-opts> ") + turquoise("file") + " - list all packages owning " + turquoise("file")
+        return pp.localoption("<local-opts> ") + pp.path("file") + " - list all packages owning " + pp.path("file")
     def longHelp(self):
         return "List all packages owning a particular file" + \
                "\n" + \
                "\n" + \
-               turquoise("Note: ") + "Normally, only one package will own a file. If multiple packages own the same file, it usually consitutes a problem, and should be reported.\n" + \
+               pp.emph("Note: ") + "Normally, only one package will own a file. If multiple packages own the same file, it usually consitutes a problem, and should be reported.\n" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("belongs") + yellow(" <local-opts> ") + turquoise("filename") + \
+               "  " + pp.command("belongs") + pp.localoption(" <local-opts> ") + pp.path("filename") + \
                "\n" + \
-               yellow("<local-opts>") + " is either of: \n" + \
-                    "  " + yellow("-c, --category cat") + " - only search in category " + \
-                        yellow("cat") + "\n" + \
-                    "  " + yellow("-f, --full-regex") + "   - supplied query is a regex\n" + \
-                    "  " + yellow("-e, --earlyout") + "     - stop when first match is found\n"
+               pp.localoption("<local-opts>") + " is either of: \n" + \
+                    "  " + pp.localoption("-c, --category cat") + " - only search in category " + \
+                        pp.pkgquery("cat") + "\n" + \
+                    "  " + pp.localoption("-f, --full-regex") + "   - supplied query is a regex\n" + \
+                    "  " + pp.localoption("-e, --earlyout") + "     - stop when first match is found\n"
 
 class CmdDisplayUSEs(Command):
     """Advanced report of a package's USE flags"""
@@ -311,7 +314,7 @@ class CmdDisplayUSEs(Command):
         matches = gentoolkit.find_packages(query, True)
 
         if not matches:
-            die(3, "No matching packages found for \"" + white(query) + "\"")
+            die(3, "No matching packages found for \"" + pp.pkgquery(query) + "\"")
 
 
         useflags = gentoolkit.settings["USE"].split()    
@@ -349,7 +352,7 @@ class CmdDisplayUSEs(Command):
                 print_warn(5, "Could not load USE flag descriptions from " + path(gentoolkit.settings["PORTDIR"] + "/profiles/use.desc"))
 
         if not Config["piping"]: 
-            print_info(3, "[ Colour Code : " + green("set") + " " + red("unset") + " ]")
+            print_info(3, "[ Colour Code : " + pp.useflagon("set") + " " + pp.useflagoff("unset") + " ]")
             print_info(3, "[ Legend    : Left column  (U) - USE flags from make.conf              ]")
             print_info(3, "[           : Right column (I) - USE flags packages was installed with ]")
 
@@ -398,8 +401,8 @@ class CmdDisplayUSEs(Command):
             # pretty print
             if output:
                 if not Config["piping"]:
-                    print_info(0, "[ Found these USE variables for " + pcpv(bestver) + " ]")
-                    print_info(3, white(" U I"))
+                    print_info(0, "[ Found these USE variables for " + pp.cpv(bestver) + " ]")
+                    print_info(3, pp.emph(" U I"))
                 maxflag_len = 0
                 for inuse, inused, u, desc in output:
                     if len(u) > maxflag_len:
@@ -407,12 +410,12 @@ class CmdDisplayUSEs(Command):
 
                 for in_makeconf, in_installed, flag, desc in output:
                     markers = ["-","+"]
-                    colour = [red, green]
+                    colour = [pp.useflagoff, pp.useflagon]
                     if Config["piping"]:
                         print_info(0, markers[in_makeconf] + flag)
                     else:
                         if in_makeconf != in_installed:
-                            print_info(0, yellow(" %s %s" % (markers[in_makeconf], markers[in_installed])), False)
+                            print_info(0, pp.emph(" %s %s" % (markers[in_makeconf], markers[in_installed])), False)
                         else:
                             print_info(0, " %s %s" % (markers[in_makeconf], markers[in_installed]), False)
     
@@ -426,26 +429,26 @@ class CmdDisplayUSEs(Command):
                 printed_matches += 1
             else:
                 if not Config["piping"]:
-                    print_info(1, "[ No USE flags found for " + pcpv(p.get_cpv()) + "]")
+                    print_info(1, "[ No USE flags found for " + pp.cppv(p.get_cpv()) + "]")
 
         if Config["verbosityLevel"] >= 2:
             if printed_matches == 0:
                 s = ""
                 if opts["installedOnly"]:
                     s = "installed "
-                die(3, "No " + s + "packages found for " + pkgquery(query))
+                die(3, "No " + s + "packages found for " + pp.pkgquery(query))
                 
                     
     def shortHelp(self):
-        return yellow("<local-opts> ") + turquoise("pkgspec") + " - display USE flags for " + turquoise("pkgspec")
+        return pp.localoption("<local-opts> ") + pp.pkgquery("pkgspec") + " - display USE flags for " + pp.pkgquery("pkgspec")
     def longHelp(self):
         return "Display USE flags for a given package\n" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("uses") + yellow(" <local-opts> ") + turquoise("pkgspec") + \
+               "  " + pp.command("uses") + pp.localoption(" <local-opts> ") + pp.pkgquery("pkgspec") + \
                "\n" + \
-               yellow("<local-opts>") + " is either of: \n" + \
-               "  " + yellow("-a, --all") + "     - include non-installed packages\n"
+               pp.localoption("<local-opts>") + " is either of: \n" + \
+               "  " + pp.localoption("-a, --all") + "     - include non-installed packages\n"
 
 
 class CmdDisplayDepGraph(Command):
@@ -490,20 +493,23 @@ class CmdDisplayDepGraph(Command):
     def perform(self, args):
         (query, opts) = self.parseArgs(args)
 
+        if not Config["piping"]:
+            print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
+
         matches = gentoolkit.find_packages(query, True)
 
         for pkg in matches:
-
+            if not pkg.is_installed():
+                continue
             if Config["piping"]:
                 print_info(0, pkg.get_cpv() + ":")
             else:
-                print_info(3, "[ Dependencies for " + pcpv(pkg.get_cpv()) + " ]")
+                print_info(3, pp.section("* ") + "dependency graph for " + pp.cpv(pkg.get_cpv()))
 
-            if not pkg.is_installed():
-                continue
             stats = { "maxdepth": 0, "packages": 0 }
             self._graph(pkg, opts, stats)
-            print_info(0, "[ " + white(pkg.get_cpv()) + " stats: packages (" + number(str(stats["packages"])) + "), max depth (" + number(str(stats["maxdepth"])) + ") ]")
+            print_info(0, "[ " + pp.cpv(pkg.get_cpv()) + " stats: packages (" + pp.number(str(stats["packages"])) + \
+                "), max depth (" + pp.number(str(stats["maxdepth"])) + ") ]")
         
     def _graph(self, pkg, opts, stats, level=0, pkgtbl=[], suffix=""):
     
@@ -527,24 +533,24 @@ class CmdDisplayDepGraph(Command):
                 continue
             if pkg.get_cpv() in pkgtbl:
                 continue
-            if cpv.find("virtual")==0:
-                suffix += " (" + yellow(cpv) + ")"
+            if cpv.find("virtual") == 0:
+                suffix += " (" + pp.cpv(cpv) + ")"
                 if len(x[1]) and opts["displayUSEFlags"]:
-                    suffix += " [ " + white(string.join(x[1])) + " ]"
+                    suffix += " [ " + pp.useflagon(string.join(x[1])) + " ]"
             pkgtbl = self._graph(pkg, opts, stats, level+1, pkgtbl, suffix)
         return pkgtbl
 
     def shortHelp(self):
-        return yellow("<local-opts> ") + pkgquery("pkgspec") + " - display a dependency tree for " + turquoise("pkgspec")
+        return pp.localoption("<local-opts> ") + pp.pkgquery("pkgspec") + " - display a dependency tree for " + pp.pkgquery("pkgspec")
     def longHelp(self):
         return "Display a dependency tree for a given package\n" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("depgraph") + yellow(" <local-opts> ") + turquoise("pkgspec") + \
+               "  " + pp.command("depgraph") + pp.localoption(" <local-opts> ") + pp.pkgquery("pkgspec") + \
                "\n" + \
-               yellow("<local-opts>") + " is either of: \n" + \
-               "  " + yellow("-U, --no-useflags") + " - do not show USE flags\n" + \
-               "  " + yellow("-l, --linear") + "      - do not use fancy formatting"
+               pp.localoption("<local-opts>") + " is either of: \n" + \
+               "  " + pp.localoption("-U, --no-useflags") + " - do not show USE flags\n" + \
+               "  " + pp.localoption("-l, --linear") + "      - do not use fancy formatting"
 
 class CmdDisplaySize(Command):
     """Display disk size consumed by a package"""
@@ -584,6 +590,9 @@ class CmdDisplaySize(Command):
     def perform(self, args):
         (query, opts) = self.parseArgs(args)
 
+        if not Config["piping"]:
+            print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
+
         matches = gentoolkit.find_packages(query, True)
 
         for pkg in matches:
@@ -596,29 +605,29 @@ class CmdDisplaySize(Command):
                 print_info(0, pkg.get_cpv() + ": total(" + str(files) + "), inaccessible(" + str(uncounted) + \
                     "), size(" + str(size) + ")")
             else:
-                print_info(0, "[ Size of " + pcpv(pkg.get_cpv()) + " ]")
-                print_info(0, string.rjust(" Total files : ",25) + number(str(files)))
+                print_info(0, pp.section("* ") + "size of " + pp.cpv(pkg.get_cpv()) + " ]")
+                print_info(0, string.rjust(" Total files : ",25) + pp.number(str(files)))
     
                 if uncounted:
-                    print_info(0, string.rjust(" Inaccessible files : ",25) + number(str(uncounted)))
+                    print_info(0, string.rjust(" Inaccessible files : ",25) + pp.number(str(uncounted)))
     
                 sz = "%.2f KiB" % (size/1024.0)                
                 if opts["reportSizeInBytes"]:
                     sz = number(str(size)) + " bytes"
                 
-                print_info(0, string.rjust("Total size  : ",25) + number(sz))
+                print_info(0, string.rjust("Total size  : ",25) + pp.number(sz))
 
                     
     def shortHelp(self):
-        return yellow("<local-opts> ") + pkgquery("pkgspec") + " - print size of files contained in package " + turquoise("pkgspec")
+        return pp.localoption("<local-opts> ") + pp.pkgquery("pkgspec") + " - print size of files contained in package " + pp.pkgquery("pkgspec")
     def longHelp(self):
         return "Print size total size of files contained in a given package" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("size") + yellow(" <local-opts> ") + turquoise("pkgspec") + \
+               "  " + pp.command("size") + pp.localoption(" <local-opts> ") + pp.pkgquery("pkgspec") + \
                "\n" + \
-               yellow("<local-opts>") + " is either of: \n" + \
-               "  " + yellow("-b, --bytes") + " - report size in bytes\n"
+               pp.localoption("<local-opts>") + " is either of: \n" + \
+               "  " + pp.localoption("-b, --bytes") + " - report size in bytes\n"
 
 class CmdDisplayChanges(Command):
     """Display changes for pkgQuery"""
@@ -678,7 +687,7 @@ class CmdCheckIntegrity(Command):
             if Config["piping"]:
                 print_info(0, pkg.get_cpv() + ":")
             else:
-                print_info(1, "[ Checking " + pcpv(pkg.get_cpv()) + " ]")
+                print_info(1, "[ Checking " + pp.cpv(pkg.get_cpv()) + " ]")
                 
             files = pkg.get_contents()
             checked_files = 0
@@ -709,9 +718,9 @@ class CmdCheckIntegrity(Command):
                             raise CheckException(file + " does not point to " + target)
                             
                     else:
-                        print_error(file)
-                        print_error(files[file])
-                        print_error(type)
+                        pp.print_error(file)
+                        pp.print_error(files[file])
+                        pp.print_error(type)
                         raise "Unknown type"
                     good_files += 1
                 except CheckException, (e):
@@ -719,12 +728,15 @@ class CmdCheckIntegrity(Command):
                 except OSError:
                     print_error(path(file) + " does not exist")
                 checked_files += 1
-            print_info(0, yellow(" * ") + pnumber(str(good_files)) + " out of " +  pnumber(str(checked_files)) + " files good")
+            print_info(0, pp.section(" * ") + pp.number(str(good_files)) + " out of " +  pp.number(str(checked_files)) + " files good")
                     
     def shortHelp(self):
-        return pkgquery("pkgspec") + " - check package's files against recorded MD5 sums and timestamps"
+        return pp.pkgquery("pkgspec") + " - check package's files against recorded MD5 sums and timestamps"
     def longHelp(self):
-        return "Check package's files against recorded MD5 sums and timestamps"
+        return "Check package's files against recorded MD5 sums and timestamps" + \
+                "\n" + \
+                "Syntax:\n" + \
+                "  " + pp.command("size") + pp.pkgquery(" pkgspec")
 
 class CmdDisplayStatistics(Command):
     """Display statistics about installed and uninstalled packages"""
@@ -774,9 +786,12 @@ class CmdWhich(Command):
             print_error("No masked or unmasked packages found for " + pkgquery(query))
                     
     def shortHelp(self):
-        return pkgquery("pkgspec") + " - print full path to ebuild for package " + pkgquery("pkgspec")
+        return pp.pkgquery("pkgspec") + " - print full path to ebuild for package " + pp.pkgquery("pkgspec")
     def longHelp(self):
-        return "Print full path to ebuild for a given package"
+        return "Print full path to ebuild for a given package" + \
+            "\n" + \
+            "Syntax:\n" + \
+            "  " + pp.command("size ") + pp.pkgquery("pkgspec")
 
 class CmdListGLSAs(Command):
     """List outstanding GLSAs."""
@@ -784,7 +799,168 @@ class CmdListGLSAs(Command):
 
 class CmdListDepends(Command):
     """List all packages directly or indirectly depending on pkgQuery"""
-    pass
+    def __init__(self):
+        self.default_opts = {
+            "onlyDirect": 1,
+            "onlyInstalled": 0
+            }
+
+    def parseArgs(self, args):
+
+        query = ""
+        need_help = 0
+        opts = self.default_opts
+        skip = 0
+         
+        for i in xrange(len(args)):
+            if skip:
+                skip -= 1
+                continue
+            x = args[i]
+             
+            if x in ["-h","--help"]:
+                need_help = 1
+                break
+            elif x in ["-d", "--direct"]:
+                opts["onlyDirect"] = 1
+            elif x in ["-D", "--indirect"]:
+                opts["onlyDirect"] = 0
+            elif x in ["-i", "--only-installed"]:
+                opts["onlyInstalled"] = 1
+            else:
+                query = x
+     
+        if need_help or query == "":
+            print self.longHelp()
+            sys.exit(-1)
+        return (query, opts)
+ 
+    def perform(self, args):
+        def subdeps(cpv, spacing):
+            "Find subdeps of a package"
+            cpvs=gentoolkit.split_package_name(cpv) 
+ 
+            catname = cpvs[0]+"/"+cpvs[1]
+            if depscache.has_key(catname):
+                isdep = 0
+                for dep in depscache[catname]:
+                    pkg = dep[0]
+                    x = dep[1]
+                    if string.find(x[2],"/") != -1 and \
+                           portage.match_from_list(x[0]+x[2], [cpv]):
+                        if x[1]:
+                            print spacing+pkg.get_cpv(),
+                            if Config["verbosityLevel"] >= 4:
+                                print " (" +string.join(x[1],"&")+ " ? " + x[0]+x[2] + ")"
+                            else:
+                                print
+                        else:
+                            print spacing+pkg.get_cpv(),
+                            if Config["verbosityLevel"] >= 4:
+                                print " (" + x[0]+x[2] + ")"
+                            else:
+                                print
+                        isdep = 1
+                    if isdep:
+                        subdeps(pkg.get_cpv(), spacing+" ")
+  
+ 
+        (query, opts) = self.parseArgs(args)
+ 
+        if not Config["piping"]:
+            print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
+ 
+        isdepend = gentoolkit.split_package_name(query)
+ 
+        
+        if opts["onlyInstalled"]:
+            packages = gentoolkit.find_all_installed_packages()
+        else:
+            packages = gentoolkit.find_all_packages()
+ 
+        if not opts["onlyDirect"]:
+            print_info(4, "Caching indirect dependencies...")
+            depscache = {"":[]}
+            for pkg in packages:
+                
+                print_info(1, pp.section("* ") + "Dependencies for " + pp.cpv(pkg.get_cpv()) + ":")
+
+                try:
+                    deps = pkg.get_runtime_deps()
+                except KeyError, e:
+                    # If the ebuild is not found... 
+                    continue
+                for x in deps:
+                    cpvs=gentoolkit.split_package_name(x[2]) 
+                    #print cpvs
+                    catname = cpvs[0]+"/"+cpvs[1]
+                    if depscache.has_key(catname):
+                        depscache[catname].append((pkg,x))
+                    else:
+                        depscache[catname] = [(pkg,x)]
+            print "done"
+ 
+        for pkg in packages:
+            try:
+                deps = pkg.get_runtime_deps()
+            except KeyError, e:
+                # If the ebuild is not found... 
+                continue
+            isdep = 0
+            for x in deps:
+                cpvs=gentoolkit.split_package_name(x[2])
+                cat_match=0
+                ver_match=0
+                name_match=0
+                if not isdepend[0] or \
+                    string.find(cpvs[0], isdepend[0]) == 0:
+                    cat_match=1
+                if not isdepend[2] or \
+                    ( string.find(cpvs[2],isdepend[2]) == 0 and \
+                      (isdepend[3] or \
+                       isdepend[3] == "r0" or \
+                       string. find(cpvs[3],isdepend[3]) == 0)):
+                      ver_match=1
+                if string.find(cpvs[1], isdepend[1]) == 0:
+                     name_match=1
+                if cat_match and ver_match and name_match:
+                     if not isdep:
+                         if x[1]:
+                             print pkg.get_cpv(),
+                             if Config["verbosityLevel"] >= 4:
+                                   print " (" +string.join(x[1],"&")+ " ? " + x[0]+x[2] + ")"
+                             else:
+                                 print
+                         else:
+                             print pkg.get_cpv(),
+                             if Config["verbosityLevel"] >= 4:
+                                 print " (" + x[0]+x[2] + ")"
+                             else:
+                                 print
+                         isdep = 1
+                     elif Config["verbosityLevel"] >= 4:
+                         if x[1]:
+                             print " "*len(pkg.get_cpv()) + " (" +string.join(x[1],"&")+ " ? " + x[0]+x[2] + ")"
+                         else:
+                             print " "*len(pkg.get_cpv()) + " (" + x[0]+x[2] + ")"    
+            if isdep and not opts["onlyDirect"] :
+                 subdeps(pkg.get_cpv(), " ")
+ 
+ 
+    def shortHelp(self):
+        return pp.localoption("<local-opts> ") + pp.pkgquery("pkgspec") + " - list all direct dependencies matching " + pp.pkgquery("pkgspec")
+     
+    def longHelp(self):
+         return "List all direct dependencies matching a query pattern" + \
+                "\n" + \
+                "Syntax:\n" + \
+                "  " + pp.command("depends") + pp.localoption(" <local-opts> ") + pp.pkgquery("pkgspec") + \
+                "\n" + \
+                pp.localoption("<local-opts>") + " is either of: \n" + \
+                "  " + pp.localoption("-d, --direct") + "             - search direct dependencies only (default)\n" + \
+                "  " + pp.localoption("-D, --indirect") + "           - search indirect dependencies (VERY slow)\n" + \
+                "  " + pp.localoption("-i, --only-installed") + "     - search installed in installed packages only\n"
+
 
 class CmdListPackages(Command):
     """List packages satisfying pkgQuery"""
@@ -878,13 +1054,13 @@ class CmdListPackages(Command):
             if name == ".*":
                 sname = "all packages"
             if not Config["piping"]:
-                print_info(1, "Searching for " + pcpv(sname) + " in " + pcpv(scat) + " among:")
+                print_info(1, "Searching for " + pp.cpv(sname) + " in " + pp.cpv(scat) + " among:")
                 if opts["includeInstalled"]:
-                    print_info(1, turquoise(" *") + " installed packages")
+                    print_info(1, pp.section(" *") + " installed packages")
                 if opts["includePortTree"]:
-                    print_info(1, turquoise(" *") + " Portage tree (" + path(gentoolkit.settings["PORTDIR"]) + ")")
+                    print_info(1, pp.section(" *") + " Portage tree (" + pp.path(gentoolkit.settings["PORTDIR"]) + ")")
                 if opts["includeOverlayTree"]:
-                    print_info(1, turquoise(" *") + " overlay tree (" + path(gentoolkit.settings["PORTDIR_OVERLAY"]) + ")")
+                    print_info(1, pp.section(" *") + " overlay tree (" + pp.path(gentoolkit.settings["PORTDIR_OVERLAY"]) + ")")
         
         matches = package_finder(filter_fn)
 
@@ -920,21 +1096,21 @@ class CmdListPackages(Command):
                     if Config["piping"]:
                         print_info(0, pkg.get_cpv())
                     else:
-                        print_info(0, "[" + pinstalledflag(pfxmodes[status]) + "] [" + pmaskflag(maskmodes[pkgmask]) + "] " + pcpv(pkg.get_cpv()) + " (" + pslot(slot) + ")")
+                        print_info(0, "[" + pp.installedflag(pfxmodes[status]) + "] [" + pp.maskflag(maskmodes[pkgmask]) + "] " + pp.cpv(pkg.get_cpv()) + " (" + pp.slot(slot) + ")")
                     
     def shortHelp(self):
-        return yellow("<local-opts> ") + turquoise("pkgspec") + " - list all packages matching " + turquoise("pkgspec")
+        return pp.localoption("<local-opts> ") + pp.pkgquery("pkgspec") + " - list all packages matching " + pp.pkgquery("pkgspec")
     def longHelp(self):
         return "List all packages matching a query pattern" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("list") + yellow(" <local-opts> ") + turquoise("pkgspec") + \
+               "  " + pp.command("list") + pp.localoption(" <local-opts> ") + pp.pkgquery("pkgspec") + \
                "\n" + \
-               yellow("<local-opts>") + " is either of: \n" + \
-               "  " + yellow("-i, --installed") + "         - search installed packages (default)\n" + \
-               "  " + yellow("-I, --exclude-installed") + " - do not search installed packages\n" + \
-               "  " + yellow("-p, --portage-tree") + "      - also search in portage tree (" + gentoolkit.settings["PORTDIR"] + ")\n" + \
-               "  " + yellow("-o, --overlay-tree") + "      - also search in overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")\n"
+               pp.localoption("<local-opts>") + " is either of: \n" + \
+               "  " + pp.localoption("-i, --installed") + "         - search installed packages (default)\n" + \
+               "  " + pp.localoption("-I, --exclude-installed") + " - do not search installed packages\n" + \
+               "  " + pp.localoption("-p, --portage-tree") + "      - also search in portage tree (" + gentoolkit.settings["PORTDIR"] + ")\n" + \
+               "  " + pp.localoption("-o, --overlay-tree") + "      - also search in overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")\n"
 
 class CmdFindUSEs(Command):
     """Find all packages with a particular USE flag."""
@@ -1011,13 +1187,13 @@ class CmdFindUSEs(Command):
             if cat == ".*":
                 scat = "all categories"
             if not Config["piping"]:
-                print_info(2, "Searching for USE flag " + puseflag(query)  + " in " + pcpv(scat) + " among:")
+                print_info(2, "Searching for USE flag " + pp.useflag(query)  + " in " + pp.cpv(scat) + " among:")
                 if opts["includeInstalled"]:
-                    print_info(1, turquoise(" *") + " installed packages")
+                    print_info(1, pp.section(" *") + " installed packages")
                 if opts["includePortTree"]:
-                    print_info(1, turquoise(" *") + " Portage tree (" + path(gentoolkit.settings["PORTDIR"]) + ")")
+                    print_info(1, pp.section(" *") + " Portage tree (" + pp.path(gentoolkit.settings["PORTDIR"]) + ")")
                 if opts["includeOverlayTree"]:
-                    print_info(1, turquoise(" *") + " overlay tree (" + path(gentoolkit.settings["PORTDIR_OVERLAY"]) + ")")
+                    print_info(1, pp.section(" *") + " overlay tree (" + pp.path(gentoolkit.settings["PORTDIR_OVERLAY"]) + ")")
         
         matches = package_finder(filter_fn)
 
@@ -1062,21 +1238,21 @@ class CmdFindUSEs(Command):
                 if Config["piping"]:
                     print_info(0, pkg.get_cpv())
                 else:
-                    print_info(0, "[" + pinstalledflag(pfxmodes[status]) + "] [" + pmaskflag(maskmodes[pkgmask]) + "] " + pcpv(pkg.get_cpv()) + " (" + pnumber(slot) + ")")
+                    print_info(0, "[" + pp.installedflag(pfxmodes[status]) + "] [" + pp.maskflag(maskmodes[pkgmask]) + "] " + pp.cpv(pkg.get_cpv()) + " (" + pp.slot(slot) + ")")
                     
     def shortHelp(self):
-        return yellow("<local-opts> ") + turquoise("pkgspec") + " - list all packages with " + turquoise("useflag")
+        return pp.localoption("<local-opts> ") + pp.pkgquery("pkgspec") + " - list all packages with " + pp.pkgquery("useflag")
     def longHelp(self):
         return "List all packages with a particular USE flag" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("list") + yellow(" <local-opts> ") + turquoise("pkgspec") + \
+               "  " + pp.command("list") + pp.localoption(" <local-opts> ") + pp.pkgquery("useflag") + \
                "\n" + \
-               yellow("<local-opts>") + " is either of: \n" + \
-               "  " + yellow("-i, --installed") + "         - search installed packages (default)\n" + \
-               "  " + yellow("-I, --exclude-installed") + " - do not search installed packages\n" + \
-               "  " + yellow("-p, --portage-tree") + "      - also search in portage tree (" + gentoolkit.settings["PORTDIR"] + ")\n" + \
-               "  " + yellow("-o, --overlay-tree") + "      - also search in overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")\n"
+               pp.localoption("<local-opts>") + " is either of: \n" + \
+               "  " + pp.localoption("-i, --installed") + "         - search installed packages (default)\n" + \
+               "  " + pp.localoption("-I, --exclude-installed") + " - do not search installed packages\n" + \
+               "  " + pp.localoption("-p, --portage-tree") + "      - also search in portage tree (" + gentoolkit.settings["PORTDIR"] + ")\n" + \
+               "  " + pp.localoption("-o, --overlay-tree") + "      - also search in overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")\n"
 
 #
 #
@@ -1129,16 +1305,16 @@ def printVersion():
     
 def printUsage():
     """Print full usage information for this tool to the console."""
-    print_info(0, white("Usage: ") + turquoise(__productname__) + yellow(" <global-opts> ") + green("command") + yellow(" <local-opts>"))
-    print_info(0, "where " + yellow("<global-opts>") + " is one of")
-    print_info(0, yellow(" -q, --quiet") + "   - minimal output")
-    print_info(0, yellow(" -C, --nocolor") + " - turn off colours")
-    print_info(0, yellow(" -h, --help") + "    - this help screen")
-    print_info(0, yellow(" -V, --version") + " - display version info")
+    print_info(0, pp.emph("Usage: ") + pp.productname(__productname__) + pp.globaloption(" <global-opts> ") + pp.command("command") + pp.localoption(" <local-opts>"))
+    print_info(0, "where " + pp.globaloption("<global-opts>") + " is one of")
+    print_info(0, pp.globaloption(" -q, --quiet") + "   - minimal output")
+    print_info(0, pp.globaloption(" -C, --nocolor") + " - turn off colours")
+    print_info(0, pp.globaloption(" -h, --help") + "    - this help screen")
+    print_info(0, pp.globaloption(" -V, --version") + " - display version info")
     
-    print_info(0, "where " + green("command") + " is one of")
+    print_info(0, "where " + pp.command("command") + " is one of")
     for x in Known_commands.keys():
-        print_info(0, " " + green(x) + " " + Known_commands[x].shortHelp())
+        print_info(0, " " + pp.command(x) + " " + Known_commands[x].shortHelp())
 
 def configure():
     """Set up default configuration.
@@ -1150,7 +1326,7 @@ def configure():
          (gentoolkit.settings["NOCOLOR"] in ["yes","true"]))) \
          or \
          Config["color"] == 0:
-            nocolor()
+            pp.output.nocolor()
 
     # Guess piping output
     if not sys.stdout.isatty():
@@ -1235,3 +1411,4 @@ if __name__ == "__main__":
     else:
         print_error("No command or unknown command given")
         printUsage()
+  
