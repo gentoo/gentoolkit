@@ -1,0 +1,48 @@
+=head1 NAME
+
+eviewcvs - Gentoo: generate viewcvs URLs
+
+=head1 SYNOPSIS
+
+eviewcvs [ I<files...> ]
+
+=head1 DESCRIPTION
+
+This tool generates a list of viewcvs URLs based on the files listed, or all the
+files in the current directory if the file list is omitted.  The first part of
+the output, hilighted in green, is the simple URLs to view the files.  The
+second part of the output, hilighted in blue, is the URLs to view the diffs
+against the previous revision.
+
+=head1 OPTIONS
+
+Presently eviewcvs is simple enough that it supplies no options.
+Probably I'll add B<--help> and B<--version> in the future, but for
+now it's enough to track the gentoolkit version.
+
+=head1 EXAMPLES
+
+To generate viewcvs URLs for a given file:
+
+  $ eviewcvs package.mask
+  http://www.gentoo.org/cgi-bin/viewcvs.cgi/profiles/package.mask?rev=1.3716&content-type=text/vnd.viewcvs-markup
+  http://www.gentoo.org/cgi-bin/viewcvs.cgi/profiles/package.mask?r1=1.3715&r2=1.3716
+
+To generate viewcvs URLs for all files in a directory:
+
+  $ cd portage/net-misc/keychain
+  $ eviewcvs
+  http://www.gentoo.org/cgi-bin/viewcvs.cgi/net-misc/keychain/ChangeLog?rev=1.41&content-type=text/vnd.viewcvs-markup
+  http://www.gentoo.org/cgi-bin/viewcvs.cgi/net-misc/keychain/Manifest?rev=1.54&content-type=text/vnd.viewcvs-markup
+  http://www.gentoo.org/cgi-bin/viewcvs.cgi/net-misc/keychain/keychain-2.5.1.ebuild?rev=1.3&content-type=text/vnd.viewcvs-markup
+  http://www.gentoo.org/cgi-bin/viewcvs.cgi/net-misc/keychain/keychain-2.5.3.1.ebuild?rev=1.1&content-type=text/vnd.viewcvs-markup
+  http://www.gentoo.org/cgi-bin/viewcvs.cgi/net-misc/keychain/metadata.xml?rev=1.2&content-type=text/vnd.viewcvs-markup
+  http://www.gentoo.org/cgi-bin/viewcvs.cgi/net-misc/keychain/ChangeLog?r1=1.40&r2=1.41
+  http://www.gentoo.org/cgi-bin/viewcvs.cgi/net-misc/keychain/Manifest?r1=1.53&r2=1.54
+  http://www.gentoo.org/cgi-bin/viewcvs.cgi/net-misc/keychain/keychain-2.5.1.ebuild?r1=1.2&r2=1.3
+  http://www.gentoo.org/cgi-bin/viewcvs.cgi/net-misc/keychain/metadata.xml?r1=1.1&r2=1.2
+
+=head1 AUTHOR
+
+This tool was written by Aron Griffis <agriffis@gentoo.org>.  Bugs
+found should be filed against me at http://bugs.gentoo.org/
