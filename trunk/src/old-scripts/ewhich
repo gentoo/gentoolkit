@@ -10,10 +10,8 @@
 import portage,sys,os
 from output import *
 
-print
-print red("!!! As of Gentoolkit 0.2.0 this tool is deprecated")
-print red("!!! ") + "Refer to 'equery which' for a replacement"
-print 
+sys.stderr.write("\n" + red("!!!") + " As of Gentoolkit 0.2.0 this tool is deprecated\n")
+sys.stderr.write(red("!!!") + " Refer to 'equery which' for a replacement\n\n") 
 
 def print_help():
 	print
