@@ -1,3 +1,10 @@
+12 Apr 2004 Aron Griffis <agriffis@gentoo.org>
+	* Add ability to remove keywords with ^, for example:
+	  ekeyword ^alpha blah.ebuild
+	* Add support for -*, for example: ekeyword -* would add it;
+	  ekeyword ^* would remove it.
+	* Add a man-page for ekeyword
+
 09 Apr 2004 Aron Griffis <agriffis@gentoo.org>
 	* Add ability to modify all keywords via all, ~all, or -all, for
 	  example: ekeyword -all ~alpha ia64 blah.ebuild

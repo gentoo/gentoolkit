@@ -1,0 +1,74 @@
+=head1 NAME
+
+ekeyword - Gentoo: modify package KEYWORDS
+
+=head1 SYNOPSIS
+
+ekeyword { arch|~arch|-arch|^arch } ebuild...
+
+=head1 DESCRIPTION
+
+This tool provides a simple way to add or update KEYWORDS in a set of
+ebuilds.  Each command-line argument is processed in order, so that
+keywords are added to the current list as they appear, and ebuilds are
+processed as they appear.
+
+Instead of specifying a specific arch, it's possible to use the word
+"all".  This causes the change to apply to all keywords presently
+specified in the ebuild.
+
+The ^ leader instructs ekeyword to remove the specified arch.
+
+=head1 OPTIONS
+
+Presently ekeyword is simple enough that it supplies no options.
+Probably I'll add B<--help> and B<--version> in the future, but for
+now it's enough to track the gentoolkit version.
+
+=head1 EXAMPLES
+
+To mark a single arch stable:
+
+  $ ekeyword alpha metalog-0.7-r1.ebuild
+  metalog-0.7-r1.ebuild
+  < KEYWORDS="~x86 ~ppc ~sparc ~alpha ~mips ~hppa ~amd64 ~ia64"
+  ---
+  > KEYWORDS="~x86 ~ppc ~sparc alpha ~mips ~hppa ~amd64 ~ia64"
+
+When bumping a package, to mark all arches for testing:
+
+  $ ekeyword ~all metalog-0.7-r2.ebuild
+  metalog-0.7-r2.ebuild
+  < KEYWORDS="x86 ppc sparc alpha mips hppa amd64 ia64"
+  ---
+  > KEYWORDS="~x86 ~ppc ~sparc ~alpha ~mips ~hppa ~amd64 ~ia64"
+
+To signify that a package is broken for all arches except one:
+
+  $ ekeyword ^all -* ~x86 metalog-0.7-r3.ebuild
+  metalog-0.7-r3.ebuild
+  < KEYWORDS="~x86 ~ppc ~sparc ~alpha ~mips ~hppa ~amd64 ~ia64"
+  ---
+  > KEYWORDS="-* ~x86"
+
+To do lots of things at once:
+
+  $ ekeyword alpha metalog-0.7-r1.ebuild \
+      ~all metalog-0.7-r2.ebuild ^all -* ~x86 metalog-0.7-r3.ebuild
+  metalog-0.7-r1.ebuild
+  < KEYWORDS="~x86 ~ppc ~sparc ~alpha ~mips ~hppa ~amd64 ~ia64"
+  ---
+  > KEYWORDS="~x86 ~ppc ~sparc alpha ~mips ~hppa ~amd64 ~ia64"
+  metalog-0.7-r2.ebuild
+  < KEYWORDS="x86 ppc sparc alpha mips hppa amd64 ia64"
+  ---
+  > KEYWORDS="~x86 ~ppc ~sparc ~alpha ~mips ~hppa ~amd64 ~ia64"
+  metalog-0.7-r3.ebuild
+  < KEYWORDS="~x86 ~ppc ~sparc ~alpha ~mips ~hppa ~amd64 ~ia64"
+  ---
+  > KEYWORDS="-* ~x86"
+
+=head1 NOTES
+
+This tool was written by Aron Griffis <agriffis@gentoo.org>.  Bugs
+found should be filed against me at http://bugs.gentoo.org/

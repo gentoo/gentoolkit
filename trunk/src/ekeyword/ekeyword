@@ -12,7 +12,8 @@
 #   > KEYWORDS="x86 ppc sparc ~alpha"
 
 
-my ($kw_re) = '^[-~]?\w+$';
+my ($kw_re) = '^(?:([-~^]?)(\w+)|([-^]\*))$';
+my (@kw);
 
 # make sure the cmdline consists of keywords and ebuilds
 unless (@ARGV > 1 && $ARGV[0] =~ /$kw_re/o) {
@@ -30,37 +31,77 @@ for my $f (@ARGV) {
 	next;
     }
 
+    print "$f\n";
+
     open I, "<$f"       or die "Can't read $f: $!\n";
     open O, ">$f.new"   or die "Can't create $f.new: $!\n";
     select O;
 
     while (<I>) {
 	/^KEYWORDS/ or print, next;
+
+	# extract the quoted section from KEYWORDS
+	(my $quoted = $_) =~ s/^.*["'](.*?)["'].*/$1/s;
+
+	# replace -* with -star for our convenience below
+	$quoted =~ s/-\*/-star/;
+
 	for my $k (@kw) {
-	    (my $arch = $k) =~ s/^[-~]//;
-	    if ($arch eq 'all') {
-		# remove "all" so that only leader is left (blank, ~ or -)
-		$k =~ s/all//;
+	    my ($leader, $arch, $star) = ($k =~ /$kw_re/o);
 
-		# extract the quoted section from KEYWORDS
-		(my $quoted = $_) =~ s/^.*["'](.*?)["'].*/$1/s;
+	    # handle -* and ^*
+	    if (defined $star) {
+		$leader = substr $star,0,1;
+		$arch = 'star';
+	    }
 
-		# modify every keyword in the list
-		$quoted =~ s/(^|\s)[-~]?(?=\w)/$1$k/g;
+	    # remove keywords
+	    if ($leader eq '^') {
+		if ($arch eq 'all') {
+		    $quoted = '';
+		} else {
+		    $quoted =~ s/[-~]?\Q$arch\E\b//;
+		}
+	    }
 
-		# re-insert to KEYWORDS
-		s/(["']).*?["']/$1$quoted$1/;
-	    } else {
-		# modify just one keyword
-		s/[-~]?$arch\b/$k/ || s/(.*?['"].*?)\s*(?=['"])/$1 $k/;
+	    # add or modify keywords
+	    else {
+		if ($arch eq 'all') {
+		    # modify every keyword in the list
+		    $quoted =~ s/(^|\s)[-~]?(?=\w)/$1$leader/g;
+		} else {
+		    # modify or add keyword
+		    unless ($quoted =~ s/[-~]?\Q$arch\E\b/$leader$arch/) {
+			# modification failed, need to add
+			if ($arch eq 'star') {
+			    $quoted = "$leader$arch $quoted";
+			} else {
+			    $quoted .= " $leader$arch";
+			}
+		    }
+		}
 	    }
 	}
+
+	# replace -star with -*
+	$quoted =~ s/-star\b/-*/;
+
+	# fixup spacing
+	$quoted =~ s/^\s*(.*?)\s*$/$1/;	# leading/trailing
+	$quoted =~ s/\s+/ /g;		# inner
+
+	# re-insert quoted to KEYWORDS
+	s/(["']).*?["']/$1$quoted$1/;
+
 	print $_, <I> or die "Can't write $f.new: $!\n";
     }
 
     close I;
     close O;
+    select STDOUT;
 
-    system "diff $f $f.new"; # don't die because the files might be the same
+    system "diff $f $f.new | grep -v '^[0-1]'";
     rename "$f.new", "$f"       or die "Can't rename: $!\n";
 }
+
+# vim:ts=8 sw=4
