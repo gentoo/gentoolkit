@@ -143,7 +143,7 @@ class Package:
 		if len(r)!=1:
 			raise "Should only get one element!"
 		return r[0]
-	def get_use_vars(self):
+	def get_use_flags(self):
 		"""Returns the USE flags active at time of installation"""
 		self._initdb()
 		if self.is_installed():
