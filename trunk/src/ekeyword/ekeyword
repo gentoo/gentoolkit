@@ -16,7 +16,7 @@ my ($kw_re) = '^[-~]?\w+$';
 
 # make sure the cmdline consists of keywords and ebuilds
 unless (@ARGV > 1 && $ARGV[0] =~ /$kw_re/o) {
-    die "syntax: ekeyword { arch | ~arch | -arch } ebuild...\n" 
+    die "syntax: ekeyword { arch | ~[arch] | -[arch] } ebuild...\n" 
 }
 for my $a (@ARGV) {
     next if $a =~ /$kw_re/o;		# keyword
@@ -38,7 +38,22 @@ for my $f (@ARGV) {
 	/^KEYWORDS/ or print, next;
 	for my $k (@kw) {
 	    (my $arch = $k) =~ s/^[-~]//;
-	    s/[-~]?$arch\b/$k/ || s/(.*?['"].*?)\s*(?=['"])/$1 $k/;
+	    if ($arch eq 'all') {
+		# remove "all" so that only leader is left (blank, ~ or -)
+		$k =~ s/all//;
+
+		# extract the quoted section from KEYWORDS
+		(my $quoted = $_) =~ s/^.*["'](.*?)["'].*/$1/s;
+
+		# modify every keyword in the list
+		$quoted =~ s/(^|\s)[-~]?(?=\w)/$1$k/g;
+
+		# re-insert to KEYWORDS
+		s/(["']).*?["']/$1$quoted$1/;
+	    } else {
+		# modify just one keyword
+		s/[-~]?$arch\b/$k/ || s/(.*?['"].*?)\s*(?=['"])/$1 $k/;
+	    }
 	}
 	print $_, <I> or die "Can't write $f.new: $!\n";
     }
