@@ -83,7 +83,7 @@ if (@ebuilds) {
 				last if /^[A-Za-z]/;
 				if (/^[-+](?!# Copyright)/) {
 					push @files, $f;
-					$versions{$v} = $0;	# existing ebuild that has changed
+					$versions{$v} = 0;	# existing ebuild that has changed
 					last;
 				}
 			}

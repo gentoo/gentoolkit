@@ -1,3 +1,6 @@
+21 Mar 2004 Aron Griffis <agriffis@gentoo.org>
+	* Fix typo $0 -> 0
+
 19 Mar 2004 Aron Griffis <agriffis@gentoo.org>
 	* Remove debugging output
 	* Fix $v bug introduced in last commit
