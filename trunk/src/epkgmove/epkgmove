@@ -8,6 +8,7 @@
 #
 
 import os
+import re
 import sys
 import signal
 import commands
@@ -21,7 +22,7 @@ from output import *
 __author__	=	"Ian Leitch"
 __email__ 	=	"port001@gentoo.org"
 __productname__ =	"epkgmove"
-__version__	=	"1.0 - \"The version ciaranm dreamed about.\""
+__version__	=	"1.1 - \"p-p-puffin da 'erb\""
 __description__ =	"A tool for moving and renaming packages in CVS"
 
 def print_usage():
@@ -75,6 +76,8 @@ def check_args(args, portdir, options, cvscmd):
 	    error("No such package '%s'" % args[0].rstrip("/"))
 	    sys.exit(1)
 	else:
+            if not options.cvs_up:
+                update_categories(portdir, args, cvscmd["update"])
             return (args[0].rstrip("/"), None)
 
     if len(args) == 2:
@@ -146,11 +149,14 @@ def update_categories(portdir, catpkgs, cvsupcmd):
     print
     print "%s Updating categories: " % green(" *")
 
-    if catpkgs[0].split("/", 1)[0] == catpkgs[1].split("/", 1)[0]:
-        my_catpkgs.append(catpkgs[0])
+    if len(catpkgs) >= 2:
+        if catpkgs[0].split("/", 1)[0] == catpkgs[1].split("/", 1)[0]:
+            my_catpkgs.append(catpkgs[0])
+        else:
+            my_catpkgs.append(catpkgs[0])
+	    my_catpkgs.append(catpkgs[1])
     else:
         my_catpkgs.append(catpkgs[0])
-	my_catpkgs.append(catpkgs[1])
 
     for catpkg in my_catpkgs:
         (category, package) = catpkg.split("/", 1)
@@ -179,7 +185,8 @@ def do_cmd(cmd):
     if status != 0:
         error("Command '%s' failed with exit status %d." % (cmd, status))
 	for line in output.split("\n"):
-	    print "    %s %s" % (red("!"), line)
+	    if line != "":
+	        print "    %s %s" % (red("!"), line)
 	sys.exit(1)
        
 class Package:
@@ -274,7 +281,7 @@ class Package:
 	    for dep in deps:
 	        print "%s %s" % (red("       !"), dep)
 	    if self._options.force:
-	        print "%s Are you sure you wish to force removal of this package?" % yellow("    *"),
+	        print "%s Are you sure you wish to force removal of this package?" % yellow("   *"),
 		try:
 		    choice = raw_input("(Yes/No): ")
 		except KeyboardInterrupt:
@@ -292,6 +299,7 @@ class Package:
     def _perform_move(self):
 
         self.__add_new_package()
+        self.__update_dependents(self.__get_reverse_deps())
 	self.__remove_old_package()
 	
     def _perform_move_rename(self):
@@ -611,8 +619,6 @@ class Package:
 
     def __update_dependents(self, dep_list):
 
-        new_contents = []
-
         if len(dep_list) <= 0:
 	    return
         
@@ -621,6 +627,7 @@ class Package:
 
         for dep in dep_list:
 	    print "      >>> %s" % dep
+	    new_contents = []
 	    (category, pkg) = dep.split("/")
 	    pkg_split = portage.pkgsplit(pkg)
 	    os.chdir(self._portdir)
@@ -710,7 +717,22 @@ class Package:
         os.chdir("..")
 
         print "%s Commiting changes..." % green("     *")
-        do_cmd("%s 'Moved to %s.'" % (self._cvscmd["commit"], self._new_catpkg))
+	if self._options.remove:
+	    explanation = ""
+	    while(1):
+	        print "%s Please provide an explanation for this removal:" % yellow("       *"),
+		try:
+		    explanation = raw_input("")
+		    explanation = explanation.replace("'", "\\'").replace('"', '\\"')
+    		except KeyboardInterrupt:
+		    print
+		    error("Interrupted by user.")
+		    sys.exit(1)
+		if explanation != "":
+		    break
+            do_cmd("""%s "Removed from %s: %s" """ % (self._cvscmd["commit"], self._old_category, explanation))
+        else:
+	    do_cmd("%s 'Moved to %s.'" % (self._cvscmd["commit"], self._new_catpkg))
         do_cmd("rm -rf %s" % os.path.join(self._portdir, self._old_catpkg))
 
         print "%s Checking for remnant files..." % (green("     *"))
@@ -720,7 +742,7 @@ class Package:
 	    if not self._action == "REMOVE":
                 print "%s %s successfully removed from CVS." % (green("   *"), turquoise(self._old_catpkg))
         else:
-            error("Remnants of %s still remain in CVS." % (turquoise(location)))
+            error("Remnants of %s still remain in CVS." % (turquoise(self._old_catpkg)))
 
     def __add_new_package(self):
 
