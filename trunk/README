@@ -17,11 +17,13 @@ dep-clean           - cleans out unwanted dependencies
 emerge-rsync        - coloured output of changes in last rsync
 emerge-webrsync     - rsync-over-http 
 epm                 - rpm-like query tool
+etcat               - extracts auxillary information from portage
 etc-update          - keeps your /etc up to date after package installs
 pkg-clean           - cleans packages
 pkg-size            - calculates size of an installed package
 portage-statistics  - shows various statistics about the Portage Tree
 qpkg                - convient package query tool
+revdep-rebuild      - scans/fixes broken shared libs and binaries
 useflag             - tool for handling use flag settings
 
 
