@@ -59,7 +59,7 @@ while (<C>) {
     push @files, $2;
     ($actions{$2} = $1) =~ tr/ARMC/+-/d;
 }
-if (@unknown) {
+if (grep !/files.digest|Manifest/, @unknown) {
     print STDERR <<EOT;
 Cvs reports the following unknown files.  Please use "cvs add" before
 running echangelog, or remove the files in question.
@@ -257,7 +257,7 @@ unless ($user = $ENV{'ECHANGELOG_USER'}) {
 }
 # Make sure that we didn't get "root"
 die "Please set ECHANGELOG_USER or run as non-root\n" if $user =~ /<root@/;
-$date = strftime("%d %b %Y", localtime);
+$date = strftime("%d %b %Y", gmtime);
 $entry = "$date; $user ";
 $entry .= join ', ', map "$actions{$_}$_", grep !/files.digest|Manifest/, @files;
 $entry .= ':';
