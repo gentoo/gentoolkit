@@ -130,6 +130,8 @@ class SyncSourceManager:
 			if x.id == source_id:
 				return x
 		return None
+	def get_all_sync_sources(self):
+		return self.sources
 		
 def print_version():
 	print __productname__ + "(" + __version__ + ") - " + \
@@ -140,6 +142,7 @@ def print_usage():
 	print white("Usage: ") + turquoise(__productname__) + \
 	      yellow(" <options> ") + green("repo-id-1 repo-id-2 ...")
 	print "where " + yellow("<options>") + " is one of"
+	print yellow(" -a, --all-sources") + "  - sync all know sources"
 	print yellow(" -l, --list-sources") + " - list known rsync sources"
 	print yellow(" -C, --no-color") + "      - turn off colours"
 	print yellow(" -h, --help") + "         - this help screen"
@@ -164,6 +167,8 @@ def parse_args(cliargs):
 			break
 		elif x in ["-l", "--list-sources"]:
 			cmd = "list-sources"
+		elif x in ["-a", "--all-sources"]:
+			cmd = "all-sources"
 		else:
 			args.append(x)
 	return (cmd, args, options)
@@ -199,6 +204,11 @@ def main():
 				print "Syncing '%s' into '%s'" % \
 				      (repo.id, repo.overlay)
 				repo.perform_sync()
+	elif cmd == "all-sources":
+		for repo in ssmgr.get_all_sync_sources():
+			print "Syncing '%s' into '%s'" % \
+			      (repo.id, repo.overlay)
+			repo.perform_sync()
 	else:
 		print red("Unknown command '" + cmd + "'")
 
