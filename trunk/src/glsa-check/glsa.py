@@ -315,12 +315,12 @@ def revisionMatch(revisionAtom, portdb):
 	@rtype:		list of strings
 	@return:	a list with the matching versions
 	"""
-	mylist = portdb.match(revisionAtom[2:])
+	mylist = portdb.match(re.sub("-r[0-9]+$", "", revisionAtom[2:]))
 	rValue = []
 	for v in mylist:
 		r1 = "\""+portage.pkgsplit(v)[-1]+"\""
 		r2 = "\""+portage.pkgsplit(revisionAtom[3:])[-1]+"\""
-		if eval(r1+" "+revisionAtom[0:1]+" "+r2):
+		if eval(r1+" "+revisionAtom[0:2]+" "+r2):
 			rValue.append(v)
 	return rValue
 		
