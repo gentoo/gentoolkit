@@ -11,10 +11,10 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/euse/
-	cp {Makefile,AUTHORS,README,TODO,ChangeLog,euse,euse.1} ../../$(distdir)/src/euse/
+	cp Makefile AUTHORS README TODO ChangeLog euse euse.1 ../../$(distdir)/src/euse/
 
 install:
 	install -m 0755 euse $(bindir)/
 	install -d $(docdir)/euse
-	install -m 0644 {README,AUTHORS,TODO,ChangeLog} $(docdir)/euse/
+	install -m 0644 README AUTHORS TODO ChangeLog $(docdir)/euse/
 	install -m 0644 euse.1 $(mandir)/

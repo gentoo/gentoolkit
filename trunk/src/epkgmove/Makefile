@@ -11,10 +11,10 @@ all:
 
 dist: 
 	mkdir -p ../../$(distdir)/src/epkgmove/
-	cp {Makefile,AUTHORS,README,TODO,ChangeLog,epkgmove} ../../$(distdir)/src/epkgmove/
+	cp Makefile AUTHORS README TODO ChangeLog epkgmove ../../$(distdir)/src/epkgmove/
 
 install: all
 	install -m 0755 epkgmove $(bindir)/
 	install -d $(docdir)/epkgmove
-	install -m 0644 {AUTHORS,README,TODO,ChangeLog} $(docdir)/epkgmove/
+	install -m 0644 AUTHORS README TODO ChangeLog $(docdir)/epkgmove/
 #	install -m 0644 epkgmove.1 $(mandir)/

@@ -14,10 +14,10 @@ all: echangelog.1
 
 dist: echangelog.1
 	mkdir -p ../../$(distdir)/src/echangelog/
-	cp {Makefile,AUTHORS,README,TODO,ChangeLog,echangelog,echangelog.pod,echangelog.1} ../../$(distdir)/src/echangelog/
+	cp Makefile AUTHORS README TODO ChangeLog echangelog echangelog.pod echangelog.1} ../../$(distdir)/src/echangelog/
 
 install: all
 	install -m 0755 echangelog $(bindir)/
 	install -d $(docdir)/echangelog	
-	install -m 0644 {AUTHORS,README} $(docdir)/echangelog/
+	install -m 0644 AUTHORS README $(docdir)/echangelog/
 	install -m 0644 echangelog.1 $(mandir)/
