@@ -19,9 +19,10 @@ $Text::Wrap::columns = 79;
 $Text::Wrap::unexpand = 0;
 
 # Global variables
-my @files = ();
+my (@files) = ();
+my (@ebuilds) = ();
 my ($input, $entry, $user, $date, $text, $version, $year);
-my %versions = ();
+my (%versions) = ();
 
 # Read the current ChangeLog
 if (-f 'ChangeLog') {
@@ -50,36 +51,61 @@ if (-f 'ChangeLog') {
 }
 
 # Figure out what has changed around here
-open C, 'cvs diff --brief 2>&1 |' or die "Can't run cvs diff: $!\n";
+open C, 'cvs -n up 2>&1 |' or die "Can't run cvs -n up: $!\n";
 while (<C>) {
-    /ChangeLog/ and next;
-	if (/^cvs.*?: (([^\/]*?)\.ebuild) was removed/) { 
-		push @files, $1;
-		$versions{$2} = 0;	# existing ebuild that was removed
+	/ChangeLog/ and next;
+	/^[MCAR] (\S+)/ and push @files, $1;
+}
+
+# Forget ebuilds that only have changed copyrights, unless that's all
+# the changed files we have
+@ebuilds = grep /\.ebuild$/, @files;
+@files = grep !/\.ebuild$/, @files;
+print "files = @files\n";
+print "ebuilds = @ebuilds\n";
+if (@ebuilds) {
+	open C, "cvs diff -U 0 @ebuilds 2>&1 |" or die "Can't run cvs diff: $!\n";
+	$_ = <C>;
+	while (defined $_) {
+		if (/^cvs diff: (([^\/]*?)\.ebuild) was removed/) { 
+			push @files, $1;
+			$versions{$2} = 0;	# existing ebuild that was removed
+		}
+		elsif (/^Index: (([^\/]*?)\.ebuild)\s*$/) { 
+			my ($f, $v) = ($1, $2);
+			# check if more than just copyright date changed.
+			# skip some lines
+			$_ = <C>;	# ====================================
+			$_ = <C>;	# RCS file: ...
+			$_ = <C>;	# retrieving revision
+			$_ = <C>;	# diff -u ...
+			$_ = <C>;	# --- vim-6.2-r6.ebuild
+			$_ = <C>;	# +++ vim-6.2-r6.ebuild
+			while (<C>) {
+				last if /^[A-Za-z]/;
+				if (/^[-+](?!# Copyright)/) {
+					push @files, $f;
+					$versions{$2} = $v;	# existing ebuild that has changed
+					last;
+				}
+			}
+			# at this point we've either added $f to @files or not,
+			# and we have the next line in $_ for processing
+			next;
+		}
+		elsif (/^cvs.*?: (([^\/]*?)\.ebuild) is a new entry/) { 
+			push @files, $1;
+			$versions{$2} = -1;	# new ebuild, will create a new entry
+		}
+		# other cvs output is ignored
+		$_ = <C>;
 	}
-    elsif (/^cvs.*?: (\S+) was removed/) {
-		push @files, $1;
-		# existing file that has been removed
-	}
-	elsif (/^Index: (([^\/]*?)\.ebuild)\s*$/) { 
-		push @files, $1;
-		$versions{$2} = 0;	# existing ebuild that has changed
-	}
-	elsif (/^Index: (\S+)/) {
-		push @files, $1;
-		# existing file, but not an ebuild, so no %version entry
-	}
-	elsif (/^cvs.*?: (([^\/]*?)\.ebuild) is a new entry/) { 
-		push @files, $1;
-		$versions{$2} = -1;	# new ebuild, will create a new entry
-	}
-	elsif (/^cvs.*?: (\S+) is a new entry/) {
-        push @files, $1;
-		# new file, but not an ebuild, so no %version entry
-	}
-	# other cvs output is ignored
 }
 close C;
+
+# Check if we have any files left, otherwise re-insert ebuild list
+# (of course, both might be empty anyway)
+@files = @ebuilds unless (@files);
 
 # Allow ChangeLog entries with no changed files, but give a fat warning
 unless (@files) {
@@ -184,10 +210,12 @@ print O $text            or die "Can't write ChangeLog.new: $!\n";
 close O                  or die "Can't close ChangeLog.new: $!\n";
 
 # Update affected ebuild copyright dates
-for my $e (grep /\.ebuild$/, @files) {
+#for my $e (grep /\.ebuild$/, @files) {
 # Update all ebuild copyright dates -- according to Mr_Bones_ this is
 # the right thing to do
-#for my $e (<*.ebuild>) {
+opendir D, '.' or die "Can't opendir .: $!\n";
+for my $e (grep /\.ebuild$/, readdir D) {
+	print "updating $e\n";
 	my ($etext, $netext);
 	open E, "<$e" or warn("Can't read $e to update copyright year\n"), next;
 	{ local $/ = undef; $etext = <E>; }
@@ -206,6 +234,7 @@ for my $e (grep /\.ebuild$/, @files) {
 	system "diff -U 0 $e $e.new";
 	rename "$e.new", $e or warn("Can't rename $e.new: $!\n");
 }
+close D;
 
 # Move things around and show the ChangeLog diff
 system 'diff -Nu ChangeLog ChangeLog.new';
