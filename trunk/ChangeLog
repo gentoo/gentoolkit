@@ -1,6 +1,10 @@
+2003-04-14 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Released gentoolkit-dev-0.2.0_pre3
+	
 2004-03-31 Marius Mauch <genone@gentoo.org>
 	* glsa-check updates, fixing #45528 and #45522, adding support for
 		rXX operators and passing filenames as arguments to Glsa()
+
 2004-03-13 Marius Mauch <genone@gentoo.org>
 	* Added glsa-check and glsa.py, please note:
 		- they are only temporary for testing, so no manpage/ChangeLog
