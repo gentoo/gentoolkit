@@ -9,7 +9,7 @@
 
 __author__ = "Karl Trygve Kalleberg"
 __email__ = "karltk@gentoo.org"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __productname__ = "equery"
 __description__ = "Gentoo Package Query Tool"
 
@@ -17,12 +17,12 @@ import re
 import sys
 import time
 import string
+
+# portage (output module) and gentoolkit need special path modifications
+sys.path.insert(0, "/usr/lib/portage/pym")
+sys.path.insert(0, "/usr/lib/gentoolkit/pym")
+
 from output import *
-
-sys.path = ["/usr/lib/portage/pym"] + \
-           ["/usr/lib/gentoolkit/pym"] + \
-           sys.path
-
 import gentoolkit
 
 # Auxiliary functions
@@ -144,7 +144,7 @@ class CmdListFiles(Command):
                "  " + yellow("--md5sum") + "     - append md5sum\n" + \
                "  " + yellow("--type") + "       - prepend file type"               
     def shortHelp(self):
-        return yellow("<local-opts> ") + teal("pkgspec") + " - list files owned by " + teal("pkgspec")
+        return yellow("<local-opts> ") + turquoise("pkgspec") + " - list files owned by " + turquoise("pkgspec")
 
     
 class CmdListBelongs(Command):
@@ -213,7 +213,7 @@ class CmdListBelongs(Command):
                 break
                     
     def shortHelp(self):
-        return yellow("<local-opts> ") + teal("file") + " - list all packages owning " + teal("file")
+        return yellow("<local-opts> ") + turquoise("file") + " - list all packages owning " + turquoise("file")
     def longHelp(self):
         return "List all packages owning a particular file" + \
                "\n" + \
@@ -221,7 +221,7 @@ class CmdListBelongs(Command):
                turquoise("Note: ") + "Normally, only one package will own a file. If multiple packages own the same file, it usually consitutes a problem, and should be reported.\n" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("belongs") + yellow(" <local-opts> ") + teal("filename") + \
+               "  " + green("belongs") + yellow(" <local-opts> ") + turquoise("filename") + \
                "\n" + \
                yellow("<local-opts>") + " is either of: \n" + \
                "  " + yellow("-c, --category cat") + " - only search in category " + yellow("cat") + "\n" + \
@@ -364,12 +364,12 @@ class CmdDisplayUSEs(Command):
             else:
                 print "[ No USE flags found for :", white(p.get_cpv()), "]"
     def shortHelp(self):
-        return yellow("<local-opts> ") + teal("pkgspec") + " - display USE flags for " + teal("pkgspec")
+        return yellow("<local-opts> ") + turquoise("pkgspec") + " - display USE flags for " + turquoise("pkgspec")
     def longHelp(self):
         return "Display USE flags for a given package\n" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("uses") + yellow(" <local-opts> ") + teal("pkgspec") + \
+               "  " + green("uses") + yellow(" <local-opts> ") + turquoise("pkgspec") + \
                "\n" + \
                yellow("<local-opts>") + " is either of: \n"
 
@@ -454,12 +454,12 @@ class CmdDisplayDepGraph(Command):
         return pkgtbl
 
     def shortHelp(self):
-        return yellow("<local-opts> ") + teal("pkgspec") + " - display a dependency tree for " + teal("pkgspec")
+        return yellow("<local-opts> ") + turquoise("pkgspec") + " - display a dependency tree for " + turquoise("pkgspec")
     def longHelp(self):
         return "Display a dependency tree for a given package\n" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("depgraph") + yellow(" <local-opts> ") + teal("pkgspec") + \
+               "  " + green("depgraph") + yellow(" <local-opts> ") + turquoise("pkgspec") + \
                "\n" + \
                yellow("<local-opts>") + " is either of: \n" + \
                "  " + yellow("-U, --no-useflags") + " - do not show USE flags\n" + \
@@ -525,12 +525,12 @@ class CmdDisplaySize(Command):
 
                     
     def shortHelp(self):
-        return yellow("<local-opts> ") + teal("pkgspec") + " - print size of files contained in package " + teal("pkgspec")
+        return yellow("<local-opts> ") + turquoise("pkgspec") + " - print size of files contained in package " + turquoise("pkgspec")
     def longHelp(self):
         return "Print size total size of files contained in a given package" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("size") + yellow(" <local-opts> ") + teal("pkgspec") + \
+               "  " + green("size") + yellow(" <local-opts> ") + turquoise("pkgspec") + \
                "\n" + \
                yellow("<local-opts>") + " is either of: \n" + \
                "  " + yellow("-b, --bytes") + " - report size in bytes\n"
@@ -628,7 +628,7 @@ class CmdCheckIntegrity(Command):
                     print file + " does not exist"
                     
     def shortHelp(self):
-        return teal("pkgspec") + " - check package's files against recorded MD5 sums and timestamps"
+        return turquoise("pkgspec") + " - check package's files against recorded MD5 sums and timestamps"
     def longHelp(self):
         return "Check package's files against recorded MD5 sums and timestamps"
 
@@ -677,7 +677,7 @@ class CmdWhich(Command):
             print os.path.normpath(pkg.get_ebuild_path())
                     
     def shortHelp(self):
-        return teal("pkgspec") + " - print full path to ebuild for package " + teal("pkgspec")
+        return turquoise("pkgspec") + " - print full path to ebuild for package " + turquoise("pkgspec")
     def longHelp(self):
         return "Print full path to ebuild for a given package"
 
@@ -790,17 +790,17 @@ class CmdListPackages(Command):
 
             if (status == 1 and opts["includeInstalled"]) or \
                (status == 2 and opts["includePortTree"]) or \
-               (status == 3 and opts["includeOverlay"]):
+               (status == 3 and opts["includeOverlayTree"]):
                 if rx.search(pkg.get_cpv()):
                     print pfxmodes[status] + " " + pkg.get_cpv()
                     
     def shortHelp(self):
-        return yellow("<local-opts> ") + teal("pkgspec") + " - list all packages matching " + teal("pkgspec")
+        return yellow("<local-opts> ") + turquoise("pkgspec") + " - list all packages matching " + turquoise("pkgspec")
     def longHelp(self):
         return "List all packages matching a query pattern" + \
                "\n" + \
                "Syntax:\n" + \
-               "  " + green("list") + yellow(" <local-opts> ") + teal("pkgspec") + \
+               "  " + green("list") + yellow(" <local-opts> ") + turquoise("pkgspec") + \
                "\n" + \
                yellow("<local-opts>") + " is either of: \n" + \
                "  " + yellow("-i, --installed") + "         - search installed packages (default)\n" + \
@@ -864,24 +864,26 @@ def parseArgs(args):
 
     command = None
     local_opts = []
-
+    showhelp = 0
+	
     for i in xrange(len(args)):
         x = args[i]
         if 0:
             pass
         elif x in ["-h","--help"]:
-            printUsage()
-            sys.exit(0)
+			showhelp = 1
         elif x in ["-V","--version"]:
             printVersion()
             sys.exit(0)
         elif x in ["-C","--nocolor"]:
-            Config.color = 0
+            Config["color"] = 0
         elif x in ["-q","--quiet"]:
             Config["verbosityLevel"] = 0
         elif x in Known_commands.keys():
             command = Known_commands[x]
             local_opts = args[i+1:]
+            if showhelp:
+                local_opts.append("--help")
             break
         
     # Set up colour output correctly
@@ -892,10 +894,16 @@ def parseArgs(args):
          Config["color"] == 0:
             nocolor()
 
+    if not command and showhelp:
+        printUsage()
+        sys.exit(0)
+
     return (command, local_opts)
     
 if __name__ == "__main__":
     (cmd, local_opts) = parseArgs(sys.argv[1:])
     if cmd:
         cmd.perform(local_opts)
-
+    else:
+        print "No command or unknown command given"
+        printUsage()

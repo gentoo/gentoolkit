@@ -42,6 +42,9 @@
 # 
 # --| Changes |------------------------------------------------------
 #
+#  * etcat-0.3.1 (08 Jan 2004) [genone]
+#    - adding missing python searchpath modification
+#    - fixing sort order
 #  * etcat-0.3.0 (12 Jul 2003) [karltk]
 #    - Refactored interesting stuff into the Gentoolkit module
 #  * etcat-0.2.0 (13 Jun 2003)
@@ -77,21 +80,20 @@
 
 import os,sys,string,re,pprint
 import getopt,glob
+
+# portage and gentoolkit need special path modifications
+sys.path.insert(0, "/usr/lib/portage/pym")
+sys.path.insert(0, "/usr/lib/gentoolkit/pym")
+
 import gentoolkit
 from stat import *
 from output import *
 
 __author__ = "Alastair Tse"
 __email__ = "liquidx@gentoo.org"
-__version__ = "0.2.0"
+__version__ = "0.3.1"
 __productname__ = "etcat"
 __description__ = "Portage Information Extractor"
-
-# .-------------------------------------------------------.
-# | Initialise Paths                                      |
-# `-------------------------------------------------------'
-
-sys.path = ["/usr/lib/portage/pym"] + sys.path
 
 # .-------------------------------------------------------.
 # | Initialise Colour Settings                            |
@@ -230,6 +232,9 @@ def versions(query):
     if not report_matches(query,matches):
         return
 
+	# sorting result list
+    matches = gentoolkit.sort_package_list(matches)
+	
     # FIXME: old version printed result of regex search on name,
     # so "ant" would return app-emacs/semantic, etc...
     
