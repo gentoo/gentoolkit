@@ -13,6 +13,10 @@
 ID='$Id$'
 VERSION=0.`echo ${ID} | cut -d\  -f3`
 
+TMP="/tmp/qpkg-${$}/"
+rm -rf ${TMP}
+mkdir -p ${TMP}
+
 PROG=`basename ${0}`
 
 # Parse args
@@ -237,17 +241,17 @@ if [ "${grepmask}" ]; then
 fi
 
 	#First dig out the list of packages with duplicates
-	find /var/db/pkg/ -iname "*${arg}*.ebuild" 2> /dev/null > /tmp/qpkg.lst
-	dups=`cat /tmp/qpkg.lst | cut -f7 -d/ |
+	find /var/db/pkg/ -iname "*${arg}*.ebuild" 2> /dev/null > ${TMP}qpkg.lst
+	dups=`cat ${TMP}qpkg.lst | cut -f7 -d/ |
 		sed -e 's:\.ebuild$::; s:-r[0-9]*$::; s:-[^-]*$::; /^$/d' |
 		sort | 
 		uniq -d`
 
 	#Next get all the exact versions
-	duppak=`cat /tmp/qpkg.lst | fgrep "${dups}"`
+	duppak=`cat ${TMP}qpkg.lst | fgrep "${dups}"`
 
 	#Now cut that down to the directory name so we can be smart
-	dirs=`sed -e 's:/[^/]*$::' /tmp/qpkg.lst`
+	dirs=`sed -e 's:/[^/]*$::' ${TMP}qpkg.lst`
 
 	#Go through each package's DB and create a sortable file
 	#to play with
@@ -266,9 +270,9 @@ fi
 	#Finish loop, and sort that nice sortable file based on 
 	#installation order, and then based on package basename
 	#bash hates me so I decided to use a temp file
-	done |sort -t" " -k3 -k1g,2|uniq -D -f2 > /tmp/qpkg.lst
-	duppak=`cat /tmp/qpkg.lst`
-	rm /tmp/qpkg.lst
+	done |sort -t" " -k3 -k1g,2|uniq -D -f2 > ${TMP}qpkg.lst
+	duppak=`cat ${TMP}qpkg.lst`
+	rm ${TMP}qpkg.lst
 
 	#If max verbosity is set output with full path to each ebuild
 	if [ "${verb}" -gt 1 ]; then
@@ -570,3 +574,4 @@ done | (
 		-e "s:^obj ::;s:^sym ::;s:^dir ::"
 
 )
+rm -rf ${TMP}
