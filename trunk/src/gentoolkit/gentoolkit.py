@@ -243,11 +243,10 @@ def find_all_uninstalled_packages(prefilter=None):
     t=porttree.getallnodes()
     if prefilter:
         t=filter(prefilter,t)
-    return map(lambda x: Package(x), t)
-#    t2 = []
-#    for x in t:
-#        t2 += porttree.dep_match(x)
-#    return map(lambda x: Package(x), t2)
+    t2 = []
+    for x in t:
+        t2 += porttree.dep_match(x)
+    return map(lambda x: Package(x), t2)
 
 def find_all_packages(prefilter=None):
     """Returns a list of all known packages, installed or not, after applying

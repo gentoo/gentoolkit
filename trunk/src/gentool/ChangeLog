@@ -1,13 +1,12 @@
-
-2002-10-05 Karl Trygve Kalleberg <karltk@gentoo.org>
-	* Added files command to gentool
-	* Added belongs command to gentool
+2003-12-12 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added size command
+	* Added depgraph command
 	
-2002-11-22 Karl Trygve Kalleberg <karltk@gentoo.org>
-	* Fixed the nasty thinko whereby the old revisions were removed
-	from CVS.
-	* Imported pkg-size as gentool-package-size.
-	* Imported pst-package-count as gentool-package-count.
-	* Added a man page for gentool-bump-revision.	
-	* Added a man page for gentool-package-size.
-	* Added a man page for gentool-package-count.
+2003-12-11 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added list command
+	
+2003-10-05 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added files command
+	* Added belongs command
+	
+

@@ -16,6 +16,7 @@ __description__ = "Gentoo Package Query Tool"
 import re
 import sys
 import time
+import string
 import gentoolkit
 from output import *
 
@@ -139,7 +140,7 @@ class CmdListFiles(Command):
                "  " + yellow("--md5sum") + "     - append md5sum\n" + \
                "  " + yellow("--type") + "       - prepend file type"               
     def shortHelp(self):
-        return yellow("<local-opts> ") + green("query") + " - list files owned by " + green("query")
+        return yellow("<local-opts> ") + green("pkgspec") + " - list files owned by " + green("pkgspec")
 
     
 class CmdListBelongs(Command):
@@ -190,7 +191,7 @@ class CmdListBelongs(Command):
             filter_fn = lambda x: x.find(cat+"/")==0
 
         if Config["verbosityLevel"] >= 3:
-            print "Searching for " + query + " in " + cat + "..."
+            print "Searching for file '" + query + "' in " + cat + "..."
             
         matches = gentoolkit.find_all_installed_packages(filter_fn)
         rx = re.compile(query)
@@ -208,9 +209,12 @@ class CmdListBelongs(Command):
                 break
                     
     def shortHelp(self):
-        return yellow("<local-opts> ") + green("query") + " - list all packages depending on " + green("query")
+        return yellow("<local-opts> ") + green("query") + " - list all packages owning " + green("file")
     def longHelp(self):
         return "List all packages owning a particular file" + \
+               "\n" + \
+               "\n" + \
+               turquoise("Note: ") + "Normally, only one package will own a file. If multiple packages own the same file, it usually consitutes a problem, and should be reported.\n" + \
                "\n" + \
                "Syntax:\n" + \
                "  " + green("belongs") + yellow(" <local-opts> ") + green("filename") + \
@@ -229,15 +233,168 @@ class CmdDisplayUSEs(Command):
 
 class CmdDisplayDepGraph(Command):
     """Display tree graph of deps for pkgQuery"""
-    pass
+
+    def __init__(self):
+        self.default_opts = {
+            "displayUSEFlags": 1,
+            "fancyFormatting": 1
+            }
+
+    def parseArgs(self, args):
+
+        query = ""
+        need_help = 0
+        opts = self.default_opts
+        skip = 0
+        
+        for i in xrange(len(args)):
+
+            if skip:
+                skip -= 1
+                continue
+            x = args[i]
+            
+            if x in ["-h","--help"]:
+                need_help = 1
+                break
+            elif x in ["-U","--no-useflags"]:
+                opts["displayUSEFlags"] = 0
+            elif x in ["-l","--linear"]:
+                opts["fancyFormatting"] = 0
+            else:
+                query = x
+
+        if need_help or query == "":
+            print self.longHelp()
+            sys.exit(-1)
+            
+        return (query, opts)
+
+    def perform(self, args):
+        (query, opts) = self.parseArgs(args)
+
+        matches = gentoolkit.find_packages(query)
+
+        for pkg in matches:
+
+            if Config["verbosityLevel"] >= 3:
+                print "Displaying dependencies for " + pkg.get_cpv() + "\n"
+
+            if not pkg.is_installed():
+                continue
+            self._graph(pkg, opts)
+
+    def _graph(self, pkg, opts, level=0,pkgtbl=[],suffix=""):
+        
+        cpv=pkg.get_cpv()
+
+        pfx = ""
+        if opts["fancyFormatting"]:
+            pfx = level*" " + "`-- " 
+        print pfx + cpv + suffix
+        
+        pkgtbl.append(cpv)
+        
+        for x in pkg.get_runtime_deps():
+            suffix = ""
+            cpv = x[2]
+            pkg = gentoolkit.find_best_match(x[0] + cpv)
+            if not pkg:
+                continue
+            if pkg.get_cpv() in pkgtbl:
+                continue
+            if cpv.find("virtual")==0:
+                suffix += " (" + cpv + ")"
+                if len(x[1]) and opts["displayUSEFlags"]:
+                    suffix += " [ " + string.join(x[1]) + " ]"
+            pkgtbl = self._graph(pkg, opts, level+1, pkgtbl, suffix)
+        return pkgtbl
+
+    def shortHelp(self):
+        return yellow("<local-opts> ") + green("pkgspec") + " - display a dependency tree for " + green("pkgspec")
+    def longHelp(self):
+        return "Display a dependency tree for a given package\n" + \
+               "\n" + \
+               "Syntax:\n" + \
+               "  " + green("depgraph") + yellow(" <local-opts> ") + green("pkgspec") + \
+               "\n" + \
+               yellow("<local-opts>") + " is either of: \n" + \
+               "  " + yellow("-U, --no-useflags") + " - do not show USE flags\n" + \
+               "  " + yellow("-l, --linear") + "      - do not use fancy formatting"
 
 class CmdDisplayChanges(Command):
     """Display changes for pkgQuery"""
     pass
 
 class CmdDisplaySize(Command):
-    """Display disk size consumed by pkgQuery"""
-    pass
+    """Display disk size consumed by a package"""
+    def __init__(self):
+        self.default_opts = {
+            "reportSizeInBytes": 0
+            }
+
+    def parseArgs(self, args):
+
+        query = ""
+        need_help = 0
+        opts = self.default_opts
+        skip = 0
+        
+        for i in xrange(len(args)):
+
+            if skip:
+                skip -= 1
+                continue
+            x = args[i]
+            
+            if x in ["-h","--help"]:
+                need_help = 1
+                break
+            elif x in ["-b","--bytes"]:
+                opts["reportSizeInBytes"] = 1
+            else:
+                query = x
+
+        if need_help or query == "":
+            print self.longHelp()
+            sys.exit(-1)
+            
+        return (query, opts)
+                
+    def perform(self, args):
+        (query, opts) = self.parseArgs(args)
+
+        matches = gentoolkit.find_packages(query)
+
+        for pkg in matches:
+            if not pkg.is_installed():
+                continue
+
+            (size, files, uncounted) = pkg.size()
+
+            print turquoise("*") + " " + white(pkg.get_cpv())
+            print string.rjust(" Total Files : ",25) + str(files)
+
+            if uncounted:
+                print string.rjust(" Inaccessible Files : ",25) + str(uncounted)
+
+            sz = "%.2f KiB" % (size/1024.0)                
+            if opts["reportSizeInBytes"]:
+                sz = str(size) + " bytes"
+            
+            print string.rjust("Total Size  : ",25) + sz
+
+                    
+    def shortHelp(self):
+        return yellow("<local-opts> ") + green("pkgspec") + " - print size of files contained in packages " + green("pkgspec")
+    def longHelp(self):
+        return "Print size total size of files contained in a given package" + \
+               "\n" + \
+               "Syntax:\n" + \
+               "  " + green("size") + yellow(" <local-opts> ") + green("pkgspec") + \
+               "\n" + \
+               yellow("<local-opts>") + " is either of: \n" + \
+               "  " + yellow("-b, --bytes") + " - report size in bytes\n"
 
 class CmdCheckIntegrity(Command):
     """Check timestamps and md5sums for files owned by pkgQuery"""
@@ -247,7 +404,128 @@ class CmdDisplayStatistics(Command):
     """Display statistics about installed and uninstalled packages"""
     pass
 
+class CmdListPackages(Command):
+    """List packages satisfying pkgQuery"""
+    def __init__(self):
+        self.default_opts = {
+            "category": "*",
+            "includeInstalled": 1,
+            "includePortTree": 0,
+            "includeOverlayTree": 0,
+            "regex": 0
+            }
+
+    def parseArgs(self, args):
+
+        query = ""
+        need_help = 0
+        opts = self.default_opts
+        skip = 0
+        
+        for i in xrange(len(args)):
+
+            if skip:
+                skip -= 1
+                continue
+            x = args[i]
+            
+            if x in ["-h","--help"]:
+                need_help = 1
+                break
+            elif x in ["-i", "--installed"]:
+                opts["includeInstalled"] = 1
+            elif x in ["-I", "--exclude-installed"]:
+                opts["includeInstalled"] = 0
+            elif x in ["-p", "--portage-tree"]:
+                opts["includePortTree"] = 1
+            elif x in ["-o", "--overlay-tree"]:
+                opts["includeOverlayTree"] = 1
+            else:
+                query = x
+
+        if need_help or query == "":
+            print self.longHelp()
+            sys.exit(-1)
+            
+        return (query, opts)
+                
+    def perform(self, args):
+        (query, opts) = self.parseArgs(args)
+
+        (cat, name, ver, rev) = gentoolkit.split_package_name(query)
+
+        if rev == "r0": rev = ".*"
+        if name == "": name = ".*"
+        if ver == "": ver = ".*"
+        if cat == "": cat = ".*"
+            
+        package_finder = None
+        
+        if opts["includeInstalled"] and (opts["includePortTree"] or opts["includeOverlayTree"]):
+            package_finder = gentoolkit.find_all_packages
+        elif opts["includeInstalled"]:
+            package_finder = gentoolkit.find_all_installed_packages
+        elif opts["includePortTree"] or opts["includeOverlayTree"]:
+            package_finder = gentoolkit.find_all_uninstalled_packages
+
+        if not package_finder:
+            print red("!!! You must specify one of ") + yellow("-i") + red(", ") + yellow("-p") + red(" or ") + yellow("-o")
+            sys.exit(2)
+            
+        rx = re.compile(cat + "/" + name)
+        filter_fn = lambda x: rx.search(x)
+
+        if Config["verbosityLevel"] >= 3:
+            scat = "'" + cat + "'"
+            if cat == ".*":
+                scat = "all categories"
+            sname = "package '" + name + "'"
+            if name == ".*":
+                sname = "all packages"
+            print "Searching for " + sname + " in " + scat + " among:"
+            if opts["includeInstalled"]:
+                print turquoise(" *") + " installed packages"
+            if opts["includePortTree"]:
+                print turquoise(" *") + " Portage tree (" + gentoolkit.settings["PORTDIR"] + ")"
+            if opts["includeOverlayTree"]:
+                print turquoise(" *") + " overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")"
+        
+        matches = package_finder(filter_fn)
+
+        rx = re.compile(cat + "/" + name + "-" + ver + "(-" + rev + ")?")
+        pfxmodes = [ "[---]", "[I--]", "[-P-]", "[--O]" ]
+        for pkg in matches:
+            status = 0
+            if pkg.is_installed():
+                status = 1
+            elif pkg.is_overlay():
+                status = 3
+            else:
+                status = 2
+
+            if (status == 1 and opts["includeInstalled"]) or \
+               (status == 2 and opts["includePortTree"]) or \
+               (status == 3 and opts["includeOverlay"]):
+                if rx.search(pkg.get_cpv()):
+                    print pfxmodes[status] + " " + pkg.get_cpv()
+                    
+    def shortHelp(self):
+        return yellow("<local-opts> ") + green("pkgspec") + " - list all packages matching " + green("pkgspec")
+    def longHelp(self):
+        return "List all packages matching a query pattern" + \
+               "\n" + \
+               "Syntax:\n" + \
+               "  " + green("list") + yellow(" <local-opts> ") + green("pkgspec") + \
+               "\n" + \
+               yellow("<local-opts>") + " is either of: \n" + \
+               "  " + yellow("-i, --installed") + "         - search installed packages (default)\n" + \
+               "  " + yellow("-I, --exclude-installed") + " - do not search installed packages\n" + \
+               "  " + yellow("-p, --portage-tree") + "      - also search in portage tree (" + gentoolkit.settings["PORTDIR"] + ")\n" + \
+               "  " + yellow("-o, --overlay-tree") + "      - also search in overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")\n"
+
+
 Known_commands = {
+    "list": CmdListPackages(),
     "files": CmdListFiles(),
     "belongs": CmdListBelongs(),
     "depends": CmdListDepends(),
