@@ -252,7 +252,7 @@ process_ebuild() {
 	    fi
 
 	    # Write tail of old ChangeLog
-	    nl=$(wc -l ChangeLog.old | cut -c 0-8)
+	    nl=$(wc -l ChangeLog.old | sed -r "s/^([0-9]+).*/\1/")
 	    tail -n $[nl - 4] ChangeLog.old
 	) > ChangeLog
 	rm ChangeLog.old
