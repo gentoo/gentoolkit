@@ -152,21 +152,23 @@ dep-clean \- Shows unrequired packages and missing dependencies.
 dep-clean displays extraneous, missing or extra packages.  Extra packages are those in which are not a part of the portage tree (/usr/portage).  It does \s-1NOT\s0 modify the system in any way.
 .SH "OPTIONS"
 .IX Header "OPTIONS"
-.Ip "\-N, \-\-needed" 4
-.IX Item "-N, --needed"
-Display needed packages that are not installed. (red) (default)
-.Ip "\-R, \-\-removed" 4
+.Ip "\-n, \-\-needed" 4
+.Ip "\-N, \-\-needed=no" 4
+.IX Item "-n, --needed"
+Toggle display of needed packages that are not installed. (red) (default=yes)
+.Ip "\-r, \-\-removed" 4
+.Ip "\-R, \-\-removed=no" 4
 .IX Item "-R, --removed"
-Display installed packages not in portage. (yellow) (default)
-.Ip "\-U, \-\-unneeded" 4
+Toggle display of installed packages not in portage. (yellow) (default=yes)
+.Ip "\-u, \-\-unneeded" 4
+.Ip "\-U, \-\-unneeded=no" 4
 .IX Item "-U, --unneeded"
-Display unneeded packages that are installed. (green) (default)
-.Ip "\-I, \-\-interactive" 4
-.IX Item "-I, --interactive"
-Interactively modify world file before proceeding.
-.Ip "\-C, \-\-nocolor" 4
-.IX Item "-C, --nocolor"
-Output without color.  Package types will be noted with R, U and N.
+Toggle display of unneeded packages that are installed. (green) (default=yes)
+.Ip "\-c, \-\-color" 4
+.Ip "\-C, \-\-color=no" 4
+.IX Item "-c, --color"
+Toggle output of color. Without color, package types will be noted with R, U and N.
+Default is use whatever Portage is set for.
 .Ip "\-v, \-\-verbose" 4
 .IX Item "-v, --verbose"
 Be more verbose.
@@ -188,3 +190,5 @@ Jerry Haltom <ssrit at larvalstage dot net> (dep-clean)
 Brandon Low <lostlogic at gentoo dot org> (dep-clean)
 .PP
 Paul Belt <gaarde at users dot sourceforge dot net> (man page)
+.br
+Karl Trygve Kalleberg <karltk at gentoo dot org> (dep-clean, man page)

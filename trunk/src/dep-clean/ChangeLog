@@ -1,3 +1,8 @@
+  04 Oct 2003: Karl Trygve Kalleberg <karltk@gentoo.org> dep-clean, dep-clean.1:
+  * Rewrote to Python
+  * Uses gentoolkit
+  * Changed the switches to be proper toggles
+  
   25 Feb 2003; Brandon Low <lostlogic@gentoo.org> dep-clean, dep-clean.1:
   * Update to work with current everything
   * Add -q and change the default behaviour and the verbose behavior
