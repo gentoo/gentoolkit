@@ -1,3 +1,6 @@
+2005-03-01 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Released gentookit-dev-0.2.2
+	
 2004-12-09 Marius Mauch <genone@gentoo.org>
 	* glsa.py: Another stupid bug, this time revisionMatch() broke as ~foobar-rN isn't valid anymore
 
