@@ -41,3 +41,26 @@ Important!
    the patch version and try again (and again, and again until you get 
    it right;)
 
+
+MAKING A RELEASE WITH release.sh
+
+If you have added your system details at the top of the release.sh script,
+you can make a release in the following fashion:
+
+(NOTE! This only works for -dev at the moment)
+
+1) Add a notice in the ChangeLog about the release you are making.
+2) Do VERSION="x.y.z" ./release.sh
+3) Test the package: ACCEPT_KEYWORDS="~arch" emerge gentoolkit-dev
+4) Do a repoman ci -m "Released x.y.z" in your 
+   CVS/app-portage/gentoolkit-dev directory.
+
+
+Currently, the following people have "release access":
+
+ - karltk@gentoo.org
+ - genone@gentoo.org
+ - port001@gentoo.org
+
+If you want a new release, ping either of us. If you want to get 
+"release access", talk to karltk@gentoo.org
