@@ -4,6 +4,7 @@
 # This program is licensed under the GPL, version 2
 
 import os,string,sys
+sys.path.insert(0, "/usr/lib/gentoolkit/pym")
 from getopt import getopt,GetoptError
 
 __program__ = "glsa-check"
@@ -75,8 +76,9 @@ if mode == "help":
 		for o in m[2:-1]:
 			print "\t" + o
 	print
-	print "glsa-list can contain an arbitrary number of GLSA ids "
-	print "or the special identifiers 'all' and 'new'"
+	print "glsa-list can contain an arbitrary number of GLSA ids, "
+	print "filenames containing GLSAs or the special identifiers "
+	print "'all' and 'new'"
 	print
 	sys.exit(1)
 
@@ -97,7 +99,6 @@ if mode == "version":
 	sys.exit(0)
 
 # delay this for speed increase
-sys.path.insert(0, "/usr/lib/gentoolkit/pym")
 from glsa import *
 
 glsaconfig = checkconfig(portage.config(clone=portage.settings))
@@ -149,7 +150,11 @@ if mode == "list":
 # dump, fix, inject and fix are nearly the same code, only the glsa method call differs
 if mode in ["dump", "fix", "inject", "pretend"]:
 	for myid in glsalist:
-		myglsa = Glsa(myid, glsaconfig)
+		try:
+			myglsa = Glsa(myid, glsaconfig)
+		except GlsaTypeException, e:
+			#print "invalid GLSA: %s (error message was: %s)" % (myid, e)
+			continue
 		if mode == "dump":
 			myglsa.dump()
 		elif mode == "fix":
@@ -165,19 +170,25 @@ if mode in ["dump", "fix", "inject", "pretend"]:
 					sys.exit(exitcode)
 			myglsa.inject()
 		elif mode == "pretend":
+			print "Checking GLSA "+myid
 			mergelist = myglsa.getMergeList()
-			print "The following updates will be performed for this GLSA:"
-			for pkg in mergelist:
-				# we simplify a bit here
-				oldver = portage.db["/"]["vartree"].dbapi.match(portage.dep_getkey(pkg))[-1]
-				oldver = oldver[len(portage.dep_getkey(oldver))+1:]
-				print "    ", pkg, "("+oldver+")"
+			if mergelist:
+				print "The following updates will be performed for this GLSA:"
+				for pkg in mergelist:
+					# we simplify a bit here
+					oldver = portage.db["/"]["vartree"].dbapi.match(portage.dep_getkey(pkg))[-1]
+					oldver = oldver[len(portage.dep_getkey(oldver))+1:]
+					print "    ", pkg, "("+oldver+")"
+			else:
+				print "Nothing to do for this GLSA"
 		elif mode == "inject":
 			print "injecting " + myid
 			myglsa.inject()
 		if glsalist[-1] != myid:
 			print 
 			print 70*'*'
+			print
+		else:
 			print
 	sys.exit(0)
 
