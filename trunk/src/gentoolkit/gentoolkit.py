@@ -181,10 +181,12 @@ class Package:
 # Global helper functions
 #
 
-def find_packages(search_key):
+def find_packages(search_key, masked=False):
 	"""Returns a list of Package objects that matched the search key."""
-	# FIXME: this one failes if search_key contains version suffix
-	t=portage.portdb.match(search_key)
+	if masked:
+		t=portage.portdb.xmatch("match-all", search_key)
+	else:
+		t=portage.portdb.match(search_key)
 	return [Package(x) for x in t]
 
 def find_best_match(search_key):
