@@ -1,6 +1,6 @@
 =head1 NAME
 
-echangelog - update portage ChangeLogs
+echangelog - Gentoo: update portage ChangeLogs
 
 =head1 SYNOPSIS
 
@@ -28,6 +28,11 @@ be too wide, (2) edit the ChangeLog manually.  If you prefer (2), I'd
 recommend something like "echangelog blah" so that the header lines
 are computed correctly, then edit and change "blah" to your preferred
 text.
+
+In addition to updating the ChangeLog, echangelog will automatically
+update the copyright year of any affected ebuilds, as well as the
+ChangeLog itself.  These updates are included in the diff displayed by
+echangelog when it finishes its work.
 
 =head1 OPTIONS
 

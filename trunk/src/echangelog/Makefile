@@ -6,14 +6,17 @@
 
 include ../../makedefs.mak
 
-all:
-	echo "DUNCRAGGON (n.) The name of Charles Bronson's retirement cottage."
+%.1 : %.pod
+	pod2man $< > $@
 
-dist:
+.PHONY: all
+all: echangelog.1
+
+dist: echangelog.1
 	mkdir -p ../../$(distdir)/src/echangelog/
-	cp {Makefile,AUTHORS,README,TODO,ChangeLog,echangelog,echangelog.1} ../../$(distdir)/src/echangelog/
+	cp {Makefile,AUTHORS,README,TODO,ChangeLog,echangelog,echangelog.pod,echangelog.1} ../../$(distdir)/src/echangelog/
 
-install:
+install: all
 	install -m 0755 echangelog $(bindir)/
 	install -d $(docdir)/echangelog	
 	install -m 0644 {AUTHORS,README} $(docdir)/echangelog/
