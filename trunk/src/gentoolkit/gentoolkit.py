@@ -118,7 +118,7 @@ class Package:
 		return os.path.exists(self._db.getpath())
 	def is_overlay(self):
 		dir,ovl=portage.portdb.findname2(self._cpv)
-		return ovl
+		return ovl != settings["PORTDIR"]
 	def is_masked(self):
 		"""Returns true if this package is masked against installation. Note: We blindly assume that
 		the package actually exists on disk somewhere."""

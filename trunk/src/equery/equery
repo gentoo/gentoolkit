@@ -1074,50 +1074,71 @@ class CmdListPackages(Command):
             if name == ".*":
                 sname = "all packages"
             if not Config["piping"]:
-                print_info(1, "Searching for " + pp.cpv(sname) + " in " + pp.cpv(scat) + " among:")
-                if opts["includeInstalled"]:
-                    print_info(1, pp.section(" *") + " installed packages")
-                if opts["includePortTree"]:
-                    print_info(1, pp.section(" *") + " Portage tree (" + pp.path(gentoolkit.settings["PORTDIR"]) + ")")
-                if opts["includeOverlayTree"]:
-                    print_info(1, pp.section(" *") + " overlay tree (" + pp.path(gentoolkit.settings["PORTDIR_OVERLAY"]) + ")")
-        
-        matches = package_finder(filter_fn)
+                print_info(1, "[ Searching for " + pp.cpv(sname) + " in " + pp.cpv(scat) + " among: ]")
+
 
         rx = re.compile(cat + "/" + name + "-" + ver + "(-" + rev + ")?")
+
+        matches = package_finder(filter_fn)
+
+        if opts["includeInstalled"]:
+            self._print_installed(matches, rx)
+        
+        if opts["includePortTree"]:
+            self._print_porttree(matches, rx)
+        
+        if opts["includeOverlayTree"]:
+            self._print_overlay(matches, rx)
+
+    def _get_mask_status(self, pkg):
+        pkgmask = 0
+        if pkg.is_masked():
+            pkgmask = pkgmask + 3
+        keywords = pkg.get_env_var("KEYWORDS").split()
+        if "~" + gentoolkit.settings["ARCH"] in keywords:
+            pkgmask = pkgmask + 1
+        elif "-*" in keywords or "-" + gentoolkit.settings["ARCH"] in keywords:
+            pkgmask = pkgmask + 2
+        return pkgmask
+
+    def _generic_print(self, header, exclude, matches, rx, status):
+        print_info(1, header)
+
         pfxmodes = [ "---", "I--", "-P-", "--O" ]
         maskmodes = [ "  ", " ~", " -", "M ", "M~", "M-" ]
+
         for pkg in matches:
-            status = 0
-            if pkg.is_installed():
-                status = 1
-            elif pkg.is_overlay():
-                status = 3
-            else:
-                status = 2
+            if exclude(pkg):
+                continue
 
-            # Determining mask status
-            pkgmask = 0
-            if pkg.is_masked():
-                pkgmask = pkgmask + 3
-            keywords = pkg.get_env_var("KEYWORDS").split()
-            if "~" + gentoolkit.settings["ARCH"] in keywords:
-                pkgmask = pkgmask + 1
-            elif "-*" in keywords or "-" + gentoolkit.settings["ARCH"] in keywords:
-                pkgmask = pkgmask + 2
-
-            # Determining SLOT value
+            pkgmask = self._get_mask_status(pkg)
+            
             slot = pkg.get_env_var("SLOT")
 
-            if (status == 1 and opts["includeInstalled"]) or \
-               (status == 2 and opts["includePortTree"]) or \
-               (status == 3 and opts["includeOverlayTree"]):
-                if rx.search(pkg.get_cpv()):
-                    if Config["piping"]:
-                        print_info(0, pkg.get_cpv())
-                    else:
-                        print_info(0, "[" + pp.installedflag(pfxmodes[status]) + "] [" + pp.maskflag(maskmodes[pkgmask]) + "] " + pp.cpv(pkg.get_cpv()) + " (" + pp.slot(slot) + ")")
-                    
+            if rx.search(pkg.get_cpv()):
+                if Config["piping"]:
+                    print_info(0, pkg.get_cpv())
+                else:
+                    print_info(0, "[" + pp.installedflag(pfxmodes[status]) + "] [" + pp.maskflag(maskmodes[pkgmask]) + "] " + pp.cpv(pkg.get_cpv()) + " (" + pp.slot(slot) + ")")
+
+    def _print_overlay(self, matches, rx):
+        self._generic_print(
+            pp.section(" *") + " overlay tree (" + pp.path(gentoolkit.settings["PORTDIR_OVERLAY"]) + ")",
+            lambda x: not x.is_overlay(),
+            matches, rx, 3)
+            
+    def _print_porttree(self, matches, rx):
+        self._generic_print(
+            pp.section(" *") + " Portage tree (" + pp.path(gentoolkit.settings["PORTDIR"]) + ")",
+            lambda x: x.is_overlay() or x.is_installed(),
+            matches, rx, 2)
+                
+    def _print_installed(self, matches, rx):
+        self._generic_print(
+            pp.section(" *") + " installed packages",
+            lambda x: not x.is_installed(),
+            matches, rx, 1)
+
     def shortHelp(self):
         return pp.localoption("<local-opts> ") + pp.pkgquery("pkgspec") + " - list all packages matching " + pp.pkgquery("pkgspec")
     def longHelp(self):
