@@ -1,0 +1,612 @@
+#!/usr/bin/env python2
+#
+# -*- mode: python; -*-
+#
+# --| Version Information |------------------------------------------
+# 
+#  etcat v0.1.2 (29 Mar 2003)
+#
+# --| About |--------------------------------------------------------
+#
+#  etcat is a Portage/Ebuild Information Extractor. Basically, it
+#  provides higher level convienence functions to the Portage system
+#  used by Gentoo Linux. 
+#  
+#  You can use it to quickly find out the recent changes of your
+#  favourite package, the size of installed packages, the
+#  available versions for a package and more.
+#
+# --| License |------------------------------------------------------
+#
+#  Distributed under the terms of the GNU General Public License v2
+#  Copyright (c) 2002 Alastair Tse. <liquidx@gentoo.org>
+#
+# --| Usage |--------------------------------------------------------
+#
+#  etcat [options] <command> <package[-ver]|ebuild|category/package[-ver]>
+#
+#  -c/changes ) list the more recent changelog entry
+#  -v/versions ) list all the versions available for a package
+#  -u/uses ) list all the use variables used in this package/ebuild
+#  -s/size ) guesses the size of a installed packaged.
+#
+# --| TODO |---------------------------------------------------------
+# 
+#  - Natural Order Sort for version numbers.
+#    (http://www.naturalordersort.org)
+#    - Do it by providing custom comparators, remember to sort
+#      out revisions and _alpha, _beta, _pre and suffixes like a,b,c.
+#    - All in all, a big hassle, i'd rather just forget about it.
+# 
+# --| Changes |------------------------------------------------------
+#
+#  * etcat-0.1.2 (29 Mar 2003)
+#    - Added unstable indicator to complement masked
+#    - improved use flag listing
+#  * etcat-0.1.1 (21 Jan 2003)
+#    - Add package to versions listing even if it's not in
+#      the portage anymore (21 Jan 2003)
+#    - Fixed old ehack references (17 Jan 2003)
+#  * etcat-0.1 (31 Oct 2002)
+#    Initial Release;
+#
+# -------------------------------------------------------------------
+
+
+
+import os,sys,string,re
+import getopt,glob
+import portage
+from stat import *
+from output import *
+
+options = [ "changes", "versions", "uses", "size" ]
+__author__ = "Alastair Tse"
+__version__ = "0.1.2"
+__productname__ = "etcat"
+__description__ = "Portage Information Extractor"
+
+# .-------------------------------------------------------.
+# | Initialise Colour Settings                            |
+# `-------------------------------------------------------'
+if (not sys.stdout.isatty()) or (portage.settings["NOCOLOR"] in ["yes","true"]):
+    nocolor()
+
+# .-------------------------------------------------------.
+# | Simple Package Search Function                        |
+# +-------------------------------------------------------+
+# | Given a search key, returns a list of packages that   |
+# | satisfy the regex.                                    |
+# | Results are in the form ["net-www/mozilla"]           |
+# `-------------------------------------------------------'
+def search(search_key):
+    
+    matches = []    
+    cache = portage.db["/"]["vartree"]
+    for package in portage.portdb.cp_all():
+	package_parts=package.split("/")
+	masked=0
+	if re.search(search_key.lower(), package_parts[1].lower()):
+	    matches.append(package)
+    return matches
+
+# .-------------------------------------------------------.
+# | Package Name Guesser                                  |
+# +-------------------------------------------------------+
+# | A smart (eg. dodgy) version of portage.catpkgsplit()  |
+# | that determines the category, package, version and    |
+# | revision given a string. If it doesn't know, it'll    |
+# | leave the field blank.                                |
+# |                                                       |
+# | Returns a list like :                                 |
+# |  [ "net-www", "mozilla", "1.1", "r1"]                 |
+# `-------------------------------------------------------'    
+
+def smart_pkgsplit(query):
+    cat = ''
+    pkg = ''
+    ver = ''
+    rev = ''
+    
+    if len(query.split('/')) == 2:
+	cat = query.split('/')[0]
+	query = query.split('/')[1]
+    
+    components = query.split('-')
+    name_components = []
+    ver_components = []
+	
+    # seperate pkg-ver-rev
+    for c in components:
+	if ver_components:
+	    ver_components.append(c)
+	elif ord(c[0]) > 47 and ord(c[0]) < 58:
+	    ver_components.append(c)
+	else:
+	    name_components.append(c)
+    pkg = '-'.join(name_components)
+	
+    # check if there is a revision number
+    if len(ver_components) > 0 and ver_components[-1][0] == 'r':
+	rev = ver_components[-1]
+	ver_components = ver_components[:-1]
+	
+    # check for version number
+    if len(ver_components) > 0:
+	ver = '-'.join(ver_components)
+    
+    return [cat, pkg, ver, rev]
+
+# .-------------------------------------------------------.
+# | Return the Location of the Ebuild                     |
+# +-------------------------------------------------------+
+# | Guesses the version that you want. Eg. if one is      |
+# | specified, then we use it, otherwise, the latest one  |
+# `-------------------------------------------------------'
+
+def smart_ebuild(query):
+    tup = smart_pkgsplit(query)
+    full_pkg = ''
+    
+    # here we have to guess the ebuild we want
+    if tup[0] and tup[1] and tup[2]:
+	# we've got all the required fields
+	if tup[3]:
+	    full_pkg = tup[0] + "/" + tup[1] + "-" + tup[2] + "-" + tup[3]
+	else:
+	    full_pkg = tup[0] + "/" + tup[1] + "-" + tup[2]
+    elif tup[1] and tup[2]:
+	# only got package name and version
+	matches = search(tup[1] + "$")
+	print "[ Applications Found : " + white(str(len(matches))) + " ]"
+	print ">> Using first match only."
+	if len(matches[0].split("/")) == 2:
+	    if tup[3]:
+		full_pkg = matches[0] + "-" + tup[2] + "-" + tup[3]
+	    else:
+		full_pkg = matches[0] + "-" + tup[2]
+    elif not tup[2]:
+	# don't have version, so we find the latest version
+	if tup[0] and tup[1]:
+	    all_vers = portage.portdb.xmatch("match-all",tup[0] + "/" + tup[1])
+	elif tup[1]:
+	    all_vers = portage.portdb.xmatch("match-all",tup[1])
+	# get fullpkg
+	full_pkg = portage.portdb.xmatch("bestmatch-list",tup[1],mylist=all_vers)
+	if not full_pkg:
+	    print "Error: Can't match query:", query
+	    return
+    else:
+	print "Error: Can't match query :", query
+	return
+
+    # find the ebuild
+    cps = portage.catpkgsplit(full_pkg)
+    if len(cps) != 4:
+	print "Error: Something wrong with package found."
+	return
+    if cps[3] == "r0":
+	ebuild = portage.settings["PORTDIR"] + "/" + cps[0]  + "/" + cps[1] + "/" + cps[1] + "-" + cps[2] + ".ebuild"
+    else:
+	ebuild = portage.settings["PORTDIR"] + "/" + cps[0]  + "/" + cps[1] + "/" + cps[1] + "-" + cps[2] + "-" + cps[3] + ".ebuild"
+	
+    if os.path.exists(ebuild):
+	return ebuild
+
+    # can't find it in PORTDIR, so we try the PORTDIR_OVERLAY
+    if cps[3] == "r0":
+	ebuild = portage.settings["PORTDIR_OVERLAY"] + "/" + cps[0]  + "/" + cps[1] + "/" + cps[1] + "-" + cps[2] + ".ebuild"
+    else:
+	ebuild = portage.settings["PORTDIR_OVERLAY"] + "/" + cps[0]  + "/" + cps[1] + "/" + cps[1] + "-" + cps[2] + "-" + cps[3] + ".ebuild"
+	
+    if os.path.exists(ebuild):
+	return ebuild
+    else:
+	return None
+    
+
+# .-------------------------------------------------------.
+# | Pretty Print Log                                      |
+# +-------------------------------------------------------+
+# | Extracts and prints out the log entry corresponding   |
+# | to a certain revision if given. If not supplied,      |
+# | prints out the latest/topmost entry                   |
+# `-------------------------------------------------------'    
+    
+# output the latest entry in changelog
+def output_log(lines, package_ver=""):
+    # using simple rules that all changelog entries have a "*"
+    # as the first char
+    is_log = 0
+    is_printed = 0
+
+    for line in lines:
+	if package_ver:
+	    start_entry = re.search("^[\s]*\*[\s]*(" + package_ver + ")[\s]+.*(\(.*\))",line)
+	else:
+	    start_entry = re.search("^[\s]*\*[\s]*(.*)[\s]+.*(\(.*\))",line)
+	if not is_log and start_entry:
+	    is_printed = 1
+	    is_log = 1
+	    print green("*") + "  " + white(start_entry.group(1)) + "  " + turquoise(start_entry.group(2)) + " :"
+	elif is_log and re.search("^[\s]*\*[\s]*(.*)[\s]+.*(\(.*\))",line):
+	    break
+	elif is_log:
+	    print line.rstrip()
+	else:
+	    pass
+	
+    return is_printed
+
+# .-------------------------------------------------------.
+# | Changes Function                                      |
+# +-------------------------------------------------------+
+# | Print out the ChangeLog entry for package[-version]   |
+# `-------------------------------------------------------'
+
+def changes(query):
+
+    matches = []
+    printed = 0
+
+    tup = smart_pkgsplit(query)
+    if tup[0] and tup[1]:
+	matches = [ tup[0] + "/" + tup[1] ]
+    elif tup[1]:
+	matches = search(tup[1])
+    
+	
+    print "[ Results for search key : " + white(query) + " ]"
+    #print "[ Applications found : " + white(str(len(matches))) + " ]"
+    print 
+    
+    for match in matches:
+	changelog_file = portage.settings["PORTDIR"] + '/' + match + '/ChangeLog'
+	if os.path.exists(changelog_file):
+	    if tup[2] and tup[3]:
+		printed = output_log(open(changelog_file).readlines(),match.split('/')[1] + ".*-" + tup[2] + "-" + tup[3]) or printed
+	    elif tup[2]:
+		printed = output_log(open(changelog_file).readlines(),match.split('/')[1] + ".*-" + tup[2]) or printed
+	    else:
+		printed = output_log(open(changelog_file).readlines()) or printed
+	else:
+	    print "Error: No Changelog for " + match
+	    return
+    
+    if not printed:
+	print "Error: No Changelog entry for " + query
+
+# .-------------------------------------------------------.
+# | Versions Function                                     |
+# +-------------------------------------------------------+
+# | Prints out the available version, masked status and   |
+# | installed status.                                     |
+# `-------------------------------------------------------'	
+	
+def versions(query):
+    tup = smart_pkgsplit(query)
+    if tup[0] and tup[1]:
+	matches = [ tup[0] + "/" + tup[1] ]
+    elif tup[1]:
+	matches = search(tup[1])
+    
+    print "[ Results for search key : " + white(query) + " ]"
+    print "[ Applications found : " + white(str(len(matches))) + " ]"
+    print
+    
+    for package in matches:
+	print green("*") + "  " + white(package) + " :"
+	versions = portage.portdb.xmatch("match-all", package)
+	unmasked = portage.portdb.xmatch("match-visible",package)
+	curver = portage.db["/"]["vartree"].dep_bestmatch(package)
+	if (curver) and (curver not in versions):
+	    versions.append(curver)
+	
+	versions.sort()
+	
+	for ver in versions:
+            
+            state = []
+            color = green
+            unstable = 0
+            
+            # check if masked
+            if ver not in unmasked:
+                state.append(red("M"))
+                color = red
+            else:
+                state.append(" ")
+
+            # check if in unstable
+            ver_keywords =  portage.db["/"]["porttree"].dbapi.aux_get(ver,["KEYWORDS"])
+            keywords_list = ver_keywords[0].split()
+            if "~" + portage.settings["ARCH"] in keywords_list:
+                state.append(yellow("~"))
+                color = yellow
+                unstable = 1
+            else:
+                state.append(" ")
+                
+            # check if installed
+            cat, pkg = ver.split("/")            
+            if portage.dblink(cat,pkg,"/").exists():
+                state.append(turquoise("I"))
+                color = turquoise
+            else:
+                state.append(" ")
+                
+            # print
+            slot = portage.db["/"]["porttree"].dbapi.aux_get(ver,["SLOT"])
+            if not slot:
+                slot = ["0"]
+            
+            print " "*8 + "[" + string.join(state,"") + "] " + color(ver) + " (" + color(slot[0]) + ")"
+
+        print
+
+# .-------------------------------------------------------.
+# | Guesses Uses in Ebuild                                |
+# +-------------------------------------------------------+
+# | Just uses the new IUSE parameter in ebuilds           |
+# `-------------------------------------------------------' 
+def uses(query):
+    ebuild = smart_ebuild(query)
+    useflags = portage.config()["USE"].split()
+    re_iuse = re.compile('IUSE="(.*)"');
+    if not ebuild:
+	print "Unable to find ebuild you requested."
+	return
+    for line in open(ebuild).readlines():
+	if len(line.strip()) and line.strip()[0] == "#":
+	    continue
+	iuse = re_iuse.search(line)
+	if iuse:
+	    print "[ Found these USE variables in : " + white(os.path.basename(ebuild)[:-7]) + " ]"
+	    print "[ Colour Code : " + green("set") + " " + red("unset") + "]"
+	    usevar = iuse.group(1).split()
+	    usevar.sort()
+            
+            # open up use.desc
+            if usevar:
+                try:
+                    fd = open("/usr/portage/profiles/use.desc")
+                    usedesc = {}
+                    for line in fd.readlines():
+                        if line[0] == "#":
+                            continue
+                        fields = line.split(" - ")
+                        if len(fields) == 2:
+                            usedesc[fields[0].strip()] = fields[1].strip()
+                except:
+                    usedesc = {}
+                    
+            inuse = []
+	    for u in usevar:
+		if u in useflags:
+		    print "+", green(u),
+
+		else:
+		    print "-", red(u),
+                    
+                if usedesc.has_key(u): 
+                    print " " + usedesc[u]
+                else: 
+                    print " unknown"
+	    return
+    print "[ Can't find IUSE variable in : " + white(os.path.basename(ebuild)[:-7]) + " ]"
+    print turquoise("*") + " Applying search manually .."
+    
+    old_uses(query)
+    
+# .-------------------------------------------------------.
+# | Uses a general rules that has all use's with either   |
+# |  `use alsa` or in the DEPENDS/RDEPENDS field of the   |
+# | ebuild suffixed by a "?"                              |
+# `-------------------------------------------------------' 
+
+def old_uses(query):
+    ebuild = smart_ebuild(query)
+    useflags = portage.config()["USE"].split()    
+    uses = {}
+    # TODO : can't handle 2 or more 'use blah' in one line
+    re_use_sh = re.compile('`use ([a-zA-Z0-9]*)`')
+    re_depend = re.compile('[R]?DEPEND="')
+    re_use_dep = re.compile('([a-zA-Z0-9]+)\?')
+    is_depend = 0
+    
+    for line in open(ebuild).readlines():
+	if len(line.strip()) and line.strip()[0] == "#":
+	    continue
+	
+	# find uses in DEPEND and RDEPEND variables
+	if is_depend:
+	    if re.search('"[\s]*$',line): is_depend = 0 # end of depend	    
+	    is_use = re_use_dep.search(line)
+	    if is_use: uses[is_use.group(1)] = 1
+	    continue
+	    
+	if re_depend.search(line):
+	    is_depend = 1 # start of depend
+	    is_use = re_use_dep.search(line)
+	    if is_use: uses[is_use.group(1)] = 1
+	    continue
+	
+	# find uses in other places like if [ -n "`use blah`" ]
+	is_use = re_use_sh.search(line)
+	if is_use:
+	    uses[is_use.group(1)] = 1
+    if uses:
+	iuse = uses.keys()
+	iuse.sort()
+	for u in iuse:
+	    if u in useflags:
+		print "+", green(u)
+	    else:
+		print "-", red(u)
+    else:
+	print red("*") + " Unable to find any USE variables."
+
+# .-------------------------------------------------------.
+# | Required By Function                                  |
+# +-------------------------------------------------------+
+# | Find what packages require a given package name       |
+# `-------------------------------------------------------'
+
+def required(query):
+    ### TODO !!! 
+    matches = search(query)
+    
+    print "[ Results for search key : " + white(query) + " ]"
+    print "[ Applications found : " + white(str(len(matches))) + " ]"
+    print
+
+    if not matches:
+	return
+
+    # get all installed packages
+    for x in os.listdir(portage.root + "var/cache/edb/dep"):
+        # for each category, we just grep for the deps, slowly
+        for dep in os.listdir(portage.root + "var/cache/edb/dep/" + x):
+            f = open(dep)
+            rdepend = dep.readline()
+            depend = dep.readline()
+            
+            
+
+def size(query):
+    matches = search(query)
+    
+    dbdir = "/var/db/pkg/"
+    
+    print "[ Results for search key : " + white(query) + " ]"
+    print "[ Applications found : " + white(str(len(matches))) + " ]"
+    print
+    if matches:
+	print " Only printing found installed programs."
+	print 
+    
+    for package in matches:
+	files = glob.glob(dbdir + package + "-[0-9]*")
+	if files:
+	    for pkg in files:
+		# for each package we find
+		size = 0
+		files = 0
+		uncounted = 0
+		if os.path.exists(pkg):
+		    try:
+			f = open(pkg + "/CONTENTS")
+		    except:
+			# fail silently
+			continue
+		    for line in f.readlines():
+			words = line.split()
+			if len(words) > 2 and words[0] == "obj":
+			    try:
+				size = size + os.stat(words[1]).st_size
+				files = files + 1
+			    except OSError:
+				uncounted = uncounted + 1
+		print turquoise("*") + " " + white(os.path.basename(pkg))
+		print string.rjust(" Total Files : ",25) + str(files)
+		if uncounted:
+		    print string.rjust(" Inaccessible Files : ",25) + str(uncounted)
+		print string.rjust(" Total Size : ",25) + str(size) + " bytes"
+	
+# .-------------------------------------------------------.
+# | Help Function                                         |
+# `-------------------------------------------------------'
+def ver():
+    print __productname__ + " (" + __version__ + ") - " + __description__ + " - By: " + __author__
+
+def help():
+    ver()
+    print
+    print white("Usage: ") + turquoise(__productname__) + " [ " + green("options") + " ] [ " + turquoise("action") + " ] [ " + turquoise("package") + " ]"
+    print
+    print turquoise("Actions:")
+    print " "*4 + green("changes") + " (" + green("-c") + " short option)"
+    print " "*12 + "Outputs the changelog entry to screen. It is possible to give"
+    print " "*12 + "a version number along with package name. eg:"
+    print " "*12 + "    etcat changes mozilla"
+    print " "*12 + "    etcat changes mozilla-1.1-r1"
+    print " "*12 + "    etcat changes gkrellm$"
+    print
+    print " "*4 + green("uses") + " (" + green("-u") + " short option)"
+    print " "*12 + "Outputs all the possible USE variables that it uses. Note,"
+    print " "*12 + "if the ebuild does not use IUSE, then a hack is employed to"
+    print " "*12 + "try and guess the use variables used, maybe inaccurate."
+    print
+    print " "*4 + green("versions") + " (" + green("-v") + " short options)"
+    print " "*12 + "Outputs all the ebuild versions available in your portage tree."
+    print " "*12 + "How to decode the output:"
+    print " "*12 + " (" + red("M") + ") : Masked Package"
+    print " "*12 + " (" + yellow("~") + ") : Unstable Masked Package"
+    print " "*12 + " (" + turquoise("I") + ") : Installed Package"
+    print " "*12 + " Number on the end indicates package SLOT."
+    print 
+    print " "*4 + green("size") + " (" + green("-s") + " short options)"
+    print " "*12 + "Outputs the size of all the files used by a particular package."
+    print
+
+# .-------------------------------------------------------.
+# | Main Function                                         |
+# `-------------------------------------------------------'
+def main():
+    
+    shortopts = "cuvsV"
+    action = ''
+    query = ''
+    
+    if len(sys.argv) < 3:
+	help()
+	sys.exit(1)
+	
+    opts, args = getopt.getopt(sys.argv[1:],shortopts,[])
+    
+    for o,a in opts:
+	if o == "-c":
+	    action = "changes"
+	elif o == "-u":
+	    action = "uses"
+	elif o == "-v":
+	    action = "versions"
+	elif o == "-s":
+	    action = "size"
+    
+    if action:
+	query = ' '.join(args)
+    else:
+	i = 0
+	for a in args:
+	    if a in options:
+		action = a
+		break
+	    else:
+		i = i + 1
+	query = ' '.join(args[len(opts) + i + 1:])
+
+	
+    # abort if we don't have an action or query string
+    if not query:
+	help()
+	sys.exit(1)
+		
+    if action not in options:
+	help()
+	sys.exit(1)
+	
+    # dispatch function
+    if action == "changes":
+	changes(query)
+    elif action == "versions":
+	versions(query)
+    elif action == "uses":
+	uses(query)
+    elif action == "size":
+	size(query)
+#    elif action == "required":
+#	required(query)
+
+if __name__ == "__main__":
+    main()
