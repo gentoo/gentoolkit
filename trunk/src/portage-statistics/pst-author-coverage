@@ -1,0 +1,12 @@
+#! /bin/sh
+
+if [ -z "$1" ] ; then
+	echo "Usage: $1 <author@site.tld>"
+	exit 1
+fi
+
+numebuilds=`find /usr/portage/ -name "*.ebuild" | wc -l`
+numebuildsfor=`find /usr/portage/ -name "*.ebuild" | xargs grep "$1" | wc -l`
+
+pct=`echo "scale=2 ; $numebuildsfor*100/$numebuilds" | bc`
+printf "%25s: %-4d of %-4d (%-4.2f)\n" $1 $numebuildsfor $numebuilds $pct

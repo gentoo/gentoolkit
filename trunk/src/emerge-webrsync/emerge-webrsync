@@ -1,0 +1,62 @@
+#! /bin/sh
+
+# Copyright(c) 2002 Gentoo Technologies, Inc.
+# Author: Karl Trygve Kalleberg <karltk@gentoo.org>
+# Rewritten from the old, Perl-based emerge-webrsync script
+
+. /etc/make.conf
+
+syncpath="/var/tmp/emerge-webrsync"
+
+if [ ! -d $syncpath ] ; then
+	mkdir -p $syncpath
+fi
+
+cd $syncpath
+
+found=0
+attempts=0
+download=1
+wgetops=-q
+
+if [ "$1" == "-n" ] ; then
+	download=0
+fi
+
+sync_local() {
+	echo Syncing local tree...
+	tar jxf $file
+	rm -f $file
+	rsync -av . /usr
+	rm -rf portage
+}
+
+echo "Fetching most recent snapshot"
+
+while (( $attempts <  40 )) ; do
+
+	day=`date -d "-$attempts day" +"%d"`
+	month=`date -d "-$attempts day" +"%m"`
+	year=`date -d "-$attempts day" +"%Y"`
+
+	file="portage-${year}${month}${day}.tar.bz2"
+
+	if [ -f $file ] && [ $download == 0 ] ; then
+		sync_local
+		exit 0
+	fi
+
+	for i in $GENTOO_MIRRORS ; do 
+		url="${i}/snapshots/$file"
+		rm -f $file
+		if (wget $wgetops $url) ; then
+			sync_local
+			exit 0
+		fi
+	done
+	attempts=$[attempts+1]
+done
+
+rm -rf portage
+
+exit 1

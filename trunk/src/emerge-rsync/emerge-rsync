@@ -1,0 +1,52 @@
+#!/bin/sh
+BASE=/var/cache
+USE_COLORS=yes
+
+# end user configuration section
+. /etc/make.globals
+BEFORE=$BASE/ebuild-rsync.before
+AFTER=$BASE/ebuild-rsync.after
+NEW=$BASE/ebuild-rsync.new
+REMOVED=$BASE/ebuild-rsync.removed
+
+if [ "$USE_COLORS" == "yes" ]; then
+ RED="\033[;31m"
+ GREEN="\033[;32m"
+ NORMAL="\033[m"
+fi
+
+function portagetree () {
+ find $PORTDIR -type d -mindepth 2 -maxdepth 2
+}
+
+# do it
+portagetree >$BEFORE
+emerge $@ rsync 
+portagetree >$AFTER
+diff $BEFORE $AFTER | grep ">" | sed "s/> //g" > $NEW
+diff $BEFORE $AFTER | grep "<" | sed "s/< //g" > $REMOVED
+
+# cleanup
+rm $BEFORE $AFTER
+
+# display new ebuilds
+if ! diff -q $NEW /dev/null >/dev/null; then
+ echo 
+ echo New ebuilds:
+ for i in $(cat $NEW); do
+  DESCRIPTION="$i/*.ebuild ${RED}does not exist$NORMAL"
+  EBUILD=$(ls $i/*.ebuild --sort=time  2>/dev/null | head -n 1)
+  [ -z "$EBUILD" ] || . $EBUILD
+  echo -e $GREEN${i##$PORTDIR/}$NORMAL: $DESCRIPTION
+ done
+fi
+
+# display removed ebuilds
+if ! diff -q $REMOVED /dev/null >/dev/null; then
+ echo
+ echo Removed ebuilds:
+  for i in $(cat $REMOVED); do
+     echo -e $RED${i##$PORTDIR/}$NORMAL
+  done
+fi
+	

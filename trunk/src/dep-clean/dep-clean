@@ -1,0 +1,266 @@
+#!/bin/bash
+#Shows unrequired packages and missing dependencies.
+#Author: Jerry Haltom <ssrit@larvalstage.net>
+
+PROG=`basename ${0}`
+
+tmp="/tmp/$$"
+rm -rf ${tmp} > /dev/null 2>&1
+mkdir ${tmp} > /dev/null 2>&1
+
+declare -i i
+
+set -- `getopt -n ${PROG} -o N,R,U,I,v,C,h -l needed,removed,unneeded,interactive,verbose,nocolor,help -- ${*/ --/};[ $? != 0 ] && echo "y"`
+
+while [ ${#} -gt 0 ]
+do
+	a=${1}
+	shift
+		case "${a}" in
+
+		-I|--interactive)
+				interactive=y
+				;;
+
+		-N|--needed)
+				needed=y
+				;;
+
+		-U|--unneeded)
+				unneeded=y
+				;;
+
+		-R|--removed)
+				removed=y
+				;;
+
+		-v|--verbose)
+				verb=y
+				;;
+
+		-C|--nocolor)
+				nocolor=y
+				;;
+
+		-h|--help)
+				usage=y
+				;;
+
+		--)
+		[ ${1} ] && usage=y && broke=y
+				break
+				;;
+
+		*)
+		usage=y
+		broke=y
+		echo "FIXME - OPTION PARSING - ${a}"
+		break
+		;;
+
+		esac
+done
+
+if [ ! ${needed} ] && [ ! ${unneeded} ] && [ ! ${removed} ]; then
+  needed=y
+  unneeded=y
+  removed=y
+fi
+
+#Set up colors
+if [ ! "${nocolor}" ]; then
+		NO="\x1b[0;0m"
+		BR="\x1b[0;01m"
+		CY="\x1b[36;01m"
+		GR="\x1b[32;01m"
+		RD="\x1b[31;01m"
+		YL="\x1b[33;01m"
+		BL="\x1b[34;01m"
+elif [ ! ${verb} ] && (
+	   ( [ ${needed} ] && [ ${unneeded} ] ) ||
+	   ( [ ${unneeded} ] && [ ${removed} ] ) ||
+	   ( [ ${removed} ] && [ ${needed} ] )
+	 ); then
+		NEED=" N"
+	UNNE=" U"
+	REMO=" R"
+fi
+
+if [ `whoami` != "root" ]
+then
+	echo -e "${RD}Only root can run ${PROG}${NO}"
+	rm -rf ${tmp}
+	exit 1
+fi
+
+if [ ${usage} ]; then
+  echo -e "${BR}GenToolKit's Dependency Checker!
+${NO}Displays packages that are installed but which none 
+of the packages in world or system depend on, and 
+displays packages which are depended on by world or
+system, but are not currently installed.
+
+${BR}USAGE:
+  ${BL}${PROG}${YL}  [${NO}options${YL}]${NO}
+  ${BL}${PROG}${GR}  --help${NO}
+
+${BR}OPTIONS:
+  ${GR}-U, --unneeded${NO}	display unneeded packages that are installed (${GR}green${NO})
+  ${GR}-N, --needed${NO}		display needed packages that are not installed (${RD}red${NO})
+  ${GR}-R, --removed${NO}		display installed packages not in portage (${YL}yellow${NO})
+
+  ${GR}-I, --interactive${NO}	interactively modify world file before proceeding
+  ${GR}-C, --nocolor${NO}		output without color, if necessary, package types are 
+			noted with ${GR}U, N${NO} and ${GR}R${NO} respectively
+  ${GR}-v, --verbose${NO}		be more verbose
+
+${BR}NOTES:
+  ${GR}*${NO} If this script is run on a system that is not up-to-date or which hasn't 
+	been cleaned (with '${BL}emerge -c${NO}') recently, the output may be deceptive.
+  ${GR}*${NO} If the same package name appears in all three categories, then it is
+	definitely time to update that package and then run '${BL}emerge -c${NO}'.
+  ${GR}*${NO} The ${GR}-U, -N${NO} and ${GR}-R${NO} options may be combined, defaults to ${GR}-UNR${NO}"
+  rm -rf ${tmp} > /dev/null 2>&1
+  [ ${broke} ] && exit 1 || exit 0
+fi 
+
+X="\([^/]*\)"
+
+#Retrieve currently merged packages.
+[ ${verb} ] && \
+echo -e "${CY}Retrieving currently merged packages.${NO}"
+find /var/db/pkg -name '*.ebuild' | \
+	sed -e "s:/var/db/pkg/::" \
+		-e "s:${X}/${X}/${X}:\1/\2:" | \
+	sort | uniq >> ${tmp}/current
+
+[ ${verb} ] && \
+echo -e "${CY}"`cat ${tmp}/current | wc -l` "currently merged packages.${NO}"
+[ ${verb} ] && \
+echo -e
+
+#Retrieve system packages and add to image.
+[ ${verb} ] && \
+echo -e "${CY}Retrieving system packages.${NO}"
+emerge system -eup | \
+	grep ebuild | \
+	sed -e "s:^.*] ::" \
+		-e "s: to /::" | \
+	sort | uniq \
+	> ${tmp}/system
+#		-e "s:-r[0-9]*::" \
+#		-e "s:-[0-9].*::" | \
+
+[ ${verb} ] && \
+echo -e "${CY}"`cat ${tmp}/system | wc -l 2> /dev/null` "packages contained in system.${NO}"
+[ ${verb} ] && \
+echo -e
+
+#Create local copy of world and ask user to verify it.
+[ ${verb} ] && \
+echo -e "${CY}Preparing world file.${NO}"
+cp /var/cache/edb/world ${tmp}/world
+
+[ ${interactive} ] && \
+${EDITOR} ${tmp}/world
+
+[ ${verb} ] && \
+echo -e "${CY}"`cat ${tmp}/world | wc -l` "packages contained in world.${NO}"
+[ ${verb} ] && \
+echo -e
+
+#Retrieve world packages and dependencies and add to image.
+[ ${verb} ] && \
+echo -e "${CY}Listing world and total dependencies.${NO}"
+
+qpkg -I -nc -vv | \
+	 grep ebuild | \
+	 fgrep "`cat ${tmp}/world`" | \
+	 cut -f5,6 -d"/" > ${tmp}/world.all
+
+cat ${tmp}/world.all | sed -e s:$:xxx: | \
+	fgrep "`find /usr/portage/ -iname '*.ebuild'|cut -f4,6 -d/ | \
+		sed -e s:\\.ebuild:xxx:`" | \
+		sed -e "s:^:\\\=:" -e "s:xxx::" > ${tmp}/world.new
+
+sort ${tmp}/world.new | uniq | \
+	xargs emerge -eup | tee ${tmp}/log | \
+	grep ebuild | \
+	sed -e "s:^.*] :: ; s: to /::" > ${tmp}/image.unsorted
+
+depends=`cat ${tmp}/image.unsorted|wc -l`
+
+if [ ${depends} -lt "2" ]; then
+	echo -e "${RD}There appears to be an unresolved dependency in your world file."
+	echo -e "Please check for masking errors or other world file issues,"
+	echo -e "and then try again."
+	echo -e
+	echo -e "The following is the emerge output for your reference:${NO}"
+	cat ${tmp}/log
+	rm -rf ${tmp} > /dev/null 2>&1
+	exit 1
+fi
+
+cat ${tmp}/system >> ${tmp}/image.unsorted
+
+#Cleanup image
+sort ${tmp}/image.unsorted | uniq > ${tmp}/image
+
+[ ${verb} ] && \
+echo -e "${CY}"`cat ${tmp}/image | wc -l` "packages contained in final image.${NO}"
+
+#Determine packages that exist in current but not in image.
+#These packages are safe to clean up.
+if [ ${unneeded} ]; then
+	[ ${verb} ] && \
+	echo -e
+	[ ${verb} ] && \
+	echo -e "${CY}These packages have no other packages depending on them.${NO}"
+	i=0
+	for pkg in `cat ${tmp}/current`; do
+		if [ "`cat ${tmp}/image | grep -x ${pkg} | wc -l`" -eq "0" ]; then
+			echo -e "${GR}${pkg}${CY}${UNNE}${NO}"
+			i=${i}+1
+		fi
+	done
+	[ ${verb} ] && \
+	echo -e "${CY}Total of ${i} unneeded packages.${NO}"
+fi
+
+#Determine packages that exist in image but not in current.
+#These packages should be added.
+if [ ${needed} ]; then
+	[ ${verb} ] && \
+	echo -e
+	[ ${verb} ] && \
+	echo -e "${CY}These packages are depended upon but are not present on the system.${NO}"
+	i=0
+	for pkg in `cat ${tmp}/image`; do
+		if [ "`cat ${tmp}/current | grep -x ${pkg} | wc -l`" -eq "0" ]; then
+			echo -e "${RD}${pkg}${CY}${NEED}${NO}"
+			i=${i}+1
+		fi
+	done
+	[ ${verb} ] && \
+	echo -e "${CY}Total of ${i} needed packages.${NO}"
+fi
+
+#Determine packages that are installed but not currently in portage
+if [ ${removed} ]; then
+	[ ${verb} ] && \
+	echo -e
+	[ ${verb} ] && \
+	echo -e "${CY}These packages are installed but not in the portage tree.${NO}"
+	cat ${tmp}/current | sed -e s:$:xxx: | \
+		fgrep -v "`find /usr/portage/ -iname '*.ebuild'|cut -f4,6 -d/ | \
+			sed -e s:\\\.ebuild:xxx:`" | \
+		sed -e "s:xxx:${CY}${REMO}${YL}:" > ${tmp}/world
+	echo -ne "${YL}"
+	cat ${tmp}/world
+	echo -ne "${NO}"
+	[ ${verb} ] && \
+	echo -e "${CY}Total of" `cat ${tmp}/world|wc -l` "removed packages.${NO}"
+fi
+
+rm -rf ${tmp} > /dev/null 2>&1
+

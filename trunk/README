@@ -1,0 +1,33 @@
+Package: Gentoolkit
+Version: 0.1.3
+Authors: Karl Trygve Kalleberg <karltk@gentoo.org>
+         Brandon Low <lostlogic@gentoo.org>
+         See src/<tool>/AUTHORS for tool-specific authors
+
+MOTIVATION
+
+Gentoolkit is a collection of useful adminstration scripts particular to
+the Gentoo Linux distribution. It contains rough drafts and
+implementations of features that may in time make it into Portage, or
+into full-fledged tools in their own right.
+
+CONTENTS
+
+dep-clean           - cleans out unwanted dependencies
+emerge-rsync        - coloured output of changes in last rsync
+emerge-webrsync     - rsync-over-http 
+epm                 - rpm-like query tool
+etc-update          - keeps your /etc up to date after package installs
+pkg-clean           - cleans packages
+pkg-size            - calculates size of an installed package
+portage-statistics  - shows various statistics about the Portage Tree
+qpkg                - convient package query tool
+useflag             - tool for handling use flag settings
+
+
+IMPROVEMENTS
+
+Any suggestions for improvements should be sent to karltk@gentoo.org, or
+added as a bug assigned to me.
+
+We only accept new contributions if they are written in bash or python.
