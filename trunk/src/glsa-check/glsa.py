@@ -364,7 +364,7 @@ def getMinUpgrade(vulnerableList, unaffectedList):
 		for c in mylist:
 			c_pv = portage.catpkgsplit(c)
 			i_pv = portage.catpkgsplit(portage.best(v_installed))
-			if portage.pkgcmp(c_pv[1:], i_pv[1:]) > 0 and (rValue == None or portage.pkgcmp(c_pv[1:], rValue) < 0):
+			if portage.pkgcmp(c_pv[1:], i_pv[1:]) > 0 and (rValue == None or portage.pkgcmp(c_pv[1:], portage.catpkgsplit(rValue)[1:]) < 0):
 				rValue = c_pv[0]+"/"+c_pv[1]+"-"+c_pv[2]
 				if c_pv[3] != "r0":		# we don't like -r0 for display
 					rValue += "-"+c_pv[3]
