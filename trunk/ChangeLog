@@ -1,5 +1,7 @@
+2004-01-10 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added src/ego
 
-2003-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
+2004-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added new build system
 	* Added src/old-scripts, the scripts from app-portage/gentoolkit
 	* Renamed gentool to equery
