@@ -1,3 +1,7 @@
+16 Mar 2004 Aron Griffis <agriffis@gentoo.org>
+	* Make Feb 17 behavior work without Feb 20 bug :-)
+	* Release as version 0.2.0
+
 20 Feb 2004 Aron Griffis <agriffis@gentoo.org>
 	* Only update copyrights on modified ebuilds, otherwise if you run
 	  echangelog again, it reports that all the ebuilds have been updated!
