@@ -293,7 +293,7 @@ if [ "${ffind}" ]; then
 	# package/CONTENTS containing <arg>
 	if [ "${fpat}" ]; then
 		dirs=`ls /var/db/pkg/${group}/*/CONTENTS \
-		| xargs grep -Fl "${arg}" \
+		| xargs grep -l "${arg}" \
 		| xargs --no-run-if-empty -n 1 dirname`
 	else
 		# if the user didnt specify a full path assume they
