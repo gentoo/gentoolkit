@@ -21,6 +21,7 @@ $Text::Wrap::unexpand = 0;
 # Global variables
 my (@files) = ();
 my (@ebuilds) = ();
+my (@unknown) = ();
 my ($input, $editor, $entry, $user, $date, $text, $version, $year);
 my (%versions) = ();
 my (%actions) = ();
@@ -45,7 +46,9 @@ if (-f 'ChangeLog') {
         $text =~ s/<CATEGORY>/$category/;
         $text =~ s/<PACKAGE_NAME>/$package_name/;
         # Okay, now we have a starter ChangeLog to work with.
-        # The entry will be added just like with any other ChangeLog.
+        # The text will be added just like with any other ChangeLog below.  
+        # Add the new ChangeLog to cvs before continuing.
+        system("cvs add ChangeLog");
     } else {
         die "This should be run in a directory with ebuilds...\n";
     }
@@ -55,9 +58,18 @@ if (-f 'ChangeLog') {
 open C, 'cvs -n up 2>&1 |' or die "Can't run cvs -n up: $!\n";
 while (<C>) {
     /ChangeLog/ and next;
+    /^\? (\S+)/ and push @unknown, $1;
     /^([ARMC]) (\S+)/ or next;
     push @files, $2;
     ($actions{$2} = $1) =~ tr/ARMC/+-/d;
+}
+if (@unknown) {
+    print STDERR <<EOT;
+Cvs reports the following unknown files.  Please use "cvs add" before
+running echangelog, or remove the files in question.
+EOT
+    print STDERR "? ", join("\n ?", @unknown), "\n";
+    exit 1;
 }
 
 # Forget ebuilds that only have changed copyrights, unless that's all

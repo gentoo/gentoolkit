@@ -1,20 +1,11 @@
-Package : echangelog
-Version : 0.2.0
-Author  : See AUTHORS
+Most of the documentation is contained in the man-page, which you can
+read directly (using GNU man) by doing
 
-MOTIVATION
+	man ./echangelog.1
 
-Update the ChangeLog for an ebuild. 
+To rebuild the man-page from pod source, do
 
-MECHANICS
+	pod2man --name=echangelog --center='Gentoolkit' \
+		echangelog.pod echangelog.1
 
-N/A
-
-IMPROVEMENTS
-
-- Should rewrite to Python, and use Portage directly to select candidate
-  ebuild catalogs.
-- Should check the well-formedness of the current ChangeLog.
-
-For improvements, send a mail to agriffis@gentoo.org or make out a bug at 
-bugs.gentoo.org.
+03 Nov 2004 agriffis
