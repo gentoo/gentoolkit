@@ -17,9 +17,13 @@ import re
 import sys
 import time
 import string
-import gentoolkit
 from output import *
 
+sys.path = ["/usr/lib/portage/pym"] + \
+           ["/usr/lib/gentoolkit/pym"] + \
+           sys.path
+
+import gentoolkit
 
 # Auxiliary functions
 

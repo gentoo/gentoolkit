@@ -35,7 +35,8 @@ dist-gentoolkit-dev:
 
 dist-gentoolkit:
 	mkdir -p release/gentoolkit-$(VERSION)$(RELEASE_TAG)
-	for x in equery etcat euse qpkg revdep-rebuild old-scripts ; do \
+	rm -rf release/gentoolkit-$(VERSION)$(RELEASE_TAG)/
+	for x in equery etcat euse qpkg gentoolkit revdep-rebuild old-scripts ; do \
 		( cd src/$$x ; make distdir=release/gentoolkit-$(VERSION)$(RELEASE_TAG) dist ) \
 	done
 	cp {Makefile,AUTHORS,README,TODO,COPYING,NEWS,ChangeLog} release/gentoolkit-$(VERSION)$(RELEASE_TAG)/
@@ -58,7 +59,7 @@ install-gentoolkit:
 
 	install -m 0644 {AUTHORS,ChangeLog,COPYING,NEWS,README,TODO} $(docdir)/
 
-	for x in equery etcat euse qpkg revdep-rebuild old-scripts ; do \
+	for x in equery etcat euse qpkg gentoolkit revdep-rebuild old-scripts ; do \
 		( cd src/$$x ; make DESTDIR=$(DESTDIR) install )  \
 	done
 
