@@ -2,11 +2,151 @@
 .SH NAME
 equery \- Gentoo: Package Query Tool
 .SH SYNOPSIS
-.B equery
+.B equery  
+.I [global\-opts] command [local\-opts]
+.PP
+
+.SH DESCRIPTION
+
+equery is a flexible utility which may display various information about 
+packages, such as the files they own, their USE flags, the md5sum 
+of each file owned by a given package, and many other things.
+
+.SH OPTIONS
+The 'command' is the only mandatory option to equery.  Most commands require
+a 'pkgspec' option, which is described by <cat/>packagename<\-version>;
+namely, the package name is mandatory, while the category and version are 
+optional.
+
+[global\-opts] may be one of:
+
+.B \-q, \-\-quiet   
+causes minimal output to be emitted
+.PP
+.B \-C, \-\-nocolor 
+turns off colours
+.PP
+.B \-h, \-\-help
+displays a help summary
+.PP
+.B \-V, \-\-version
+displays the equery version
+.PP
+
+Only one command will actually be run, at most.  The possible commands are: 
+.TP
+.B belongs <local\-opts> file
+This command lists all packages owning the specified file.
+.br
+Note: Normally, only one package will own a file. If multiple packages own the
+same file, it usually consitutes a problem, and should be reported.
+.br
+.IP
+<local\-opts> is either or both of:
+.br
+.B \-c, \-\-category cat 
+only search in category cat
+.br
+.B \-e, \-\-earlyout 
+stop when first match found
+
+.PP
+.B check pkgspec
+This command checks the files of the specified package against recorded MD5 
+sums and timestamps.
+.PP
+.TP
+.B depgraph <local\-opts> pkgspec
+This command display a dependency tree for pkgspec, by default indented to reflect
+how dependancies relate to each other.
+.br
+<local\-opts> is either or both of:
+.br
+.B \-U, \-\-no\-useflags 
+do not show USE flags.  Note that this doesn't actually do anything, as USE flags
+are not shown even without this option.
+.br
+.B \-l, \-\-linear    
+do not use fancy formatting 
+.PP
+.TP
+.B files <local\-opts> pkgspec
+This lists files owned by a particular package, optionally with extra
+information specified by <local\-opts>
+.br
+
+<local\-opts> is any combination of:
+.br
+.B \-\-timestamp
+output the timestamp of each file
+.br
+.B \-\-md5sum
+output the md5sum of each file
+.br
+.B \-\-type
+output the type of each file
+.PP
+.TP
+.B list <local\-opts> pkgspec
+This command lists packages matching pkgspec in a user\-specified combination
+of installed packages, packages which are not installed, the portage tree, and
+the portage overlay tree.
+
+<local\-opts> must include not include only \-I;
+if \-I is used, \-p and/or \-o must be also.  By default, only installed
+packages are searched.  \-o searches only the overlay tree [and possibly
+installed packages],
+.I not
+the main portage tree.
+
+.B \-i, \-\-installed
+search installed packages (default)
+.br
+.B \-I, \-\-exclude\-installed
+do not search installed packages
+.br
+.B \-p, \-\-portage\-tree
+also search in portage tree (/usr/portage)
+.br
+.B \-o, \-\-overlay\-tree
+also search in overlay tree (/usr/local/portage)
+.PP
+.TP
+.B size <local\-opts> pkgspec
+This command outputs the number of files in the specified package, as well as
+their total size in an appropriate unit.
+
+The only possible value for <local\-opts>, if specified, is:
+.br
+.B \-b, \-\-bytes 
+report size in bytes
+.PP
+.TP
+.B uses <local\-opts> pkgspec 
+display USE flags for pkgspec.  No local options are actually implemented yet.
+.PP
+.B which pkgspec 
+print full path to ebuild for package pkgspec
+.PP
+
+.SH Unimplemented Options
+.PP
+.B changes
+.PP
+.B depends
+.PP
+.B glsa \fR \- use glsa\-check for the time being.
+.PP
+.B stats
+
+
+
 .SH BUGS
-This tool does not yet have a man page. Feel free to submit a bug about it to
-http://bugs.gentoo.org
+Many options aren't implemented.  Command\-line parsing could use some work. 
+.br
+Submit bug reports to http://bugs.gentoo.org
 .SH AUTHORS
-This informative man page was written by Karl Trygve Kalleberg 
-<karltk@gentoo.org>.
+equery, original man page: Karl Trygve Kalleberg <karltk@gentoo.org>, 2003.
+.br
+Massive man page updates: Katerina Barone\-Adesi <katerinab@gmail.com>, 2004.
 

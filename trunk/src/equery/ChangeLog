@@ -1,3 +1,6 @@
+2004-09-08 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added man page rewrites by Katerina Barone-Adesi <katerinab@gmail.com>
+
 2004-08-29 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added check for bad regexp in belongs, fixes #58494
 	* Added proper error reporting to stderr, fixes #57580
