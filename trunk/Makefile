@@ -8,6 +8,7 @@ include makedefs.mak
 
 
 all:
+	echo "YARMOUTH (vb.) To shout at foreigners in the belief that the louder you speak, the better they'll understand you." 
 	echo $(PYVERSION)
 	echo $(VERSION)
 	echo $(docdir)
@@ -23,9 +24,13 @@ dist-gentoolkit-dev:
 
 dist-gentoolkit:
 	mkdir -p dist/gentoolkit-$(VERSION)
-	for x in gentool etcat qpkg revdep-rebuild old-scripts ; do \
+	for x in gentool etcat euse qpkg revdep-rebuild old-scripts ; do \
 		( cd src/$$x ; make distdir=dist/gentoolkit-$(VERSION) dist ) \
 	done
+	cp {Makefile,AUTHORS,README,TODO,COPYING,NEWS,ChangeLog} dist/gentoolkit-$(VERSION)/
+	cat makedefs.mak | sed "s/^VERSION=.*/VERSION=$(VERSION)/" > dist/gentoolkit-$(VERSION)/makedefs.mak
+	( cd dist ; tar zcf gentoolkit-$(VERSION).tar.gz gentoolkit-$(VERSION)/ )
+
 install:
 	echo "Err0r: Must use either install-gentoolkit or install-gentoolkit-dev"
 
@@ -39,8 +44,8 @@ install-gentoolkit:
 
 	install -m 0644 {AUTHORS,ChangeLog,COPYING,NEWS,README,TODO} $(docdir)/
 
-	for x in gentool etcat qpkg euse etc-update revdep-rebuild old-scripts ; do
-		( cd src/$(x) ; make DESTDIR=$(DESTDIR) install ) 
+	for x in gentool etcat euse qpkg revdep-rebuild old-scripts ; do \
+		( cd src/$$x ; make DESTDIR=$(DESTDIR) install )  \
 	done
 
 install-gentoolkit-dev:
