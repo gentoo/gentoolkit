@@ -30,8 +30,10 @@ if (-f 'ChangeLog') {
 } else {
     # No ChangeLog here, maybe we should make one...
     if (<*.ebuild>) {
-        open I, '<../../skel.ChangeLog' 
-            or die "Can't open ../../skel.ChangeLog for input: $!\n";
+        my ($portdir) = `/usr/bin/portageq portdir 2>/dev/null`;
+        chomp($portdir);
+        open I, "<$portdir/skel.ChangeLog"
+            or die "Can't open $portdir/skel.ChangeLog for input: $!\n";
         { local $/ = undef; $text = <I>; }
         close I;
         my ($cwd) = getcwd();
