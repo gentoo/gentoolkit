@@ -31,6 +31,7 @@
 #  -c/changes  ) list the more recent changelog entry
 #  -d/depends  ) list all those that have this in their depends
 #  -f/files    ) list all files that belong to this package
+#  -g/graph    ) graph dependencies
 #  -s/size     ) guesses the size of a installed packaged.
 #  -u/uses     ) list all the use variables used in this package/ebuild
 #  -v/versions ) list all the versions available for a package
@@ -41,6 +42,10 @@
 # 
 # --| Changes |------------------------------------------------------
 #
+#  * etcat-0.2.0 ( ?? )
+#    - Added "graph" feature
+#  * etcat-0.1.5 (30 Apr 2003)
+#    - Fixed disappearing short opts. Oops.
 #  * etcat-0.1.4 (27 Apr 2003)
 #    - Cleaned up command execution code to provide a single place
 #      to specify functions
@@ -75,7 +80,7 @@ from output import *
 
 __author__ = "Alastair Tse"
 __email__ = "liquidx@gentoo.org"
-__version__ = "0.1.4"
+__version__ = "0.2.0"
 __productname__ = "etcat"
 __description__ = "Portage Information Extractor"
 
@@ -94,6 +99,7 @@ options = {
 "depends":("d","Finds all packages that are directly dependent to a regex search string.",
 ["etcat depends 'gnome-base/libgnome'", "etcat depends '>=dev-lang/python-2.2'"]),
 "files":("f","Lists files that belongs to a package and optionally with version.",[]),
+"graph":("g","Graphs Dependencies",[]),
 "size":("s","Lists the installed size of a package.",[]),
 "uses":("u", "Advanced output of USE vars in a package. Tells you flags used by a package at time of installation, flags in current config and flag description.",[]),
 "versions":("v","Displays the versions available for a specific package. Colour coded to indicate installation status and displays slot information.",
@@ -694,7 +700,7 @@ def uses(query):
 
 def old_uses(query):
     ebuild = smart_ebuild(query)
-    useflags = portage.config()["USE"].split()    
+    useflags = portage.config()["USE"].split()
     uses = {}
     # TODO : can't handle 2 or more 'use blah' in one line
     re_use_sh = re.compile('`use ([a-zA-Z0-9]*)`')
@@ -734,6 +740,113 @@ def old_uses(query):
     else:
 	print red("*") + " Unable to find any USE variables."
 
+# .-------------------------------------------------------.
+# | Graphs the Dependency Tree for a package              |
+# +-------------------------------------------------------+
+# | Naive graphing of dependencies
+# `-------------------------------------------------------'
+graphcache = []
+
+def graph(query):
+    print "attempt to graph dependencies"
+    rgraph(query, [])
+
+# return string of deps that are valid
+def depuseparse(depstring):
+    raw_deps = depstring.strip().split()
+    out_deps = []
+    uselist = portage.config()["USE"].split()
+    
+    dep_len = len(raw_deps)
+    i = 0
+    uselevel = 0
+    orlevel = 0
+    ordone = 0
+    
+    while i < dep_len:
+	#---- if we encounter a use? ( ) 
+	if raw_deps[i][-1] == "?":
+	    if raw_deps[i][:-1] in uselist:
+		uselevel += 1
+	    else:
+		# read until we find a ")"
+		i += 1
+		while i < dep_len:
+		    if raw_deps[i] == ")":
+			break
+		    else:
+			i += 1
+	#---- if we encounter a || or use?
+        elif raw_deps[i] == "||":
+	    orlevel += 1
+	elif orlevel > 0 or uselevel > 0:
+	    if raw_deps[i] == "(":
+		pass
+	    elif raw_deps[i] == ")":
+		if uselevel > 0:
+		    uselevel -= 1
+		elif orlevel > 0:
+		    orlevel -= 1
+		    ordone = 0
+	    else:
+		if orlevel and ordone == 0:
+		    ordone += 1
+		    out_deps.append(raw_deps[i])
+		elif uselevel > 0:
+		    out_deps.append(raw_deps[i])
+	#---- good 'ole plain deps
+        elif raw_deps not in [")","("]:
+	    out_deps.append(raw_deps[i])
+	# increment counter
+	i+=1
+	
+    return out_deps
+	    
+def graph_node_print(path, dep):
+    indent = len(path)-1
+    if path == []:
+	print dep
+    else:
+	print "  " + "  "*indent + "`-- " + dep
+
+def rgraph(dep, path):
+    global graphcache
+    
+    # stop circular deps
+    if dep in path:
+	return "  "*len(path) + "!! circular dependency"
+    
+    # find in portage
+    matches = portage.db["/"]["porttree"].dbapi.match(dep)
+    x = portage.best(matches)
+    
+    # skip if we've already included this in the tree
+    if x in graphcache:
+	return []
+    else:
+	graphcache.append(x)
+
+    # try open up this package's deps
+    try:
+	f = open("/var/cache/edb/dep/%s" % x)
+	f.readline() # read RDEPENDS
+	depends = depuseparse(f.readline())
+	graph_node_print(path, x)
+	for d in depends:
+	    if d in graphcache:
+		continue
+	    if d in portage.db["/"]["virtuals"].keys():
+		virtual = portage.db["/"]["virtuals"][d]
+		graphcache += rgraph(virtual, path + [dep])
+	    else:
+		graphcache += rgraph(d, path + [dep])
+    except IOError:
+	# silent this for the moment
+	#print "! Error findind deps."
+	return []
+
+    return depends
+	
 # .-------------------------------------------------------.
 # | Required By Function                                  |
 # +-------------------------------------------------------+
@@ -857,7 +970,12 @@ def size(query):
 # | Lists all the files in a package                      |
 # `-------------------------------------------------------'	    
 def files(query):
-    matches = search(query)
+    tup = smart_pkgsplit(query)
+    if tup[0] and tup[1]:
+	matches = [ tup[0] + "/" + tup[1] ]
+    elif tup[1]:
+	matches = search(tup[1])
+    
     # FIXME: use portage.settings
     dbdir = "/var/db/pkg/"
     
@@ -873,7 +991,11 @@ def files(query):
 	return
     
     for package in matches:
-	files = glob.glob(dbdir + package + "-[0-9]*")
+	if tup[2]:
+	    files = glob.glob(dbdir + package + "-" + tup[2])
+	else:
+	    files = glob.glob(dbdir + package + "-[0-9]*")
+	    
 	if files:
 	    for pkg in files:
 		# for each package we find
@@ -941,12 +1063,11 @@ def main():
     # delegates the commandline stuff to functions
     pointer = 2
     # short/long opts mapping
-    shortopts = map(lambda x: x[0], options.values())
+    shortopts = map(lambda x: "-" + x[0], options.values())
     short2long = {}
     for k,v in options.items():
 	short2long[v[0]] = k
     longopts = options.keys()
-
     # loop thru arguments
     for arg in sys.argv[1:]:
 	if arg[0] == "-" and len(arg) == 2 and arg in shortopts:
