@@ -23,7 +23,7 @@ my (@files) = ();
 my (@ebuilds) = ();
 my (@unknown) = ();
 my ($input, $editor, $entry, $user, $date, $text, $version, $year);
-my (%versions) = ();
+my (@new_versions) = ();
 my (%actions) = ();
 
 # Read the current ChangeLog
@@ -69,12 +69,94 @@ EOT
     exit 1;
 }
 
+# Sort the list of files as portage does.  None of the operations through
+# the rest of the script should break this sort.
+sub sortfunc($$) {
+    my ($a, $b) = @_;
+    (my $va = $a) =~ s/.*?-(\d.*?)(?:\.ebuild)?$/$1/;
+    (my $vb = $b) =~ s/.*?-(\d.*?)(?:\.ebuild)?$/$1/;
+    my ($na, $sa, $sna, $ra) = ($va =~ /^(.*?)(?:_(alpha|beta||pre|rc|p)(\d*))?(?:-r(\d+))?$/);
+    my ($nb, $sb, $snb, $rb) = ($vb =~ /^(.*?)(?:_(alpha|beta||pre|rc|p)(\d*))?(?:-r(\d+))?$/);
+    my (@na) = split /\.|(?<=\d)(?=[^\d\.])/, $na;
+    my (@nb) = split /\.|(?<=\d)(?=[^\d\.])/, $nb;
+    my $retval;
+
+    #
+    # compare version numbers first
+    #
+    for (my $i = 0; defined $na[$i] or defined $nb[$i]; $i++) {
+        # def vs. undef
+        return +1 if defined $na[$i] and !defined $nb[$i];
+        return -1 if defined $nb[$i] and !defined $na[$i];
+
+        # num vs. num
+        if ($na[$i] =~ /^\d/ and $nb[$i] =~ /^\d/) {
+            $retval = ($na[$i] <=> $nb[$i]);
+            return $retval if $retval;
+            next;
+        }
+
+        # char vs. char
+        if ($na[$i] =~ /^\D/ and $nb[$i] =~ /^\D/) {
+            $retval = ($na[$i] cmp $nb[$i]);
+            return $retval if $retval;
+            next;
+        }
+
+        # num vs. char
+        $retval = ($na[$i] =~ /\d/ and -1 or +1);
+        return $retval;
+    }
+
+    #
+    # compare suffix second
+    #
+    if (defined $sa and !defined $sb) {
+        return +2 if $sa eq "p";
+        return -2;
+    }
+    if (defined $sb and !defined $sa) {
+        return -3 if $sb eq "p";
+        return +3;
+    }
+
+    if (defined $sa) {  # and defined $sb
+        $retval = ($sa cmp $sb);
+        if ($retval) {
+            return +4 if $sa eq "p";
+            return -4 if $sb eq "p";
+            return $retval; # suffixes happen to be alphabetical order, mostly
+        }
+
+        # compare suffix number
+        return +5 if defined $sna and !defined $snb;
+        return -5 if defined $snb and !defined $sna;
+        if (defined $sna) {  # and defined $snb
+            $retval = ($sna <=> $snb);
+            return $retval if $retval;
+        }
+    }
+
+    #
+    # compare rev third
+    #
+    return +6 if defined $ra and !defined $rb;
+    return -6 if defined $rb and !defined $ra;
+    if (defined $ra) {  # and defined $rb
+        return ($ra <=> $rb);
+    }
+
+    #
+    # nothing left to compare
+    #
+    return 0;
+}
+@files = sort sortfunc @files;
+
 # Forget ebuilds that only have changed copyrights, unless that's all
 # the changed files we have
 @ebuilds = grep /\.ebuild$/, @files;
 @files = grep !/\.ebuild$/, @files;
-#print STDERR '@ebuilds = [', join('],[', @ebuilds), "]\n";
-#print STDERR '@files = [', join('],[', @files), "]\n";
 if (@ebuilds) {
     open C, "cvs -f diff -U0 @ebuilds 2>&1 |" or die "Can't run cvs diff: $!\n";
     $_ = <C>;
@@ -82,7 +164,6 @@ if (@ebuilds) {
         #print STDERR "cvs: $_";
         if (/^cvs diff: (([^\/]*?)\.ebuild) was removed/) { 
             push @files, $1;
-            $versions{$2} = 0;	# existing ebuild that was removed
         }
         elsif (/^Index: (([^\/]*?)\.ebuild)\s*$/) { 
             my ($f, $v) = ($1, $2);
@@ -98,7 +179,6 @@ if (@ebuilds) {
                 last if /^[A-Za-z]/;
                 if (/^[-+](?!# Copyright)/) {
                     push @files, $f;
-                    $versions{$v} = 0;	# existing ebuild that has changed
                     last;
                 }
             }
@@ -108,7 +188,7 @@ if (@ebuilds) {
         }
         elsif (/^cvs.*?: (([^\/]*?)\.ebuild) is a new entry/) { 
             push @files, $1;
-            $versions{$2} = -1;	# new ebuild, will create a new entry
+            push @new_versions, $2;  # new ebuild, will create a new entry
         }
         # other cvs output is ignored
         $_ = <C>;
@@ -186,40 +266,31 @@ $entry .= ':';
 $entry = Text::Wrap::fill('  ', '  ', $entry);  # does not append a \n
 $entry .= "\n$input";                           # append user input
 
-# Find the version that's highest in the file (or determine if we're
-# adding a new version).  Note that existing ebuilds have version=0,
-# new ebuilds have version=-1 to make them automatically rise to the
-# top.
-if (%versions) {
-    for (keys %versions) {
-        $versions{$_} = index $text, $_ unless $versions{$_};
-    }
-    $version = (sort { $versions{$a} <=> $versions{$b} } keys %versions)[0];
-}
-
 # Each one of these regular expressions will eat the whitespace
 # leading up to the next entry (except the two-space leader on the
 # front of a dated entry), so it needs to be replaced with a
 # double carriage-return.  This helps to normalize the spacing in
 # the ChangeLogs.
-if (!defined $version || $versions{$version} > -1) {
+if (@new_versions) {
+    # Insert at the top with a new version marker
+    $text =~ s/^( .*? )               # grab header
+               \s*\n(?=\ \ \d|\*|\z)  # suck up trailing whitespace
+    /"$1\n\n" .
+     join("\n", map "*$_ ($date)", reverse @new_versions) .
+     "\n\n$entry\n\n"/sxe
+        or die "Failed to insert new entry (4)\n";
+} else {
     # Changing an existing patch or ebuild, no new version marker
     # required
     $text =~ s/^( .*? )               # grab header
                \s*\n(?=\ \ \d|\*|\z)  # suck up trailing whitespace
     /$1\n\n$entry\n\n/sx
         or die "Failed to insert new entry (3)\n";
-} else {
-    # Insert at the top with a new version marker
-    $text =~ s/^( .*? )               # grab header
-               \s*\n(?=\ \ \d|\*|\z)  # suck up trailing whitespace
-    /$1\n\n*$version ($date)\n\n$entry\n\n/sx
-        or die "Failed to insert new entry (4)\n";
 }
 
 sub update_copyright {
     my ($t) = @_;
-    my ($year) = strftime('%Y', localtime);
+    (my $year = $date) =~ s/.* //;
     $t =~ s/^# Copyright \d+(?= )/$&-$year/m or
     $t =~ s/^(# Copyright \d+)-(\d+)/$1-$year/m;
     return $t;
