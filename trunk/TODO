@@ -1,13 +1,15 @@
-- merge dep-clean and pkg-clean, use portage
-- rewrite ekeywords and echangelog to use portage
-- extract helper code from etcat
-- rewrite qpkg to use portage
-- rewrite epm to use portage
+- merge dep-clean and pkg-clean to use gentoolkit
+- rewrite ekeywords and echangelog to use gentoolkit
+- add deep depends to etcat
+- rewrite qpkg to use gentoolkit
+- rewrite epm to use gentoolkit
 - merge emerge-rsync and emerge-webrsync
 - drop pkg-size (callfwd to etcat size)
 - merge change and echangelog
 - merge useflag and euse
-- rewrite revdep-rebuild to use portage
-- rewrite distfiles-clean to use portage
-- rewrite etc-update to use portage, add UI
+- rewrite revdep-rebuild to use gentoolkit
+- rewrite distfiles-clean to use gentoolkit
+- rewrite etc-update to use gentoolkit, add UI
 - add genlop
+
++ extract helper code from etcat
