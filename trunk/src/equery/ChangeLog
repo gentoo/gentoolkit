@@ -5,6 +5,8 @@
 	* Added depends command by Olivier Crete <tester@gentoo.org>, fixes
 	#40830.
 	* Reworked output yet again.
+	* Belongs handles multiple files on the command line, partially fixes
+	#62361.
 
 2004-08-29 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added check for bad regexp in belongs, fixes #58494
