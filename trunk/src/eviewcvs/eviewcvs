@@ -41,10 +41,7 @@ chdir() {
 [[ -n $* ]] || set -- *
 
 for f in "$@"; do
-    if [[ ! -f $f ]]; then
-        echo "$f is not a file" >&2
-        continue
-    fi
+    [[ -f $f ]] || continue
 
     # Determine the directory settings
     if [[ $f == */* ]]; then
