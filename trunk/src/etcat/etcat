@@ -361,7 +361,7 @@ def uses(query, matches):
 		else: usevar = []
 		
 		inuse = []
-		used = p.get_use_vars().split()
+		used = p.get_use_flags().split()
 
 		# store (inuse, inused, flag, desc)
 		output = []
