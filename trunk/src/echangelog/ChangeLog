@@ -1,3 +1,6 @@
+29 Mar 2004 Aron Griffis <agriffis@gentoo.org>
+	* fix bug 46111 by testing for /<root@/ instead of / root@/
+
 28 Mar 2004 Aron Griffis <agriffis@gentoo.org>
 	* apply patch from plasmaroo, with minor modifications, to enable EDITOR
 	  and +- support
