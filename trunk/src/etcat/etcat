@@ -312,24 +312,16 @@ def output_log(lines, package_ver=""):
 
 def changes(query):
     matches=gentoolkit.find_packages(query)
-    if not report_matches(matches,query):
+    if not report_matches(query,matches):
         return
-    
+
     for pkg in matches:
-        changelog_file = pkg.get_portage_path() + "/ChangeLog"
+        changelog_file = pkg.get_package_path() + "/ChangeLog"
 	if os.path.exists(changelog_file):
-	    if tup[2] and tup[3]:
-		printed = output_log(open(changelog_file).readlines(),match.split('/')[1] + ".*-" + tup[2] + "-" + tup[3]) or printed
-	    elif tup[2]:
-		printed = output_log(open(changelog_file).readlines(),match.split('/')[1] + ".*-" + tup[2]) or printed
-	    else:
-		printed = output_log(open(changelog_file).readlines()) or printed
+            output_log(open(changelog_file).readlines(), pkg.get_name()+"-"+pkg.get_version())
 	else:
-	    print "Error: No Changelog for " + match
-	    return
-    
-    if not printed:
-	print "Error: No Changelog entry for " + query
+	    print red("Error") + ": No Changelog for " + pkg.get_cpv()
+
 
 # .-------------------------------------------------------.
 # | Versions Function                                     |
@@ -339,82 +331,52 @@ def changes(query):
 # `-------------------------------------------------------'	
 	
 def versions(query):
-    
-    tup = smart_pkgsplit(query)
-    if tup[0] and tup[1]:
-	matches = [ tup[0] + "/" + tup[1] ]
-    elif tup[1]:
-	matches = gentoolkit.find_packages(tup[1])
-    
-    print "[ Results for search key : " + white(query) + " ]"
-    print "[ Applications found : " + white(str(len(matches))) + " ]"
-    print
-    
-    for package in matches:
-	print green("*") + "  " + white(package.get_cpv()) + " :"
-	versions = portage.portdb.xmatch("match-all", package)
-	unmasked = portage.portdb.xmatch("match-visible",package)
-	curver = portage.db["/"]["vartree"].dep_bestmatch(package)
-	if (curver) and (curver not in versions):
-	    versions.append(curver)
-	
-	versions.sort(pkgcmp)
-	
-	for ver in versions:
-            
-            state = []
-            color = green
-            unstable = 0
-	    overlay = ""
-            
-            # check if masked
-            if ver not in unmasked:
-                state.append(red("M"))
-                color = red
-            else:
-                state.append(" ")
+    matches = gentoolkit.find_packages(query)
+    if not report_matches(query,matches):
+        return
 
-            # check if in unstable
-	    try:
-		ver_keywords =  portage.db["/"]["porttree"].dbapi.aux_get(ver,["KEYWORDS"])
-	    except KeyError:
-		ver_keywords = [""]
-            keywords_list = ver_keywords[0].split()
-	    
-            if "~" + portage.settings["ARCH"] in keywords_list:
-                state.append(yellow("~"))
-		if color != red:
-		    color = yellow
-                unstable = 1
-            else:
-                state.append(" ")
+    # FIXME: old version printed result of regex search on name,
+    # so "ant" would return app-emacs/semantic, etc...
+    
+    for pkg in matches:
+	print green("*") + "  " + white(pkg.get_cpv()) + " :"
+            
+        state = []
+        color = green
+        unstable = 0
+        overlay = ""
+            
+        # check if masked
+        if pkg.is_masked():
+            state.append(red("M"))
+            color = red
+        else:
+            state.append(" ")
+
+        # check if in unstable
+        kwd = pkg.get_env_var("KEYWORDS")
+        if "~" + gentoolkit.settings["ARCH"] in kwd.split():
+            state.append(yellow("~"))
+            if color != red:
+                color = yellow
+            unstable = 1
+        else:
+            state.append(" ")
                 
-            # check if installed
-            cat, pkg = ver.split("/")            
-            if portage.dblink(cat,pkg,"/").exists():
-                state.append(turquoise("I"))
-                color = turquoise
-            else:
-                state.append(" ")
-		
-	    # check if this is a OVERLAY ebuilds
-	    try:
-		if portage.portdb.oroot:
-		    if os.path.exists(portage.portdb.oroot + "/" + package + "/" + pkg + ".ebuild"):
-			overlay = " OVERLAY"
-	    except AttributeError:
-		pass
+        # check if installed
+        if pkg.is_installed():
+            state.append(turquoise("I"))
+            color = turquoise
+        else:
+            state.append(" ")
 
-            # print
-	    try:
-		slot = portage.db["/"]["porttree"].dbapi.aux_get(ver,["SLOT"])
-		if not slot:
-		    slot = ["0"]
-	    except KeyError:
-		slot = ["?"]
-		
-            print " "*8 + "[" + string.join(state,"") + "] " + color(ver) + " (" + color(slot[0]) + ")" + overlay
+        # check if this is a OVERLAY ebuilds
+        if pkg.is_overlay():
+            overlay = " OVERLAY"
 
+        ver = pkg.get_version()
+        slot = pkg.get_env_var("SLOT")
+        print " "*8 + "[" + string.join(state,"") + "] " + color(ver) + " (" + color(slot) + ")" + overlay
         print
 
 # .-------------------------------------------------------.
@@ -422,7 +384,7 @@ def versions(query):
 # +-------------------------------------------------------+
 # | Just uses the new IUSE parameter in ebuilds           |
 # `-------------------------------------------------------' 
-def uses(query):
+def uses(query): # FIXME: Use gentoolkit
     
     tup = smart_pkgsplit(query)
     if tup[0] and tup[1]:
@@ -604,7 +566,7 @@ def old_uses(query):
 # `-------------------------------------------------------'
 graphcache = []
 
-def graph(query):
+def graph(query): # FIXME: Use gentoolkit
     print "attempt to graph dependencies"
     print red("warning, this is BETA, will probably report the wrong results")
     rgraph(query, [])
@@ -711,7 +673,7 @@ def rgraph(dep, path):
 # | Find what packages require a given package name       |
 # `-------------------------------------------------------'
 
-def depends(query):
+def depends(query): # FIXME: Use gentoolkit
     
     print "[ Results for search key : " + white(query) + " ]"
 
@@ -750,7 +712,32 @@ def depends(query):
 # | Finds what package a file belongs to                  |
 # `-------------------------------------------------------'	    
 	    
-def belongs(query):
+def belongs(query): # FIXME: use gentoolkit
+
+    q = query.split()
+
+    if len(q) > 1:
+        item=q[0]
+        cat=q[1]
+        fn=lambda x: x.find(cat)==0
+    else:
+        item=q[0]
+        cat="*"
+        fn=None
+
+    print "Searching for " + item + " in " + cat + " ..."
+
+    matches = gentoolkit.find_all_packages(fn)
+    rx = re.compile(item)
+
+    # FIXME: Speedup
+    # FIXME: Add category selection
+    for pkg in matches:
+        for fn in pkg.get_contents().keys():
+            if rx.search(fn):
+                print pkg.get_cpv()
+    return
+        
     query = query.split()
     # FIXME: use portage.settings
     dbdir = "/var/db/pkg"
@@ -809,7 +796,7 @@ def report_matches(query, matches):
     print
     
     if matches:
-	print " Only printing found installed programs."
+#	print " Only printing found installed programs."
 	print
         return 1
     else:

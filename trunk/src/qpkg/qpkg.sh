@@ -1,124 +1,15 @@
-#! /usr/bin/env python2.2
-#
-# Copyright 2003 Karl Trygve Kalleberg
-# Copyright 2003 Gentoo Technologies, Inc.
-# Distributed under the terms of the GNU General Public License v2
-#
-# $Header$
-# Author: Karl Trygve Kalleberg <karltk@gentoo.org>
-#
+#!/bin/bash
 #
 # qpkg - query portage package system for various information
 #
-# This is a reimplementation of the qpkg written in bash, by 
-# Vitaly Kushneriuk <vitaly_kushneriuk@yahoo.com>,
-# Brandon Low <lostlogic@gentoo.org>,
-# Josh Goebel <dreamer@firesedge.org>
+# Copyright (c) Vitaly Kushneriuk <vitaly_kushneriuk@yahoo.com>
+# This program is distributed under the terms of GPL version 2.
+#
+# Maintainer: Brandon Low <lostlogic@gentoo.org>
+# Additional code thanks to:
+#	      Josh Goebel <dreamer@firesedge.org>
 #
 # $Header$
-
-import sys
-from output import *
-
-__author__ = "Karl Trygve Kalleberg"
-__email__ = "karltk@gentoo.org"
-__version__ = "0.2.0"
-__productname__ = "qpkg"
-__description__ = "Query Portage package system CLI tool"
-
-class Config:
-    showUsage=0
-    pass
-
-def showUsage():
-    
-    print turquoise("qpkg") + " v" + __version__ + " - Gentoo package query tool"
-
-    print white("Usage:")
-
-    print "\t" + turquoise("qpkg") + " " +\
-          "[" + white("options") + "] " + \
-          "[" + yellow("pkgname") + "] " + \
-          "[" + blue("-g") + " " + yellow("group") + "] " + \
-          "[" + blue("-f") + " " + yellow("<file>") + "|" + blue("-fp") + " " + yellow("<pattern") + "]"
-
-    print "\t" + turquoise("qpkg") + " " + blue("--dups") + " [" + blue("--slot") + "]"
-    print "\t" + turquoise("qpkg") + " " + blue("--help")
-
-    print "\n" + white("Duplicates:")
-    print blue("-d,   --dups") + "\t\tprint packages that have multiple versions installed"
-    print blue("-s,   --slot") + "\t\tmake " + blue("-d") + " SLOT only print dups of the same SLOT"
-
-    print "\n" + white("Selection:")
-    print blue("-f,   --find-file") + "\tfinds package that owns file <file>"
-    print blue("-fp,  --find-pattern") + "\tfinds package that owns file matching *<pattern>*"
-    """
-
-${BR}Package Selection:
-  ${BL}-f,  --find-file${NO}${T}finds package that owns file <file>
-  ${BL}-fp, --find-pattern${NO}${T}finds to package that owns file matching *<pattern>*
-  ${BL}-m,  --masked${NO}${T}Include${YL} only${NO} masked packages
-  ${BL}-n,  --non-masked${NO}${T}Include${YL} only${NO} non-masked packages
-  ${BL}-I,  --installed${NO}${T}Include${YL} only${NO} installed packages
-  ${BL}-U,  --uninstalled${NO}${T}Include${YL} only${NO} uninstalled packages
-  ${BL}-g,  --group${NO}${T}${T}Find by goup (can be combined with other searches)
-
-${BR}Information Selection:
-  ${BL}-l,  --list${NO}${T}${T}List package content
-  ${BL}-i,  --info${NO}${T}${T}Get package description and home page.
-  ${BL}-ct, --check-time${NO}
-  ${BL}-tc, --time-check${NO}${T}Verify package files timestamps
-  ${BL}-cm, --check-md5${NO}
-  ${BL}-mc, --md5-check${NO}${T}Verify package files md5
-  ${BL}-c,  --check${NO}${T}${T}Verify mtimes${YL} and${NO} md5.
-  ${BL}-q,  --query-deps${NO}${T}display all installed packages 
-${T}${T}${T}depending on selected packages
-
-${BR}Operation Modifiers:
-  ${BL}-nc, --no-color${NO}${T}don't use colors
-  ${BL}-v,  --verbose${NO}${T}Be more verbose [ can be repeated twise ]
-  ${BL}-vv${NO}${T}${T}${T}Same as ${BL}-v -v${NO}
-
-${YL}Notes${NO}: 
-${YL}*${NO} ${BL}-f${NO}, ${BL}-fp, ${BL}-d${NO}, ${BL}-l${NO}, ${BL}-ct${NO}, ${BL}-cm${NO}, and ${BL}-c${NO} apply only to installed packages.
-${YL}*${NO} Short options may not be combined on the command-line, yet.
-${YL}*${NO} The operation of some flags has been changed by the
-  stripping of version numbers from some output to see
-  the version numbers play with ${BL}-v${NO} and ${BL}-vv${NO}.
-${YL}*${NO} When using${BL} -f${NO} with ${BL}-l${NO} or ${BL}--check.. -v${NO} options, only
-  matching files will be displayed, unless ${BL}-v${NO} is doubled, 
-  (yet more verbose) or ${BL}-vv${NO} is used.
-
-
-${YL}Examples${NO}:
-  ${PROG} --dups		print duplicates oldest first
-  ${PROG} --dups -v	.. with versions
-  ${PROG}			print list of installed packages
-  ${PROG} porta -I		print versions of installed portage
-  ${PROG} porta -i		.. + versions in portage tree + descriptions 
-			and homepages
-  ${PROG} gawk -c -v	check integrity all installed versions of gawk
-			the older will have \"damaged\" files.
-  ${PROG} -f /bin/ls	print package(s) that own /bin/ls
-"""
-
-def parse_args():
-    if len(sys.argv) < 2:
-        Config.showUsage = 1
-        return
-    for i in sys.argv[1:]:
-        if i in ["-h","--help"]:
-            Config.showUsage = 1
-        
-def main():
-    parse_args()
-    if Config.showUsage:
-        showUsage()
-    
-if __name__ == "__main__":
-    main()
-
-"""    
 ID='$Id$'
 VERSION=0.`echo ${ID} | cut -d\  -f3`
 
@@ -627,4 +518,3 @@ done | (
 		-e "s:^obj ::;s:^sym ::;s:^dir ::"
 
 )
-"""
