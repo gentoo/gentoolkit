@@ -1,307 +1,847 @@
-#!/usr/bin/env python2
-# Copyright 1999-2004 Gentoo Technologies, Inc.
-# Distributed under the terms of the GNU General Public License v2
+#!/usr/bin/python -tO
+# Copyright 2004 Ian Leitch
+# Copyright 1999-2004 Gentoo Foundation
 # $Header$
 #
-# Author: 
+# Author:
 #  Ian Leitch <port001@gentoo.org>
-#
-# ChangeLog:
-#
-#  4 Jun 2004 - epkgmove-0.5
-#    - Fixed bug where epkgmove would fail if files/ contained subdirectories
-#    - Add the package to its new location before removing it from the original
-#    - Filter out non-update files in profiles/updates
-#    - Backup to /tmp/__productname__/package and make a little extra effort to keep clean
-#    - Small input validation fix
-#
-#  12 Feb 2004 - epkgmove-0.4,
-#    - Set PORTDIR to pwd if not in PORTDIR
-#    - Formatting fixes
-#
-#  02 Jan 2004 - epkgmove-0.3,
-#    - Check exit status of commands, die if non zero
-#    - Check if PORTDIR is a CVS repository
-#    - Name changed to epkgmove
-#  
-#  02 Jan 2004 - pkgmove-0.2,
-#    - Code cleanups
-#    - Take only a catgegory name as destination argument
-#    - Wrote the AddUpdate() function - thanks to lanius 
-#    - Catch SIGINT
-#    - err() now prints to stderr
-#    - strip trailing /'s from input
-#    - use -Qf flags on cvs commands
-#    - Recursively find all files to remove/add
-#    - Tested on local repository - command changes accordingly 
-#    - Update categories before working in them
-#
-#  28 Dec 2003 - pkgmove-0.1,
-#    - 0.1 Beta Release
-#
-# TODO:
-#
-#  - A complete rewrite. This was my first ever Python script and although I believe it to be safe to use,
-#    it is not well structured at all.
 #
 
 import os
-import re
 import sys
 import signal
+import commands
+from time import sleep
+from random import randint
+from optparse import OptionParser
 
 import portage
 from output import *
 
-__author__ 	=	"Ian Leitch"
+__author__	=	"Ian Leitch"
 __email__ 	=	"port001@gentoo.org"
-__productname__	= 	"epkgmove"
-__version__ 	=	"0.5"
-__description__	= 	"A simple tool for moving packages in CVS"
+__productname__ =	"epkgmove"
+__version__	=	"1.0 - \"The version ciaranm dreamed about.\""
+__description__ =	"A tool for moving and renaming packages in CVS"
 
-def main():
-    
-    signal.signal(signal.SIGINT, sighandler)
-    
-    global portdir, ignore, cvsrmcmd, cvscommitcmd, cvsupcmd, cvsaddcmd, devnull 
-    
-    portdir = portage.settings["PORTDIR"]
-    ignore = ("CVS")
-    cvsrmcmd = "cvs -Qf rm"
-    cvscommitcmd = "cvs -Qf commit -m"
-    cvsupcmd = "cvs -Qf up -dPC ."
-    cvsaddcmd = "cvs -Qf add"
-    devnull = "> /dev/null"
-
-    if len(sys.argv) != 3:
-        print
-        err("Expected two arguments as input.")
-        help()
-        sys.exit(1)
-
-    Checkcwd()
-    CheckArgs()
-    print "%s Moving %s to %s..." % (green(" *"), turquoise(location), yellow(destination))
-    BackupPkg()
-    AddPackage()
-    RemovePackage()
-    AddUpdate()
-    CleanUp()
-    print "%s %s successfully moved to %s." % (green(" *"), turquoise(location), yellow(destination))
-    sys.exit(0)
-
-def help():
+def print_usage():
 
     print
-    print "%s %s [ %s ] [ %s ]" % (white("Usage:"), turquoise(__productname__), green("location"), green("destination")) 
-    print "   %s: Expects a package name in the format 'category/pkg' e.g net-im/gaim" % (green("location"))
-    print "   %s: Expects a category name" % (green("destination"))
-
-def about():
-
+    print "%s %s [ %s ] [ %s ] [ %s ]" % (white("Usage:"), turquoise(__productname__), green("option"), green("origin"), green("destination"))
+    print "   '%s' and '%s' are expected as a full package name, e.g. net-im/gaim" % (green("origin"), green("destination"))
+    print "   See %s --help for a list of options" % __productname__
     print
-    print "%s %s %s" % (white("About:"), turquoise(__productname__), green(__version__))
-    print "   \"%s\"" % (__description__)
-    print "   By %s <%s>" % (__author__, __email__)
 
-def docmd(cmd):
-
-    retval = os.system(cmd)
-    if retval != 0:
-        err("Command '%s' failed with exit status %d." % (cmd, retval))
-	sys.exit(1)
-
-def err(msg):
-
-    sys.stderr.write("%s ERROR: %s\n" % (red("!!!"), msg))
-
-def sighandler(signal_number=None, stack_frame=None):
-
-    err("Caught SIGINT; exiting...\n")
-    sys.exit(1)
-    os.kill(0,signal.SIGKILL)
-
-def Checkcwd():
-
-    global portdir
+def check_cwd(portdir):
 
     if os.getcwd() != portdir:
+        print
         print "%s Not in PORTDIR!" % yellow(" *")
         print "%s Setting to: %s" % (yellow("   *"), os.getcwd())
-        portdir = os.getcwd()
+	os.environ["PORTDIR"]=os.getcwd()
+        return os.getcwd()
+	
+    return portdir
+
+def check_args(args, portdir, options, cvscmd):
+
+    booboo = False
+    re_expr = "^[\da-zA-Z-]{,}/[\d\w0-9-]{,}$"
+    o_re_expr = re.compile(re_expr)
+
+    if len(args) == 0:
+        print "\n%s ERROR: errr, didn't you forget something" % red("!!!"),
+	count = range(3)
+	for second in count:
+	    sys.stdout.write(".")
+	    sys.stdout.flush()
+	    sleep(1)
+        sys.stdout.write("?")
+	sys.stdout.flush()
+	sleep(1)
+	print "\n\n%s %s hits you with a clue stick %s" % (green("    *"), __productname__, green("*"))
+	sleep(1)
+	print_usage()
+	sys.exit(1)
+
+    if options.remove:
+        if len(args) > 1:
+	    error("Please remove packages one at a time")
+	    sys.exit(1)
+	elif not o_re_expr.match(args[0].rstrip("/")):
+	    error("Expected full package name as argument")
+	    sys.exit(1)
+        elif not os.path.exists(os.path.join(portdir, args[0].rstrip("/"))):
+	    error("No such package '%s'" % args[0].rstrip("/"))
+	    sys.exit(1)
+	else:
+            return (args[0].rstrip("/"), None)
+
+    if len(args) == 2:
+        if not o_re_expr.match(args[0].rstrip("/")):
+	    error("Expected full package name as origin argument")
+	    booboo = True
+	elif not o_re_expr.match(args[1].rstrip("/")):
+	    error("Expected full package name as destination argument")
+	    booboo = True
+
+	if booboo == True:
+	    sys.exit(1)
+    else:
+        error("Expected two arguments as input.")
+        print_usage()
+	sys.exit(1)
+
+    if not options.cvs_up:
+        update_categories(portdir, args, cvscmd["update"])
+
+    if not os.path.exists(os.path.join(portdir, args[0].rstrip("/"))):
+        error("No such package '%s'" % args[0].rstrip("/"))
+	booboo = True
+    elif os.path.exists(os.path.join(portdir, args[1].rstrip("/"))):
+        error("Package '%s' already exists" % args[1].rstrip("/"))
+        booboo = True
+
+    if booboo == True:
+        sys.exit(1)
+    
+    return (args[0].rstrip("/"), args[1].rstrip("/"))
+
+def check_repos(portdir):
 
     files = os.listdir(portdir)
-    
+
     for file in files:
         if not os.path.isdir(file):
-	    files.remove(file)
-	    
+            files.remove(file)
+                                                           
     if "CVS" not in files:
-        err("No CVS directory, this doesn't look like a repository!")
+        error("Current directory doesn't look like a CVS repository")
 	sys.exit(1)
 
-def UpdateCats():
+def check_commit_queue():
 
-    print "%s Updating %s & %s..." % (green(" *"), locategory, decategory)
+    empty = True
 
-    os.chdir(os.path.join(portdir, locategory))
-    docmd(cvsupcmd)
-    os.chdir(os.path.join(portdir, decategory))
-    docmd(cvsupcmd)
-
-def CheckArgs():
+    print
+    print "%s Checking commit queue for outstanding changes..." % green(" *")
+    print "%s Note: This may take a VERY long time" % yellow("   *")
+    print
+        
+    output = commands.getoutput("cvs diff")
     
-    global fulllocation, location, fulldestination, destination, locategory, lopkg, decategory
-
-    try:
-        (locategory, lopkg) = sys.argv[1].strip('/').split('/')
-    except:
-        err("'%s' Invalid 'category/pkg'." % (sys.argv[1]))
-	sys.exit(1)
-
-    location = os.path.join(locategory, lopkg)
-    decategory = sys.argv[2].strip('/')
-    fulllocation = os.path.join(portdir, location)
-    fulldestination = os.path.join(portdir, decategory, lopkg) 
-    destination = os.path.join(decategory, lopkg)
-   
-    if re.search('/', decategory):
-        err("Expected category name as destination argument.")
-        sys.exit(1)
-
-    if destination == location:
-        err("Don't waste my time...")
-	sys.exit(1)
-
-    if not os.path.exists(os.path.join(portdir, decategory)):
-        err("No such category '%s'" % (decategory))
-	sys.exit(1)
-
-    UpdateCats()
-
-    if not os.path.exists(fulllocation):
-        err("'%s' Invalid 'category/pkg'." % (location))
-        sys.exit(1)
-
-    if os.path.exists(fulldestination):
-        err("Destination location '%s' already exists." % (destination))
-        sys.exit(1)
-
-    if not os.path.exists(os.path.join(portdir, "profiles/updates")):
-        err("There doesn't seem to be a 'profiles/updates' directory here, I need it for later.")
-        sys.exit(1)
-
-def BackupPkg():
-
-    print "%s Backing-up %s to /tmp/%s..." % (green("   *"), turquoise(location), __productname__)
-    if not os.path.exists("/tmp/%s" % __productname__):
-        os.mkdir("/tmp/%s" % __productname__)
-    docmd("cp -R %s /tmp/%s/%s" % (fulllocation, __productname__, lopkg))
-
-def RemovePackage():
-    
-    def RemoveFiles(arg, dir, files):
-        if os.path.basename(dir) not in ignore:
-	    for file in files:
-	        if not os.path.isdir(os.path.join(dir, file)):
-	            print "      <<< %s" % (os.path.join(dir.strip('./'), file))
-	            os.unlink(os.path.join(dir, file))
-	            docmd("%s %s" % (cvsrmcmd, os.path.join(dir, file)))
-   
-    print "%s Removing %s from CVS:" % (green("   *"), turquoise(location)) 
-    os.chdir(fulllocation)
-    os.path.walk('.', RemoveFiles , None)
-    os.chdir("..")
-    
-    print "%s Running '%s 'Moving to %s''..." % (green("      *"), cvscommitcmd, destination)
-    docmd("%s 'Moving to %s' %s" % (cvscommitcmd, destination, devnull))
-    docmd("rm -rf " + fulllocation) 
-    
-    print "%s Checking if package still remains in CVS..." % (green("      *"))
-    docmd(cvsupcmd)
-   
-    if not os.path.exists(fulllocation):
-        print "%s %s successfully removed from CVS." % (green("   *"), turquoise(location))
-    else:
-        err("Remnants of %s still remain in CVS." % (turquoise(location)))
-
-def AddPackage():
-
-    def AddFiles(arg, dir, files):
-        global dirhi
-	dirhi = ""
-	dest = ""
-        if os.path.basename(dir) not in ignore:
-            if os.path.basename(dir) != lopkg:
-		(rubbish, dirhi) = dir.split("tmp/%s/%s/" % (__productname__, lopkg))
-                print "      >>> %s/" % (dirhi)
-		os.mkdir(os.path.join(fulldestination, dirhi))
-                docmd("%s %s" % (cvsaddcmd, dirhi))
-	    for file in files:
-                if not os.path.isdir(os.path.join(dir, file)):
-		    print "      >>> %s" % (os.path.join(dirhi, os.path.basename(file)))
-		    if dirhi:	
-		    	dest = dirhi
-		    else:
-		    	dest = "."
-		    docmd("cp %s %s" % (os.path.join(dir, file), dest))
-                    docmd("%s %s" % (cvsaddcmd, os.path.join(dirhi, file)))
-
-    print "%s Adding %s to CVS:" % (green("   *"), turquoise(destination))
-
-    os.chdir(os.path.join(portdir, decategory))
-    print "      >>> %s/" % (lopkg)
-    os.mkdir(lopkg)
-    docmd("%s %s" % (cvsaddcmd,lopkg))
-    os.chdir(lopkg)
-    os.path.walk("/tmp/%s/%s" % (__productname__, lopkg), AddFiles , None)
-    os.chdir(fulldestination)
-    print "%s Running 'echangelog 'Moved from %s to %s.''..." % (green("      *"), location, destination) 
-    docmd("echangelog 'Moved from %s to %s.' %s" % (location, destination, devnull))
-
-    print "%s Running '%s 'Moved from %s to %s.''..." % (green("      *"), cvscommitcmd, location, destination)
-    docmd("%s 'Moved from %s to %s.' %s" % (cvscommitcmd, location, destination, devnull))
-
-    print "%s %s successfully added to CVS." % (green("   *"), turquoise(destination))
-
-def AddUpdate():
-    
-    updatefiles = []
-    fileregex = "^[\d]Q-[\d]{4}$"
-
-    p_fileregex = re.compile(fileregex)
-    
-    print "%s Logging move in 'profiles/updates'..." % (green("   *")) 
-    os.chdir(os.path.join(portdir, "profiles/updates"))
-    docmd(cvsupcmd)
-
-    for file in os.listdir("."):
-        o_fileregex = p_fileregex.match(file)
-        if file not in ignore and o_fileregex:
-	    (q, y) =  file.split("-")
-	    updatefiles.append(y + "-" + q)
+    for line in output.split("\n"):
+        if not line.startswith("?"):
+	    empty = False
+	    break
 	    
-    updatefiles.sort()
-    (y, q) = updatefiles[-1].split("-") 
-    upfile = q + "-" + y
+    if empty == False:
+        error("Commit queue not empty! Please commit all outstanding changes before using %s." % __productname__)
+	sys.exit(1)
 
-    print "      >>> %s" % (upfile)
+def update_categories(portdir, catpkgs, cvsupcmd):
 
-    f = open(upfile, 'a')
-    f.write("move %s %s\n" % (location, destination))
-    f.close()
+    my_catpkgs = []
 
-    docmd("%s 'Moved from %s to %s' %s" % (cvscommitcmd, location, destination, devnull))
-    
+    print
+    print "%s Updating categories: " % green(" *")
+
+    if catpkgs[0].split("/", 1)[0] == catpkgs[1].split("/", 1)[0]:
+        my_catpkgs.append(catpkgs[0])
+    else:
+        my_catpkgs.append(catpkgs[0])
+	my_catpkgs.append(catpkgs[1])
+
+    for catpkg in my_catpkgs:
+        (category, package) = catpkg.split("/", 1)
+        if os.path.exists(os.path.join(portdir, category)):
+	    os.chdir(os.path.join(portdir, category))
+	    print "   %s %s" % (green("*"), category)
+            do_cmd(cvsupcmd)
+	else:
+	    print "   %s %s" % (red("!"), category)
+
     os.chdir(portdir)
+    
+def error(msg):
 
-def CleanUp():
+    sys.stderr.write("\n%s ERROR: %s\n" % (red("!!!"), msg))
 
-    print "%s Removing back-up..." % (green("   *")) 
-    docmd("rm -rf /tmp/%s/%s" % (__productname__, lopkg))
-    if len(os.listdir("/tmp/%s" % __productname__)) == 0:
-        docmd("rmdir /tmp/%s" % __productname__)
+def signal_handler(signal_number=None, stack_frame=None):
 
+    error("Caught SIGINT; exiting...")
+    sys.exit(1)
+    os.kill(0, signal.SIGKILL)
+
+def do_cmd(cmd):
+
+    (status, output) = commands.getstatusoutput(cmd)
+    if status != 0:
+        error("Command '%s' failed with exit status %d." % (cmd, status))
+	for line in output.split("\n"):
+	    print "    %s %s" % (red("!"), line)
+	sys.exit(1)
+       
+class Package:
+
+    def __init__(self, portdir, oldcatpkg, newcatpkg, cvscmd, options):
+    
+        self._portdir = portdir
+	self._cvscmd = cvscmd
+	self._options = options
+        self._ignore = ("CVS")
+
+	self._old_category = ""
+	self._old_package = ""
+	self._new_category = ""
+	self._new_package = ""
+        self._old_catpkg = oldcatpkg
+	self._new_catpkg = newcatpkg
+
+        self._action = ""
+	
+	self._distinguish_action(oldcatpkg, newcatpkg)
+
+    def _distinguish_action(self, oldcatpkg, newcatpkg):
+                
+        (self._old_category, self._old_package) = oldcatpkg.split("/")
+        if newcatpkg:
+            (self._new_category, self._new_package) = newcatpkg.split("/")
+
+        if self._old_category != self._new_category and self._new_category:
+	    if self._old_package != self._new_package and self._new_package:
+	        self._action = "MOVE & RENAME"
+            else:
+	        self._action = "MOVE"
+        elif self._old_package != self._new_package and self._new_package:
+	    self._action = "RENAME"
+	elif not self._new_package:
+	    self._action = "REMOVE"
+	else:
+	    error("Unable to distingush required action.")
+	    sys.exit(1)
+
+    def __backup(self):
+
+        print "%s Backing up %s..." % (green("   *"), turquoise(self._old_catpkg))
+	
+	if not os.path.exists("/tmp/%s" % __productname__):
+	    os.mkdir("/tmp/%s" % __productname__)
+	
+	if os.path.exists("/tmp/%s/%s" % (__productname__, self._old_package)):
+	    do_cmd("rm -rf /tmp/%s/%s" % (__productname__, self._old_package))
+	    
+	do_cmd("cp -R %s /tmp/%s/%s" % (os.path.join(self._portdir, self._old_catpkg), __productname__, self._old_package))
+
+    def perform_action(self):
+
+        count_down = 5
+
+        print
+	if self._action == "REMOVE":
+	    print "%s Performing a '%s' of %s..." % (green(" *"), green(self._action), turquoise(self._old_catpkg))
+        else:
+            print "%s Performing a '%s' of %s to %s..." % (green(" *"), green(self._action), turquoise(self._old_catpkg), yellow(self._new_catpkg))
+	
+	if not self._options.countdown:
+	    print "%s Performing in: " % green(" *"),
+            count = range(count_down)
+	    count.reverse()
+	    for second in count:
+	        sys.stdout.write("%s " % red(str(second + 1)))
+	        sys.stdout.flush()
+	        sleep(1)
+	    print
+
+        if not self._action == "REMOVE":
+            self.__backup()
+
+        if self._action == "MOVE & RENAME":
+	    self._perform_move_rename()
+	elif self._action == "MOVE":
+	    self._perform_move()
+	elif self._action == "RENAME":
+	    self._perform_rename()
+	elif self._action == "REMOVE":
+	    self._perform_remove()
+
+    def _perform_remove(self):
+
+        deps = self.__get_reverse_deps()
+
+	if deps:
+	    print "%s The following ebuild(s) depend on this package:" % red("     *")
+	    for dep in deps:
+	        print "%s %s" % (red("       !"), dep)
+	    if self._options.force:
+	        print "%s Are you sure you wish to force removal of this package?" % yellow("    *"),
+		try:
+		    choice = raw_input("(Yes/No): ")
+		except KeyboardInterrupt:
+		    error("Interrupted by user.")
+		    sys.exit(1)
+		if choice.lower() != "yes":
+		    error("Bailing on forced removal.")
+		    sys.exit(1)
+	    else:
+	        error("Refusing to remove from CVS, package has dependents.")
+                sys.exit(1)
+
+	self.__remove_old_package()
+
+    def _perform_move(self):
+
+        self.__add_new_package()
+	self.__remove_old_package()
+	
+    def _perform_move_rename(self):
+
+        self._perform_rename()
+ 
+    def _perform_rename(self):
+        
+        self.__rename_files()
+	self.__add_new_package()
+        self.__regen_digests()
+	self.__update_dependents(self.__get_reverse_deps())
+	self.__remove_old_package()
+
+    def __rename_files(self):
+
+        def rename_files(arg, dir, files):
+        
+	    if os.path.basename(dir) not in self._ignore:
+	        if os.path.basename(dir) != self._old_package:
+	            for file in files:
+	                new_file = ""
+	                if file.find(self._old_package) >= 0:
+	   	            new_file = file.replace(self._old_package, self._new_package)
+			    do_cmd("mv %s %s" % (os.path.join(dir, file), os.path.join(dir, new_file)))
+		        if not os.path.isdir(os.path.join(dir, new_file)) and not file.startswith("digest-"):
+		            self.__rename_file_contents(os.path.join(dir, new_file))
+                else:
+	            for file in files:
+	                if file.endswith(".ebuild"):
+	   	            new_file = file.replace(self._old_package, self._new_package)
+		            do_cmd("mv %s %s" % (os.path.join(dir, file), os.path.join(dir, new_file)))
+                            self.__rename_file_contents(os.path.join(dir, new_file))
+			elif file.endswith(".xml"):
+			    self.__rename_file_contents(os.path.join(dir, file))
+
+	print "%s Renaming files..." % green("   *")
+	os.path.walk("/tmp/%s/%s" % (__productname__, self._old_package), rename_files , None)
+	do_cmd("mv /tmp/%s/%s /tmp/%s/%s" % (__productname__, self._old_package, __productname__, self._new_package))
+
+    def __regen_digests(self):
+
+	print "%s Regenerating digests:" % green("   *")
+	os.chdir(os.path.join(self._portdir, self._new_catpkg))
+	for digest in os.listdir("files/"):
+	    if digest.startswith("digest-"):
+	        os.unlink("files/%s" % digest)
+	for ebuild in os.listdir("."):
+	    if ebuild.endswith(".ebuild"):
+	        print "      >>> %s" % ebuild	
+	        do_cmd("/usr/lib/portage/bin/ebuild %s digest" % ebuild)
+
+        self.__gpg_sign()
+
+    def __gpg_sign(self):
+
+        gpg_cmd = ""
+
+        if "sign" in portage.features:
+            print "%s GPG Signing Manifest..." % green("   *")
+	    os.chdir(os.path.join(self._portdir, self._new_catpkg))
+	    gpg_cmd = "gpg --quiet --sign --clearsign --yes --default-key %s" % portage.settings["PORTAGE_GPG_KEY"]
+	    if portage.settings.has_key("PORTAGE_GPG_DIR"):
+	        gpg_cmd = "%s --homedir %s" % (gpg_cmd, portage.settings["PORTAGE_GPG_DIR"])
+	    do_cmd("%s Manifest" % gpg_cmd)
+	    do_cmd("mv Manifest.asc Manifest")
+	    do_cmd("%s 'GPG Signed'" % self._cvscmd["commit"])
+
+    def __rename_file_contents(self, file):
+        
+	def choice_loop(line, match_count, choice_list, type="name", replace=""):
+
+            new_line = line
+	    accepted = False
+	    skipp = False
+
+	    while(not accepted):
+		print "         ",
+		if len(choice_list) > 0:
+                    for choice in choice_list:
+	                print "%s: Replace with '%s'," % (white(choice), green(choice_list[choice])),
+		if match_count == 0:
+		    print "%s: Pass, %s: Skipp this file, %s: Custom" % (white(str(len(choice_list)+1)), white(str(len(choice_list)+2)), white(str(len(choice_list)+3))),
+		else:
+		    print "%s: Pass, %s: Custom" % (white(str(len(choice_list)+1)), white(str(len(choice_list)+2))),
+		try:
+		    input = raw_input("%s " % white(":"))
+    		except KeyboardInterrupt:
+		    print
+		    error("Interrupted by user.")
+		    sys.exit(1)
+		if choice_list.has_key(input):
+		    if type == "name":
+		        new_line = new_line.replace(self._old_package, choice_list[input])
+		        accepted = True
+		    elif type == "P":
+		        new_line = new_line.replace("${P}", choice_list[input])
+                        accepted = True
+		    elif type == "PN":
+		        new_line = new_line.replace("${PN}", choice_list[input])
+                        accepted = True
+		    elif type == "PV":
+		        new_line = new_line.replace("${PV}", choice_list[input])
+                        accepted = True
+		    elif type == "PVR":
+		        new_line = new_line.replace("${PVR}", choice_list[input])
+                        accepted = True
+		    elif type == "PR":
+		        new_line = new_line.replace("${PR}", choice_list[input])
+                        accepted = True
+		    elif type == "PF":
+		        new_line = new_line.replace("${PF}", choice_list[input])
+                        accepted = True
+		elif input == str(len(choice_list)+1):
+		    accepted = True
+		elif input == str(len(choice_list)+2) and match_count == 0:
+		    accepted = True
+		    skipp = True
+		elif input == str(len(choice_list)+3) and match_count == 0 or input == str(len(choice_list)+2) and match_count != 0:
+		    
+		    input_accepted = False
+		    
+		    while(not input_accepted):
+		        try:
+		            custom_input = raw_input("            %s Replacement string: " % green("*"))
+    		        except KeyboardInterrupt:
+		            print
+		            error("Interrupted by user.")
+		            sys.exit(1)
+			while(1):
+			    print "              %s Replace '%s' with '%s'? (Y/N)" % (yellow("*"), white(replace), white(custom_input)),
+		            try:
+		                yes_no = raw_input(": ")
+    		            except KeyboardInterrupt:
+		                print
+		                error("Interrupted by user.")
+		                sys.exit(1)
+			    if yes_no.lower() == "y":
+			        input_accepted = True
+				break
+			    elif yes_no.lower() == "n":
+			        break
+
+                    new_line = new_line.replace(replace, custom_input)
+                    accepted = True
+		else:
+		    accepted = False
+		    
+		if skipp:
+		    break
+
+	    return (new_line, skipp)
+
+        found = False
+	contents = []
+	new_contents = []
+	match_count = 0
+	skipp = False
+
+        try:
+	    readfd = open(file, "r")
+	    contents = readfd.readlines()
+	    readfd.close()
+	except IOError, e:
+	    error(e)
+	    sys.exit(1)
+	
+	for line in contents:
+	    if line.find(self._old_package) >= 0:
+	        found = True
+	        break
+
+	if found == True:
+	    print "%s Editing %s:" % (green("     *"), white(file.split("/tmp/%s/%s/" % (__productname__, self._old_package))[1]))
+	    try:
+	        writefd = open(file, "w")
+	    except IOError, e:
+	        error(e)
+		sys.exit(1)
+	    for line in contents:
+		tmp_line = line	
+		if not line.startswith("# $Header:"):
+                    if line.find(self._old_package) >= 0:
+		        print "%s %s" % (green("       !"), line.strip().replace(self._old_package, yellow(self._old_package)))
+		        (tmp_line, skipp) = choice_loop(tmp_line, match_count, {"1": self._new_package,
+                                                                                "2": "${PN}"}, type="name", replace=self._old_package)
+		        match_count += 1
+			if skipp:
+			    break
+		    if line.find("${P}") >= 0:
+                        print "%s %s" % (green("       !"), line.strip().replace("${P}", yellow("${P}")))
+			(pkg, version, revising) = portage.pkgsplit(os.path.split(file)[1][:-7])
+			(tmp_line, skipp) = choice_loop(tmp_line, match_count, {"1": "%s-%s" % (pkg, version),
+                                                                                "2": "%s-%s" % (self._old_package, version)}, type="P", replace="${P}")
+                        match_count += 1
+			if skipp:
+			    break
+		    if line.find("${PN}") >= 0:
+		        print "%s %s" % (green("       !"), line.strip().replace("${PN}", yellow("${PN}")))
+		        (tmp_line, skipp) = choice_loop(tmp_line, match_count, {"1": self._new_package,
+			                                                        "2": self._old_package}, type="PN", replace="${PN}")
+                        match_count += 1
+			if skipp:
+			    break
+		    if line.find("${PV}") >= 0:
+                        print "%s %s" % (green("       !"), line.strip().replace("${PV}", yellow("${PV}")))
+			(pkg, version, revision) = portage.pkgsplit(os.path.split(file)[1][:-7])
+			(tmp_line, skipp) = choice_loop(tmp_line, match_count, {"1": version}, type="PV", replace="${PV}")
+                        match_count += 1
+			if skipp:
+			    break
+		    if line.find("${PVR}") >= 0:
+                        print "%s %s" % (green("       !"), line.strip().replace("${PVR}", yellow("${PVR}")))
+			(pkg, version, revision) = portage.pkgsplit(os.path.split(file)[1][:-7])
+			(tmp_line, skipp) = choice_loop(tmp_line, match_count, {"1": "%s-%s" % (version, revision)}, type="PVR", replace="${PVR}")
+                        match_count += 1
+			if skipp:
+			    break
+		    if line.find("${PR}") >= 0:
+                        print "%s %s" % (green("       !"), line.strip().replace("${PR}", yellow("${PR}")))
+			(pkg, version, revision) = portage.pkgsplit(os.path.split(file)[1][:-7])
+			(tmp_line, skipp) = choice_loop(tmp_line, match_count, {"1": revision}, type="PR", replace="${PR}")
+                        match_count += 1
+			if skipp:
+			    break
+		    if line.find("${PF}") >= 0:
+                        print "%s %s" % (green("       !"), line.strip().replace("${PF}", yellow("${PF}")))
+			(pkg, version, revision) = portage.pkgsplit(os.path.split(file)[1][:-7])
+			(tmp_line, skipp) = choice_loop(tmp_line, match_count, {"1": "%s-%s-%s" % (pkg, version, revision),
+			                                                        "2": "%s-%s-%s" % (self._old_package, version, revision)}, type="PF", replace="${PF}")
+                        match_count += 1
+			if skipp:
+			    break
+		    if line.find("${P/") >= 0:
+		        start = line.find("${P/")
+		        i = 0
+		        hi_str = ""
+			while(line[start + (i - 1)] != "}"):
+			    hi_str += line[start + i]
+                            i += 1
+                        print "%s %s" % (green("       !"), line.strip().replace(hi_str, red(hi_str)))
+		        (tmp_line, skipp) = choice_loop(tmp_line, match_count, {}, type=None, replace=hi_str)
+                        match_count += 1
+			if skipp:
+			    break
+		    if line.find("${PN/") >= 0:
+		        start = line.find("${PN/")
+		        i = 0
+		        hi_str = ""
+			while(line[start + (i - 1)] != "}"):
+			    hi_str += line[start + i]
+                            i += 1
+			print "%s %s" % (green("       !"), line.strip().replace(hi_str, red(hi_str)))
+		        (tmp_line, skipp) = choice_loop(tmp_line, match_count, {}, type=None, replace=hi_str)
+                        match_count += 1
+			if skipp:
+			    break
+		    if line.find("${PV/") >= 0:
+		        start = line.find("${PV/")
+		        i = 0
+		        hi_str = ""
+			while(line[start + (i - 1)] != "}"):
+			    hi_str += line[start + i]
+                            i += 1
+			print "%s %s" % (green("       !"), line.strip().replace(hi_str, red(hi_str)))
+		        (tmp_line, skipp) = choice_loop(tmp_line, match_count, {}, type=None, replace=hi_str)
+                        match_count += 1
+			if skipp:
+			    break
+		    if line.find("${PVR/") >= 0:
+		        start = line.find("${PVR/")
+		        i = 0
+		        hi_str = ""
+			while(line[start + (i - 1)] != "}"):
+			    hi_str += line[start + i]
+                            i += 1
+			print "%s %s" % (green("       !"), line.strip().replace(hi_str, red(hi_str)))
+		        (tmp_line, skipp) = choice_loop(tmp_line, match_count, {}, type=None, replace=hi_str)
+                        match_count += 1
+			if skipp:
+			    break
+		    if line.find("${PR/") >= 0:
+		        start = line.find("${PR/")
+		        i = 0
+		        hi_str = ""
+			while(line[start + (i - 1)] != "}"):
+			    hi_str += line[start + i]
+                            i += 1
+			print "%s %s" % (green("       !"), line.strip().replace(hi_str, red(hi_str)))
+		        (tmp_line, skipp) = choice_loop(tmp_line, match_count, {}, type=None, replace=hi_str)
+                        match_count += 1
+			if skipp:
+			    break
+		    if line.find("${PF/") >= 0:
+		        start = line.find("${PF/")
+		        i = 0
+		        hi_str = ""
+			while(line[start + (i - 1)] != "}"):
+			    hi_str += line[start + i]
+                            i += 1
+			print "%s %s" % (green("       !"), line.strip().replace(hi_str, red(hi_str)))
+		        (tmp_line, skipp) = choice_loop(tmp_line, match_count, {}, type=None, replace=hi_str)
+                        match_count += 1
+			if skipp:
+			    break
+
+		new_contents.append(tmp_line)
+
+            if not skipp:
+                for line in new_contents:
+                    writefd.write(line)
+	    else:
+	        for line in contents:
+		    writefd.write(line)
+            
+	    writefd.close()
+
+    def __update_dependents(self, dep_list):
+
+        new_contents = []
+
+        if len(dep_list) <= 0:
+	    return
+        
+	print "%s Updating dependents:" % green("   *")
+        os.chdir(self._portdir)
+
+        for dep in dep_list:
+	    print "      >>> %s" % dep
+	    (category, pkg) = dep.split("/")
+	    pkg_split = portage.pkgsplit(pkg)
+	    os.chdir(self._portdir)
+	    do_cmd("%s %s" % (self._cvscmd["update"], os.path.join(category, pkg_split[0])))
+
+            try:
+	        readfd = open(os.path.join(self._portdir, category, pkg_split[0], "%s.ebuild" % pkg), "r")
+	        contents = readfd.readlines()
+	        readfd.close()
+	    except IOError, e:
+	        error(e)
+		sys.exit(1)
+	    
+	    for line in contents:
+	        if self._old_catpkg in line:
+		    new_contents.append(line.replace(self._old_catpkg, self._new_catpkg))
+		else:
+		    new_contents.append(line)
+
+	    try:
+	        writefd = open(os.path.join(self._portdir, category, pkg_split[0], "%s.ebuild" % pkg), "w")
+	        writefd.write("".join(new_contents))
+	        writefd.close()
+	    except IOError, e:
+	        error(e)
+		sys.exit(1)
+	
+	    os.chdir(os.path.join(self._portdir, category, pkg_split[0]))
+            do_cmd("echangelog 'Dependency update: %s -> %s.'" % (self._old_catpkg, self._new_catpkg))
+	    do_cmd("%s 'Dependency update: %s -> %s.'" % (self._cvscmd["commit"], self._old_catpkg, self._new_catpkg))
+
+    def __get_reverse_deps(self):
+
+        dep_list = []
+        conf_portdir = "/usr/portage"
+
+	def scan_for_dep(arg, dir, files):
+
+            (null, category) = os.path.split(dir)
+
+            for file in files:
+	        if self._old_catpkg not in os.path.join(category, file):
+		    if not os.path.isdir(os.path.join(dir, file)):
+		        try:
+	                    fd = open(os.path.join(dir, file), "r")
+		            contents = fd.readlines()
+			    fd.close()
+			except IOError, e:
+			    error(e)
+			    sys.exit(1)
+		        if self._old_catpkg in contents[0] or self._old_catpkg in contents[1] or self._old_catpkg in contents[12]:
+		            dep_list.append(os.path.join(category, file))
+        
+        print "%s Resolving reverse dependencies..." % green("   *")
+
+	try:
+	    fd = open("/etc/make.conf", "r")
+	    contents = fd.readlines()
+	    fd.close()
+	except IOError, e:
+	    error(e)
+	    sys.exit(1)
+	
+	for line in contents:
+	    if line.startswith("PORTDIR="):
+	        (null, conf_portdir) = line.strip("\"\n").split("=")
+		break
+
+	os.path.walk(os.path.join(conf_portdir, "metadata/cache"), scan_for_dep, None)
+
+	return dep_list
+
+    def __remove_old_package(self):
+
+        def remove_files(arg, dir, files):
+
+	   if os.path.basename(dir) not in self._ignore:
+	       for file in files: 
+	           if not os.path.isdir(os.path.join(dir, file)): 
+		       print "      <<< %s" % (os.path.join(dir.strip("./"), file))
+		       os.unlink(os.path.join(dir, file))
+		       do_cmd("%s %s" % (self._cvscmd["remove"], os.path.join(dir, file)))
+
+        print "%s Removing %s from CVS:" % (green("   *"), turquoise(self._old_catpkg))
+        os.chdir(os.path.join(self._portdir, self._old_catpkg))
+        os.path.walk('.', remove_files , None)
+        os.chdir("..")
+
+        print "%s Commiting changes..." % green("     *")
+        do_cmd("%s 'Moved to %s.'" % (self._cvscmd["commit"], self._new_catpkg))
+        do_cmd("rm -rf %s" % os.path.join(self._portdir, self._old_catpkg))
+
+        print "%s Checking for remnant files..." % (green("     *"))
+        do_cmd(self._cvscmd["update"])
+                                                                                                                  
+        if not os.path.exists(os.path.join(self._portdir, self._old_catpkg)):
+	    if not self._action == "REMOVE":
+                print "%s %s successfully removed from CVS." % (green("   *"), turquoise(self._old_catpkg))
+        else:
+            error("Remnants of %s still remain in CVS." % (turquoise(location)))
+
+    def __add_new_package(self):
+
+        def add_files(arg, dir, files):
+
+	    (null, null, null, dirs) = dir.split("/", 3)
+	
+            if os.path.basename(dir) not in self._ignore:
+	        os.chdir(os.path.join(self._portdir, self._new_category))
+                if os.path.basename(dir) != self._new_package:
+                    print "      >>> %s/" % dirs   
+                    os.mkdir(dirs)
+		    do_cmd("%s %s" % (self._cvscmd["add"], dirs))
+                for file in files:
+                    if not os.path.isdir(os.path.join(dir, file)):
+                        print "      >>> %s" % os.path.join(dirs, file)
+                        do_cmd("cp %s %s" % (os.path.join(dir, file), dirs))
+                        do_cmd("%s %s" % (self._cvscmd["add"], os.path.join(dirs, file)))
+
+        print "%s Adding %s to CVS:" % (green("   *"), turquoise(self._new_catpkg))
+        os.chdir(os.path.join(self._portdir, self._new_category))
+        print "      >>> %s/" % self._new_package
+        os.mkdir(self._new_package)
+        do_cmd("%s %s" % (self._cvscmd["add"], self._new_package))
+        os.chdir(self._new_package)
+        os.path.walk("/tmp/%s/%s" % (__productname__, self._new_package), add_files , None)
+        os.chdir(os.path.join(self._portdir, self._new_catpkg))
+
+        print "%s Adding ChangeLog entry..." % green("     *")
+        do_cmd("echangelog 'Moved from %s to %s.'" % (self._old_catpkg, self._new_catpkg))
+
+        print "%s Commiting changes..." % green("     *")
+	do_cmd("%s 'Moved from %s to %s.'" % (self._cvscmd["commit"], self._old_catpkg, self._new_catpkg))
+
+        print "%s %s successfully added to CVS." % (green("   *"), turquoise(self._new_catpkg))
+
+    def log_move(self):
+
+        if not self._action == "REMOVE":
+	
+	    update_files = []
+            update_regex = "^[\d]Q-[\d]{4}$"
+
+            p_file_regex = re.compile(update_regex)
+
+            print "%s Logging move:" % (green("   *"))
+            os.chdir(os.path.join(self._portdir, "profiles/updates"))
+            do_cmd(self._cvscmd["update"])
+
+            for file in os.listdir("."):
+                o_file_regex = p_file_regex.match(file)
+                if file not in self._ignore and o_file_regex:
+       	            (q, y) = file.split("-")
+                    update_files.append("%s-%s" % (y, q))
+
+	    update_files.sort()
+	    (y, q) = update_files[-1].split("-")
+	    upfile = "%s-%s" % (q, y)
+    	    print "      >>> %s" % upfile
+
+            try:
+	        fd = open(upfile, "a")
+	        fd.write("move %s %s\n" % (self._old_catpkg, self._new_catpkg))
+                fd.close()
+	    except IOError, e:
+	        error(e)
+		sys.exit(1)
+
+	    do_cmd("%s 'Moved %s to %s'" % (self._cvscmd["commit"], self._old_catpkg, self._new_catpkg))
+	    os.chdir(self._portdir)
+
+    def clean_up(self):
+
+        if not self._action == "REMOVE":
+            print "%s Removing back-up..." % (green("   *"))
+            do_cmd("rm -rf /tmp/%s/%s" % (__productname__, self._old_package))
+            if len(os.listdir("/tmp/%s" % __productname__)) == 0:
+                do_cmd("rmdir /tmp/%s" % __productname__)
+
+	os.chdir(self._portdir)
+	    
 if __name__ == "__main__":
-    main()
+    
+    signal.signal(signal.SIGINT, signal_handler)
+
+    cvscmd = {"remove": "cvs -Qf rm",
+    	      "commit": "cvs -Qf commit -m",
+    	      "update": "cvs -Qf up -dPC",
+    	      "add":    "cvs -Qf add"}
+
+    parser = OptionParser(usage="%prog [ option ] [ origin ] [ destination ]", version="%s-%s" % (__productname__, __version__))
+    parser.add_option("--usage", action="store_true", dest="usage", default=False, help="Pint usage information")
+    parser.add_option("-q", "--queue-check", action="store_true", dest="commit_queue", default=False, help="Check the cvs tree for files awaiting commit")
+    parser.add_option("-u", "--no-cvs-up", action="store_true", dest="cvs_up", default=False, help="Skipp running cvs up in the origin and destination categories")
+    parser.add_option("-c", "--no-countdown", action="store_true", dest="countdown", default=False, help="Skipp countdown before performing")
+    parser.add_option("-R", "--remove", action="store_true", dest="remove", default=False, help="Remove package")
+    parser.add_option("-F", "--force", action="store_true", dest="force", default=False, help="Force removal of package, ignoring any reverse deps")
+    (options, args) = parser.parse_args()
+
+    if options.usage:
+        print_usage()
+	sys.exit(0)
+
+    if randint(1, 100) == 50:
+        print "%s I put on my robe and wizard hat..." % green(" *")
+ 
+    portdir = check_cwd(portage.settings["PORTDIR"][:-1])
+    check_repos(portdir)
+    (oldcatpkg, newcatpkg) = check_args(args, portdir, options, cvscmd)
+    
+    if options.commit_queue:
+        check_commit_queue()
+
+    ThisPackage = Package(portdir, oldcatpkg, newcatpkg, cvscmd, options)
+
+    ThisPackage.perform_action()
+    ThisPackage.log_move()
+    ThisPackage.clean_up()
+
+    if options.remove:
+        print "%s %s successfully removed from CVS." % (green(" *"), turquoise(oldcatpkg))
+    else:
+        print "%s %s successfully moved to %s." % (green(" *"), turquoise(oldcatpkg), yellow(newcatpkg))
 
