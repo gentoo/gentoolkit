@@ -672,9 +672,9 @@ class CmdWhich(Command):
         (query, opts) = self.parseArgs(args)
 
         matches = gentoolkit.find_packages(query)
-
-        for pkg in matches:
-            print os.path.normpath(pkg.get_ebuild_path())
+        matches = gentoolkit.sort_package_list(matches)
+		
+        print os.path.normpath(matches[-1].get_ebuild_path())
                     
     def shortHelp(self):
         return turquoise("pkgspec") + " - print full path to ebuild for package " + turquoise("pkgspec")
