@@ -1,0 +1,21 @@
+Usage: equery <global-opts> command <local-opts>
+where <global-opts> is one of
+ -q, --quiet   - minimal output
+ -C, --nocolor - turn off colours
+ -h, --help    - this help screen
+ -V, --version - display version info
+where command(short) is one of
+ belongs(b) <local-opts> files... - list all packages owning files...
+ changes(c)  - not implemented yet
+ check(k) pkgspec - check MD5sums and timestamps of pkgspec's files
+ depends(d) <local-opts> pkgspec - list all direct dependencies matching pkgspec
+ depgraph(g) <local-opts> pkgspec - display a dependency tree for pkgspec
+ files(f) <local-opts> pkgspec - list files owned by pkgspec
+ glsa(a)  - not implemented yet
+ hasuses(h) <local-opts> pkgspec - list all packages with useflag
+ list(l) <local-opts> pkgspec - list all packages matching pkgspec
+ size(s) <local-opts> pkgspec - print size of files contained in package pkgspec
+ stats(t)  - not implemented yet
+ uses(u) <local-opts> pkgspec - display USE flags for pkgspec
+ which(w) pkgspec - print full path to ebuild for package pkgspec
+

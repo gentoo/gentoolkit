@@ -1,6 +1,57 @@
-- clean up colours for output!
- - error, warning, info
- - package, searchterm, useflag, number, ...
- - structured output, to allow for XML, piping and tty?
-- list all global useflags
-- list all local useflags
+- pkgquery language:
+ Query ::= NewStyle | OldStyle | with OldStyle NewStyle
+ NewStyle ::= NameVar in /RegExp/
+	| VerVar in [ VerExpr ]
+	| SetVar in [ SetExpr ]
+ NameVar ::= PC | PN | DESCRIPTION | SRC_URI | HOMEPAGE
+
+ SetVar ::= LICENSE | KEYWORDS | IUSE
+ VerVar ::= SLOT | PV | DEPEND | RDEPEND
+
+ BinaryOp ::= and | or
+ UnaryOp ::= not
+
+ VerExpr ::= SingleVer
+	| VerExpr BinOp VerExpr
+	| UnaryOp UnaryOp
+
+ SetExpr ::= Element 
+	| Element BinOp Element
+	| UnaryOp Element
+
+ SingleVer ::= PrefixOp VersionBody ( VersionSuffix )? ( - Revision )?
+ PrefixOp ::= ! | < | > | <= | >= | = | ~
+ VersionBody ::= Number ( . Number )+ ( . * )?
+ VersionSuffix ::= _ ( pre | beta | alpha | rc ) Number?
+	| [a-z]
+ Revision ::= r Number
+
+------
+
+ PC in /dev-java/ and  
+ PN in /ant/ and
+ PV in [ >=1.0 or <=2.3 and =2.0.* ] and
+ IUSE in [ java or junit ]
+ 
+
+--
+ with >=dev-java/ant-1.0*
+	IUSE in [ java or junit ] and
+	SLOT in [ >=1.0 ]
+ 
+
+----------
+
+old cruft:
+
+ SingleVer ::= ( Operator )? ( Category / ) PackageName ( - Version )?
+ Operator ::= = | > | >= | < | <= | ~ | !
+ Category ::= PackageName
+ PackageName ::= NamePart ( - NamePart )+
+ NamePart ::= [a-zA-Z+]+
+ Version ::= VersionPart ( - VersionPart )+ ( _ VersionSuffix )? ( - Revision )?
+ VersionSuffix ::= ( pre | rc | beta | alpha ) ( Number ) ?
+
+ old style: >=dev-java/ant-1.0*
+  
+

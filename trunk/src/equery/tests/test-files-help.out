@@ -1,0 +1,11 @@
+List files owned by a particular package
+
+Syntax:
+  files <local-opts> <cat/>packagename<-version>
+
+Note: category and version parts are optional. 
+
+<local-opts> is either of: 
+  --timestamp  - append timestamp
+  --md5sum     - append md5sum
+  --type       - prepend file type

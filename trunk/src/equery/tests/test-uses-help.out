@@ -1,0 +1,7 @@
+Display USE flags for a given package
+
+Syntax:
+  uses <local-opts> pkgspec
+<local-opts> is either of: 
+  -a, --all     - include non-installed packages
+
