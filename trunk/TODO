@@ -11,5 +11,8 @@
 - rewrite distfiles-clean to use gentoolkit
 - rewrite etc-update to use gentoolkit, add UI
 - add genlop
+- look through forums.gentoo.org for additional scripts
+- write a Gentoolkit Guide
 
++ check esearch, eupdatedb: separate package for now
 + extract helper code from etcat
