@@ -25,11 +25,13 @@
 #
 #  etcat [options] <command> <package[-ver]|ebuild|category/package[-ver]>
 #
-#  -c/changes  ) list the more recent changelog entry
-#  -v/versions ) list all the versions available for a package
-#  -u/uses     ) list all the use variables used in this package/ebuild
-#  -s/size     ) guesses the size of a installed packaged.
 #  -b/belongs  ) checks what package(s) a file belongs to
+#  -c/changes  ) list the more recent changelog entry
+#  -d/depends  ) list all those that have this in their depends
+#  -f/files    ) list all files that belong to this package
+#  -s/size     ) guesses the size of a installed packaged.
+#  -u/uses     ) list all the use variables used in this package/ebuild
+#  -v/versions ) list all the versions available for a package
 #
 # --| TODO |---------------------------------------------------------
 # 
@@ -37,6 +39,8 @@
 # 
 # --| Changes |------------------------------------------------------
 #
+#    - Added "files" feature
+#    - Added "depends" feature
 #  * etcat-0.1.3 (24 Apr 2003)
 #    - Overhaul of commandline interpreter
 #    - Added "belongs" feature
@@ -63,7 +67,7 @@ import portage
 from stat import *
 from output import *
 
-options = [ "changes", "versions", "uses", "size", "belongs" ]
+options = [ "changes", "versions", "uses", "size", "belongs", "depends", "files"]
 __author__ = "Alastair Tse"
 __version__ = "0.1.3"
 __productname__ = "etcat"
@@ -662,33 +666,43 @@ def old_uses(query):
 # | Required By Function                                  |
 # +-------------------------------------------------------+
 # | Find what packages require a given package name       |
-# | !!! NOT WORKING !!!                                   |
 # `-------------------------------------------------------'
 
-def required(query):
-    ### TODO !!! 
-    matches = search(query)
+def depends(query):
     
     print "[ Results for search key : " + white(query) + " ]"
-    print "[ Applications found : " + white(str(len(matches))) + " ]"
-    print
 
-    if not matches:
-	return
-
+    isdepend = re.compile(r'([^\s]*' + query + '[^\s]*)')
+    
+    match_depend = {}
+    match_rdepend = {}
+    
     # get all installed packages
     for x in os.listdir(portage.root + "var/cache/edb/dep"):
         # for each category, we just grep for the deps, slowly
         for dep in os.listdir(portage.root + "var/cache/edb/dep/" + x):
-            f = open(dep)
-            rdepend = dep.readline()
-            depend = dep.readline()
-            
+            f = open("%s/var/cache/edb/dep/%s/%s" % (portage.root, x, dep))
+            rdepend = f.readline()
+            depend = f.readline()
+	    f.close()
+	    match = isdepend.search(rdepend)
+	    if match:
+		match_rdepend[x+"/"+dep] = match.groups()
+	    match = isdepend.search(depend)
+            if match:
+		match_depend[x+"/"+dep] = match.groups()
+		
+	    if match_depend.has_key(x+"/"+dep):
+		print turquoise("*"), white(x+"/"+dep)
+		for line in match_depend[x+"/"+dep]:
+		    print "  " + line
+    
+    
 
 # .-------------------------------------------------------.
 # | Belongs to which package                              |
 # +-------------------------------------------------------+
-# | Finds what file belongs to which pacakge              |
+# | Finds what package a file belongs to                  |
 # `-------------------------------------------------------'	    
 	    
 def belongs(query):
@@ -719,7 +733,11 @@ def belongs(query):
 		pass
     return
 	
-
+# .-------------------------------------------------------.
+# | Size of a particular package                          |
+# +-------------------------------------------------------+
+# | Finds the size of the installed package               |
+# `-------------------------------------------------------'	    
 def size(query):
     matches = search(query)
     # FIXME: use portage.settings
@@ -759,7 +777,57 @@ def size(query):
 		if uncounted:
 		    print string.rjust(" Inaccessible Files : ",25) + str(uncounted)
 		print string.rjust(" Total Size : ",25) + "%.2f KB" % (size/1024.0)
-	
+		
+# .-------------------------------------------------------.
+# | Files in a package                                    |
+# +-------------------------------------------------------+
+# | Lists all the files in a package                      |
+# `-------------------------------------------------------'	    
+def files(query):
+    matches = search(query)
+    # FIXME: use portage.settings
+    dbdir = "/var/db/pkg/"
+    
+    print "[ Results for search key : " + white(query) + " ]"
+    print "[ Applications found : " + white(str(len(matches))) + " ]"
+    print
+    
+    if matches:
+	print " Only printing found installed programs."
+	print
+    else:
+	print "No packages found."
+	return
+    
+    for package in matches:
+	files = glob.glob(dbdir + package + "-[0-9]*")
+	if files:
+	    for pkg in files:
+		# for each package we find
+		size = 0
+		files = 0
+		uncounted = 0
+		if os.path.exists(pkg):
+		    try:
+			f = open(pkg + "/CONTENTS")
+		    except:
+			# fail silently
+			continue
+		    print
+		    print yellow(" * ") + white("/".join(pkg.split("/")[-2:]))
+		    for line in f.readlines():
+			words = line.split()
+			if len(words) < 2:
+			    continue
+			elif words[0] == "obj":
+			    print words[1]
+			elif words[0] == "sym":
+			    print turquoise(words[1])
+			elif words[0] == "dir":
+			    print blue(words[1])
+			else:
+			    print words[1]
+
 # .-------------------------------------------------------.
 # | Help Function                                         |
 # `-------------------------------------------------------'
@@ -786,6 +854,13 @@ def help():
     print " "*12 + "    etcat changes mozilla"
     print " "*12 + "    etcat changes mozilla-1.1-r1"
     print " "*12 + "    etcat changes gkrellm$"
+    print
+    print " "*4 + green("depends") + " (" + green("-d") + " short option)"
+    print " "*12 + "Searches the portage for strings in the DEPEND/RDEPEND lines"
+    print " "*12 + "Accepts regex notation."
+    print
+    print " "*4 + green("files") + " (" + green("-d") + " short option)"
+    print " "*12 + "List files in a particular package."
     print
     print " "*4 + green("size") + " (" + green("-s") + " short option)"
     print " "*12 + "Outputs the size of all the files used by a particular package."    
@@ -830,6 +905,9 @@ def main():
 	    action = "belongs"
 	    query = sys.argv[pointer:]
 	    break
+	elif arg in ["-d","depends"]:
+	    action = "depends"
+	    query = ' '.join(sys.argv[pointer:])
 	elif arg in ["-s","size"]:
 	    action = "size"
 	    query = ' '.join(sys.argv[pointer:])
@@ -842,6 +920,9 @@ def main():
 	    action = "versions"
 	    query = ' '.join(sys.argv[pointer:])
 	    break
+	elif arg in ["-f","files"]:
+	    action = "files"
+	    query = ' '.join(sys.argv[pointer:])
 	elif arg in ["-nc"]:
 	    # i don't know if i want to publish this
 	    nocolor()
@@ -865,8 +946,10 @@ def main():
 	size(query)
     elif action == "belongs":
 	belongs(query)
-#    elif action == "required":
-#	required(query)
+    elif action == "depends":
+	depends(query)
+    elif action == "files":
+	files(query)
 
 if __name__ == "__main__":
     try:
