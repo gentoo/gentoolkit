@@ -1,5 +1,7 @@
 2004-09-08 Karl Trygve Kalleberg <karltk@gentoo.org>
-	* Added man page rewrites by Katerina Barone-Adesi <katerinab@gmail.com>
+	* Added man page rewrites by Katerina Barone-Adesi <katerinab@gmail.com>,
+	fixes #63045
+	* Fixed spacing issues with files, fixes #63036.
 
 2004-08-29 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Added check for bad regexp in belongs, fixes #58494
