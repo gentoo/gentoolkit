@@ -369,7 +369,7 @@ class CmdDisplayUSEs(Command):
 
             inuse = []
             if p.is_installed():
-                used = p.get_use_vars().split()
+                used = p.get_use_flags().split()
             else:
                 # cosmetic issue here as noninstalled packages don't have "used" flags
                 used = useflags
@@ -384,7 +384,7 @@ class CmdDisplayUSEs(Command):
                     desc = usedesc[u]
                 except KeyError:
                     try:
-                        desc = uselocaldesc[p.get_category()+"/"+p.get_name()][u]
+                        desc = uselocaldesc[p.get_category() + "/" + p.get_name()][u]
                     except KeyError:
                         desc = ""
 
@@ -928,6 +928,149 @@ class CmdListPackages(Command):
                "  " + yellow("-p, --portage-tree") + "      - also search in portage tree (" + gentoolkit.settings["PORTDIR"] + ")\n" + \
                "  " + yellow("-o, --overlay-tree") + "      - also search in overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")\n"
 
+class CmdFindUSEs(Command):
+    """Find all packages with a particular USE flag."""
+    def __init__(self):
+        self.default_opts = {
+            "category": "*",
+            "includeInstalled": 1,
+            "includePortTree": 0,
+            "includeOverlayTree": 0,
+            "includeMasked": 1,
+            "regex": 0
+            }
+
+    def parseArgs(self, args):
+
+        query = ""
+        need_help = 0
+        opts = self.default_opts
+        skip = 0
+        
+        for i in xrange(len(args)):
+
+            if skip:
+                skip -= 1
+                continue
+            x = args[i]
+            
+            if x in ["-h","--help"]:
+                need_help = 1
+                break
+            elif x in ["-i", "--installed"]:
+                opts["includeInstalled"] = 1
+            elif x in ["-I", "--exclude-installed"]:
+                opts["includeInstalled"] = 0
+            elif x in ["-p", "--portage-tree"]:
+                opts["includePortTree"] = 1
+            elif x in ["-o", "--overlay-tree"]:
+                opts["includeOverlayTree"] = 1
+            elif x in ["-m", "--exclude-masked"]:
+                opts["includeMasked"] = 0
+            else:
+                query = x
+
+        if need_help:
+            print self.longHelp()
+            sys.exit(-1)
+            
+        return (query, opts)
+                
+    def perform(self, args):
+        (query, opts) = self.parseArgs(args)
+
+        rev = ".*"
+        name = ".*"
+        ver = ".*"
+        cat = ".*"
+        
+        package_finder = None
+
+        if opts["includeInstalled"] and (opts["includePortTree"] or opts["includeOverlayTree"]):
+            package_finder = gentoolkit.find_all_packages
+        elif opts["includeInstalled"]:
+            package_finder = gentoolkit.find_all_installed_packages
+        elif opts["includePortTree"] or opts["includeOverlayTree"]:
+            package_finder = gentoolkit.find_all_uninstalled_packages
+
+        if not package_finder:
+            print red("!!! You must specify one of ") + yellow("-i") + red(", ") + yellow("-p") + red(" or ") + yellow("-o")
+            sys.exit(2)
+
+        filter_fn = lambda x: True
+            
+        if Config["verbosityLevel"] >= 3:
+            scat = "'" + cat + "'"
+            if cat == ".*":
+                scat = "all categories"
+            if not Config["piping"]:
+                print "Searching for USE flag '" + query  + " in " + scat + " among:"
+                if opts["includeInstalled"]:
+                    print turquoise(" *") + " installed packages"
+                if opts["includePortTree"]:
+                    print turquoise(" *") + " Portage tree (" + gentoolkit.settings["PORTDIR"] + ")"
+                if opts["includeOverlayTree"]:
+                    print turquoise(" *") + " overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")"
+        
+        matches = package_finder(filter_fn)
+
+        rx = re.compile(cat + "/" + name + "-" + ver + "(-" + rev + ")?")
+        pfxmodes = [ "[---]", "[I--]", "[-P-]", "[--O]" ]
+        maskmodes = [ "[  ]", "[ ~]", "[ -]", "[M ]", "[M~]", "[M-]" ]
+        for pkg in matches:
+            status = 0
+            if pkg.is_installed():
+                status = 1
+            elif pkg.is_overlay():
+                status = 3
+            else:
+                status = 2
+
+            # Drop all packages without the USE flag
+            useflags = []
+            if status == 1:
+                useflags = pkg.get_use_flags()
+            else:
+                useflags = pkg.get_env_var("IUSE")
+            
+            if query not in useflags:
+                continue 
+                
+            # Determining mask status
+            pkgmask = 0
+            if pkg.is_masked():
+                pkgmask = pkgmask + 3
+            keywords = pkg.get_env_var("KEYWORDS").split()
+            if "~"+gentoolkit.settings["ARCH"] in keywords:
+                pkgmask = pkgmask + 1
+            elif "-*" in keywords or "-"+gentoolkit.settings["ARCH"] in keywords:
+                pkgmask = pkgmask + 2
+
+            # Determining SLOT value
+            slot = pkg.get_env_var("SLOT")
+
+            if (status == 1 and opts["includeInstalled"]) or \
+               (status == 2 and opts["includePortTree"]) or \
+               (status == 3 and opts["includeOverlayTree"]):
+                if Config["piping"]:
+                    print pkg.get_cpv()
+                else:
+                    print pfxmodes[status] + " " + maskmodes[pkgmask] + " " + pkg.get_cpv() + " (" + slot + ")"
+                    
+    def shortHelp(self):
+        return yellow("<local-opts> ") + turquoise("pkgspec") + " - list all packages with " + turquoise("useflag")
+    def longHelp(self):
+        return "List all packages with a particular USE flag" + \
+               "\n" + \
+               "Syntax:\n" + \
+               "  " + green("list") + yellow(" <local-opts> ") + turquoise("pkgspec") + \
+               "\n" + \
+               yellow("<local-opts>") + " is either of: \n" + \
+               "  " + yellow("-i, --installed") + "         - search installed packages (default)\n" + \
+               "  " + yellow("-I, --exclude-installed") + " - do not search installed packages\n" + \
+               "  " + yellow("-p, --portage-tree") + "      - also search in portage tree (" + gentoolkit.settings["PORTDIR"] + ")\n" + \
+               "  " + yellow("-o, --overlay-tree") + "      - also search in overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")\n"
+
 #
 #
 #
@@ -937,6 +1080,7 @@ Known_commands = {
     "files": CmdListFiles(),
     "belongs": CmdListBelongs(),
     "depends": CmdListDepends(),
+    "hasuses": CmdFindUSEs(),
     "uses": CmdDisplayUSEs(),
     "depgraph": CmdDisplayDepGraph(),
     "changes": CmdDisplayChanges(),
