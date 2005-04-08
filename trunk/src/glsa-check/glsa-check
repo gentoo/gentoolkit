@@ -193,7 +193,7 @@ if mode in ["dump", "fix", "inject", "pretend"]:
 				# using emerge for the actual merging as it contains the dependency
 				# code and we want to be consistent in behaviour. Also this functionality
 				# will be integrated in emerge later, so it shouldn't hurt much.
-				exitcode = os.system("emerge ="+pkg)
+				exitcode = os.system("emerge --oneshot ="+pkg)
 				if exitcode:
 					sys.exit(exitcode)
 			myglsa.inject()
