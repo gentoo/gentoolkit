@@ -2,6 +2,7 @@
 	* euse: fixed bugs 74344, 75525 and 84521
 	* euse: add better support for cascaded profiles
 	* glsa-check: use --oneshot (bug 79819)
+	* glsa.py: fix stupid revision comparison bug (bug 75233)
 	
 2005-03-12 Aron Griffis <agriffis@gentoo.org>
 	* Added eviewcvs to -dev, utility for generating viewcvs URLs
