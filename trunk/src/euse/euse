@@ -47,6 +47,7 @@ parse_arguments() {
 
 error() {
 	echo "ERROR: ${1}"
+	set +f
 	exit 1
 }
 
@@ -58,7 +59,7 @@ check_sanity() {
 	
 	[ ! -r "${MAKE_CONF_PATH}" ] && error "${MAKE_CONF_PATH} is not readable"
 	[ ! -r "${MAKE_GLOBALS_PATH}" ] && error "${MAKE_GLOBALS_PATH} is not readable"
-	[ ! -s "${MAKE_PROFILE_PATH}" ] && error "${MAKE_PROFILE_PATH} is not a symlink"
+	[ ! -h "${MAKE_PROFILE_PATH}" ] && error "${MAKE_PROFILE_PATH} is not a symlink"
 	[ -z "$(get_portdir)" ] && error "\$PORTDIR couldn't be determined"
 	[ ! -d "${descdir}" ] && error "${descdir} does not exist or is not a directory"
 	[ ! -r "${descdir}/use.desc" ] && error "${descdir}/use.desc is not readable"
@@ -154,7 +155,7 @@ get_make_defaults() {
 	curdir="$(readlink -f ${MAKE_PROFILE_PATH})"
 	
 	while [ ! -f "${curdir}/make.defaults" -a -f "${curdir}/parent" ]; do
-		parent="$(grep -v '(^#|^ *$)' ${curdir}/parent)"
+		parent="$(egrep -v '(^#|^ *$)' ${curdir}/parent)"
 		curdir="$(readlink -f ${curdir}/${parent})"
 	done
 
@@ -383,7 +384,9 @@ modify() {
 
 ##### main program comes now #####
 
+set -f
 parse_arguments "$@"
 check_sanity
 
 eval ${MODE} ${ARGUMENTS}
+set +f

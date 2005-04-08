@@ -16,6 +16,9 @@ all:
 	echo $(sbindir)
 	echo $(mandir)
 
+clean:
+	rm -rf release/*
+
 dist:
 	echo "Err0r: Must use either dist-gentoolkit or dist-gentoolkit-dev"
 	exit 1
