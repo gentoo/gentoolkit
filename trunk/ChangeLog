@@ -1,5 +1,6 @@
 2005-04-07 Marius Mauch <genone@gentoo.org>
 	* euse: fixed bugs 74344, 75525 and 84521
+	* euse: add better support for cascaded profiles
 
 2005-03-12 Aron Griffis <agriffis@gentoo.org>
 	* Added eviewcvs to -dev, utility for generating viewcvs URLs
