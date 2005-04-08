@@ -14,5 +14,6 @@ dist:
 	cp Makefile glsa.py glsa-check ../../$(distdir)/src/glsa-check/
 
 install:
+	install -d $(DESTDIR)/usr/lib/gentoolkit/pym/
 	install -m 0755 glsa-check $(bindir)/
 	install -m 0644 glsa.py $(DESTDIR)/usr/lib/gentoolkit/pym/
