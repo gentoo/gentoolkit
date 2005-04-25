@@ -209,7 +209,7 @@ if $PACKAGE_NAMES ; then
 		echo -n >$LLIST.4_packages_raw
 		echo -n >$LLIST.4_package_owners
 		cat $LLIST.3_rebuild | while read FILE ; do
-			PKG="$(qpkg -nc -f "$FILE")"
+			PKG=$(fgrep -l $FILE /var/db/pkg/*/*/CONTENTS|sed -e 's:/var/db/pkg/\(.*\)/CONTENTS:\1:g' -e "s:-r[0-9]\+$::" -e "s:-[0-9][^-]*$::")
 			if [ -z "$PKG" ] ; then
 				echo -n -e "\n  ${RD}*** $FILE not owned by any package is broken! ***${NO}"
 				echo "$FILE -> (none)" >> $LLIST.4_package_owners

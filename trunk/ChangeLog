@@ -1,3 +1,8 @@
+2005-04-25 Marius Mauch <genone@gentoo.org>
+	* qpkg: moving to /usr/share/doc/gentoolkit-*/deprecated
+	* etcat: moving to /usr/share/doc/gentoolkit-*/deprecated
+	* revdep-rebuild: replacing qpkg call with equivalent grep/sed call
+
 2005-04-07 Marius Mauch <genone@gentoo.org>
 	* euse: fixed bugs 74344, 75525 and 84521
 	* euse: add better support for cascaded profiles
