@@ -14,7 +14,6 @@ dist:
 	cp Makefile README AUTHORS ChangeLog TODO qpkg qpkg.1 ../../${distdir}/src/qpkg/
 
 install:
-	install -m 0755 qpkg $(bindir)/
-	install -d $(docdir)/qpkg	
-	install -m 0644 README AUTHORS ChangeLog $(docdir)/qpkg/
-	install -m 0644 qpkg.1 $(mandir)/
+	install -d $(docdir)/deprecated/qpkg
+	install -m 0755 qpkg $(docdir)/deprecated/qpkg/
+	install -m 0644 qpkg.1 README AUTHORS ChangeLog $(docdir)/deprecated/qpkg/

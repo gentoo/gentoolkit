@@ -13,7 +13,6 @@ dist:
 	cp Makefile AUTHORS README TODO ChangeLog etcat etcat.1 ../../$(distdir)/src/etcat
 
 install:
-	install -m 0755 etcat $(bindir)/
-	install -d $(docdir)/etcat
-	install -m 0644 README AUTHORS $(docdir)/etcat/
-	install -m 0644 etcat.1 $(mandir)/
+	install -d $(docdir)/deprecated/etcat
+	install -m 0755 etcat $(docdir)/deprecated/etcat/
+	install -m 0644 etcat.1 README AUTHORS $(docdir)/deprecated/etcat/
