@@ -8,6 +8,8 @@
 # $Header$
 
 from errors import FatalError
+import portage
+from gentoolkit import *
 
 class Package:
 	"""Package descriptor. Contains convenience functions for querying the
@@ -17,6 +19,7 @@ class Package:
 	def __init__(self,cpv):
 		self._cpv = cpv
 		self._scpv = portage.catpkgsplit(self._cpv)
+		
 		if not self._scpv:
 			raise FatalError("invalid cpv: %s" % cpv)
 		self._db = None
