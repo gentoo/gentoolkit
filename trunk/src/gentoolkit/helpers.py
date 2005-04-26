@@ -7,6 +7,10 @@
 #
 # $Header$
 
+import portage
+from gentoolkit import *
+from gentoolkit.package import *
+
 def find_packages(search_key, masked=False):
 	"""Returns a list of Package objects that matched the search key."""
 	try:
@@ -30,13 +34,13 @@ def find_packages(search_key, masked=False):
 def find_installed_packages(search_key, masked=False):
 	"""Returns a list of Package objects that matched the search key."""
 	try:
-			t = vartree.dbapi.match(search_key)
+			t = portage.db["/"]["vartree"].dbapi.match(search_key)
 	# catch the "amgigous package" Exception
 	except ValueError, e:
 		if type(e[0]) == types.ListType:
 			t = []
 			for cp in e[0]:
-				t += vartree.dbapi.match(cp)
+				t += portage.db["/"]["vartree"].dbapi.match(cp)
 		else:
 			raise ValueError(e)
 	return [Package(x) for x in t]
@@ -47,9 +51,9 @@ def find_best_match(search_key):
 	# FIXME: How should we handled versioned virtuals??
 	cat,pkg,ver,rev = split_package_name(search_key)
 	if cat == "virtual":
-		t = vartree.dep_bestmatch(cat+"/"+pkg)
+		t = portage.db["/"]["vartree"].dep_bestmatch(cat+"/"+pkg)
 	else:
-		t = vartree.dep_bestmatch(search_key)
+		t = portage.db["/"]["vartree"].dep_bestmatch(search_key)
 	if t:
 		return Package(t)
 	return None

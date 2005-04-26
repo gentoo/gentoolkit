@@ -732,7 +732,7 @@ class CmdDisplaySize(Command):
 	
 				sz = "%.2f KiB" % (size/1024.0)				
 				if opts["reportSizeInBytes"]:
-					sz = number(str(size)) + " bytes"
+					sz = pp.number(str(size)) + " bytes"
 				
 				print_info(0, string.rjust("Total size  : ",25) + pp.number(sz))
 
@@ -917,7 +917,7 @@ class CmdWhich(Command):
 		return "Print full path to ebuild for a given package" + \
 			"\n" + \
 			"Syntax:\n" + \
-			"  " + pp.command("size ") + pp.pkgquery("pkgspec")
+			"  " + pp.command("which ") + pp.pkgquery("pkgspec")
 
 class CmdListGLSAs(Command):
 	"""List outstanding GLSAs."""
