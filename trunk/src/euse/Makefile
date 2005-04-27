@@ -11,7 +11,7 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/euse/
-	cp Makefile AUTHORS README TODO ChangeLog euse euse.1 ../../$(distdir)/src/euse/
+	cp Makefile AUTHORS ChangeLog euse euse.1 ../../$(distdir)/src/euse/
 
 install:
 	install -m 0755 euse $(bindir)/
