@@ -1,3 +1,7 @@
+27 Apr 2005 Aron Griffis <agriffis@gentoo.org>
+	* more changes for #90326; report all trivial files if no significant
+	  changes can be found
+
 26 Apr 2005 Aron Griffis <agriffis@gentoo.org>
 	* detect conflicts explicitly
 	* report ChangeLog in the list of files if it's the only file that is
