@@ -38,7 +38,7 @@ sys.stderr.write("before using this tool AND before reporting a bug.\n\n")
 args = []
 params = []
 try:
-	args, params = getopt(sys.argv[1:], "dplfchinvt", \
+	args, params = getopt(sys.argv[1:], "dplfchinvVt", \
 		["dump", "print", "list", "pretend", "fix", "inject", "help", "info", "version", "test", "nocolor"])
 	args = [a for a,b in args]
 	
