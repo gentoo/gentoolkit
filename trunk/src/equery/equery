@@ -273,7 +273,8 @@ class CmdListBelongs(Command):
 		self.default_opts = {
 			"category": "*",
 			"fullRegex": 0,
-			"earlyOut": 0
+			"earlyOut": 0,
+			"nameOnly": 0
 			}
 
 	def parseArgs(self, args):
@@ -300,6 +301,8 @@ class CmdListBelongs(Command):
 				opts["earlyOut"] = 1
 			elif x in ["-f", "--full-regex"]:
 				opts["fullRegex"] = 1
+			elif x in ["-n", "--name-only"]:
+				opts["nameOnly"] = 1
 			else:
 				query.append(x)
 
@@ -344,7 +347,11 @@ class CmdListBelongs(Command):
 			if not cnt: return
 			for file in cnt.keys():
 				if rx.search(file) and (opts["category"] == "*" or portage.catpkgsplit(pkg)[0] == opts["category"]):
-					print pkg
+					if opts["nameOnly"]:
+						x = portage.catpkgsplit(pkg)
+						print x[0]+"/"+x[1]
+					else:
+						print pkg
 					return
 
 		class DummyExp:
@@ -357,7 +364,12 @@ class CmdListBelongs(Command):
 			if not cnt: return
 			for file in cnt.keys():
 				if rx.search(file) and (opts["category"] == "*" or portage.catpkgsplit(pkg)[0] == opts["category"]):
-					s = pkg + " (" + pp.path(fileAsStr(file, cnt[file])) + ")"
+					if opts["nameOnly"]:
+						x = portage.catpkgsplit(pkg)
+						s = x[0]+"/"+x[1]
+					else:
+						s = pkg
+					s += " (" + pp.path(fileAsStr(file, cnt[file])) + ")"
 					print_info(0, s)
 					if opts["earlyOut"]:
 						raise DummyExp
@@ -385,7 +397,8 @@ class CmdListBelongs(Command):
 					"  " + pp.localoption("-c, --category cat") + " - only search in category " + \
 						pp.pkgquery("cat") + "\n" + \
 					"  " + pp.localoption("-f, --full-regex") + "   - supplied query is a regex\n" + \
-					"  " + pp.localoption("-e, --earlyout") + "	 - stop when first match is found\n"
+					"  " + pp.localoption("-e, --earlyout") + "	    - stop when first match is found\n" + \
+					"  " + pp.localoption("-n, --name-only") + "    - don't print the version."
 
 class CmdDisplayUSEs(Command):
 	"""Advanced report of a package's USE flags"""
