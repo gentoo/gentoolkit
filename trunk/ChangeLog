@@ -1,6 +1,7 @@
 2005-04-30 Marius Mauch <genone@gentoo.org>
 	* glsa-check: add V to short option list so it actually works
-
+	* equery: added new option --name-only to belongs command to make it "emerge-compatible"
+	
 2005-04-26 Marius Mauch <genone@gentoo.org>
 	* gentoolkit: fix broken Makefile
 	* gentoolkit: add some sticky tape to get the stupid thing working again
