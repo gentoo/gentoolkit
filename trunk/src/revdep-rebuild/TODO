@@ -3,4 +3,5 @@
  - use timestamps of files to know when to rebuild
   - if ts of cache is older than any of the package's contained
     files, we must rebuild
-- update to use equery    
+- update to use equery/gentoolkit
+- rewrite in python and/or eclectic module

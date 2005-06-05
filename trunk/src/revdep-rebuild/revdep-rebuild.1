@@ -1,12 +1,81 @@
-.TH revdep-rebuild "1" "Nov 2003" "gentoolkit"
-.SH NAME
-revdep-rebuild \- Gentoo: Reverse dependency rebuilder
-.SH SYNOPSIS
-.B revdep-rebuild
-.SH BUGS
-This tool does not yet have a man page. Feel free to submit a bug about it to
-http://bugs.gentoo.org
-.SH AUTHORS
-This informative man page was written by Karl Trygve Kalleberg 
-<karltk@gentoo.org>.
+.TH "revdep\-rebuild" "1" "" "gentoolkit" ""
+.SH "NAME"
+revdep\-rebuild \- Gentoo: Reverse Dependency Rebuilder
+.SH "SYNOPSIS"
+.B revdep\-rebuild
+[OPTIONS] [\-\-] [EMERGE OPTIONS]
+.SH "DESCRIPTION"
+revdep\-rebuild scans libraries and binaries for missing shared library dependencies and fixes them by re\-emerging those broken binaries and shared libraries.  It is useful when an upgraded package breaks other software packages that are dependent upon the upgraded package.
+.SH "OPTIONS"
+.TP 
+.B \-X | \-\-package\-names
+emerge the best packages available, not neccessarily the exact version of the installed package
+.TP      
+.B \-\-library=NAME
+emerge packages that use the named library. Name can be a full path to a library or basic regular expression. (See man grep for the definition of basic regular expressions)
+.TP 
+.B \-nc | \-\-no\-color
+turn off colored output (This option is also passed to the emerge command)
+.TP 
+.B \-i | \-\-ignore
+ignore temporary files from previous runs
+.TP 
+.B \-q | \-\-quiet
+be less verbose (This option is also passed to the emerge command)
+
+All other options are passed to the emerge command
+.SH "CONFIGURATION"
+revdep\-rebuild no longer uses hardcoded paths. To change the default behavior the following variables can be changed by the user.
+
+LD_LIBRARY_MASK \- Mask of specially evaluated libraries
+.LP 
+SEARCH_DIRS \- List of directories to search for executibles and libraries
+.LP 
+SEARCH_DIRS_MASK \- List of directories to not search
+
+These variables can be prepended to either by setting the variable in your environment prior to execution, or by placing an entry in /etc/make.conf.
+
+An entry of "\-*" means to clear the variable from that point forward.
+Example: SEARCH_DIRS="/usr/bin \-*" will set SEARCH_DIRS to contain only /usr/bin
+
+revdep\-rebuild honors the NOCOLOR and PORTAGE_NICENESS variables from /etc/make.conf
+.SH "EXAMPLES"
+It is recommended that when running revdep\-rebuild that the following command be used initially:
+.br 
+\fBrevdep\-rebuild \-\-ignore \-\-pretend\fR
+
+To search the entire system, while excluding /mnt and /home:
+.br 
+\fBenv SEARCH_DIRS="/ \-*" SEARCH_DIRS_MASK="/mnt /home" revdep\-rebuild\fR
+
+To rebuild packages that depend on libkdecore.so.4 from KDE 3.3:
+.br 
+\fBrevdep\-rebuild \-\-library /usr/kde/3.3/lib/libkdecore.so.4\fR
+
+To rebuild packages that depend upon libImlib.so and libImlib2.so:
+.br 
+\fBrevdep\-rebuild \-\-library libImlib[2]*.so.*\fR
+
+.SH "EXIT STATUS"
+revdep\-rebuild returns a zero exit status if it succeeds.
+Non zero is returned in case of failure.
+.SH "BUGS"
+.LP 
+In exact ebuild mode revdep\-rebuild can fail to properly order packages, which are not up to date.
+.br 
+http://bugs.gentoo.org/show_bug.cgi?id=23018
+.LP 
+Rebuilding using \-\-package\-names mode should be default, but emerge has no feature to update to latest version of a defined SLOT.
+.br 
+http://bugs.gentoo.org/show_bug.cgi?id=4698
+
+\fBNote:\fR The ability to update to the latest version of a slotted package has been added to revdep\-rebuild.  However, it is possible for this feature to still not work 100% correctly
+.LP 
+Does not correctly handle interactive emerge commands.
+.br 
+http://bugs.gentoo.org/show_bug.cgi?id=37485
+
+Report bugs to <http://bugs.gentoo.org>
+.SH "SEE ALSO"
+emerge(1), portage(5), grep(1)
 
