@@ -1,3 +1,36 @@
+2005-06-05 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Imported revdep-rebuild release from bug 62644
+	* revdep-rebuild: Major changes to the functionality when using --package-names/-X
+	                  The script should now update slotted packages correctly. (bug 22161)
+	* revdep-rebuild: Customizable searching controlled through environment variables.
+	                  This removes the need for end users to directly modify the script.
+	                  (bugs 32276, 38011, 59803)
+	* revdep-rebuild: The directories to search are no longer hard coded into the script.
+	                  revdep-rebuild now determines the directories to search based upon
+	                  /etc/profile.env and /etc/ld.so.conf. (bugs 32276, 38011, 89781)
+	* revdep-rebuild: --ignore option to ignore temporary files left from previous runs.
+	                  Automatically ignore temporary files older than 24 hours. (bug 34052)
+	* revdep-rebuild: Always return an exit status based upon success or failure. (bug 38472)
+	* revdep-rebuild: Fixed to only emerge packages with direct missing dependencies. (bug 38487)
+	* revdep-rebuild: New man page. (bug 40042)
+	* revdep-rebuild: emerge is no longer called with --nodeps. This allows for needed
+	                  dependencies to be pulled in. (bug 62893)
+	* revdep-rebuild: Cleaned up grammatical errors (bug 85278)
+	* revdep-rebuild: Added support for revdep-rebuild --soname /path/to/library.so (bug 91503)
+	* revdep-rebuild: Removed symbolically linked directories from search (bug 93574)
+	* revdep-rebuild: --nocolor option to turn off colored output, the script also obeys 
+	                  the NOCOLOR setting from /etc/make.conf.
+	* revdep-rebuild: Removed dependency on qpkg
+	* revdep-rebuild: Script uses PORTAGE_NICENESS from /etc/make.conf
+	* revdep-rebuild: Undocumented --keep-temp option.  This is primarily for debugging/testing.
+	                  This option prevents temporary files from being deleted.
+	* revdep-rebuild: Changed --soname --soname-regexp options to --library and treat all
+	                  arguments as basic regular expressions. --soname and --soname-regexp can 
+	                  still be used as options for backwards compatability.
+	* revdep-rebuild: Removed requirement to keep revdep-rebuild and emerge options distinct.
+	                  Options that are unrecognized by revdep-rebuild are passed directly to
+	                  emerge.
+
 2005-04-30 Marius Mauch <genone@gentoo.org>
 	* glsa-check: add V to short option list so it actually works
 	* equery: added new option --name-only to belongs command to make it "emerge-compatible"
@@ -17,7 +50,7 @@
 	* euse: add better support for cascaded profiles
 	* glsa-check: use --oneshot (bug 79819)
 	* glsa.py: fix stupid revision comparison bug (bug 75233)
-	
+
 2005-03-12 Aron Griffis <agriffis@gentoo.org>
 	* Added eviewcvs to -dev, utility for generating viewcvs URLs
 

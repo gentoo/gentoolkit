@@ -11,11 +11,13 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/revdep-rebuild
-	cp  Makefile AUTHORS README TODO ChangeLog revdep-rebuild revdep-rebuild.1 ../../$(distdir)/src/revdep-rebuild/
+	cp  Makefile AUTHORS README TODO ChangeLog revdep-rebuild revdep-rebuild.1 find_pkgs.py ../../$(distdir)/src/revdep-rebuild/
 
 install:
 
 	install -m 0755 revdep-rebuild $(bindir)/
+	install -d $(DESTDIR)/usr/lib/gentoolkit/bin/
+	install -m 0755 find_pkgs.py $(DESTDIR)/usr/lib/gentoolkit/bin/
 	install -d $(docdir)/revdep-rebuild	
 	install -m 0644 AUTHORS README TODO $(docdir)/revdep-rebuild/
 	install -m 0644 revdep-rebuild.1 $(mandir)/

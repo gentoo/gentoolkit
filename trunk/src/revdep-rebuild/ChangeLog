@@ -1,4 +1,9 @@
+2005-06-05 Paul Varner <fuzzyray@gentoo.org>
+
+	* ChangeLog moved to main gentoolkit ChangeLog
+
 2004-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
+
 	* Added Makefile
 	* Copied revdep-rebuild script from app-portage/gentoolkit
 
