@@ -44,6 +44,7 @@ then
 	echo " -nc, --no-color       Turn off colored output"
 	echo "  -i, --ignore         Ignore temporary files from previous runs"
 	echo "  -q, --quiet          Be less verbose (also passed to emerge command)"
+	echo " -vv, --extra-verbose  Be extra verbose"
 	echo
 	echo "Calls emerge, all other options are used for it (e. g. -p, --pretend)."
 	echo
@@ -57,21 +58,20 @@ echo "Configuring search environment for revdep-rebuild"
 PORTAGE_NICENESS=$(portageq envvar PORTAGE_NICENESS)
 [ ! -z "$PORTAGE_NICENESS" ] && renice $PORTAGE_NICENESS $$ > /dev/null
 
-# Set the defaults
-PRELIMINARY_LD_LIBRARY_MASK="$LD_LIBRARY_MASK libodbcinst.so libodbc.so libjava.so libjvm.so"
-PRELIMINARY_SEARCH_DIRS="$SEARCH_DIRS /bin /sbin /usr/bin /usr/sbin /lib* /usr/lib*"
-PRELIMINARY_SEARCH_DIRS_MASK="$SEARCH_DIRS_MASK /opt/OpenOffice"
+# Update the incremental variables using /etc/profile.env, /etc/ld.so.conf,
+# portage, and the environment
 
-# Update the SEARCH_DIRS variable using /etc/profile.env, /etc/ld.so.conf,
-# /etc/make.conf, and the environment
+# Read the incremental variables from environment and portage
+# Until such time as portage supports these variables as incrementals
+# The value will be what is in /etc/make.conf
+PRELIMINARY_SEARCH_DIRS="$SEARCH_DIRS $(portageq envvar SEARCH_DIRS)"
+PRELIMINARY_SEARCH_DIRS_MASK="$SEARCH_DIRS_MASK $(portageq envvar SEARCH_DIRS_MASK)"
+PRELIMINARY_LD_LIBRARY_MASK="$LD_LIBRARY_MASK $(portageq envvar LD_LIBRARY_MASK)"
 
-# Read the SEARCH_DIRS variable from /etc/make.conf
-if [ -e "/etc/make.conf" ]
-then
-	PRELIMINARY_SEARCH_DIRS="$PRELIMINARY_SEARCH_DIRS $(unset SEARCH_DIRS; . /etc/make.conf; echo $SEARCH_DIRS)"
-	PRELIMINARY_SEARCH_DIRS_MASK="$PRELIMINARY_SEARCH_DIRS_MASK $(unset SEARCH_DIRS_MASK; . /etc/make.conf; echo $SEARCH_DIRS_MASK)"
-	PRELIMINARY_LD_LIBRARY_MASK="$PRELIMINARY_LD_LIBRARY_MASK $(unset LD_LIBRARY_MASK; . /etc/make.conf; echo $LD_LIBRARY_MASK)"
-fi
+# Add the defaults
+PRELIMINARY_SEARCH_DIRS="$PRELIMINARY_SEARCH_DIRS /bin /sbin /usr/bin /usr/sbin /lib* /usr/lib*"
+PRELIMINARY_SEARCH_DIRS_MASK="$PRELIMINARY_SEARCH_DIRS_MASK /opt/OpenOffice"
+PRELIMINARY_LD_LIBRARY_MASK="$PRELIMINARY_LD_LIBRARY_MASK libodbcinst.so libodbc.so libjava.so libjvm.so"
 
 # Get the ROOTPATH and PATH from /etc/profile.env
 if [ -e "/etc/profile.env" ]
@@ -133,12 +133,16 @@ PACKAGE_NAMES=false
 SONAME="not found"
 SONAME_GREP=grep
 SEARCH_BROKEN=true
+EXTRA_VERBOSE=false
+KEEP_TEMP=false
 
 EMERGE_OPTIONS=""
+PRELIMINARY_CALLED_OPTIONS=""
 while [ ! -z "$1" ] ; do
 	case "$1" in
 	-X | --package-names )
 		PACKAGE_NAMES=true
+		PRELIMINARY_CALLED_OPTIONS="${PRELIMINARY_CALLED_OPTIONS} --package_names"
 		shift
 		;;
 	-q | --quiet )
@@ -149,11 +153,13 @@ while [ ! -z "$1" ] ; do
 	--library=* | --soname=* | --soname-regexp=* )
 		SONAME="${1#*=}"
 		SEARCH_BROKEN=false
+		PRELIMINARY_CALLED_OPTIONS="${PRELIMINARY_CALLED_OPTIONS} --library=${SONAME}"
 		shift
 		;;
 	--library | --soname | --soname-regexp )
 		SONAME="$2"
 		SEARCH_BROKEN=false
+		PRELIMINARY_CALLED_OPTIONS="${PRELIMINARY_CALLED_OPTIONS} --library=${SONAME}"
 		shift 2
 		;;
 	-nc | --no-color )
@@ -168,6 +174,10 @@ while [ ! -z "$1" ] ; do
 		KEEPTEMP=true
 		shift
 		;;
+	-vv | --extra-verbose )
+		EXTRA_VERBOSE=true
+		shift
+		;;
 	-- )
 		shift
 		;;
@@ -177,6 +187,18 @@ while [ ! -z "$1" ] ; do
 		;;
 	esac
 done
+
+EMERGE_OPTIONS=$(echo $EMERGE_OPTIONS | sed 's/^ //')
+
+if [ -z "$PRELIMINARY_CALLED_OPTIONS" ]
+then
+	CALLED_OPTIONS=""
+else
+	for i in $(echo $PRELIMINARY_CALLED_OPTIONS | tr ' ' '\n'| sort)
+	do
+		CALLED_OPTIONS="$(echo $CALLED_OPTIONS $i)"
+	done
+fi
 
 if [ "$NOCOLOR" = "yes" -o "$NOCOLOR" = "true" ]
 then
@@ -220,8 +242,10 @@ if $SEARCH_BROKEN ; then
 else
 	# first case is needed to test against /path/to/foo.so
 	if [ ${SONAME:0:1} == '/' ] ; then 
+		# Set to "<space>$SONAME<space>"
 		SONAME_SEARCH=" $SONAME "
 	else
+		# Set to "<tab>$SONAME<space>"
 		SONAME_SEARCH="	$SONAME "
 	fi
 	LLIST=${LIST}_$(echo "$SONAME_SEARCH$SONAME" | md5sum | head -c 8)
@@ -245,6 +269,38 @@ do
 	fi
 done
 
+# Don't use our previous files if environment doesn't match
+if [ -f $LIST.0_env ]
+then
+	PREVIOUS_SEARCH_DIRS=$(. ${LIST}.0_env; echo "$SEARCH_DIRS")
+	PREVIOUS_SEARCH_DIRS_MASK=$(. ${LIST}.0_env; echo "$SEARCH_DIRS_MASK")
+	PREVIOUS_LD_LIBRARY_MASK=$(. ${LIST}.0_env; echo "$LD_LIBRARY_MASK")
+	PREVIOUS_OPTIONS=$(. ${LIST}.0_env; echo "$CALLED_OPTIONS")
+	if [ "$PREVIOUS_SEARCH_DIRS" != "$SEARCH_DIRS" ] || \
+	   [ "$PREVIOUS_SEARCH_DIRS_MASK" != "$SEARCH_DIRS_MASK" ] || \
+	   [ "$PREVIOUS_LD_LIBRARY_MASK" != "$LD_LIBRARY_MASK" ] || \
+	   [ "$PREVIOUS_OPTIONS" != "$CALLED_OPTIONS" ] 
+	then
+		echo
+		echo "Environment mismatch from previous run, deleting temporary files..."
+		rm -f ${LIST}*
+	fi
+fi
+
+# Log our environment
+echo "SEARCH_DIRS=\"$SEARCH_DIRS\"" > $LIST.0_env
+echo "SEARCH_DIRS_MASK=\"$SEARCH_DIRS_MASK\"" >> $LIST.0_env
+echo "LD_LIBRARY_MASK=\"$LD_LIBRARY_MASK\"" >> $LIST.0_env
+echo "CALLED_OPTIONS=\"$CALLED_OPTIONS\"" >> $LIST.0_env
+echo "EMERGE_OPTIONS=\"$EMERGE_OPTIONS\"" >> $LIST.0_env
+
+if $EXTRA_VERBOSE
+then
+	echo
+	echo "revdep-rebuild environment:"
+	cat $LIST.0_env
+fi
+
 echo
 echo "Checking reverse dependencies..."
 echo
@@ -259,12 +315,10 @@ then
 	echo " using existing $LIST.1_files."
 else
 	# Be safe and remove any extraneous temporary files
-	rm -f ${LIST}*
+	rm -f ${LIST}.[1-9]_*
 
-	set_trap "$LIST.[01]_*"
-	echo "SEARCH_DIRS=$SEARCH_DIRS" > $LIST.0_env
-	echo "SEARCH_DIRS_MASK=$SEARCH_DIRS_MASK" >> $LIST.0_env
-	echo "LD_LIBRARY_MASK=$LD_LIBRARY_MASK" >> $LIST.0_env
+	set_trap "$LIST.1_*"
+
 	find $SEARCH_DIRS -type f \( -perm +u+x -o -name '*.so' -o -name '*.so.*' \) 2>/dev/null | sort | uniq >$LIST.0_files
 
 	# Remove files that match SEARCH_DIR_MASK
