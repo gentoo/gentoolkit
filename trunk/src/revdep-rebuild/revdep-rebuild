@@ -91,7 +91,9 @@ unset SEARCH_DIRS
 for i in $(echo $PRELIMINARY_SEARCH_DIRS)
 do
 	[ "$i" = "-*" ] && break
-	SEARCH_DIRS="$(echo $SEARCH_DIRS $(readlink -f $i))"
+	# Append a / at the end so that links and directories are treated the same by find
+	# Remove any existing trailing slashes to prevent double-slashes
+	SEARCH_DIRS="$(echo $SEARCH_DIRS ${i/%\//}/)"
 done
 
 unset SEARCH_DIRS_MASK

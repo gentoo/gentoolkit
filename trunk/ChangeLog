@@ -1,3 +1,6 @@
+2005-06-28 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Revert fix for bug 93574 as it can cause packages to be missed. (bug 97171)
+
 2005-06-07 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Delete temporary files if the environment does not match the previous
 	                  environment (bug 95274)
