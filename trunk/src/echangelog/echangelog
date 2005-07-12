@@ -219,7 +219,7 @@ close C;
 
 # When a package move occurs, the versions appear to be new even though they are
 # not.  Trim them from @new_versions in that case.
-@new_versions = grep { $text !~ /^\*$_\s/m } @new_versions;
+@new_versions = grep { $text !~ /^\*\Q$_\E\s/m } @new_versions;
 
 # Check if we have any files left, otherwise re-insert ebuild list
 # (of course, both might be empty anyway)
