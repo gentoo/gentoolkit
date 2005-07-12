@@ -2,7 +2,7 @@ Package: Gentoolkit
 Version: 0.2.0_pre5
 Authors: Karl Trygve Kalleberg <karltk@gentoo.org>
          Brandon Low <lostlogic@gentoo.org>
-		 Marius Mauch <genone@gentoo.org>
+         Marius Mauch <genone@gentoo.org>
          See src/<tool>/AUTHORS for tool-specific authors
 
 MOTIVATION
@@ -16,8 +16,8 @@ CONTENTS
 
 dep-clean           - cleans out unwanted dependencies
 emerge-rsync        - coloured output of changes in last rsync
-emerge-webrsync     - rsync-over-http 
-equery				- replacement for etcat and qpkg
+emerge-webrsync     - rsync-over-http
+equery              - replacement for etcat and qpkg
 epm                 - rpm-like query tool
 etcat               - extracts auxillary information from portage
 etc-update          - keeps your /etc up to date after package installs
