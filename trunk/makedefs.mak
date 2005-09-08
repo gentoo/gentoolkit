@@ -15,3 +15,4 @@ docdir=$(DESTDIR)/usr/share/doc/gentoolkit-$(VERSION)$(RELEASE_TAG)
 bindir=$(DESTDIR)/usr/bin
 sbindir=$(DESTDIR)/usr/sbin
 mandir=$(DESTDIR)/usr/share/man/man1
+sysconfdir=$(DESTDIR)/etc

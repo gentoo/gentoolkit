@@ -1,8 +1,11 @@
-Package: Gentoolkit
-Version: 0.2.0_pre5
-Authors: Karl Trygve Kalleberg <karltk@gentoo.org>
+Package: gentoolkit/gentoolkit-dev
+Version: 0.2.1
+Authors: Aron Griffis <agriffis@gentoo.org>
          Brandon Low <lostlogic@gentoo.org>
+         Ian Leitch <port001@gentoo.org>
+         Karl Trygve Kalleberg <karltk@gentoo.org>
          Marius Mauch <genone@gentoo.org>
+         Paul Varner <fuzzyray@gentoo.org>
          See src/<tool>/AUTHORS for tool-specific authors
 
 MOTIVATION
@@ -14,20 +17,25 @@ into full-fledged tools in their own right.
 
 CONTENTS
 
-dep-clean           - cleans out unwanted dependencies
-emerge-rsync        - coloured output of changes in last rsync
-emerge-webrsync     - rsync-over-http
-equery              - replacement for etcat and qpkg
-epm                 - rpm-like query tool
-etcat               - extracts auxillary information from portage
-etc-update          - keeps your /etc up to date after package installs
-pkg-clean           - cleans packages
-pkg-size            - calculates size of an installed package
-portage-statistics  - shows various statistics about the Portage Tree
-qpkg                - convient package query tool
-revdep-rebuild      - scans/fixes broken shared libs and binaries
-useflag             - tool for handling use flag settings
+gentoolkit
+==========
+eclean         - tool to clean up outdated distfiles and packages
+equery         - replacement for etcat and qpkg
+etcat          - extracts auxillary information from portage (deprecated)
+euse           - tool to manage USE flags
+glsa-check     - tool to manage GLSA's (Gentoo Linux Security Advisory)
+qpkg           - convient package query tool (deprecated)
+revdep-rebuild - scans/fixes broken shared libs and binaries
 
+gentoolkit-dev
+==============
+ebump          - Ebuild revision bumper
+echangelog     - update portage ChangeLogs
+ego            - 
+ekeyword       - modify package KEYWORDS
+epkgmove       - tool for moving and renaming packages in CVS
+eviewcvs       - generate viewcvs URLs
+gensync        - Overlay Sync Tool
 
 IMPROVEMENTS
 
