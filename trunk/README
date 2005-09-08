@@ -1,5 +1,4 @@
 Package: gentoolkit/gentoolkit-dev
-Version: 0.2.1
 Authors: Aron Griffis <agriffis@gentoo.org>
          Brandon Low <lostlogic@gentoo.org>
          Ian Leitch <port001@gentoo.org>
@@ -10,10 +9,12 @@ Authors: Aron Griffis <agriffis@gentoo.org>
 
 MOTIVATION
 
-Gentoolkit is a collection of useful adminstration scripts particular to
-the Gentoo Linux distribution. It contains rough drafts and
-implementations of features that may in time make it into Portage, or
-into full-fledged tools in their own right.
+The gentoolkit and gentoolkit-dev packahes contain a collection of useful
+adminstration scripts particular to the Gentoo Linux distribution. It contains
+rough drafts and implementations of features that may in time make it into
+Portage, or into full-fledged tools in their own right.
+
+The gentoolkit-dev package is intended primarily for Gentoo developers.
 
 CONTENTS
 
