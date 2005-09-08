@@ -1,3 +1,7 @@
+2005-09-08 Paul Varner <fuzzyray@gentoo.org>
+	* eclean: Inital commit of eclean 0.4.1 from Thomas de Grenier de
+	Latour (tgl) <degrenier@easyconnect.fr> (bug 33877)
+
 2005-06-28 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Revert fix for bug 93574 as it can cause packages to be missed. (bug 97171)
 
