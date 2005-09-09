@@ -26,11 +26,7 @@ sys.path.insert(0,'/usr/lib/portage/pym')
 import portage
 from output import *
 
-# Ignominous CVS / non-CVS compatibility hacks:
-if portage.VERSION[:6] == '2.0.51': listdir = portage.listdir
-# else, assume it's a reasonably recent CVS (or future 2.1)
-else: from portage_file import listdir
-
+listdir = portage.listdir
 
 ###############################################################################
 # Misc. shortcuts to some portage stuff:
