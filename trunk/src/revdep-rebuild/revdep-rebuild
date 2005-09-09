@@ -256,27 +256,8 @@ else
 	WORKING_TEXT=""
 fi
 
-# check if it's GNU's stat or BSD's stat...
-if stat 2>&1 | grep coreutils; then
-	STAT="stat -c %Y "
-else
-	STAT="stat -f %m "
-fi
-
-# If our temporary files are older than 1 day, don't use them
-TOO_OLD=$((`date +%s` - 86400))
-for file in ${LIST}*
-do
-	if [ -f $file ]
-	then
-		FILE_AGE="$(${STAT} $file)"
-		if [ $FILE_AGE -lt $TOO_OLD ]
-		then
-			rm -f ${LIST}*
-			break
-		fi
-	fi
-done
+# If any of our temporary files are older than 1 day, remove them all
+[ "$(find "${LIST%/*}/." ! -name . -prune -name "${LIST##*/}*" -type f -mmin +1440)" != "" ] && rm -f ${LIST}*
 
 # Don't use our previous files if environment doesn't match
 if [ -f $LIST.0_env ]
