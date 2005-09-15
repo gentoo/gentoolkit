@@ -1392,7 +1392,7 @@ class CmdFindUSEs(Command):
 					print_info(0, "[" + pp.installedflag(pfxmodes[status]) + "] [" + pp.maskflag(maskmodes[pkgmask]) + "] " + pp.cpv(pkg.get_cpv()) + " (" + pp.slot(slot) + ")")
 					
 	def shortHelp(self):
-		return pp.localoption("<local-opts> ") + pp.pkgquery("pkgspec") + " - list all packages with " + pp.pkgquery("useflag")
+		return pp.localoption("<local-opts> ") + pp.pkgquery("useflag") + " - list all packages with " + pp.pkgquery("useflag")
 	def longHelp(self):
 		return "List all packages with a particular USE flag" + \
 			   "\n" + \
