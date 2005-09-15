@@ -56,6 +56,21 @@ This command checks the files of the specified package against recorded MD5
 sums and timestamps.
 .PP
 .TP
+.B depends <local\-opts> pkgspec
+This command displays all dependencies matching pkgspec.
+.br
+<local\-opts> is either or both of:
+.br
+.B \-a, \-\-all-packages
+search in all available packages (slow)
+.br
+.B \-d, \-\-direct
+search direct dependencies only (default)
+.br
+.B \-D, \-\-indirect
+search indirect dependencies (very slow)
+.PP
+.TP
 .B depgraph <local\-opts> pkgspec
 This command display a dependency tree for pkgspec, by default indented to reflect
 how dependancies relate to each other.
@@ -171,8 +186,6 @@ print full path to ebuild for package pkgspec
 .SH Unimplemented Options
 .PP
 .B changes
-.PP
-.B depends
 .PP
 .B glsa \fR \- use glsa\-check for the time being.
 .PP
