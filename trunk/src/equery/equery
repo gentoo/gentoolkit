@@ -215,7 +215,7 @@ class CmdListFiles(Command):
 
 		(query, opts) = self.parseArgs(args)
 
-		if not Config["piping"]:
+		if not Config["piping"] and Config["verbosityLevel"] >= 3:
 			print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
 			
 		pkgs = gentoolkit.find_installed_packages(query, True)
@@ -224,7 +224,8 @@ class CmdListFiles(Command):
 			if not x.is_installed():
 				continue
 		
-			print_info(1, pp.section("* ") + "Contents of " + pp.cpv(x.get_cpv()) + ":")
+			if not Config["piping"] and Config["verbosityLevel"] >= 3:
+				print_info(1, pp.section("* ") + "Contents of " + pp.cpv(x.get_cpv()) + ":")
 
 			cnt = self.filterContents(x.get_contents(),opts["filter"])
 
@@ -333,7 +334,7 @@ class CmdListBelongs(Command):
 		if cat != "*":
 			filter_fn = lambda x: x.find(cat+"/")==0
 
-		if not Config["piping"]:
+		if not Config["piping"] and Config["verbosityLevel"] >= 3:
 			print_info(3, "[ Searching for file(s) " + pp.regexpquery(string.join(query,",")) + " in " + pp.cpv(cat) + "... ]")
 		
 		matches = portage.db["/"]["vartree"].dbapi.cpv_all()
@@ -439,7 +440,7 @@ class CmdDisplayUSEs(Command):
 
 		(query, opts) = self.parseArgs(args)
 
-		if not Config["piping"]:
+		if not Config["piping"] and Config["verbosityLevel"] >= 3:
 			print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
 		
 		matches = gentoolkit.find_packages(query, True)
@@ -482,7 +483,7 @@ class CmdDisplayUSEs(Command):
 		except IOError:
 				print_warn(5, "Could not load USE flag descriptions from " + path(gentoolkit.settings["PORTDIR"] + "/profiles/use.desc"))
 
-		if not Config["piping"]: 
+		if not Config["piping"] and Config["verbosityLevel"] >= 3: 
 			print_info(3, "[ Colour Code : " + pp.useflagon("set") + " " + pp.useflagoff("unset") + " ]")
 			print_info(3, "[ Legend	: Left column  (U) - USE flags from make.conf			  ]")
 			print_info(3, "[		   : Right column (I) - USE flags packages was installed with ]")
@@ -537,7 +538,7 @@ class CmdDisplayUSEs(Command):
 
 			# pretty print
 			if output:
-				if not Config["piping"]:
+				if not Config["piping"] and Config["verbosityLevel"] >= 3:
 					print_info(0, "[ Found these USE variables for " + pp.cpv(bestver) + " ]")
 					print_info(3, pp.emph(" U I"))
 				maxflag_len = 0
@@ -564,7 +565,7 @@ class CmdDisplayUSEs(Command):
 						else:
 							print_info(0, " : <unknown>")
 			else:
-				if not Config["piping"]:
+				if not Config["piping"] and Config["verbosityLevel"] >= 3:
 					print_info(1, "[ No USE flags found for " + pp.cpv(p.get_cpv()) + "]")
 
 		if Config["verbosityLevel"] >= 2:
@@ -629,7 +630,7 @@ class CmdDisplayDepGraph(Command):
 	def perform(self, args):
 		(query, opts) = self.parseArgs(args)
 
-		if not Config["piping"]:
+		if not Config["piping"] and Config["verbosityLevel"] >= 3:
 			print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
 
 		matches = gentoolkit.find_packages(query, True)
@@ -637,14 +638,15 @@ class CmdDisplayDepGraph(Command):
 		for pkg in matches:
 			if not pkg.is_installed():
 				continue
-			if Config["piping"]:
-				print_info(0, pkg.get_cpv() + ":")
-			else:
+			if not Config["piping"] and Config["verbosityLevel"] >= 3:
 				print_info(3, pp.section("* ") + "dependency graph for " + pp.cpv(pkg.get_cpv()))
+			else:
+				print_info(0, pkg.get_cpv() + ":")
 
 			stats = { "maxdepth": 0, "packages": 0 }
 			self._graph(pkg, opts, stats)
-			print_info(0, "[ " + pp.cpv(pkg.get_cpv()) + " stats: packages (" + pp.number(str(stats["packages"])) + \
+			if not Config["piping"] and Config["verbosityLevel"] >= 3:
+				print_info(0, "[ " + pp.cpv(pkg.get_cpv()) + " stats: packages (" + pp.number(str(stats["packages"])) + \
 				"), max depth (" + pp.number(str(stats["maxdepth"])) + ") ]")
 		
 	def _graph(self, pkg, opts, stats, level=0, pkgtbl=[], suffix=""):
@@ -726,7 +728,7 @@ class CmdDisplaySize(Command):
 	def perform(self, args):
 		(query, opts) = self.parseArgs(args)
 
-		if not Config["piping"]:
+		if not Config["piping"] and Config["verbosityLevel"] >= 3:
 			print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
 
 		matches = gentoolkit.find_packages(query, True)
@@ -741,7 +743,7 @@ class CmdDisplaySize(Command):
 				print_info(0, pkg.get_cpv() + ": total(" + str(files) + "), inaccessible(" + str(uncounted) + \
 					"), size(" + str(size) + ")")
 			else:
-				print_info(0, pp.section("* ") + "size of " + pp.cpv(pkg.get_cpv()) + " ]")
+				print_info(0, pp.section("* ") + "size of " + pp.cpv(pkg.get_cpv()))
 				print_info(0, string.rjust(" Total files : ",25) + pp.number(str(files)))
 	
 				if uncounted:
@@ -820,10 +822,10 @@ class CmdCheckIntegrity(Command):
 		for pkg in matches:
 			if not pkg.is_installed():
 				continue
-			if Config["piping"]:
-				print_info(0, pkg.get_cpv() + ":")
-			else:
+			if not Config["piping"] and Config["verbosityLevel"] >= 3:
 				print_info(1, "[ Checking " + pp.cpv(pkg.get_cpv()) + " ]")
+			else:
+				print_info(0, pkg.get_cpv() + ":")
 				
 			files = pkg.get_contents()
 			checked_files = 0
@@ -1009,7 +1011,7 @@ class CmdListDepends(Command):
   
 		(query, opts) = self.parseArgs(args)
 
-		if not Config["piping"]:
+		if not Config["piping"] and Config["verbosityLevel"] >= 3:
 			print_info(3, "[ Searching for packages depending on " + pp.pkgquery(query) + "... ]")
 
 		isdepend = gentoolkit.split_package_name(query)
@@ -1192,7 +1194,7 @@ class CmdListPackages(Command):
 			sname = "package '" + name + "'"
 			if name == ".*":
 				sname = "all packages"
-			if not Config["piping"]:
+			if not Config["piping"] and Config["verbosityLevel"] >= 3:
 				print_info(1, "[ Searching for " + pp.cpv(sname) + " in " + pp.cpv(scat) + " among: ]")
 
 
@@ -1221,7 +1223,8 @@ class CmdListPackages(Command):
 		return pkgmask
 
 	def _generic_print(self, header, exclude, matches, rx, status):
-		print_info(1, header)
+		if Config["verbosityLevel"] >= 3:
+			print_info(1, header)
 
 		pfxmodes = [ "---", "I--", "-P-", "--O" ]
 		maskmodes = [ "  ", " ~", " -", "M ", "M~", "M-" ]
