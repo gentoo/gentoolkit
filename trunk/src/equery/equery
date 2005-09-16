@@ -27,6 +27,7 @@ sys.path.insert(0, "/usr/lib/gentoolkit/pym")
 import gentoolkit
 import portage
 import portage_checksum
+from portage_util import unique_array
 
 import gentoolkit.pprinter as pp
 from gentoolkit.pprinter import print_info, print_error, print_warn, die
@@ -499,7 +500,10 @@ class CmdDisplayUSEs(Command):
 			iuse = p.get_env_var("IUSE")
 		  
 			if iuse:
-				usevar = iuse.split()
+				# Fix Bug #91623 by making sure the list of USE flags is unique
+				# Added sort to make output prettier
+				usevar = unique_array(iuse.split())
+				usevar.sort()
 			else:
 				usevar = []
 
