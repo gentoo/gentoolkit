@@ -891,7 +891,9 @@ class CmdWhich(Command):
 	"""Display the filename of the ebuild for a given package
 	   that would be used by Portage with the current configuration."""
 	def __init__(self):
-		self.default_opts = {}
+		self.default_opts = {
+			"includeMasked": False
+			}
 
 	def parseArgs(self, args):
 
@@ -910,6 +912,8 @@ class CmdWhich(Command):
 			if x in ["-h","--help"]:
 				need_help = 1
 				break
+			elif x in ["-m", "--include-masked"]:
+				opts["includeMasked"] = True
 			else:
 				query = x
 
@@ -922,7 +926,7 @@ class CmdWhich(Command):
 	def perform(self, args):
 		(query, opts) = self.parseArgs(args)
 
-		matches = gentoolkit.find_packages(query, True)
+		matches = gentoolkit.find_packages(query, opts["includeMasked"])
 		matches = gentoolkit.sort_package_list(matches)
 
 		if matches:
@@ -933,6 +937,7 @@ class CmdWhich(Command):
 	def shortHelp(self):
 		return pp.pkgquery("pkgspec") + " - print full path to ebuild for package " + pp.pkgquery("pkgspec")
 	def longHelp(self):
+		# Not documenting --include-masked at this time, since I'm not sure that it is needed. - FuzzyRay
 		return "Print full path to ebuild for a given package" + \
 			"\n" + \
 			"Syntax:\n" + \
@@ -1201,6 +1206,7 @@ class CmdListPackages(Command):
 		rx = re.compile(cat + "/" + name + "-" + ver + "(-" + rev + ")?")
 
 		matches = package_finder(filter_fn)
+		matches = gentoolkit.sort_package_list(matches)
 
 		if opts["includeInstalled"]:
 			self._print_installed(matches, rx)
