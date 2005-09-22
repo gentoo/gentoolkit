@@ -24,7 +24,9 @@ import portage
 import re
 import string
 import types
+from threading import Lock
 
+settingslock = Lock()
 settings = portage.config(clone=portage.settings)
 porttree = portage.db[portage.root]["porttree"]
 vartree  = portage.db[portage.root]["vartree"]
