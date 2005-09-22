@@ -1517,10 +1517,7 @@ def configure():
 
 	# Guess colour output
 	if (Config["color"] == -1 and \
-		((not sys.stdout.isatty()) or \
-		 (gentoolkit.settings["NOCOLOR"] in ["yes","true"]))) \
-		 or \
-		 Config["color"] == 0:
+		((not sys.stdout.isatty()) or (gentoolkit.settings["NOCOLOR"] in ["yes","true"]))):
 			pp.output.nocolor()
 
 	# Guess piping output
@@ -1557,6 +1554,7 @@ def parseArgs(args):
 			sys.exit(0)
 		elif x in ["-C", "--nocolor"]:
 			Config["color"] = 0
+			pp.output.nocolor()
 		elif x in ["-N", "--no-pipe"]:
 			Config["piping"] = False
 		elif x in ["-q","--quiet"]:
@@ -1575,8 +1573,8 @@ def parseArgs(args):
 	return (command, local_opts)
    
 if __name__ == "__main__":
-	(cmd, local_opts) = parseArgs(sys.argv[1:])
 	configure()
+	(cmd, local_opts) = parseArgs(sys.argv[1:])
 	if cmd:
 		try:
 			cmd.perform(local_opts)
