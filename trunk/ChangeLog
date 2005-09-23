@@ -1,3 +1,13 @@
+2005-09-23 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Sort output from equery list (bug 67152)
+	* equery: Update man page (Bugs 73893, 74944)
+	* equery: equery which returns best-visible ebuild (bug 78687)
+	* equery: equery --quiet is actually quiet (bug 78921)
+	* equery: Fixed typo in equery -h (bug 82352)
+	* gentoolkit: gentoolkit now uses a single portage.config object (bug 90680)
+	* equery: equery uses returns unique, sorted list (bug 91623)
+	* equery: equery always honors nocolor flag and settings (bug 98634)
+
 2005-09-08 Paul Varner <fuzzyray@gentoo.org>
 	* eclean: Inital commit of eclean 0.4.1 from Thomas de Grenier de
 	Latour (tgl) <degrenier@easyconnect.fr> (bug 33877)
