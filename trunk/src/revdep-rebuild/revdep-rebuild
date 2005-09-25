@@ -69,9 +69,19 @@ PRELIMINARY_SEARCH_DIRS_MASK="$SEARCH_DIRS_MASK $(portageq envvar SEARCH_DIRS_MA
 PRELIMINARY_LD_LIBRARY_MASK="$LD_LIBRARY_MASK $(portageq envvar LD_LIBRARY_MASK)"
 
 # Add the defaults
-PRELIMINARY_SEARCH_DIRS="$PRELIMINARY_SEARCH_DIRS /bin /sbin /usr/bin /usr/sbin /lib* /usr/lib*"
-PRELIMINARY_SEARCH_DIRS_MASK="$PRELIMINARY_SEARCH_DIRS_MASK /opt/OpenOffice"
-PRELIMINARY_LD_LIBRARY_MASK="$PRELIMINARY_LD_LIBRARY_MASK libodbcinst.so libodbc.so libjava.so libjvm.so"
+if [ -d /etc/revdep-rebuild ]
+then
+	for file in $(ls /etc/revdep-rebuild)
+	do
+		PRELIMINARY_SEARCH_DIRS="$PRELIMINARY_SEARCH_DIRS $(. /etc/revdep-rebuild/${file}; echo $SEARCH_DIRS)"
+		PRELIMINARY_SEARCH_DIRS_MASK="$PRELIMINARY_SEARCH_DIRS_MASK $(. /etc/revdep-rebuild/${file}; echo $SEARCH_DIRS_MASK)"
+		PRELIMINARY_LD_LIBRARY_MASK="$PRELIMINARY_LD_LIBRARY_MASK $(. /etc/revdep-rebuild/${file}; echo $LD_LIBRARY_MASK)"
+	done
+else
+	PRELIMINARY_SEARCH_DIRS="$PRELIMINARY_SEARCH_DIRS /bin /sbin /usr/bin /usr/sbin /lib* /usr/lib*"
+	PRELIMINARY_SEARCH_DIRS_MASK="$PRELIMINARY_SEARCH_DIRS_MASK /opt/OpenOffice /usr/lib/openoffice"
+	PRELIMINARY_LD_LIBRARY_MASK="$PRELIMINARY_LD_LIBRARY_MASK libodbcinst.so libodbc.so libjava.so libjvm.so"
+fi
 
 # Get the ROOTPATH and PATH from /etc/profile.env
 if [ -e "/etc/profile.env" ]

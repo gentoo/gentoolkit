@@ -1,3 +1,7 @@
+2005-09-25 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Update to read configuration files from
+	/etc/revdep-rebuild
+
 2005-09-23 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Sort output from equery list (bug 67152)
 	* equery: Update man page (Bugs 73893, 74944)

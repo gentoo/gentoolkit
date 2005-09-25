@@ -11,7 +11,7 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/revdep-rebuild
-	cp  Makefile AUTHORS README TODO ChangeLog revdep-rebuild revdep-rebuild.1 find_pkgs.py ../../$(distdir)/src/revdep-rebuild/
+	cp  Makefile AUTHORS README TODO ChangeLog revdep-rebuild revdep-rebuild.1 find_pkgs.py 99revdep-rebuild ../../$(distdir)/src/revdep-rebuild/
 
 install:
 
@@ -21,3 +21,5 @@ install:
 	install -d $(docdir)/revdep-rebuild	
 	install -m 0644 AUTHORS README TODO $(docdir)/revdep-rebuild/
 	install -m 0644 revdep-rebuild.1 $(mandir)/
+	install -d $(sysconfdir)/revdep-rebuild
+	install -m 0644 99revdep-rebuild $(sysconfdir)/revdep-rebuild/
