@@ -10,25 +10,33 @@
 import portage
 from gentoolkit import *
 from gentoolkit.package import *
+from portage_util import unique_array
 
 def find_packages(search_key, masked=False):
 	"""Returns a list of Package objects that matched the search key."""
 	try:
 		if masked:
-			t = portage.portdb.xmatch("match-all", search_key)
+			t = portage.db["/"]["porttree"].dbapi.xmatch("match-all", search_key)
+			t += portage.db["/"]["vartree"].dbapi.match(search_key)
 		else:
-			t = portage.portdb.match(search_key)
+			t = portage.db["/"]["porttree"].dbapi.match(search_key)
+			t += portage.db["/"]["vartree"].dbapi.match(search_key)
 	# catch the "amgigous package" Exception
 	except ValueError, e:
 		if type(e[0]) == types.ListType:
 			t = []
 			for cp in e[0]:
 				if masked:
-					t += portage.portdb.xmatch("match-all", cp)
+					t += portage.db["/"]["porttree"].dbapi.xmatch("match-all", cp)
+					t += portage.db["/"]["vartree"].dbapi.match(cp)
 				else:
-					t += portage.portdb.match(cp)
+					t += portage.db["/"]["porttree"].dbapi.match(cp)
+					t += portage.db["/"]["vartree"].dbapi.match(cp)
 		else:
 			raise ValueError(e)
+	# Make the list of packages unique
+	t = unique_array(t)
+	t.sort()
 	return [Package(x) for x in t]
 
 def find_installed_packages(search_key, masked=False):
@@ -108,12 +116,16 @@ def find_all_uninstalled_packages(prefilter=None):
 def find_all_packages(prefilter=None):
 	"""Returns a list of all known packages, installed or not, after applying
 	the prefilter function"""
-	t = portage.portdb.cp_all()
+	t = porttree.dbapi.cp_all()
+	t += vartree.dbapi.cp_all()
 	if prefilter:
 		t = filter(prefilter,t)
+	t = unique_array(t)
 	t2 = []
 	for x in t:
-		t2 += portage.portdb.cp_list(x)
+		t2 += porttree.dbapi.cp_list(x)
+		t2 += vartree.dbapi.cp_list(x)
+		t2 = unique_array(t2)
 	return [Package(x) for x in t2]
 
 def split_package_name(name):
