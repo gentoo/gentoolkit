@@ -5,7 +5,7 @@
 #
 # LD_LIBRARY_MASK - Mask of specially evaluated libraries
 #
-# SEARCH_DIRS - List of directories to search for executibles and libraries
+# SEARCH_DIRS - List of directories to search for executables and libraries
 #	Use this for directories that are not included in PATH or ld.so.conf.
 #	An application should normally not have to set this variable
 #

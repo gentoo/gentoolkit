@@ -20,7 +20,7 @@
 # Customizable variables:
 #
 # LD_LIBRARY_MASK - Mask of specially evaluated libraries
-# SEARCH_DIRS - List of directories to search for executibles and libraries
+# SEARCH_DIRS - List of directories to search for executables and libraries
 # SEARCH_DIRS_MASK - List of directories to not search
 #
 # These variables can be prepended to either by setting the variable in 
