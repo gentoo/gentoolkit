@@ -1,4 +1,4 @@
-.TH "equery" "1" "Jan 2004" "gentoolkit" ""
+.TH "equery" "1" "Oct 2005" "gentoolkit" ""
 .SH "NAME"
 equery \- Gentoo: Package Query Tool
 .SH "SYNOPSIS"
@@ -31,6 +31,9 @@ displays a help summary
 .B \-V, \-\-version
 displays the equery version
 .PP 
+.B \-N, \-\-no\-pipe
+turns off pipe detection
+.PP 
 
 Only one command will actually be run, at most.  The possible commands are: 
 .TP 
@@ -38,7 +41,7 @@ Only one command will actually be run, at most.  The possible commands are:
 This command lists all packages owning the specified file.
 .br 
 Note: Normally, only one package will own a file. If multiple packages own the
-same file, it usually consitutes a problem, and should be reported.
+same file, it usually consitutes a problem, and should be reported (http://bugs.gentoo.org).
 .br 
 .IP 
 <local\-opts> is either or both of:
@@ -174,7 +177,7 @@ of installed packages, packages which are not installed, the portage tree, and
 the portage overlay tree.
 
 <local\-opts> must not include only \-I;
-if \-I is used, \-p and/or \-o must be alsobe present.  By default, only installed
+if \-I is used, \-p and/or \-o must be also be present.  By default, only installed
 packages are searched.  \-o searches only the overlay tree [and possibly
 installed packages],
 .I not
@@ -191,6 +194,9 @@ also search in portage tree (/usr/portage)
 .br 
 .B \-o, \-\-overlay\-tree
 also search in overlay tree (/usr/local/portage)
+.br 
+.B \-f, \-\-full\-regex
+query is a regular expression
 .PP 
 .TP 
 .B size <local\-opts> pkgspec

@@ -58,7 +58,10 @@ def fileAsStr(name, fdesc, showType=0, showMD5=0, showTimestamp=0):
 		type = "symlink"
 		stamp = timestampAsStr(int(fdesc[1].replace(")","")))
 		tgt = fdesc[2].split()[0]
-		fname = pp.path_symlink(name + " -> " + tgt)
+		if Config["piping"]:
+			fname = name
+		else:
+			fname = pp.path_symlink(name + " -> " + tgt)
 	elif fdesc[0] == "fif":
 		type = "fifo"
 		fname = name
@@ -220,7 +223,6 @@ class CmdListFiles(Command):
 			
 		pkgs = gentoolkit.find_installed_packages(query, True)
 		for x in pkgs:
-			print x.get_cpv()
 			if not x.is_installed():
 				continue
 		
@@ -248,9 +250,9 @@ class CmdListFiles(Command):
 			   "Note: category and version parts are optional. \n" + \
 			   "\n" + \
 			   pp.localoption("<local-opts>") + " is either of: \n" + \
-			   "  " + pp.localoption("--timestamp") + "	  - append timestamp\n" + \
-			   "  " + pp.localoption("--md5sum") + "		 - append md5sum\n" + \
-			   "  " + pp.localoption("--type") + "		   - prepend file type\n" + \
+			   "  " + pp.localoption("--timestamp") + "      - append timestamp\n" + \
+			   "  " + pp.localoption("--md5sum") + "         - append md5sum\n" + \
+			   "  " + pp.localoption("--type") + "           - prepend file type\n" + \
 			   "  " + pp.localoption("--filter=<rules>") + " - filter output\n" + \
 			   "  " + pp.localoption("<rules>") + " is a comma separated list of elements you want to see:\n" + \
 			   "  " + "  " + pp.localoption("dir") + \
@@ -308,7 +310,7 @@ class CmdListBelongs(Command):
 			else:
 				query.append(x)
 
-		if need_help or query == "":
+		if need_help or query == []:
 			print_info(0, self.longHelp())
 			sys.exit(-1)
 			
@@ -322,9 +324,9 @@ class CmdListBelongs(Command):
 			if opts["fullRegex"]: 
 				rx = re.compile(q)
 			elif len(q) and q[0] == "/":
-				rx = re.compile("^" + q + "$")
+				rx = re.compile("^" + re.escape(q) + "$")
 			else:
-				rx = re.compile("/" + q + "$")
+				rx = re.compile("/" + re.escape(q) + "$")
 		except:
 			die(2, "The query '" + pp.regexpquery(q) + "' does not appear to be a valid regular expression")
 
@@ -399,7 +401,7 @@ class CmdListBelongs(Command):
 					"  " + pp.localoption("-c, --category cat") + " - only search in category " + \
 						pp.pkgquery("cat") + "\n" + \
 					"  " + pp.localoption("-f, --full-regex") + "   - supplied query is a regex\n" + \
-					"  " + pp.localoption("-e, --earlyout") + "	    - stop when first match is found\n" + \
+					"  " + pp.localoption("-e, --earlyout") + "     - stop when first match is found\n" + \
 					"  " + pp.localoption("-n, --name-only") + "    - don't print the version."
 
 class CmdDisplayUSEs(Command):
@@ -443,7 +445,10 @@ class CmdDisplayUSEs(Command):
 		if not Config["piping"] and Config["verbosityLevel"] >= 3:
 			print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
 		
-		matches = gentoolkit.find_packages(query, True)
+		if opts["installedOnly"]:
+			matches = gentoolkit.find_installed_packages(query, True)
+		else:
+			matches = gentoolkit.find_packages(query, True)
 
 		if not matches:
 			die(3, "No matching packages found for \"" + pp.pkgquery(query) + "\"")
@@ -474,7 +479,7 @@ class CmdDisplayUSEs(Command):
 					continue
 				fields = line.split(" - ")
 				if len(fields) == 2:
-					catpkguse = re.search("([a-z]+-[a-z]+/.*):(.*)", fields[0])
+					catpkguse = re.search("(.*):(.*)", fields[0])
 					if catpkguse:
 						if not uselocaldesc.has_key(catpkguse.group(1).strip()):
 							uselocaldesc[catpkguse.group(1).strip()] = {catpkguse.group(2).strip() : fields[1].strip()}
@@ -529,7 +534,7 @@ class CmdDisplayUSEs(Command):
 					except KeyError:
 						desc = ""
 
-				if u in p.get_settings("USE"):
+				if u in p.get_settings("USE").split():
 					inuse = 1
 				if u in used:
 					inused = 1
@@ -584,8 +589,8 @@ class CmdDisplayUSEs(Command):
 			   "Syntax:\n" + \
 			   "  " + pp.command("uses") + pp.localoption(" <local-opts> ") + pp.pkgquery("pkgspec") + \
 			   "\n" + \
-			   pp.localoption("<local-opts>") + " is either of: \n" + \
-			   "  " + pp.localoption("-a, --all") + "	 - include non-installed packages\n"
+			   pp.localoption("<local-opts>") + " is: \n" + \
+			   "  " + pp.localoption("-a, --all") + " - include non-installed packages\n"
 
 
 class CmdDisplayDepGraph(Command):
@@ -673,8 +678,8 @@ class CmdDisplayDepGraph(Command):
 				continue
 			if cpv.find("virtual") == 0:
 				suffix += " (" + pp.cpv(cpv) + ")"
-				if len(x[1]) and opts["displayUSEFlags"]:
-					suffix += " [ " + pp.useflagon(string.join(x[1])) + " ]"
+			if len(x[1]) and opts["displayUSEFlags"]:
+				suffix += " [ " + pp.useflagon(string.join(x[1])) + " ]"
 			pkgtbl = self._graph(pkg, opts, stats, level+1, pkgtbl, suffix)
 		return pkgtbl
 
@@ -688,7 +693,7 @@ class CmdDisplayDepGraph(Command):
 			   "\n" + \
 			   pp.localoption("<local-opts>") + " is either of: \n" + \
 			   "  " + pp.localoption("-U, --no-useflags") + " - do not show USE flags\n" + \
-			   "  " + pp.localoption("-l, --linear") + "	  - do not use fancy formatting"
+			   "  " + pp.localoption("-l, --linear") + "      - do not use fancy formatting"
 
 class CmdDisplaySize(Command):
 	"""Display disk size consumed by a package"""
@@ -764,7 +769,7 @@ class CmdDisplaySize(Command):
 			   "Syntax:\n" + \
 			   "  " + pp.command("size") + pp.localoption(" <local-opts> ") + pp.pkgquery("pkgspec") + \
 			   "\n" + \
-			   pp.localoption("<local-opts>") + " is either of: \n" + \
+			   pp.localoption("<local-opts>") + " is: \n" + \
 			   "  " + pp.localoption("-b, --bytes") + " - report size in bytes\n"
 
 class CmdDisplayChanges(Command):
@@ -1104,9 +1109,9 @@ class CmdListDepends(Command):
 				"  " + pp.command("depends") + pp.localoption(" <local-opts> ") + pp.pkgquery("pkgspec") + \
 				"\n" + \
 				pp.localoption("<local-opts>") + " is either of: \n" + \
-				"  " + pp.localoption("-a, --all-packages") + "	   - search in all available packages (slow)\n" + \
-				"  " + pp.localoption("-d, --direct") + "			 - search direct dependencies only (default)\n" + \
-				"  " + pp.localoption("-D, --indirect") + "		   - search indirect dependencies (VERY slow)\n"
+				"  " + pp.localoption("-a, --all-packages") + " - search in all available packages (slow)\n" + \
+				"  " + pp.localoption("-d, --direct") + "       - search direct dependencies only (default)\n" + \
+				"  " + pp.localoption("-D, --indirect") + "     - search indirect dependencies (VERY slow)\n"
 
 
 class CmdListPackages(Command):
@@ -1148,6 +1153,8 @@ class CmdListPackages(Command):
 				opts["includeOverlayTree"] = 1
 			elif x in ["-m", "--exclude-masked"]:
 				opts["includeMasked"] = 0
+			elif x in ["-f", "--full-regex"]:
+				opts["regex"] = 1
 			else:
 				query = x
 
@@ -1160,19 +1167,15 @@ class CmdListPackages(Command):
 	def perform(self, args):
 		(query, opts) = self.parseArgs(args)
 
-		rev = ".*"
-		name = ".*"
-		ver = ".*"
-		cat = ".*"
+		rev = ""
+		name = ""
+		ver = ""
+		cat = ""
 
 		if query != "":
 			(cat, name, ver, rev) = gentoolkit.split_package_name(query)
+			if rev == "r0": rev = ""
 
-			if rev == "r0": rev = ".*"
-			if name == "": name = ".*"
-			if ver == "": ver = "[^-]*"
-			if cat == "": cat = ".*"
-			
 		package_finder = None
 
 		if opts["includeInstalled"] and (opts["includePortTree"] or opts["includeOverlayTree"]):
@@ -1187,26 +1190,40 @@ class CmdListPackages(Command):
 
 		filter_fn = None
 
-		if query != "":
-			filter_fn = lambda x: re.match(cat+"/"+name, x)
-		else:
-			filter_fn = lambda x: True
-			
 		if Config["verbosityLevel"] >= 3:
 			scat = "'" + cat + "'"
-			if cat == ".*":
+			if not cat:
 				scat = "all categories"
 			sname = "package '" + name + "'"
-			if name == ".*":
+			if not name:
 				sname = "all packages"
 			if not Config["piping"] and Config["verbosityLevel"] >= 3:
 				print_info(1, "[ Searching for " + pp.cpv(sname) + " in " + pp.cpv(scat) + " among: ]")
 
+		# replace empty strings with .* and escape regular expression syntax
+		if query != "":
+			if not opts["regex"]:
+				filter_fn = lambda x: (cat+"/"+name in x)
+				matches = package_finder(filter_fn)
+				cat, name, ver, rev = [re.sub('^$', ".*", re.escape(x)) for x in cat, name, ver, rev]
+			else:
+				cat, name, ver, rev = [re.sub('^$', ".*", x) for x in cat, name, ver, rev]
+				filter_fn = lambda x: re.match(cat+"/"+name, x)
+				matches = package_finder(filter_fn)
+		else:
+			cat, name, ver, rev = [re.sub('^$', ".*", x) for x in cat, name, ver, rev]
+			filter_fn = lambda x: True
+			matches = package_finder(filter_fn)
 
-		rx = re.compile(cat + "/" + name + "-" + ver + "(-" + rev + ")?")
-
-		matches = package_finder(filter_fn)
 		matches = gentoolkit.sort_package_list(matches)
+
+		# If no version supplied, fix regular expression
+		if ver == ".*": ver = "[0-9]+[^-]*"
+
+		if rev != ".*":	# revision supplied
+			rx = re.compile(cat + "/" + name + "-" + ver + "-" + rev)
+		else:
+			rx = re.compile(cat + "/" + name + "-" + ver)
 
 		if opts["includeInstalled"]:
 			self._print_installed(matches, rx)
@@ -1276,10 +1293,11 @@ class CmdListPackages(Command):
 			   "  " + pp.command("list") + pp.localoption(" <local-opts> ") + pp.pkgquery("pkgspec") + \
 			   "\n" + \
 			   pp.localoption("<local-opts>") + " is either of: \n" + \
-			   "  " + pp.localoption("-i, --installed") + "		 - search installed packages (default)\n" + \
+			   "  " + pp.localoption("-i, --installed") + "         - search installed packages (default)\n" + \
 			   "  " + pp.localoption("-I, --exclude-installed") + " - do not search installed packages\n" + \
-			   "  " + pp.localoption("-p, --portage-tree") + "	  - also search in portage tree (" + gentoolkit.settings["PORTDIR"] + ")\n" + \
-			   "  " + pp.localoption("-o, --overlay-tree") + "	  - also search in overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")\n"
+			   "  " + pp.localoption("-p, --portage-tree") + "      - also search in portage tree (" + gentoolkit.settings["PORTDIR"] + ")\n" + \
+			   "  " + pp.localoption("-o, --overlay-tree") + "      - also search in overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")\n" + \
+			   "  " + pp.localoption("-f, --full-regex") + "        - query is a regular expression\n"
 
 class CmdFindUSEs(Command):
 	"""Find all packages with a particular USE flag."""
@@ -1500,8 +1518,9 @@ def printUsage():
 	print_info(0, "where " + pp.globaloption("<global-opts>") + " is one of")
 	print_info(0, pp.globaloption(" -q, --quiet") + "   - minimal output")
 	print_info(0, pp.globaloption(" -C, --nocolor") + " - turn off colours")
-	print_info(0, pp.globaloption(" -h, --help") + "	- this help screen")
+	print_info(0, pp.globaloption(" -h, --help") + "    - this help screen")
 	print_info(0, pp.globaloption(" -V, --version") + " - display version info")
+	print_info(0, pp.globaloption(" -N, --no-pipe") + " - turn off pipe detection")
 	
 	print_info(0, "where " + pp.command("command") + "(" + pp.command("short") + ") is one of")
 	keys = Known_commands.keys()
