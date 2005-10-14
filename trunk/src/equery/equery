@@ -1123,7 +1123,8 @@ class CmdListPackages(Command):
 			"includePortTree": 0,
 			"includeOverlayTree": 0,
 			"includeMasked": 1,
-			"regex": 0
+			"regex": 0,
+			"duplicates": 0
 			}
 
 	def parseArgs(self, args):
@@ -1155,8 +1156,16 @@ class CmdListPackages(Command):
 				opts["includeMasked"] = 0
 			elif x in ["-f", "--full-regex"]:
 				opts["regex"] = 1
+			elif x in ["-d", "--duplicates"]:
+				opts["duplicates"] = 1
 			else:
 				query = x
+
+		# Only search installed packages when listing duplicated packages
+		if opts["duplicates"]:
+			opts["includeInstalled"] = 1
+			opts["includePortTree"] = 0
+			opts["includeOverlayTree"] = 0
 
 		if need_help:
 			print_info(0, self.longHelp())
@@ -1214,6 +1223,23 @@ class CmdListPackages(Command):
 			cat, name, ver, rev = [re.sub('^$', ".*", x) for x in cat, name, ver, rev]
 			filter_fn = lambda x: True
 			matches = package_finder(filter_fn)
+
+		# Find duplicate packages
+		if opts["duplicates"]:
+			dups = {}
+			newmatches = []
+			for pkg in matches:
+				pkgname = pkg.get_name()
+				if dups.has_key(pkgname):
+					dups[pkgname].append(pkg)
+				else:
+					dups[pkgname] = [pkg]
+
+			for pkgname in dups.keys():
+				if len(dups[pkgname]) > 1:
+					newmatches += dups[pkgname]
+
+			matches = newmatches
 
 		matches = gentoolkit.sort_package_list(matches)
 
@@ -1297,7 +1323,8 @@ class CmdListPackages(Command):
 			   "  " + pp.localoption("-I, --exclude-installed") + " - do not search installed packages\n" + \
 			   "  " + pp.localoption("-p, --portage-tree") + "      - also search in portage tree (" + gentoolkit.settings["PORTDIR"] + ")\n" + \
 			   "  " + pp.localoption("-o, --overlay-tree") + "      - also search in overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")\n" + \
-			   "  " + pp.localoption("-f, --full-regex") + "        - query is a regular expression\n"
+			   "  " + pp.localoption("-f, --full-regex") + "        - query is a regular expression\n" + \
+			   "  " + pp.localoption("-d, --duplicates") + "        - list only installed duplicate packages\n"
 
 class CmdFindUSEs(Command):
 	"""Find all packages with a particular USE flag."""
