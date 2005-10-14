@@ -1229,15 +1229,15 @@ class CmdListPackages(Command):
 			dups = {}
 			newmatches = []
 			for pkg in matches:
-				pkgname = pkg.get_name()
-				if dups.has_key(pkgname):
-					dups[pkgname].append(pkg)
+				mykey = pkg.get_category() + "/" + pkg.get_name() 
+				if dups.has_key(mykey):
+					dups[mykey].append(pkg)
 				else:
-					dups[pkgname] = [pkg]
+					dups[mykey] = [pkg]
 
-			for pkgname in dups.keys():
-				if len(dups[pkgname]) > 1:
-					newmatches += dups[pkgname]
+			for mykey in dups.keys():
+				if len(dups[mykey]) > 1:
+					newmatches += dups[mykey]
 
 			matches = newmatches
 
