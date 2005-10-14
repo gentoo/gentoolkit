@@ -163,9 +163,15 @@ class Package:
 		"""Compares this package's version to another's CPV; returns -1, 0, 1"""
 		v1 = self._scpv
 		v2 = portage.catpkgsplit(other.get_cpv())
-		if v1[0] != v2[0] or v1[1] != v2[1]:
-			return 0
-		return portage.pkgcmp(v1[1:],v2[1:])
+		# if category is different
+		if v1[0] != v2[0]:
+			return cmp(v1[0],v2[0])
+		# if name is different
+		elif v1[1] != v2[1]:
+			return cmp(v1[1],v2[1])
+		# Compaare versions
+		else:
+			return portage.pkgcmp(v1[1:],v2[1:])
 
 	def size(self):
 		"""Estimates the installed size of the contents of this package, if possible.
