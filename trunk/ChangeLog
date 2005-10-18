@@ -1,3 +1,11 @@
+2005-10-18 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Make equery look at both DEPEND and RDEPEND for dependencies
+	* gentoolkit: Fix _parse_deps to understand || syntax (Bug 101377)
+
+2005-10-14 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Add qpkg --dups functionality to equery list command (bug
+	109156)
+
 2005-10-13 Paul Varner <fuzzyray@gentoo.org>
 	* equery: equery depgraph shows USE flags (Bug 74554)
 	* equery: equery should properly parse use.local.desc (Bug 74569)

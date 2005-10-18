@@ -668,7 +668,8 @@ class CmdDisplayDepGraph(Command):
 		
 		pkgtbl.append(cpv)
 		
-		for x in pkg.get_runtime_deps():
+		pkgdeps = pkg.get_runtime_deps() + pkg.get_compiletime_deps()
+		for x in pkgdeps:
 			suffix = ""
 			cpv = x[2]
 			pkg = gentoolkit.find_best_match(x[0] + cpv)
@@ -1038,7 +1039,7 @@ class CmdListDepends(Command):
 				print_info(1, pp.section("* ") + "Dependencies for " + pp.cpv(pkg.get_cpv()) + ":")
 
 				try:
-					deps = pkg.get_runtime_deps()
+					deps = pkg.get_runtime_deps() + pkg.get_compiletime_deps()
 				except KeyError, e:
 					# If the ebuild is not found... 
 					continue
@@ -1054,7 +1055,7 @@ class CmdListDepends(Command):
  
 		for pkg in packages:
 			try:
-				deps = pkg.get_runtime_deps()
+				deps = pkg.get_runtime_deps() + pkg.get_compiletime_deps()
 			except KeyError, e:
 				# If the ebuild is not found... 
 				continue

@@ -92,6 +92,11 @@ class Package:
 				r += sr
 				i += l + 3
 				continue
+			if tok == "||":
+				sr,l = self._parse_deps(deps[i+2:],curuse,level=level+1)
+				r += sr
+				i += l + 3
+				continue
 			# pick out comparator, if any
 			cmp = ""
 			for c in comparators:
