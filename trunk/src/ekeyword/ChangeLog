@@ -1,3 +1,7 @@
+27 Oct 2005 Aron Griffis <agriffis@gentoo.org>
+	* Fix handling of comments
+	* Add support for bare ~ as a synonym for ~all
+
 23 Mar 2005 Aron Griffis <agriffis@gentoo.org>
 	* Only modify non-masked keywords with "all"
 
