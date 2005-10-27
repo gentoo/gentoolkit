@@ -21,8 +21,9 @@ unless (@ARGV > 0) {
     die "syntax: ekeyword { arch | ~[arch] | -[arch] } ebuild...\n" 
 }
 for my $a (@ARGV) {
-    next if $a =~ /$kw_re/o;		# keyword
-    next if $a =~ /^\S+\.ebuild$/;	# ebuild
+    $a = '~all' if $a eq '~' or $a eq $ENV{'HOME'};	# for vapier
+    next if $a =~ /$kw_re/o;				# keyword
+    next if $a =~ /^\S+\.ebuild$/;			# ebuild
     die "I don't understand $a\n";
 }
 
@@ -42,7 +43,7 @@ for my $f (@ARGV) {
 	/^KEYWORDS/ or print, next;
 
 	# extract the quoted section from KEYWORDS
-	(my $quoted = $_) =~ s/^.*["'](.*?)["'].*/$1/s;
+	(my $quoted = $_) =~ s/^.*?["'](.*?)["'].*/$1/s;
 
 	# replace -* with -STAR for our convenience below
 	$quoted =~ s/-\*/-STAR/;
