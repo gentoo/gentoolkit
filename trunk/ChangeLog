@@ -1,3 +1,6 @@
+2005-11-02 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix to work with findutils-4.2.25 (Bug 111203)
+
 2005-10-18 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Make equery look at both DEPEND and RDEPEND for dependencies
 	* gentoolkit: Fix _parse_deps to understand || syntax (Bug 101377)
