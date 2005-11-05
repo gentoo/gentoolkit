@@ -319,14 +319,14 @@ class CmdListBelongs(Command):
 	def perform(self, args):
 		(query, opts) = self.parseArgs(args)
 
+		if opts["fullRegex"]:
+			q = query
+		else:
+			q = map(lambda x: ((len(x) and x[0] == "/") and "^" or "/")
+			                   + re.escape(x) + "$", query)
 		try:
-			q = string.join(query, "|") 
-			if opts["fullRegex"]: 
-				rx = re.compile(q)
-			elif len(q) and q[0] == "/":
-				rx = re.compile("^" + re.escape(q) + "$")
-			else:
-				rx = re.compile("/" + re.escape(q) + "$")
+			q = string.join(q, "|")
+			rx = re.compile(q)
 		except:
 			die(2, "The query '" + pp.regexpquery(q) + "' does not appear to be a valid regular expression")
 

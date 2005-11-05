@@ -1,3 +1,7 @@
+2005-11-04 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix equery belongs to correctly work when passed an argument
+	list of multiple files (Bug 111501)
+
 2005-11-02 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix to work with findutils-4.2.25 (Bug 111203)
 
