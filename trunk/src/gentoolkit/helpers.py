@@ -9,7 +9,7 @@
 
 import portage
 from gentoolkit import *
-from gentoolkit.package import *
+from package import *
 from portage_util import unique_array
 
 def find_packages(search_key, masked=False):
