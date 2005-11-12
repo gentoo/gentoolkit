@@ -187,7 +187,7 @@ class Package:
 		files = 0
 		for x in contents:
 			try:
-				size += os.stat(x).st_size
+				size += os.lstat(x).st_size
 				files += 1
 			except OSError:
 				uncounted += 1

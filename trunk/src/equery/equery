@@ -131,6 +131,8 @@ class CmdListFiles(Command):
 				opts["showType"] = 1
 			elif x[:9] == "--filter=":
 				opts["filter"] = string.split(x[9:],',')
+			elif x[0] == "/":
+				die(2, "The query '" + pp.pkgquery(x) + "' does not appear to be a valid package specification")
 			else:
 				query = x
 
@@ -649,7 +651,7 @@ class CmdDisplayDepGraph(Command):
 				print_info(0, pkg.get_cpv() + ":")
 
 			stats = { "maxdepth": 0, "packages": 0 }
-			self._graph(pkg, opts, stats)
+			self._graph(pkg, opts, stats, 0, [], "")
 			if not Config["piping"] and Config["verbosityLevel"] >= 3:
 				print_info(0, "[ " + pp.cpv(pkg.get_cpv()) + " stats: packages (" + pp.number(str(stats["packages"])) + \
 				"), max depth (" + pp.number(str(stats["maxdepth"])) + ") ]")
@@ -1066,36 +1068,36 @@ class CmdListDepends(Command):
 				ver_match=0
 				name_match=0
 				if not isdepend[0] or \
-					string.find(cpvs[0], isdepend[0]) == 0:
+					cpvs[0] == isdepend[0]:
 					cat_match=1
 				if not isdepend[2] or \
-					( string.find(cpvs[2],isdepend[2]) == 0 and \
+					( cpvs[2] == isdepend[2] and \
 					  (isdepend[3] or \
 					   isdepend[3] == "r0" or \
-					   string. find(cpvs[3],isdepend[3]) == 0)):
+					   cpvs[3] == isdepend[3])):
 					  ver_match=1
-				if string.find(cpvs[1], isdepend[1]) == 0:
-					 name_match=1
+				if cpvs[1] == isdepend[1]:
+					name_match=1
 				if cat_match and ver_match and name_match:
-					 if not isdep:
-						 if x[1]:
-							 print pkg.get_cpv(),
-							 if Config["verbosityLevel"] >= 4:
+					if not isdep:
+						if x[1]:
+							print pkg.get_cpv(),
+							if Config["verbosityLevel"] >= 4:
 								   print " (" +string.join(x[1],"&")+ " ? " + x[0]+x[2] + ")"
-							 else:
-								 print
-						 else:
-							 print pkg.get_cpv(),
-							 if Config["verbosityLevel"] >= 4:
-								 print " (" + x[0]+x[2] + ")"
-							 else:
-								 print
-						 isdep = 1
-					 elif Config["verbosityLevel"] >= 4:
-						 if x[1]:
-							 print " "*len(pkg.get_cpv()) + " (" +string.join(x[1],"&")+ " ? " + x[0]+x[2] + ")"
-						 else:
-							 print " "*len(pkg.get_cpv()) + " (" + x[0]+x[2] + ")"	
+							else:
+								print
+						else:
+							print pkg.get_cpv(),
+							if Config["verbosityLevel"] >= 4:
+								print " (" + x[0]+x[2] + ")"
+							else:
+								print
+						isdep = 1
+					elif Config["verbosityLevel"] >= 4:
+						if x[1]:
+							print " "*len(pkg.get_cpv()) + " (" +string.join(x[1],"&")+ " ? " + x[0]+x[2] + ")"
+						else:
+							print " "*len(pkg.get_cpv()) + " (" + x[0]+x[2] + ")"	
 			if isdep and not opts["onlyDirect"] :
 				 subdeps(pkg.get_cpv(), " ")
  
@@ -1218,8 +1220,11 @@ class CmdListPackages(Command):
 				cat, name, ver, rev = [re.sub('^$', ".*", re.escape(x)) for x in cat, name, ver, rev]
 			else:
 				cat, name, ver, rev = [re.sub('^$', ".*", x) for x in cat, name, ver, rev]
-				filter_fn = lambda x: re.match(cat+"/"+name, x)
-				matches = package_finder(filter_fn)
+				try:
+					filter_fn = lambda x: re.match(cat+"/"+name, x)
+					matches = package_finder(filter_fn)
+				except:
+					die(2, "The query '" + pp.regexpquery(query) + "' does not appear to be a valid regular expression")
 		else:
 			cat, name, ver, rev = [re.sub('^$', ".*", x) for x in cat, name, ver, rev]
 			filter_fn = lambda x: True
