@@ -1,3 +1,12 @@
+2005-11-11 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Added sanity check to equery files (Bug 75983)
+	* equery: Fix string matching for equery depends (Bug 85653)
+	* gentoolkit: Fix package.size() to report correct size for symbolic
+	links (Bug 90384)
+	* equery: Fix equery depgraph to show all dependencies (Bug 99191)
+	* equery: Fix traceback with invalid regular expression for equery
+	list (Bug 109392)
+
 2005-11-04 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Fix equery belongs to correctly work when passed an argument
 	list of multiple files (Bug 111501)
@@ -34,7 +43,8 @@
 	* equery: equery which returns best-visible ebuild (bug 78687)
 	* equery: equery --quiet is actually quiet (bug 78921)
 	* equery: Fixed typo in equery -h (bug 82352)
-	* gentoolkit: gentoolkit now uses a single portage.config object (bug 90680)
+	* gentoolkit: gentoolkit now uses a single portage.config object (bug
+	90680)
 	* equery: equery uses returns unique, sorted list (bug 91623)
 	* equery: equery always honors nocolor flag and settings (bug 98634)
 
@@ -43,7 +53,8 @@
 	Latour (tgl) <degrenier@easyconnect.fr> (bug 33877)
 
 2005-06-28 Paul Varner <fuzzyray@gentoo.org>
-	* revdep-rebuild: Revert fix for bug 93574 as it can cause packages to be missed. (bug 97171)
+	* revdep-rebuild: Revert fix for bug 93574 as it can cause packages to
+	be missed. (bug 97171)
 
 2005-06-07 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Delete temporary files if the environment does not match the previous
@@ -51,40 +62,50 @@
 
 2005-06-05 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Imported revdep-rebuild release from bug 62644
-	* revdep-rebuild: Major changes to the functionality when using --package-names/-X
-	                  The script should now update slotted packages correctly. (bug 22161)
-	* revdep-rebuild: Customizable searching controlled through environment variables.
-	                  This removes the need for end users to directly modify the script.
-	                  (bugs 32276, 38011, 59803)
-	* revdep-rebuild: The directories to search are no longer hard coded into the script.
-	                  revdep-rebuild now determines the directories to search based upon
-	                  /etc/profile.env and /etc/ld.so.conf. (bugs 32276, 38011, 89781)
-	* revdep-rebuild: --ignore option to ignore temporary files left from previous runs.
-	                  Automatically ignore temporary files older than 24 hours. (bug 34052)
-	* revdep-rebuild: Always return an exit status based upon success or failure. (bug 38472)
-	* revdep-rebuild: Fixed to only emerge packages with direct missing dependencies. (bug 38487)
+	* revdep-rebuild: Major changes to the functionality when using 
+	--package-names/-X The script should now update slotted packages 
+	correctly. (bug 22161)
+	* revdep-rebuild: Customizable searching controlled through environment
+	variables.  This removes the need for end users to directly modify the
+	script. (bugs 32276, 38011, 59803)
+	* revdep-rebuild: The directories to search are no longer hard coded
+	into the script.  revdep-rebuild now determines the directories to
+	search based upon /etc/profile.env and /etc/ld.so.conf. (bugs 32276,
+	38011, 89781)
+	* revdep-rebuild: --ignore option to ignore temporary files left from
+	previous runs. Automatically ignore temporary files older than 24 hours.
+	(bug 34052)
+	* revdep-rebuild: Always return an exit status based upon success or
+	failure. (bug 38472)
+	* revdep-rebuild: Fixed to only emerge packages with direct missing
+	dependencies. (bug 38487)
 	* revdep-rebuild: New man page. (bug 40042)
-	* revdep-rebuild: emerge is no longer called with --nodeps. This allows for needed
-	                  dependencies to be pulled in. (bug 62893)
+	* revdep-rebuild: emerge is no longer called with --nodeps. This allows
+	for needed dependencies to be pulled in. (bug 62893)
 	* revdep-rebuild: Cleaned up grammatical errors (bug 85278)
-	* revdep-rebuild: Added support for revdep-rebuild --soname /path/to/library.so (bug 91503)
-	* revdep-rebuild: Removed symbolically linked directories from search (bug 93574)
-	* revdep-rebuild: --nocolor option to turn off colored output, the script also obeys 
-	                  the NOCOLOR setting from /etc/make.conf.
+	* revdep-rebuild: Added support for revdep-rebuild --soname 
+	/path/to/library.so (bug 91503)
+	* revdep-rebuild: Removed symbolically linked directories from search
+	(bug 93574)
+	* revdep-rebuild: --nocolor option to turn off colored output, the
+	script also obeys the NOCOLOR setting from /etc/make.conf.
 	* revdep-rebuild: Removed dependency on qpkg
 	* revdep-rebuild: Script uses PORTAGE_NICENESS from /etc/make.conf
-	* revdep-rebuild: Undocumented --keep-temp option.  This is primarily for debugging/testing.
-	                  This option prevents temporary files from being deleted.
-	* revdep-rebuild: Changed --soname --soname-regexp options to --library and treat all
-	                  arguments as basic regular expressions. --soname and --soname-regexp can 
-	                  still be used as options for backwards compatability.
-	* revdep-rebuild: Removed requirement to keep revdep-rebuild and emerge options distinct.
-	                  Options that are unrecognized by revdep-rebuild are passed directly to
-	                  emerge.
+	* revdep-rebuild: Undocumented --keep-temp option.  This is primarily
+	for debugging/testing. This option prevents temporary files from being
+	deleted.
+	* revdep-rebuild: Changed --soname --soname-regexp options to --library
+	and treat all arguments as basic regular expressions. --soname and
+	--soname-regexp can still be used as options for backwards
+	compatability.
+	* revdep-rebuild: Removed requirement to keep revdep-rebuild and emerge
+	options distinct. Options that are unrecognized by revdep-rebuild are
+	passed directly to emerge.
 
 2005-04-30 Marius Mauch <genone@gentoo.org>
 	* glsa-check: add V to short option list so it actually works
-	* equery: added new option --name-only to belongs command to make it "emerge-compatible"
+	* equery: added new option --name-only to belongs command to make it
+	"emerge-compatible"
 	
 2005-04-26 Marius Mauch <genone@gentoo.org>
 	* gentoolkit: fix broken Makefile
@@ -113,24 +134,27 @@
 	* Released gentookit-dev-0.2.2
 
 2004-12-09 Marius Mauch <genone@gentoo.org>
-	* glsa.py: Another stupid bug, this time revisionMatch() broke as ~foobar-rN isn't valid anymore
+	* glsa.py: Another stupid bug, this time revisionMatch() broke as
+	~foobar-rN isn't valid anymore
 
 2004-12-08 Marius Mauch <genone@gentoo.org>
 	* equery: implemented the --category option
-	* glsa-check: fixed the bug where it wanted to unnecessary merge masked packages
-	* glsa-check: added a check to verify that all non-option arguments are valid GLSAs
-	* glsa.py: changed the outfile parameter in Glsa.dump() to outstream so we don't
-	           have to open/close a file which breaks pipes
-	* glsa.py: checks now for python versions below 2.3 and throws an exception
+	* glsa-check: fixed the bug where it wanted to unnecessary merge masked
+	packages
+	* glsa-check: added a check to verify that all non-option arguments are
+	valid GLSAs
+	* glsa.py: changed the outfile parameter in Glsa.dump() to outstream so
+	we don't have to open/close a file which breaks pipes
+	* glsa.py: checks now for python versions below 2.3 and throws an
+	exception
 
 2004-11-29 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* branched v0-3-0: major rework in equery is in progess. the main
 	branch is reserved for minor and incremental fixups.
 
 2004-10-20 Karl Trygve Kalleberg <karltk@gentoo.org>
-	* release.sh: New script that automates the relase of a new
-		gentoolkit relase. Only works for gentoolkit-dev at the
-		moment.
+	* release.sh: New script that automates the relase of a new gentoolkit
+	relase. Only works for gentoolkit-dev at the moment.
 	* src/echangelog/Makefile: Fixed spurious '}'
 	* Released gentoolkit-dev-0.2.1
 
@@ -142,22 +166,26 @@
 
 2004-10-18 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* gentoolkit: collapsed ChangeLog into base ChangeLog
-	* gentoolkit: reverted indenting back to tabs, due to loud protests from Marius;)
+	* gentoolkit: reverted indenting back to tabs, due to loud protests
+	from Marius;)
 	* equery: collapsed ChangeLog into base ChangeLog
-	* equery: reverted indenting back to tabs, due to loud protests from Marius;)
+	* equery: reverted indenting back to tabs, due to loud protests from
+	Marius;)
 	* equery: minor syntactical cleanups.
 	* equery: minor documentation improvements
-	* equery: added errors module that will hold various types of internal errors raised.
-	* equery: added try block around on md5sum check, which fails on various conditions like
-				insufficient permission or stale temporary checksum files.
+	* equery: added errors module that will hold various types of internal
+	errors raised.
+	* equery: added try block around on md5sum check, which fails on various
+	conditions like insufficient permission or stale temporary checksum
+	files.
 
 2004-10-17 Marius Mauch <genone@gentoo.org>
 	* equery: fix for bug #67473 (checking md5sums of prelinked binaries)
-	* equery: fix for bug #67275 (--nocolor didn't work as configure was 
-				called before parsing the arguments
-	* equery: changed defaults for `equery depends` as making a depgraph
-				for the full portage tree isn't a good idea and find_all_packages()
-				uses way to much memory currently
+	* equery: fix for bug #67275 (--nocolor didn't work as configure was
+	called before parsing the arguments
+	* equery: changed defaults for `equery depends` as making a depgraph for
+	the full portage tree isn't a good idea and find_all_packages() uses way
+	to much memory currently
 	* euse: replaced the old perl version with a newly written bash version.
 
 2004-10-12 Marius Mauch <genone@gentoo.org>
@@ -167,10 +195,12 @@
 	* Removed old-scripts directory from gentoolkit
 	* euse: added a errormessage that it doesn't support cascading profiles
 	* equery: small bugfixes
-	* equery: performance speedup for `equery belongs` by using portage directly
+	* equery: performance speedup for `equery belongs` by using portage
+	directly
 	* equery: added MD5 verification to `equery check`
 	* equery: renamed 'hasuses' to 'hasuse'
-	* equery: added filter patch for `equery files` from bug 43422, thanks to degrenier@easyconnect.fr
+	* equery: added filter patch for `equery files` from bug 43422, thanks
+	to degrenier@easyconnect.fr
 	* Released gentoolkit-0.2.0_pre10
 
 2004-10-10 Karl Trygve Kalleberg <karltk@gentoo.org>
@@ -185,12 +215,14 @@
 	* gentoolkit: Fixed is_overlay() to report properly, #53432.
 
 2004-10-06 Marius Mauch <genone@gentoo.org>
-	* glsa.py: Convert Unicode strings to ascii before passing them to portage
+	* glsa.py: Convert Unicode strings to ascii before passing them to
+	portage
 	* glsa.py: Some formatting fixes for dump()
-	* glsa.py: changed the matching routines so the reports are hopefully 
-				more accurate
+	* glsa.py: changed the matching routines so the reports are hopefully
+	more accurate
 	* glsa-check: added color support 
-	* glsa-check: added a --verbose option to show the warnings about invalid GLSAs
+	* glsa-check: added a --verbose option to show the warnings about
+	invalid GLSAs
 
 2004-09-30 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* equery: Added unit tests for --help
@@ -210,14 +242,14 @@
 	* Released gentoolkit-dev-0.2.0_pre4
 
 2004-09-08 Karl Trygve Kalleberg <karltk@gentoo.org>
-	* equery: Added man page rewrites by Katerina Barone-Adesi <katerinab@gmail.com>,
-				fixes #63045
+	* equery: Added man page rewrites by Katerina Barone-Adesi
+	<katerinab@gmail.com>, fixes #63045
 	* equery: Fixed spacing issues with files, fixes #63036.
-	* equery: Added depends command by Olivier Crete <tester@gentoo.org>, fixes
-				#40830.
+	* equery: Added depends command by Olivier Crete <tester@gentoo.org>,
+	fixes #40830.
 	* equery: Reworked output yet again.
-	* equery: Belongs handles multiple files on the command line, partially 
-				fixes #62361.
+	* equery: Belongs handles multiple files on the command line, partially
+	fixes #62361.
 	* gentoolkit: Reworked printing functions
 
 2004-08-29 Karl Trygve Kalleberg <karltk@gentoo.org>
@@ -237,16 +269,16 @@
 	* Fixed grep expression for `qpkg -f`
 
 2004-05-04 Karl Trygve Kalleberg <karltk@gentoo.org>
-	* equery: Added a -f/--full-regex option to belongs and some logic
-				so users can do belongs ant, belongs /usr/bin/ant and belongs -f 
-				".*ant.*" while getting sensible results. Fixes #37637.
+	* equery: Added a -f/--full-regex option to belongs and some logic so
+	users can do belongs ant, belongs /usr/bin/ant and belongs -f ".*ant.*"
+	while getting sensible results. Fixes #37637.
 
 2004-04-14 Karl Trygve Kalleberg <karltk@gentoo.org>
 	* Released gentoolkit-dev-0.2.0_pre3
 
 2004-03-31 Marius Mauch <genone@gentoo.org>
-	* glsa-check updates, fixing #45528 and #45522, adding support for
-		rXX operators and passing filenames as arguments to Glsa()
+	* glsa-check: updates, fixing #45528 and #45522, adding support for rXX
+	operators and passing filenames as arguments to Glsa()
 
 2004-03-13 Marius Mauch <genone@gentoo.org>
 	* Added glsa-check and glsa.py, please note:
