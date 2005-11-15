@@ -1,3 +1,11 @@
+2005-11-15 Marius Mauch <genone@gentoo.org>
+	* glsa-check: Changed several messages to stderr instead of stdout
+	* glsa-check: Added new --cve option as requested by solar (bug 98589)
+	* glsa-check: Added support for a EMERGE_OPTS env variable to modify the emerge call of glsa-check --fix
+	* glsa-check: Added a new target "affected"
+	* glsa-check: Removed the warning message as it is now pretty much tested
+	* glsa-check: Show GLSA title on --test if --verbose is also used
+	
 2005-11-11 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Added sanity check to equery files (Bug 75983)
 	* equery: Fix string matching for equery depends (Bug 85653)
