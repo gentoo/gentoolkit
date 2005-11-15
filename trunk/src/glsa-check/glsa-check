@@ -24,7 +24,7 @@ optionmap = [
 ["-h", "--help", "show this help message"],
 ["-V", "--version", "some information about this tool"],
 ["-v", "--verbose", "print more information (option)"],
-["-c", "--cve", "show CAN ids n listing mode (option)"],
+["-c", "--cve", "show CAN ids in listing mode (option)"],
 ]
 
 # print a warning as this is beta code (but proven by now, so no more warning)
