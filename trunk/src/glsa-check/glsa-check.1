@@ -1,7 +1,7 @@
-.TH "glsa-check" "1" "0.5" "Marius Mauch" "gentoolkit"
+.TH "glsa-check" "1" "0.6" "Marius Mauch" "gentoolkit"
 .SH "NAME"
 .LP 
-glsa\-check \- Gentoo: Tool for GLSA release and distribution system
+glsa\-check \- Gentoo: Tool to locally monitor and manage GLSA's
 .SH "SYNTAX"
 .LP 
 glsa\-check <\fIoption\fP> [\fIglsa\-list\fP]
@@ -9,15 +9,14 @@ glsa\-check <\fIoption\fP> [\fIglsa\-list\fP]
 [\fIglsa\-list\fR] can contain an arbitrary number of GLSA ids, filenames containing GLSAs or the special identifiers 'all' and 'new'
 .SH "DESCRIPTION"
 .LP 
-WARNING: This tool is completely new and not very tested, so it should not be
-used on production systems. It's mainly a test tool for the new GLSA release
-and distribution system, it's functionality will later be merged into emerge
-and equery.
+This tool is used to locally monitor and manage Gentoo Linux Security Advisories.
 Please read:
 .br 
 http://www.gentoo.org/proj/en/portage/glsa\-integration.xml
 .br 
-before using this tool AND before reporting a bug.
+before reporting a bug.
+.LP
+Note: In order for this tool to be effective, you must regularly sync your local portage tree.
 .SH "OPTIONS"
 .LP 
 .TP 
@@ -50,3 +49,6 @@ some information about this tool
 .TP 
 .B \-v, \-\-verbose
 print more messages (option)
+.TP
+.B \-c, \-\-cve
+show CAN ids in listing mode (option)
