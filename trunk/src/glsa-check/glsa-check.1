@@ -1,0 +1,52 @@
+.TH "glsa-check" "1" "0.5" "Marius Mauch" "tools-portage"
+.SH "NAME"
+.LP 
+glsa\-check \- Tool for GLSA release and distribution system
+.SH "SYNTAX"
+.LP 
+glsa\-check <\fIoption\fP> [\fIglsa\-list\fP]
+
+[\fIglsa\-list\fR] can contain an arbitrary number of GLSA ids, filenames containing GLSAs or the special identifiers 'all' and 'new'
+.SH "DESCRIPTION"
+.LP 
+WARNING: This tool is completely new and not very tested, so it should not be
+used on production systems. It's mainly a test tool for the new GLSA release
+and distribution system, it's functionality will later be merged into emerge
+and equery.
+Please read:
+.br 
+http://www.gentoo.org/proj/en/portage/glsa\-integration.xml
+.br 
+before using this tool AND before reporting a bug.
+.SH "OPTIONS"
+.LP 
+.TP 
+.B \-l | \-\-list
+list all unapplied GLSA
+.TP 
+.B \-d | \-\-dump | \-\-print
+show all information about the given GLSA
+.TP 
+.B \-t | \-\-test
+test if this system is affected by the given GLSA
+.TP 
+.B \-p | \-\-pretend
+show the necessary commands to apply this GLSA
+.TP 
+.B \-f | \-\-fix
+try to auto\-apply this GLSA (experimental)
+.TP 
+.B \-i | \-\-inject
+inject the given GLSA into the checkfile
+.TP 
+.B \-n | \-\-nocolor
+disable colors (option)
+.TP 
+.B \-h | \-\-help
+show this help message
+.TP 
+.B \-V | \-\-version
+some information about this tool
+.TP 
+.B \-v | \-\-verbose
+print more messages (option)
