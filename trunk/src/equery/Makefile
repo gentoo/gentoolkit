@@ -11,7 +11,7 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/equery/
-	cp Makefile AUTHORS README TODO ChangeLog equery equery.1 ../../$(distdir)/src/equery/
+	cp Makefile AUTHORS README TODO equery equery.1 ../../$(distdir)/src/equery/
 
 install:
 	install -m 0755 equery $(bindir)/

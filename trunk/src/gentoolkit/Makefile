@@ -11,7 +11,7 @@ all:
 
 dist:
 	mkdir -p ../../${distdir}/src/gentoolkit
-	cp Makefile AUTHORS README ChangeLog TODO errors.py package.py helpers.py pprinter.py __init__.py ../../${distdir}/src/gentoolkit/
+	cp Makefile AUTHORS README TODO errors.py package.py helpers.py pprinter.py __init__.py ../../${distdir}/src/gentoolkit/
 
 install:
 	install -d $(docdir)/gentoolkit

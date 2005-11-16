@@ -16,5 +16,5 @@ dist:
 install:
 	install -m 0755 euse $(bindir)/
 	install -d $(docdir)/euse
-	install -m 0644 TODO ChangeLog $(docdir)/euse/
+	install -m 0644 AUTHORS ChangeLog $(docdir)/euse/
 	install -m 0644 euse.1 $(mandir)/
