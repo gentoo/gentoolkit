@@ -1127,6 +1127,7 @@ class CmdListPackages(Command):
 			"includeOverlayTree": 0,
 			"includeMasked": 1,
 			"regex": 0,
+			"exact": 0,
 			"duplicates": 0
 			}
 
@@ -1159,6 +1160,9 @@ class CmdListPackages(Command):
 				opts["includeMasked"] = 0
 			elif x in ["-f", "--full-regex"]:
 				opts["regex"] = 1
+				opts["exact"] = 1
+			elif x in ["-e", "--exact-name"]:
+				opts["exact"] = 1
 			elif x in ["-d", "--duplicates"]:
 				opts["duplicates"] = 1
 			else:
@@ -1215,16 +1219,18 @@ class CmdListPackages(Command):
 		# replace empty strings with .* and escape regular expression syntax
 		if query != "":
 			if not opts["regex"]:
-				filter_fn = lambda x: (cat+"/"+name in x)
-				matches = package_finder(filter_fn)
 				cat, name, ver, rev = [re.sub('^$', ".*", re.escape(x)) for x in cat, name, ver, rev]
 			else:
 				cat, name, ver, rev = [re.sub('^$', ".*", x) for x in cat, name, ver, rev]
-				try:
+
+			try:
+				if opts["exact"]:
 					filter_fn = lambda x: re.match(cat+"/"+name, x)
-					matches = package_finder(filter_fn)
-				except:
-					die(2, "The query '" + pp.regexpquery(query) + "' does not appear to be a valid regular expression")
+				else:
+					filter_fn = lambda x: re.match(cat+"/.*"+name, x)
+				matches = package_finder(filter_fn)
+			except:
+				die(2, "The query '" + pp.regexpquery(query) + "' does not appear to be a valid regular expression")
 		else:
 			cat, name, ver, rev = [re.sub('^$', ".*", x) for x in cat, name, ver, rev]
 			filter_fn = lambda x: True
@@ -1253,9 +1259,12 @@ class CmdListPackages(Command):
 		if ver == ".*": ver = "[0-9]+[^-]*"
 
 		if rev != ".*":	# revision supplied
-			rx = re.compile(cat + "/" + name + "-" + ver + "-" + rev)
-		else:
+			ver = ver + "-" + rev
+
+		if opts["exact"]:
 			rx = re.compile(cat + "/" + name + "-" + ver)
+		else:
+			rx = re.compile(cat + "/.*" + name + ".*-" + ver)
 
 		if opts["includeInstalled"]:
 			self._print_installed(matches, rx)
@@ -1330,6 +1339,7 @@ class CmdListPackages(Command):
 			   "  " + pp.localoption("-p, --portage-tree") + "      - also search in portage tree (" + gentoolkit.settings["PORTDIR"] + ")\n" + \
 			   "  " + pp.localoption("-o, --overlay-tree") + "      - also search in overlay tree (" + gentoolkit.settings["PORTDIR_OVERLAY"] + ")\n" + \
 			   "  " + pp.localoption("-f, --full-regex") + "        - query is a regular expression\n" + \
+			   "  " + pp.localoption("-e, --exact-name") + "        - list only those packages that exactly match\n" + \
 			   "  " + pp.localoption("-d, --duplicates") + "        - list only installed duplicate packages\n"
 
 class CmdFindUSEs(Command):

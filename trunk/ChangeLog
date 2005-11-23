@@ -1,3 +1,8 @@
+2005-11-23 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Changed default behavior for equery list to search for
+	partial name matches. Added equery list examples to the equery man
+	page. (Bugs 113032, 113134)
+
 2005-11-15 Marius Mauch <genone@gentoo.org>
 	* glsa-check: Changed several messages to stderr instead of stdout
 	* glsa-check: Added new --cve option as requested by solar (bug 98589)
