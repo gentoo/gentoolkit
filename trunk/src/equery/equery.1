@@ -174,14 +174,13 @@ also search in overlay tree (/usr/local/portage)
 .B list <local\-opts> pkgspec
 This command lists packages matching pkgspec in a user\-specified combination
 of installed packages, packages which are not installed, the portage tree, and
-the portage overlay tree.
+the portage overlay tree. By default the list command searches for partial name matches.
 
 <local\-opts> \-I cannot be used by itself;
 if \-I is used, \-p and/or \-o must be also be present.  By default, only installed
 packages are searched.  \-o searches only the overlay tree [and possibly
 installed packages],
-.I not
-the main portage tree.
+\fInot\fR the main portage tree.
 
 .B \-i, \-\-installed
 search installed packages (default)
@@ -198,10 +197,23 @@ also search in overlay tree (/usr/local/portage)
 .B \-f, \-\-full\-regex
 query is a regular expression
 .br 
+.B \-e, \-\-exact\-name
+list only those packages that exactly match
+.br 
 .B \-d, \-\-duplicates
 only list installed duplicate packages
+.br 
+
+\fBExamples:\fR
+
+equery list zilla \- list all installed versions of packages containing the string 'zilla'
+
+equery list \-\-exact\-name x11\-libs/gtk+  \- list all installed versions of x11\-libs/gtk+
+
+equery list \-\-full\-regex '(mozilla\-firefox|mozilla\-thunderbird)' \- list all installed versions of mozilla\-firefox and mozilla\-thunderbird 
+
+equery list \-\-duplicates \- list all installed slotted packages
 .PP 
-.TP 
 .B size <local\-opts> pkgspec
 This command outputs the number of files in the specified package, as well as
 their total size in an appropriate unit.
