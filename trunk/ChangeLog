@@ -1,3 +1,10 @@
+2005-12-07 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix revdep-rebuild to work with findutils-4.2.27.
+	(bug 111203)
+	* equery: Added note to error message about quoting redirection
+	characters. (Bug 113423)
+	* gentoolkit: Removed python-config call from make file. (Bug 113386)
+
 2005-11-23 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Changed default behavior for equery list to search for
 	partial name matches. Added equery list examples to the equery man
