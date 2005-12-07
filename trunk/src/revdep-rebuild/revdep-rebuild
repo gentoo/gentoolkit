@@ -322,7 +322,7 @@ else
 	# Hack for broken versions of find. I'm using a case statement in case I have to add more
 	find_version=$(find --version 2>/dev/null | awk '/find/ {print $NF}')
 	case "$find_version" in
-	4.2.25 )
+	4.2.25 | 4.2.27 )
 		find $SEARCH_DIRS -type f \( -perm /u+x -o -name '*.so' -o -name '*.so.*' \) 2>/dev/null | sort | uniq >$LIST.0_files
 		;;
 	* )
