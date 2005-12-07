@@ -1160,7 +1160,6 @@ class CmdListPackages(Command):
 				opts["includeMasked"] = 0
 			elif x in ["-f", "--full-regex"]:
 				opts["regex"] = 1
-				opts["exact"] = 1
 			elif x in ["-e", "--exact-name"]:
 				opts["exact"] = 1
 			elif x in ["-d", "--duplicates"]:
@@ -1648,6 +1647,9 @@ if __name__ == "__main__":
 				print_error("   >  >=  =  <=  <")
 				print_error("Example to only match gcc versions greater or equal 3.2:")
 				print_error("   >=sys-devel/gcc-3.2")
+				print_error("")
+				print_error("Note: The symbols > and < are used for redirection in the shell")
+				print_error("and must be quoted if either one is used.")
 				
 			else:
 				print_error("Internal portage error, terminating")
