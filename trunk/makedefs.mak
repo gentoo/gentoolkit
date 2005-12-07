@@ -8,7 +8,9 @@
 
 VERSION=9.9.9
 RELEASE_TAG=
-PYVERSION="`python-config | sed 's/-l//' | sed 's/ -lm.*//'`"
+# python-config is not installed on all arches Bug #113386
+#PYVERSION="`python-config | sed 's/-l//' | sed 's/ -lm.*//'`"
+PYVERSION="`LC_COLLATE=C; python -V 2>&1 | tr '[:upper:]' '[:lower:]' | sed -e 's/ //g;s/\([0-9]\.[0-9]\)\.[0-9]/\1/'`"
 DESTDIR=
 
 docdir=$(DESTDIR)/usr/share/doc/gentoolkit-$(VERSION)$(RELEASE_TAG)
