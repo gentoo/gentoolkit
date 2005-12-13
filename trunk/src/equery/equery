@@ -467,7 +467,7 @@ class CmdDisplayUSEs(Command):
 			for line in fd.readlines():
 				if line[0] == "#":
 					continue
-				fields = line.split(" - ")
+				fields = line.split(" - ", 1)
 				if len(fields) == 2:
 					usedesc[fields[0].strip()] = fields[1].strip()
 		except IOError:
@@ -479,7 +479,7 @@ class CmdDisplayUSEs(Command):
 			for line in fd.readlines():
 				if line[0] == "#":
 					continue
-				fields = line.split(" - ")
+				fields = line.split(" - ", 1)
 				if len(fields) == 2:
 					catpkguse = re.search("(.*):(.*)", fields[0])
 					if catpkguse:
@@ -488,7 +488,7 @@ class CmdDisplayUSEs(Command):
 						else:
 							uselocaldesc[catpkguse.group(1).strip()][catpkguse.group(2).strip()] = fields[1].strip()
 		except IOError:
-				print_warn(5, "Could not load USE flag descriptions from " + path(gentoolkit.settings["PORTDIR"] + "/profiles/use.desc"))
+				print_warn(5, "Could not load USE flag descriptions from " + path(gentoolkit.settings["PORTDIR"] + "/profiles/use.local.desc"))
 
 		if not Config["piping"] and Config["verbosityLevel"] >= 3: 
 			print_info(3, "[ Colour Code : " + pp.useflagon("set") + " " + pp.useflagoff("unset") + " ]")
