@@ -1,3 +1,9 @@
+2005-12-19 Paul Varner <fuzzyray@gentoo.org>
+	* eclean: Add regular expression matching for exclude files (Bug 114365)
+
+2005-12-13 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix USE flag parsing. (Bug 115294)
+
 2005-12-07 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix revdep-rebuild to work with findutils-4.2.27.
 	(bug 111203)
@@ -77,8 +83,8 @@
 	be missed. (bug 97171)
 
 2005-06-07 Paul Varner <fuzzyray@gentoo.org>
-	* revdep-rebuild: Delete temporary files if the environment does not match the previous
-	                  environment (bug 95274)
+	* revdep-rebuild: Delete temporary files if the environment does not 
+	match the previous environment (bug 95274)
 
 2005-06-05 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Imported revdep-rebuild release from bug 62644
