@@ -450,7 +450,13 @@ def parseExcludeFile(filepath):
 			else: raise ParseExcludeFileException("Invalid cat/pkg: "+mycp)
 		except: pass
 		#raise ParseExcludeFileException("Invalid line: "+line)
-		excl_dict['garbage'][line] = None
+		try:
+			excl_dict['garbage'][line] = re.compile(line)
+		except:
+			try:
+				excl_dict['garbage'][line] = re.compile(re.escape(line))
+			except:
+				raise ParseExcludeFileException("Invalid file name/regular expression: "+line)
 	return excl_dict
 
 
@@ -551,8 +557,20 @@ def findDistfiles( \
 			continue
 		if time_limit and (file_stat[stat.ST_MTIME] >= time_limit):
 			continue
-		if 'garbage' in exclude_dict and file in exclude_dict['garbage']:
-			continue
+		if 'garbage' in exclude_dict:
+			# Try to match file name directly
+			if file in exclude_dict['garbage']:
+				file_match = True
+			# See if file matches via regular expression matching
+			else:
+				file_match = False
+				for file_entry in exclude_dict['garbage']:
+					if exclude_dict['garbage'][file_entry].match(file):
+						file_match = True
+						break
+
+			if file_match:
+				continue
 		# this is a candidate for cleaning
 		clean_dict[file]=[filepath]
 	# remove files owned by some protected packages

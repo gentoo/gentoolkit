@@ -1,3 +1,7 @@
+2005-12-19 Paul Varner <fuzzyray@gentoo.org>
+	* Add support for reqular expression matching for file names in the
+	  exclude files.
+
 2005-08-28 Thomas de Grenier de Latour (tgl) <degrenier@easyconnect.fr>
 	* Version 0.4.1
 	* added support for some "eclean-dist" and "eclean-pkg" symlinks on eclean
