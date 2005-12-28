@@ -1,3 +1,6 @@
+2005-12-28 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix to automatically determine how to call find (Bug 111203)
+
 2005-12-19 Paul Varner <fuzzyray@gentoo.org>
 	* eclean: Add regular expression matching for exclude files (Bug 114365)
 

@@ -319,16 +319,26 @@ else
 
 	set_trap "$LIST.1_*"
 
-	# Hack for broken versions of find. I'm using a case statement in case I have to add more
-	find_version=$(find --version 2>/dev/null | awk '/find/ {print $NF}')
-	case "$find_version" in
-	4.2.25 | 4.2.27 )
+	# Hack for the different versions of find.
+	find_results=$(find /usr/bin/revdep-rebuild -type f -perm /u+x 2>/dev/null)
+	if [ -z $find_results ]
+	then
+		find_results=$(find /usr/bin/revdep-rebuild -type f -perm +u+x 2>/dev/null)
+		if [ -z $find_results ]
+		then
+			echo -e "\n"
+			echo -e "${RD}Unable to determine how to use find to locate executable files${NO}"
+			echo -e "${RD}Open a bug at http://bugs.gentoo.org${NO}"
+			echo
+			exit 1
+		else
+			# using -perm +u+x for find command
+			find $SEARCH_DIRS -type f \( -perm +u+x -o -name '*.so' -o -name '*.so.*' \) 2>/dev/null | sort | uniq >$LIST.0_files
+		fi
+	else
+		# using -perm /u+x for find command
 		find $SEARCH_DIRS -type f \( -perm /u+x -o -name '*.so' -o -name '*.so.*' \) 2>/dev/null | sort | uniq >$LIST.0_files
-		;;
-	* )
-		find $SEARCH_DIRS -type f \( -perm +u+x -o -name '*.so' -o -name '*.so.*' \) 2>/dev/null | sort | uniq >$LIST.0_files
-		;;
-	esac
+	fi
 
 	# Remove files that match SEARCH_DIR_MASK
 	for dir in $SEARCH_DIRS_MASK
