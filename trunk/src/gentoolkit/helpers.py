@@ -85,7 +85,7 @@ def find_system_packages(prefilter=None):
 def find_world_packages(prefilter=None):
 	"""Returns a tuple of lists, first list is resolved world packages,
 	seond is unresolved package names."""
-	f = open(portage.root+"var/cache/edb/world")
+	f = open(portage.WORLD_FILE)
 	pkglist = f.readlines()
 	resolved = []
 	unresolved = []
