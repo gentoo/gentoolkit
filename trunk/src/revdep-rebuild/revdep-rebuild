@@ -58,6 +58,9 @@ echo "Configuring search environment for revdep-rebuild"
 PORTAGE_NICENESS=$(portageq envvar PORTAGE_NICENESS)
 [ ! -z "$PORTAGE_NICENESS" ] && renice $PORTAGE_NICENESS $$ > /dev/null
 
+PORTAGE_ROOT=$(portageq envvar ROOT)
+[ -z "$PORTAGE_ROOT" ] && PORTAGE_ROOT="/"
+
 # Update the incremental variables using /etc/profile.env, /etc/ld.so.conf,
 # portage, and the environment
 
@@ -275,10 +278,12 @@ then
 	PREVIOUS_SEARCH_DIRS=$(. ${LIST}.0_env; echo "$SEARCH_DIRS")
 	PREVIOUS_SEARCH_DIRS_MASK=$(. ${LIST}.0_env; echo "$SEARCH_DIRS_MASK")
 	PREVIOUS_LD_LIBRARY_MASK=$(. ${LIST}.0_env; echo "$LD_LIBRARY_MASK")
+	PREVIOUS_PORTAGE_ROOT=$(. ${LIST}.0_env; echo "$PORTAGE_ROOT")
 	PREVIOUS_OPTIONS=$(. ${LIST}.0_env; echo "$CALLED_OPTIONS")
 	if [ "$PREVIOUS_SEARCH_DIRS" != "$SEARCH_DIRS" ] || \
 	   [ "$PREVIOUS_SEARCH_DIRS_MASK" != "$SEARCH_DIRS_MASK" ] || \
 	   [ "$PREVIOUS_LD_LIBRARY_MASK" != "$LD_LIBRARY_MASK" ] || \
+	   [ "$PREVIOUS_PORTAGE_ROOT" != "$PORTAGE_ROOT" ] || \
 	   [ "$PREVIOUS_OPTIONS" != "$CALLED_OPTIONS" ] 
 	then
 		echo
@@ -291,6 +296,7 @@ fi
 echo "SEARCH_DIRS=\"$SEARCH_DIRS\"" > $LIST.0_env
 echo "SEARCH_DIRS_MASK=\"$SEARCH_DIRS_MASK\"" >> $LIST.0_env
 echo "LD_LIBRARY_MASK=\"$LD_LIBRARY_MASK\"" >> $LIST.0_env
+echo "PORTAGE_ROOT=\"$PORTAGE_ROOT\"" >> $LIST.0_env
 echo "CALLED_OPTIONS=\"$CALLED_OPTIONS\"" >> $LIST.0_env
 echo "EMERGE_OPTIONS=\"$EMERGE_OPTIONS\"" >> $LIST.0_env
 
@@ -480,7 +486,7 @@ if $PACKAGE_NAMES ; then
 				# If SLOT is equal to 0, then just see what portage says is latest version
 				if [ "$SLOT" = "0" ]
 				then
-					emerge --nospinner --pretend --nodeps $PKG | sed -n 's/ //g;s/\[[^]]*\]//gp'
+					portageq best_visible $PORTAGE_ROOT $PKG
 					continue
 				fi
 				# Otherwise mask the other SLOTTED versions and check for latest
@@ -497,7 +503,7 @@ if $PACKAGE_NAMES ; then
 				do
 					echo "=${PKG}-${pkg_version}" >> /etc/portage/package.mask
 				done
-				emerge --nospinner --pretend --nodeps $PKG | sed -n 's/ //g;s/\[[^]]*\]//gp'
+				portageq best_visible $PORTAGE_ROOT $PKG
 				if [ -f /etc/portage/package.mask.revdep-rebuild.backup ]
 				then
 					mv -f /etc/portage/package.mask.revdep-rebuild.backup /etc/portage/package.mask
@@ -542,7 +548,7 @@ if [ -f $LLIST.5_order ] ; then
 else
 	RAW_REBUILD_LIST="$(cat $LLIST.4_ebuilds | sed s/^/=/ | tr '\n' ' ')"
 	if [ ! -z "$RAW_REBUILD_LIST" ] ; then
-		REBUILD_GREP="^\\($( (emerge --nospinner --pretend --oneshot --nodeps $RAW_REBUILD_LIST ; echo $? >$LLIST.5_status ) | sed -n 's/\./\\&/g;s/ //g;s/$/\\/;s/\[[^]]*\]//gp' | tr '\n' '|' | sed 's/|$//'))\$"
+		REBUILD_GREP="^\\($( (emerge --nospinner --pretend --oneshot --nodeps --quiet $RAW_REBUILD_LIST ; echo $? >$LLIST.5_status ) | sed -n 's/\./\\&/g;s/ //g;s/$/\\/;s/\[[^]]*\]//gp' | tr '\n' '|' | sed 's/|$//'))\$"
 		if [ $(cat $LLIST.5_status) -gt 0 ] ; then
 			echo ""
 			echo -e "${RD}Warning: Failed to resolve package order."
@@ -557,7 +563,7 @@ else
 			done
 			ln -f $LLIST.4_ebuilds $LLIST.5_order
 		else
-			emerge --nospinner --pretend --oneshot --emptytree $RAW_REBUILD_LIST | sed -n 's/ //g;s/^.*\]//p' | grep "$REBUILD_GREP" >$LLIST.5_order
+			emerge --nospinner --pretend --oneshot --emptytree --quiet $RAW_REBUILD_LIST | sed -n 's/ //g;s/^.*\]//p' | grep "$REBUILD_GREP" >$LLIST.5_order
 		fi
 	else
 		echo -n "" >$LLIST.5_order
