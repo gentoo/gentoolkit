@@ -1,3 +1,7 @@
+2006-01-06 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix revdep-rebuild to play nicely with portage-2.1
+	(Bug 118124)
+
 2005-12-28 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix to automatically determine how to call find (Bug 111203)
 
