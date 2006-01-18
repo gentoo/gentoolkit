@@ -339,11 +339,11 @@ else
 			exit 1
 		else
 			# using -perm +u+x for find command
-			find $SEARCH_DIRS -type f \( -perm +u+x -o -name '*.so' -o -name '*.so.*' \) 2>/dev/null | sort | uniq >$LIST.0_files
+			find $SEARCH_DIRS -type f \( -perm +u+x -o -name '*.so' -o -name '*.so.*' -o -name '*.la' \) 2>/dev/null | sort | uniq >$LIST.0_files
 		fi
 	else
 		# using -perm /u+x for find command
-		find $SEARCH_DIRS -type f \( -perm /u+x -o -name '*.so' -o -name '*.so.*' \) 2>/dev/null | sort | uniq >$LIST.0_files
+		find $SEARCH_DIRS -type f \( -perm /u+x -o -name '*.so' -o -name '*.so.*' -o -name '*.la' \) 2>/dev/null | sort | uniq >$LIST.0_files
 	fi
 
 	# Remove files that match SEARCH_DIR_MASK
@@ -384,7 +384,7 @@ else
 	set_trap "$LLIST.3_rebuild"
 	LD_MASK="\\(	$(echo "$LD_LIBRARY_MASK" | sed 's/\./\\./g;s/ / \\|	/g') \\)"
 	echo -n >$LLIST.3_rebuild
-	cat $LIST.1_files | while read FILE ; do
+	cat $LIST.1_files | egrep -v '*\.la$' | while read FILE ; do
 	# Note: double checking seems to be faster than single
 	# with complete path (special add ons are rare).
 	if ldd "$FILE" 2>/dev/null | grep -v "$LD_MASK" | $SONAME_GREP -q "$SONAME_SEARCH" ; then
@@ -429,6 +429,17 @@ else
 		fi
 	fi
 	done
+	if $SEARCH_BROKEN ; then
+		cat $LIST.1_files | egrep '*\.la$' | while read FILE ; do
+			for depend in $(grep '^dependency_libs' $FILE | awk -F'=' '{print $2}' | sed "s/'//g") ; do
+				[ ${depend:0:1} != '/' ] && continue
+				if [ ! -e $depend ] ; then
+					echo "$FILE" >>$LLIST.3_rebuild
+					echo_v "  broken $FILE (requires ${depend})"
+				fi
+			done
+		done
+	fi
 	echo -e " done.\n  ($LLIST.3_rebuild)"
 fi
 
