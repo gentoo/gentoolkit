@@ -43,6 +43,7 @@ dist-gentoolkit:
 		( cd src/$$x ; make distdir=release/gentoolkit-$(VERSION)$(RELEASE_TAG) dist ) \
 	done
 	cp Makefile AUTHORS README TODO COPYING NEWS ChangeLog release/gentoolkit-$(VERSION)$(RELEASE_TAG)/
+	cp src/99gentoolkit-env release/gentoolkit-$(VERSION)$(RELEASE_TAG)/src/
 	cat makedefs.mak | \
 		sed "s/^VERSION=.*/VERSION=$(VERSION)/" | \
 		sed "s/^RELEASE_TAG=.*/RELEASE_TAG=$(RELEASE_TAG)/" \
@@ -59,12 +60,15 @@ install-gentoolkit:
 	install -d $(bindir)
 	install -d $(sbindir)
 	install -d $(mandir)
+	install -d $(sysconfdir)/env.d
 
 	install -m 0644 AUTHORS ChangeLog COPYING NEWS README TODO $(docdir)/
+	install -m 0644 src/99gentoolkit-env $(sysconfdir)/env.d/
 
 	for x in eclean equery etcat euse qpkg gentoolkit revdep-rebuild glsa-check ; do \
 		( cd src/$$x ; make DESTDIR=$(DESTDIR) install )  \
 	done
+
 
 # FIXME: If run from the CVS tree, the documentation will be installed in
 #        $(DESTDIR)/usr/share/doc/gentoolkit-$(VERSION), not gentoolkit-dev-$(VERSION)
