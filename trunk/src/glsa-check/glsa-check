@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# $Header$
+# $Header: $
 # This program is licensed under the GPL, version 2
 
 import os,string,sys
@@ -11,7 +11,7 @@ from getopt import getopt,GetoptError
 
 __program__ = "glsa-check"
 __author__ = "Marius Mauch <genone@gentoo.org>"
-__version__ = "0.6"
+__version__ = "0.6.1"
 
 optionmap = [
 ["-l", "--list", "list all unapplied GLSA"],
@@ -181,11 +181,19 @@ if mode == "list":
 		else:
 			status = "[U]"
 			color = green
-		sys.stdout.write(color(myglsa.nr) + " " + color(status) + " " + myglsa.title + " (") 
-		for pkg in myglsa.packages.keys()[:3]:
-			sys.stdout.write(" " + pkg + " ")
-		if len(myglsa.packages) > 3:
-			sys.stdout.write("... ")
+		sys.stdout.write(color(myglsa.nr) + " " + color(status) + " " + myglsa.title + " (")
+		if not verbose:
+			for pkg in myglsa.packages.keys()[:3]:
+				sys.stdout.write(" " + pkg + " ")
+			if len(myglsa.packages) > 3:
+				sys.stdout.write("... ")
+		else:
+			for pkg in myglsa.packages.keys():
+				mylist = portage.db["/"]["vartree"].dbapi.match(portage.dep_getkey(pkg))
+				if len(mylist) > 0:
+					pkg = color(" ".join(mylist))
+				sys.stdout.write(" " + pkg + " ")
+
 		sys.stdout.write(")")
 		if list_cve:
 			sys.stdout.write(" "+(",".join([r[:13] for r in myglsa.references if r[:4] == "CAN-"])))

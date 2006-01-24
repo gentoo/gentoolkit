@@ -1,3 +1,6 @@
+2006-01-24 Marius Mauch <genone@gentoo.org>
+	* glsa-check: Use vbd information in verbose list mode (patch by solar)
+
 2006-01-18 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Add capability to check libtool .la files for
 	non-existant references.
