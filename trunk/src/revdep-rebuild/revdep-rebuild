@@ -56,7 +56,13 @@ echo "Configuring search environment for revdep-rebuild"
 
 # Obey PORTAGE_NICENESS
 PORTAGE_NICENESS=$(portageq envvar PORTAGE_NICENESS)
-[ ! -z "$PORTAGE_NICENESS" ] && renice $PORTAGE_NICENESS $$ > /dev/null
+if [ ! -z "$PORTAGE_NICENESS" ]
+then
+	renice $PORTAGE_NICENESS $$ > /dev/null
+	# Since we have already set our nice value for our processes,
+	# reset PORTAGE_NICENESS to zero to avoid having emerge renice again.
+	export PORTAGE_NICENESS="0"
+fi
 
 PORTAGE_ROOT=$(portageq envvar ROOT)
 [ -z "$PORTAGE_ROOT" ] && PORTAGE_ROOT="/"
