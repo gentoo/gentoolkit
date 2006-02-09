@@ -1,5 +1,4 @@
-#! /bin/bash
-
+#! /bin/bash 
 # Copyright 1999-2005 Gentoo Foundation
 # $Header$
 
@@ -565,7 +564,7 @@ if [ -f $LLIST.5_order ] ; then
 else
 	RAW_REBUILD_LIST="$(cat $LLIST.4_ebuilds | sed s/^/=/ | tr '\n' ' ')"
 	if [ ! -z "$RAW_REBUILD_LIST" ] ; then
-		REBUILD_GREP="^\\($( (emerge --nospinner --pretend --oneshot --nodeps --quiet $RAW_REBUILD_LIST ; echo $? >$LLIST.5_status ) | sed -n 's/\./\\&/g;s/ //g;s/$/\\/;s/\[[^]]*\]//gp' | tr '\n' '|' | sed 's/|$//'))\$"
+		REBUILD_GREP="^\\($( (EMERGE_DEFAULT_OPTS="" emerge --nospinner --pretend --oneshot --nodeps --quiet $RAW_REBUILD_LIST ; echo $? >$LLIST.5_status ) | sed -n 's/\./\\&/g;s/ //g;s/$/\\/;s/\[[^]]*\]//gp' | tr '\n' '|' | sed 's/|$//'))\$"
 		if [ $(cat $LLIST.5_status) -gt 0 ] ; then
 			echo ""
 			echo -e "${RD}Warning: Failed to resolve package order."
@@ -580,7 +579,7 @@ else
 			done
 			ln -f $LLIST.4_ebuilds $LLIST.5_order
 		else
-			emerge --nospinner --pretend --oneshot --emptytree --quiet $RAW_REBUILD_LIST | sed -n 's/ //g;s/^.*\]//p' | grep "$REBUILD_GREP" >$LLIST.5_order
+			EMERGE_DEFAULT_OPTS="" emerge --nospinner --pretend --oneshot --emptytree --quiet $RAW_REBUILD_LIST | sed -n 's/ //g;s/^.*\]//p' | grep "$REBUILD_GREP" >$LLIST.5_order
 		fi
 	else
 		echo -n "" >$LLIST.5_order
