@@ -1,3 +1,7 @@
+2006-02-16 Marius Mauch <genone@gentoo.org>
+	* glsa-check: Fix bug causing the wrong summary to be displayed 
+	for --test --verbose (bug #123084)
+
 2006-02-06 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Reset PORTAGE_NICENESS, so that emerge is not niced
 	twice. Thanks to Lukas Reck for the patch. (Bug 121482)
