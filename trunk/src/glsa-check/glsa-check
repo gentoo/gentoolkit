@@ -11,7 +11,7 @@ from getopt import getopt,GetoptError
 
 __program__ = "glsa-check"
 __author__ = "Marius Mauch <genone@gentoo.org>"
-__version__ = "0.6.1"
+__version__ = "0.6.2"
 
 optionmap = [
 ["-l", "--list", "list all unapplied GLSA"],
@@ -255,15 +255,13 @@ if mode == "test":
 				sys.stderr.write(("invalid GLSA: %s (error message was: %s)\n" % (myid, e)))
 			continue
 		if myglsa.isVulnerable():
-			outputlist.append(myglsa.nr)
+			if verbose:
+				outputlist.append(str(myglsa.nr)+" ( "+myglsa.title+" ) ")
+			else:
+				outputlist.append(str(myglsa.nr))
 	if len(outputlist) > 0:
 		sys.stderr.write("This system is affected by the following GLSAs:\n")
-		for g in outputlist:
-			sys.stdout.write(g)
-			if verbose:
-				sys.stdout.write(" ( " + myglsa.title + " )\n")
-			else:
-				sys.stdout.write("\n")
+		sys.stdout.write("\n".join(outputlist)+"\n")
 	else:
 		sys.stderr.write("This system is not affected by any of the listed GLSAs\n")
 	sys.exit(0)
