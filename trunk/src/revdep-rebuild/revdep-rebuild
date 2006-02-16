@@ -628,7 +628,7 @@ fi
 
 # Run in background to correctly handle Ctrl-C
 (
-	emerge --oneshot $EMERGE_OPTIONS $REBUILD_LIST
+	EMERGE_DEFAULT_OPTS="" emerge --oneshot $EMERGE_OPTIONS $REBUILD_LIST
 	echo $? >$LLIST.6_status
 ) &
 wait
