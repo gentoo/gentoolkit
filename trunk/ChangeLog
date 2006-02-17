@@ -1,4 +1,8 @@
 2006-02-16 Marius Mauch <genone@gentoo.org>
+	* euse: add/remove use flags even if there is no USE= statement in make.conf
+	(bug #95432)
+
+2006-02-16 Marius Mauch <genone@gentoo.org>
 	* glsa-check: Fix bug causing the wrong summary to be displayed 
 	for --test --verbose (bug #123084)
 

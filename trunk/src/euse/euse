@@ -387,6 +387,7 @@ modify() {
 	# on our own here. Basically just skip everything between USE=" and the 
 	# closing ", printing our new USE line there instead.
 	inuse=0
+	had_use=0
 	(while read -r line; do
 		[ "${line:0:4}" == "USE=" ] && inuse=1
 		[ "${inuse}" == "0" ] && echo -E "${line}"
@@ -395,8 +396,14 @@ modify() {
 			echo -ne "${NEW_MAKE_CONF_USE_2%% }"
 			echo '"'
 		 	inuse=0
+			had_use=1
 		fi
-	done ) < "${MAKE_CONF_BACKUP_PATH}" | sed -e 's:\\ $:\\:' > "${MAKE_CONF_PATH}"
+	done
+	if [ ${haduse} -eq 0 ]; then
+		echo -n 'USE="'
+		echo -ne "${NEW_MAKE_CONF_USE_2%% }"
+		echo '"'
+	fi ) < "${MAKE_CONF_BACKUP_PATH}" | sed -e 's:\\ $:\\:' > "${MAKE_CONF_PATH}"
 	
 	echo "${MAKE_CONF_PATH} was modified, a backup copy has been placed at ${MAKE_CONF_BACKUP_PATH}"
 }
