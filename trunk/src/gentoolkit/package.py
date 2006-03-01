@@ -63,7 +63,7 @@ class Package:
 		raise "Not implemented yet!"
 
 	def get_runtime_deps(self):
-		"""Returns a linearised list of first-level compile time dependencies for this package, on
+		"""Returns a linearised list of first-level run time dependencies for this package, on
 		the form [(comparator, [use flags], cpv), ...]"""
 		cd = self.get_env_var("RDEPEND").split()
 		r,i = self._parse_deps(cd)
@@ -76,6 +76,13 @@ class Package:
 		r,i = self._parse_deps(rd)
 		return r
 
+	def get_postmerge_deps(self):
+		"""Returns a linearised list of first-level post merge dependencies for this package, on
+		the form [(comparator, [use flags], cpv), ...]"""
+		pd = self.get_env_var("PDEPEND").split()
+		r,i = self._parse_deps(pd)
+		return r
+
 	def _parse_deps(self,deps,curuse=[],level=0):
 		# store (comparator, [use predicates], cpv)
 		r = []
@@ -86,7 +93,7 @@ class Package:
 			tok = deps[i]
 			if tok == ')':
 				return r,i
-			if tok[-1] == "?" or tok[0] == "!":
+			if tok[-1] == "?":
 				tok = tok.replace("?","")
 				sr,l = self._parse_deps(deps[i+2:],curuse=curuse+[tok],level=level+1)
 				r += sr
@@ -96,6 +103,16 @@ class Package:
 				sr,l = self._parse_deps(deps[i+2:],curuse,level=level+1)
 				r += sr
 				i += l + 3
+				continue
+			# conjunction, like in "|| ( ( foo bar ) baz )" => recurse
+			if tok == "(":
+				sr,l = self._parse_deps(deps[i+1:],curuse,level=level+1)
+				r += sr
+				i += l + 2
+				continue
+			# pkg block "!foo/bar" => ignore it
+			if tok[0] == "!":
+				i += 1
 				continue
 			# pick out comparator, if any
 			cmp = ""
