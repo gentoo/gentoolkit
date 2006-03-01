@@ -643,8 +643,6 @@ class CmdDisplayDepGraph(Command):
 		matches = gentoolkit.find_packages(query, True)
 
 		for pkg in matches:
-			if not pkg.is_installed():
-				continue
 			if not Config["piping"] and Config["verbosityLevel"] >= 3:
 				print_info(3, pp.section("* ") + "dependency graph for " + pp.cpv(pkg.get_cpv()))
 			else:
@@ -670,7 +668,7 @@ class CmdDisplayDepGraph(Command):
 		
 		pkgtbl.append(cpv)
 		
-		pkgdeps = pkg.get_runtime_deps() + pkg.get_compiletime_deps()
+		pkgdeps = pkg.get_runtime_deps() + pkg.get_compiletime_deps() + pkg.get_postmerge_deps()
 		for x in pkgdeps:
 			suffix = ""
 			cpv = x[2]
@@ -1041,7 +1039,7 @@ class CmdListDepends(Command):
 				print_info(1, pp.section("* ") + "Dependencies for " + pp.cpv(pkg.get_cpv()) + ":")
 
 				try:
-					deps = pkg.get_runtime_deps() + pkg.get_compiletime_deps()
+					deps = pkg.get_runtime_deps() + pkg.get_compiletime_deps() + pkg.get_postmerge_deps()
 				except KeyError, e:
 					# If the ebuild is not found... 
 					continue
@@ -1057,7 +1055,7 @@ class CmdListDepends(Command):
  
 		for pkg in packages:
 			try:
-				deps = pkg.get_runtime_deps() + pkg.get_compiletime_deps()
+				deps = pkg.get_runtime_deps() + pkg.get_compiletime_deps() + pkg.get_postmerge_deps()
 			except KeyError, e:
 				# If the ebuild is not found... 
 				continue
