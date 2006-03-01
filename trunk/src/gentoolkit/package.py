@@ -65,21 +65,24 @@ class Package:
 	def get_runtime_deps(self):
 		"""Returns a linearised list of first-level run time dependencies for this package, on
 		the form [(comparator, [use flags], cpv), ...]"""
-		cd = self.get_env_var("RDEPEND").split()
+		# Always use the portage tree, since emerge only uses the tree when calculating dependencies
+		cd = self.get_env_var("RDEPEND", porttree).split()
 		r,i = self._parse_deps(cd)
 		return r
 
 	def get_compiletime_deps(self):
 		"""Returns a linearised list of first-level compile time dependencies for this package, on
 		the form [(comparator, [use flags], cpv), ...]"""
-		rd = self.get_env_var("DEPEND").split()
+		# Always use the portage tree, since emerge only uses the tree when calculating dependencies
+		rd = self.get_env_var("DEPEND", porttree).split()
 		r,i = self._parse_deps(rd)
 		return r
 
 	def get_postmerge_deps(self):
 		"""Returns a linearised list of first-level post merge dependencies for this package, on
 		the form [(comparator, [use flags], cpv), ...]"""
-		pd = self.get_env_var("PDEPEND").split()
+		# Always use the portage tree, since emerge only uses the tree when calculating dependencies
+		pd = self.get_env_var("PDEPEND", porttree).split()
 		r,i = self._parse_deps(pd)
 		return r
 
@@ -104,7 +107,7 @@ class Package:
 				r += sr
 				i += l + 3
 				continue
-			# conjunction, like in "|| ( ( foo bar ) baz )" => recurse
+			# conjonction, like in "|| ( ( foo bar ) baz )" => recurse
 			if tok == "(":
 				sr,l = self._parse_deps(deps[i+1:],curuse,level=level+1)
 				r += sr
@@ -154,11 +157,14 @@ class Package:
 		if len(sp):
 			return string.join(sp[:-1],"/")
 
-	def get_env_var(self, var):
+	def get_env_var(self, var, tree=""):
 		"""Returns one of the predefined env vars DEPEND, RDEPEND, SRC_URI,...."""
-		mytree = vartree
-		if not self.is_installed():
-			mytree = porttree
+		if tree == "":
+			mytree = vartree
+			if not self.is_installed():
+				mytree = porttree
+		else:
+			mytree = tree
 		r = mytree.dbapi.aux_get(self._cpv,[var])
 		if not r:
 			raise FatalError("Could not find the package tree")

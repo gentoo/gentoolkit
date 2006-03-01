@@ -1,3 +1,15 @@
+2006-03-01 Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Fix depends parsing to properly handle conjunction. (bug
+	#123725). Thanks to tgl for the patch.
+	* gentoolkit: Added function to get post-merge dependencies (PDEPEND)
+	(bug #99191)
+	* gentoolkit: Change get_dependency functions to always use the
+	portage tree
+	* equery: Added post-merge dependencies to depends and depgraph
+	actions. (bug #99191)
+	* equery: Removed requirement for package to be installed to use
+	depgraph action.
+
 2006-02-16 Marius Mauch <genone@gentoo.org>
 	* euse: add/remove use flags even if there is no USE= statement in make.conf
 	(bug #95432)
