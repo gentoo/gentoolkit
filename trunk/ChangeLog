@@ -1,3 +1,6 @@
+2006-03-08 Paul Varner <fuzzyray@gentoo.org>
+	* genpkgindex: Add binary package indexing utility. (Bug 82132)
+
 2006-03-01 Paul Varner <fuzzyray@gentoo.org>
 	* gentoolkit: Fix depends parsing to properly handle conjunction. (bug
 	#123725). Thanks to tgl for the patch.
