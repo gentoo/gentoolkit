@@ -1,0 +1,129 @@
+#!/usr/bin/python
+# Copyright 2006 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+import os, string, stat, sys, time
+import xpak, portage, portage_checksum, portage_dep, portage_util
+
+argc=len(sys.argv)
+
+if argc >= 2:
+	if (sys.argv[1][0] == "-"):
+		print "Usage:\tgenpkgindex <pkgdir>"
+		print "\t- default dir "+portage.settings["PKGDIR"]+"/All"
+		sys.exit(1)
+
+	All=sys.argv[1]
+else:
+	All=portage.settings["PKGDIR"]+"/All"
+
+os.chdir(All)
+
+portage.writemsg(portage.green(' * ')+'update binary package index %s\n' % All);
+start = time.time()
+
+# generic name of our package index.
+control_file = "Packages"
+
+try:
+	import re
+	profilever = os.path.normpath("///"+os.readlink("/etc/make.profile"))
+	basepath   = os.path.normpath("///"+portage.settings["PORTDIR"]+"/profiles")
+	if re.match(basepath,profilever):
+		profilever = profilever[len(basepath)+1:]
+	else:
+		profilever = "!"+profilever
+
+	del basepath
+
+except SystemExit, e:
+	raise # Needed else can't exit
+except:
+	profilever="unavailable"
+
+packages = []
+for pkg in os.listdir('.'):
+        if not os.path.basename(pkg).endswith("tbz2"):
+                continue
+        tbz2 = xpak.tbz2(pkg)
+        stuff = tbz2.getboth()
+        if not stuff:
+		print "Not a tbz2: "+str(pkg)
+                continue
+        cat = xpak.getitem(stuff, "CATEGORY")
+        if cat:
+                packages.append((cat, pkg, tbz2, stuff))
+
+packages.sort()
+
+# trunc the file and begin write operations.
+fp = open(control_file, "w")
+
+if argc <= 1:
+	fp.write("PROFILE: "+profilever+"\n")
+	fp.write("PACKAGES: "+str(len(packages)) +"\n")
+
+	vmask = [ "AUTOCLEAN", "DISTDIR", "PKGDIR", "PORTDIR" , "PORTAGE_TMPDIR" ]
+	vars = portage_util.grabfile(portage.settings["PORTDIR"]+"/profiles/info_vars")
+	for x in vmask:
+		vars.remove(x)
+
+	vars.sort()
+
+	for x in vars:
+		if portage.settings.has_key(x):
+			if (len(portage.settings[x])):
+				fp.write(x+": "+portage.settings[x]+"\n")
+	fp.write("\n")
+
+for cat, pkg, tbz2, stuff in packages:
+	use = xpak.getitem(stuff, "USE")
+	iuse = xpak.getitem(stuff, "IUSE")
+
+	for name in tbz2.filelist():
+		if name.endswith(".ebuild"):
+			elines=tbz2.getfile(name).splitlines()
+			for line in elines:
+				if line.startswith("DESCRIPTION="):
+					line = line[13:]
+					line = line[:-1]
+					fp.write("DESC: "+line+"\n")
+					break
+
+	for name in [ "PF", "CATEGORY", "LICENSE", "RDEPEND" , "SLOT"]:
+		item = xpak.getitem(stuff, name)
+		if (item != None) and item:
+			if name == "RDEPEND":
+				val = string.strip(string.join(portage.flatten(portage_dep.use_reduce(portage_dep.paren_reduce(item), uselist=use.split())),' '))
+				if val:
+					fp.write(name+": " + string.join(val.split()) + "\n")
+			else:
+				val = string.strip(str(item))
+				if name == "SLOT":
+					if (val != "0"):
+						fp.write(name + ": " + val + "\n")
+				else:
+					fp.write(name + ": " + val + "\n")
+
+	# map IUSE->USE and look for matching flags, filter dupes
+	# if both flags match then this is what matters.
+	used=[]
+	for x in iuse.split(' '):
+		for y in use.split(' '):
+			if x == y and y not in used:
+				used += [y]
+	if used:
+		fp.write("USE: " + str(string.join(used)) +"\n")
+
+	st = os.stat(pkg)
+	fp.write("SIZE: "+ str(st[stat.ST_SIZE]) +"\n")
+	fp.write("MD5: "+portage_checksum.perform_md5(pkg)+"\n")
+	fp.write("\n")
+
+fp.write("\n")
+fp.flush()
+fp.close()
+
+finish = time.time()
+
+portage.writemsg(portage.green(' * ')+"PKGDIR contains "+ str(len(packages)) + ' packages. (%.01fsec)\n' % (finish - start));
