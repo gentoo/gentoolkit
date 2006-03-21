@@ -72,9 +72,9 @@ PORTAGE_ROOT=$(portageq envvar ROOT)
 # Read the incremental variables from environment and portage
 # Until such time as portage supports these variables as incrementals
 # The value will be what is in /etc/make.conf
-PRELIMINARY_SEARCH_DIRS="$SEARCH_DIRS $(portageq envvar SEARCH_DIRS)"
-PRELIMINARY_SEARCH_DIRS_MASK="$SEARCH_DIRS_MASK $(portageq envvar SEARCH_DIRS_MASK)"
-PRELIMINARY_LD_LIBRARY_MASK="$LD_LIBRARY_MASK $(portageq envvar LD_LIBRARY_MASK)"
+PRELIMINARY_SEARCH_DIRS="$SEARCH_DIRS $(unset SEARCH_DIRS; portageq envvar SEARCH_DIRS)"
+PRELIMINARY_SEARCH_DIRS_MASK="$SEARCH_DIRS_MASK $(unset SEARCH_DIRS_MASK; portageq envvar SEARCH_DIRS_MASK)"
+PRELIMINARY_LD_LIBRARY_MASK="$LD_LIBRARY_MASK $(unset LD_LIBRARY_MASK; portageq envvar LD_LIBRARY_MASK)"
 
 # Add the defaults
 if [ -d /etc/revdep-rebuild ]
