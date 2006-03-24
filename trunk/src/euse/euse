@@ -399,7 +399,7 @@ modify() {
 			had_use=1
 		fi
 	done
-	if [ ${haduse} -eq 0 ]; then
+	if [ ${had_use} -eq 0 ]; then
 		echo -n 'USE="'
 		echo -ne "${NEW_MAKE_CONF_USE_2%% }"
 		echo '"'
