@@ -334,7 +334,7 @@ close O                  or die "Can't close ChangeLog.new: $!\n";
 # Update affected ebuild copyright dates.  There is no reason to update the
 # copyright lines on ebuilds that haven't changed.  I verified this with an IP
 # lawyer.
-for my $e (grep /\.ebuild$/, @files) {
+for my $e (grep { /\.ebuild$/ && -e } @files) {
     my ($etext, $netext);
     open E, "<$e" or warn("Can't read $e to update copyright year\n"), next;
     { local $/ = undef; $etext = <E>; }

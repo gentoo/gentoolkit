@@ -1,3 +1,7 @@
+2006-05-26 Aron Griffis <agriffis@gentoo.org>
+	* echangelog: Don't warn about missing ebuilds when updating 
+	  copyrights #120061
+
 2006-05-25 Aron Griffis <agriffis@gentoo.org>
 	* eviewcvs: Update for sources.gentoo.org, add subversion support
 
