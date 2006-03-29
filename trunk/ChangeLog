@@ -1,3 +1,7 @@
+2006-03-29 Marius Mauch <genone@gentoo.org>
+	* euse: Add support for special %active argument as placeholder for
+	active use flags
+
 2006-03-26 Aron Griffis <agriffis@gentoo.org>
 	* echangelog: Don't warn about missing ebuilds when updating 
 	  copyrights #120061

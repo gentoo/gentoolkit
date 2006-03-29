@@ -37,6 +37,10 @@ parse_arguments() {
 				echo
 				MODE="showhelp"
 				;;
+			"%active")
+				get_useflags
+				ARGUMENTS="${ARGUMENTS} ${ACTIVE_FLAGS[9]}"
+				;;
 			*)
 				ARGUMENTS="${ARGUMENTS} ${1}"
 				;;
