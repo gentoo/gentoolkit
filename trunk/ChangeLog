@@ -1,3 +1,8 @@
+2006-04-01 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Add fix so that packages no longer in the tree cause
+	errors (Bug #128174). Fix case where masked packages cause
+	revdep-rebuild to not rebuild any packages (Bug #128085)
+
 2006-03-29 Marius Mauch <genone@gentoo.org>
 	* euse: Add support for special %active argument as placeholder for
 	active use flags

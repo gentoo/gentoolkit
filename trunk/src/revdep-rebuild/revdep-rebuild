@@ -502,7 +502,8 @@ if $PACKAGE_NAMES ; then
 				# If SLOT is equal to 0, then just see what portage says is latest version
 				if [ "$SLOT" = "0" ]
 				then
-					portageq best_visible $PORTAGE_ROOT $PKG
+					best_visible=$(portageq best_visible $PORTAGE_ROOT $PKG)
+					[ "x" != "x$best_visible" ] && echo $best_visible
 					continue
 				fi
 				# Otherwise mask the other SLOTTED versions and check for latest
@@ -519,7 +520,8 @@ if $PACKAGE_NAMES ; then
 				do
 					echo "=${PKG}-${pkg_version}" >> /etc/portage/package.mask
 				done
-				portageq best_visible $PORTAGE_ROOT $PKG
+				best_visible=$(portageq best_visible $PORTAGE_ROOT $PKG)
+				[ "x" != "x$best_visible" ] && echo $best_visible
 				if [ -f /etc/portage/package.mask.revdep-rebuild.backup ]
 				then
 					mv -f /etc/portage/package.mask.revdep-rebuild.backup /etc/portage/package.mask
@@ -564,8 +566,8 @@ if [ -f $LLIST.5_order ] ; then
 else
 	RAW_REBUILD_LIST="$(cat $LLIST.4_ebuilds | sed s/^/=/ | tr '\n' ' ')"
 	if [ ! -z "$RAW_REBUILD_LIST" ] ; then
-		REBUILD_GREP="^\\($( (EMERGE_DEFAULT_OPTS="" emerge --nospinner --pretend --oneshot --nodeps --quiet $RAW_REBUILD_LIST ; echo $? >$LLIST.5_status ) | sed -n 's/\./\\&/g;s/ //g;s/$/\\/;s/\[[^]]*\]//gp' | tr '\n' '|' | sed 's/|$//'))\$"
-		if [ $(cat $LLIST.5_status) -gt 0 ] ; then
+		REBUILD_GREP="^\\($( (EMERGE_DEFAULT_OPTS="" emerge --nospinner --pretend --oneshot --nodeps --quiet $RAW_REBUILD_LIST ; echo $? >$LLIST.5a_status ) | sed -n 's/\./\\&/g;s/ //g;s/$/\\/;s/\[[^]]*\]//gp' | tr '\n' '|' | sed 's/|$//'))\$"
+		if [ $(cat $LLIST.5a_status) -gt 0 ] ; then
 			echo ""
 			echo -e "${RD}Warning: Failed to resolve package order."
 			echo -e "Will merge in \"random\" order!${NO}"
@@ -579,7 +581,22 @@ else
 			done
 			ln -f $LLIST.4_ebuilds $LLIST.5_order
 		else
-			EMERGE_DEFAULT_OPTS="" emerge --nospinner --pretend --oneshot --emptytree --quiet $RAW_REBUILD_LIST | sed -n 's/ //g;s/^.*\]//p' | grep "$REBUILD_GREP" >$LLIST.5_order
+			(EMERGE_DEFAULT_OPTS="" emerge --nospinner --pretend --oneshot --emptytree --quiet $RAW_REBUILD_LIST ; echo $? >$LLIST.5b_status ) | sed -n 's/ //g;s/^.*\]//p' | grep "$REBUILD_GREP" >$LLIST.5_order
+			if [ $(cat $LLIST.5b_status) -gt 0 ] ; then
+				echo ""
+				echo -e "${RD}Warning: Failed to resolve package order."
+				echo -e "Will merge in \"random\" order!${NO}"
+				echo "Possible reasons:"
+				echo "- An ebuild is no longer in the portage tree."
+				echo "- An ebuild is masked, use /etc/portage/packages.keyword"
+				echo "  and/or /etc/portage/package.unmask to unmask it"
+				for i in . . . . . ; do
+					echo -n -e '\a.'
+					sleep 1
+				done
+				rm -f $LLIST.5_order
+				ln -f $LLIST.4_ebuilds $LLIST.5_order
+			fi
 		fi
 	else
 		echo -n "" >$LLIST.5_order
