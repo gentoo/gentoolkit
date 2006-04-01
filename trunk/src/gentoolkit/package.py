@@ -66,7 +66,7 @@ class Package:
 		"""Returns a linearised list of first-level run time dependencies for this package, on
 		the form [(comparator, [use flags], cpv), ...]"""
 		# Always use the portage tree, since emerge only uses the tree when calculating dependencies
-		cd = self.get_env_var("RDEPEND", porttree).split()
+		cd = self.get_env_var("RDEPEND").split()
 		r,i = self._parse_deps(cd)
 		return r
 
@@ -74,7 +74,7 @@ class Package:
 		"""Returns a linearised list of first-level compile time dependencies for this package, on
 		the form [(comparator, [use flags], cpv), ...]"""
 		# Always use the portage tree, since emerge only uses the tree when calculating dependencies
-		rd = self.get_env_var("DEPEND", porttree).split()
+		rd = self.get_env_var("DEPEND").split()
 		r,i = self._parse_deps(rd)
 		return r
 
@@ -82,7 +82,7 @@ class Package:
 		"""Returns a linearised list of first-level post merge dependencies for this package, on
 		the form [(comparator, [use flags], cpv), ...]"""
 		# Always use the portage tree, since emerge only uses the tree when calculating dependencies
-		pd = self.get_env_var("PDEPEND", porttree).split()
+		pd = self.get_env_var("PDEPEND").split()
 		r,i = self._parse_deps(pd)
 		return r
 
