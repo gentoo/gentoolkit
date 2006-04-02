@@ -113,6 +113,8 @@ do
 	# Remove any existing trailing slashes to prevent double-slashes
 	SEARCH_DIRS="$(echo $SEARCH_DIRS ${i/%\//}/)"
 done
+# Remove any double-slashes from the path
+SEARCH_DIRS="$(echo $SEARCH_DIRS | sed 's:/\+:/:g')"
 
 unset SEARCH_DIRS_MASK
 for i in $(echo $PRELIMINARY_SEARCH_DIRS_MASK)
