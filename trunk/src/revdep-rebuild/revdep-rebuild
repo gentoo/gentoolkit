@@ -149,6 +149,15 @@ RD="\x1b[31;01m"
 YL="\x1b[33;01m"
 BL="\x1b[34;01m"
 
+# Check if portage-utils are installed
+portageq has_version $PORTAGE_ROOT  portage-utils
+if [ "$?" -eq 0 ]
+then
+	PORTAGE_UTILS=true
+else
+	PORTAGE_UTILS=false
+fi
+
 alias echo_v=echo
 
 PACKAGE_NAMES=false
@@ -333,6 +342,7 @@ else
 	set_trap "$LIST.1_*"
 
 	# Hack for the different versions of find.
+	# Be extra paranoid and pipe results through sed to remove multiple slashes
 	find_results=$(find /usr/bin/revdep-rebuild -type f -perm /u+x 2>/dev/null)
 	if [ -z $find_results ]
 	then
@@ -346,11 +356,11 @@ else
 			exit 1
 		else
 			# using -perm +u+x for find command
-			find $SEARCH_DIRS -type f \( -perm +u+x -o -name '*.so' -o -name '*.so.*' -o -name '*.la' \) 2>/dev/null | sort | uniq >$LIST.0_files
+			find $SEARCH_DIRS -type f \( -perm +u+x -o -name '*.so' -o -name '*.so.*' -o -name '*.la' \) 2>/dev/null | sort | uniq | sed 's:/\+:/:g' >$LIST.0_files
 		fi
 	else
 		# using -perm /u+x for find command
-		find $SEARCH_DIRS -type f \( -perm /u+x -o -name '*.so' -o -name '*.so.*' -o -name '*.la' \) 2>/dev/null | sort | uniq >$LIST.0_files
+		find $SEARCH_DIRS -type f \( -perm /u+x -o -name '*.so' -o -name '*.so.*' -o -name '*.la' \) 2>/dev/null | sort | uniq | sed 's:/\+:/:g' >$LIST.0_files
 	fi
 
 	# Remove files that match SEARCH_DIR_MASK
@@ -462,7 +472,11 @@ if $PACKAGE_NAMES ; then
 		echo -n >$LLIST.4_packages_raw
 		echo -n >$LLIST.4_package_owners
 		cat $LLIST.3_rebuild | while read FILE ; do
-			EXACT_PKG="$(echo $FILE | sed 's/^/obj /' | (cd /var/db/pkg; grep -l -f - */*/CONTENTS) | sed s:/CONTENTS:: )"
+			if $PORTAGE_UTILS ; then
+				EXACT_PKG="$(qfile -qvC ${FILE} )"
+			else
+				EXACT_PKG="$(echo "$FILE " | sed 's/^/obj /' | (cd /var/db/pkg; grep -l -f - */*/CONTENTS) | sed s:/CONTENTS:: )"
+			fi
 			# Ugly sed hack to strip version information
 			PKG="$(echo $EXACT_PKG | sed 's/-r[0-9].*$//;s/\(^.*\/*\)-.*$/\1/')"
 			if [ -z "$PKG" ] ; then
@@ -635,15 +649,6 @@ if $IS_REAL_MERGE ; then
 	done
 	echo
 fi
-
-#if $EXACT_EBUILDS ; then
-# Uncomment following, if you want to recompile masked ebuilds.
-## FIXME: Check for PORTDIR_OVERLAY
-#	echo -e "${GR}Temporarilly disabling package mask...${NO}"
-#	trap "mv -i /usr/portage/profiles/package.mask.hidden /usr/portage/profiles/package.mask ; echo -e "\\n\\nTerminated." ; exit 1" \
-#	SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
-#	mv -i /usr/portage/profiles/package.mask /usr/portage/profiles/package.mask.hidden
-#fi
 
 # Run in background to correctly handle Ctrl-C
 (
