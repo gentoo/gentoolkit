@@ -1,3 +1,12 @@
+2006-05-22 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Use qfile to locate packages if portage-utils is
+	installed (Bug #128374). Be even more paranoid about extra slashes in
+	path names (Bug #128108). Remove unused code. Update configuration
+	section of manpage (Bug #126038).
+
+2006-04-02 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Remove double-slashes from path names (Bug #128108)
+
 2006-04-01 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Add fix so that packages no longer in the tree cause
 	errors (Bug #128174). Fix case where masked packages cause
@@ -13,6 +22,10 @@
 
 2006-03-25 Aron Griffis <agriffis@gentoo.org>
 	* eviewcvs: Update for sources.gentoo.org, add subversion support
+
+2006-03-21 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix to clear environment before portageq call. (Bug
+	#126038)
 
 2006-03-08 Paul Varner <fuzzyray@gentoo.org>
 	* genpkgindex: Add binary package indexing utility. (Bug 82132)
