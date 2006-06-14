@@ -222,4 +222,4 @@ class Package:
 		if not self._db:
 			cat = self.get_category()
 			pnv = self.get_name()+"-"+self.get_version()
-			self._db = portage.dblink(cat,pnv,"/",settings)
+			self._db = portage.dblink(cat,pnv,settings["ROOT"],settings)
