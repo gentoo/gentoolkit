@@ -1,3 +1,6 @@
+2006-06-25 Marius Mauch <genone@gentoo.org>
+	* glsa-check: update cve code for bug 128115
+
 2006-06-14 Paul Varner <fuzzyray@gentoo.org>
 	* gentoolkit: Fix package.py to honor $ROOT. (bug #136811)
 

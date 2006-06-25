@@ -196,7 +196,7 @@ if mode == "list":
 
 		sys.stdout.write(")")
 		if list_cve:
-			sys.stdout.write(" "+(",".join([r[:13] for r in myglsa.references if r[:4] == "CAN-"])))
+			sys.stdout.write(" "+(",".join([r[:13] for r in myglsa.references if r[:4] in ["CAN-", "CVE-"]])))
 		sys.stdout.write("\n")		
 	sys.exit(0)
 
