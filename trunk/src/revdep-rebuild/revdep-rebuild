@@ -40,6 +40,7 @@ then
 	echo "      --library NAME   Emerge existing packages that use the library with NAME"
 	echo "      --library=NAME   NAME can be a full path to the library or a basic"
 	echo "                       regular expression (man grep)"
+	echo " -np, --no-path        Do not include searched directories in LD_LIBRARY_PATH"
 	echo " -nc, --no-color       Turn off colored output"
 	echo "  -i, --ignore         Ignore temporary files from previous runs"
 	echo "  -q, --quiet          Be less verbose (also passed to emerge command)"
@@ -166,6 +167,7 @@ SONAME_GREP=grep
 SEARCH_BROKEN=true
 EXTRA_VERBOSE=false
 KEEP_TEMP=false
+FULL_PATH=true
 
 EMERGE_OPTIONS=""
 PRELIMINARY_CALLED_OPTIONS=""
@@ -195,6 +197,10 @@ while [ ! -z "$1" ] ; do
 		;;
 	-nc | --no-color )
 		NOCOLOR=true
+		shift
+		;;
+	-np | --no-path )
+		FULL_PATH=false
 		shift
 		;;
 	-i | --ignore )
@@ -385,7 +391,9 @@ if $SEARCH_BROKEN ; then
 		(
 			echo /lib* /usr/lib* | sed 's/ /:/g'
 			sed '/^#/d;s/#.*$//' </etc/ld.so.conf
-			sed 's:/[^/]*$::' <$LIST.1_files | sort -ru
+			if $FULL_PATH ; then
+				sed 's:/[^/]*$::' <$LIST.1_files | sort -ru
+			fi
 		) | tr '\n' : | tr -d '\r' | sed 's/:$//' >$LIST.2_ldpath
 		echo -e " done.\n  ($LIST.2_ldpath)"
 	fi
