@@ -14,6 +14,9 @@ emerge the best packages available, not neccessarily the exact version of the in
 .B \-\-library=NAME
 emerge packages that use the named library. Name can be a full path to a library or basic regular expression. (See man grep for the definition of basic regular expressions)
 .TP 
+.B \-np | \-\-no\-path
+Do not include searched directories in LD_LIBRARY_PATH. \fBNote:\fR Using this option will cause revdep-rebuild to report some false positives.
+.TP 
 .B \-nc | \-\-no\-color
 turn off colored output (This option is also passed to the emerge command)
 .TP 

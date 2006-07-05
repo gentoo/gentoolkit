@@ -1,3 +1,7 @@
+2006-07-05 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Add --no-path option to revdep-rebuild for bug
+	#137313
+
 2006-06-25 Marius Mauch <genone@gentoo.org>
 	* glsa-check: update cve code for bug 128115
 
