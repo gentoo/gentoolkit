@@ -1,3 +1,9 @@
+2006-07-07 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Rename --no-path to --no-ld-path and change
+	functionality to not set LD_LIBRARY_PATH.  This fixes bug #96946 as
+	well as bug #137313
+	* revdep-rebuild: Apply patch from truedfx to fix bug #38751
+
 2006-07-05 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Add --no-path option to revdep-rebuild for bug
 	#137313
