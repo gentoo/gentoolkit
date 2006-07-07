@@ -40,7 +40,7 @@ then
 	echo "      --library NAME   Emerge existing packages that use the library with NAME"
 	echo "      --library=NAME   NAME can be a full path to the library or a basic"
 	echo "                       regular expression (man grep)"
-	echo " -np, --no-path        Do not include searched directories in LD_LIBRARY_PATH"
+	echo " -np, --no-ld-path     Do not set LD_LIBRARY_PATH"
 	echo " -nc, --no-color       Turn off colored output"
 	echo "  -i, --ignore         Ignore temporary files from previous runs"
 	echo "  -q, --quiet          Be less verbose (also passed to emerge command)"
@@ -167,7 +167,7 @@ SONAME_GREP=grep
 SEARCH_BROKEN=true
 EXTRA_VERBOSE=false
 KEEP_TEMP=false
-FULL_PATH=true
+FULL_LD_PATH=true
 
 EMERGE_OPTIONS=""
 PRELIMINARY_CALLED_OPTIONS=""
@@ -199,8 +199,9 @@ while [ ! -z "$1" ] ; do
 		NOCOLOR=true
 		shift
 		;;
-	-np | --no-path )
-		FULL_PATH=false
+	-np | --no-ld-path )
+		FULL_LD_PATH=false
+		PRELIMINARY_CALLED_OPTIONS="${PRELIMINARY_CALLED_OPTIONS} --no-ld-path"
 		shift
 		;;
 	-i | --ignore )
@@ -380,7 +381,7 @@ else
 	echo -e " done.\n  ($LIST.1_files)"
 fi
 
-if $SEARCH_BROKEN ; then
+if $SEARCH_BROKEN && $FULL_LD_PATH ; then
 	echo
 	echo -n -e "${GR}Collecting complete LD_LIBRARY_PATH...${NO}"
 	if [ -f $LIST.2_ldpath ] ; then
@@ -391,13 +392,11 @@ if $SEARCH_BROKEN ; then
 		(
 			echo /lib* /usr/lib* | sed 's/ /:/g'
 			sed '/^#/d;s/#.*$//' </etc/ld.so.conf
-			if $FULL_PATH ; then
-				sed 's:/[^/]*$::' <$LIST.1_files | sort -ru
-			fi
+			sed 's:/[^/]*$::' <$LIST.1_files | sort -ru
 		) | tr '\n' : | tr -d '\r' | sed 's/:$//' >$LIST.2_ldpath
 		echo -e " done.\n  ($LIST.2_ldpath)"
 	fi
-	export COMPLETE_LD_LIBRARY_PATH="$(cat $LIST.2_ldpath)"
+	COMPLETE_LD_LIBRARY_PATH="$(cat $LIST.2_ldpath)"
 fi
 
 echo
@@ -413,7 +412,7 @@ else
 	# Note: double checking seems to be faster than single
 	# with complete path (special add ons are rare).
 	if ldd "$FILE" 2>/dev/null | grep -v "$LD_MASK" | $SONAME_GREP -q "$SONAME_SEARCH" ; then
-		if $SEARCH_BROKEN ; then
+		if $SEARCH_BROKEN && $FULL_LD_PATH ; then
 			if LD_LIBRARY_PATH="$COMPLETE_LD_LIBRARY_PATH" ldd "$FILE" 2>/dev/null | grep -v "$LD_MASK" | $SONAME_GREP -q "$SONAME_SEARCH" ; then
 				# FIX: I hate duplicating code
 				# Only build missing direct dependencies
@@ -449,7 +448,11 @@ else
 			if [ "$MISSING_LIBS" != "" ]
 			then
 				echo "$FILE" >>$LLIST.3_rebuild
-				echo_v "  found $FILE"
+				if $SEARCH_BROKEN ; then
+					echo_v "  broken $FILE (requires ${MISSING_LIBS})"
+				else
+					echo_v "  found $FILE"
+				fi
 			fi
 		fi
 	fi
