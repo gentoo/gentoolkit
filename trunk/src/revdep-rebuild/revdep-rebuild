@@ -428,7 +428,7 @@ else
 				done
 				if [ "$MISSING_LIBS" != "" ]
 				then
-					echo "$FILE" >>$LLIST.3_rebuild
+					echo "obj $FILE" >>$LLIST.3_rebuild
 					echo_v "  broken $FILE (requires ${MISSING_LIBS})"
 				fi
 			fi
@@ -447,7 +447,7 @@ else
 			done
 			if [ "$MISSING_LIBS" != "" ]
 			then
-				echo "$FILE" >>$LLIST.3_rebuild
+				echo "obj $FILE" >>$LLIST.3_rebuild
 				if $SEARCH_BROKEN ; then
 					echo_v "  broken $FILE (requires ${MISSING_LIBS})"
 				else
@@ -462,7 +462,7 @@ else
 			for depend in $(grep '^dependency_libs' $FILE | awk -F'=' '{print $2}' | sed "s/'//g") ; do
 				[ ${depend:0:1} != '/' ] && continue
 				if [ ! -e $depend ] ; then
-					echo "$FILE" >>$LLIST.3_rebuild
+					echo "obj $FILE" >>$LLIST.3_rebuild
 					echo_v "  broken $FILE (requires ${depend})"
 				fi
 			done
@@ -482,11 +482,11 @@ if $PACKAGE_NAMES ; then
 		set_trap "$LLIST.4_packages*"
 		echo -n >$LLIST.4_packages_raw
 		echo -n >$LLIST.4_package_owners
-		cat $LLIST.3_rebuild | while read FILE ; do
+		cat $LLIST.3_rebuild | while read obj FILE ; do
 			if $PORTAGE_UTILS ; then
 				EXACT_PKG="$(qfile -qvC ${FILE} )"
 			else
-				EXACT_PKG="$(echo "$FILE " | sed 's/^/obj /' | (cd /var/db/pkg; grep -l -f - */*/CONTENTS) | sed s:/CONTENTS:: )"
+				EXACT_PKG=$(find /var/db/pkg -name CONTENTS | xargs fgrep -l "obj $FILE " | sed -e 's:/var/db/pkg/\(.*\)/CONTENTS:\1:g')
 			fi
 			# Ugly sed hack to strip version information
 			PKG="$(echo $EXACT_PKG | sed 's/-r[0-9].*$//;s/\(^.*\/*\)-.*$/\1/')"
@@ -572,11 +572,8 @@ else
 	else
 		if [ -s "$LLIST.3_rebuild" ] ; then
 			set_trap "$LLIST.4_ebuilds"
-			cat $LLIST.3_rebuild | sed 's/^/obj /;s/$/ /' |
-			(
-				cd /var/db/pkg
-				fgrep -l -f - */*/CONTENTS
-			) | sed s:/CONTENTS:: > $LLIST.4_ebuilds
+			find /var/db/pkg -name CONTENTS | xargs fgrep -l -f $LLIST.3_rebuild |
+			sed 's:/var/db/pkg/\(.*\)/CONTENTS:\1:' > $LLIST.4_ebuilds
 			echo -e " done.\n  ($LLIST.4_ebuilds)"
 		else
 			echo " Nothing to rebuild"
