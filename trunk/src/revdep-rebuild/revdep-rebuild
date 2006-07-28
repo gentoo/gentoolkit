@@ -658,12 +658,18 @@ if $IS_REAL_MERGE ; then
 	echo
 fi
 
+# Link file descriptor #6 with stdin
+exec 6<&0
+
 # Run in background to correctly handle Ctrl-C
 (
-	EMERGE_DEFAULT_OPTS="" emerge --oneshot $EMERGE_OPTIONS $REBUILD_LIST
+	EMERGE_DEFAULT_OPTS="" emerge --oneshot $EMERGE_OPTIONS $REBUILD_LIST <&6
 	echo $? >$LLIST.6_status
 ) &
 wait
+
+# Now restore stdin from fd #6, where it had been saved, and close fd #6 ( 6<&- ) to free it for other processes to use.
+exec 0<&6 6<&-
 
 #if $EXACT_EBUILDS ; then
 #	mv -i /usr/portage/profiles/package.mask.hidden /usr/portage/profiles/package.mask
