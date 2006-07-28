@@ -1,3 +1,8 @@
+2006-07-28 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix revdep-rebuild to correctly handle --ask being
+	passed to emerge. Thanks to Sal Gonzalez <ghostx@optonline.net> for
+	the patch. (Bug #37485)
+
 2006-07-07 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Rename --no-path to --no-ld-path and change
 	functionality to not set LD_LIBRARY_PATH.  This fixes bug #96946 as
