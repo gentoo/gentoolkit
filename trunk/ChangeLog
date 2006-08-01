@@ -1,3 +1,7 @@
+2006-07-31 Paul Varner <fuzzyray@gentoo.org>
+	* euse: Replace calls to readlink with bash function for Gentoo/ALT
+	compatibility. (Bugs #140477, #128960)
+
 2006-07-28 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix revdep-rebuild to correctly handle --ask being
 	passed to emerge. Thanks to Sal Gonzalez <ghostx@optonline.net> for

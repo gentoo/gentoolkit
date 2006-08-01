@@ -55,6 +55,14 @@ error() {
 	exit 1
 }
 
+get_real_path() {
+	set -P
+	cd "$1"
+	pwd
+	cd $OLDPWD
+	set +P
+}
+
 check_sanity() {
 	# file permission tests
 	local descdir
@@ -157,12 +165,12 @@ get_all_make_defaults() {
 	local parent
 	local rvalue
 	
-	curdir="$(readlink -f ${MAKE_PROFILE_PATH})"
+	curdir="$(get_real_path ${MAKE_PROFILE_PATH})"
 	
 	while [ -f "${curdir}/parent" ]; do
 		[ -f "${curdir}/make.defaults" ] && rvalue="${curdir}/make.defaults ${rvalue}"
 		parent="$(egrep -v '(^#|^ *$)' ${curdir}/parent)"
-		curdir="$(readlink -f ${curdir}/${parent})"
+		curdir="$(get_real_path ${curdir}/${parent})"
 	done
 
 	echo "${rvalue}"
@@ -173,11 +181,11 @@ get_make_defaults() {
 	local curdir
 	local parent
 	
-	curdir="$(readlink -f ${MAKE_PROFILE_PATH})"
+	curdir="$(get_real_path ${MAKE_PROFILE_PATH})"
 	
 	while [ ! -f "${curdir}/make.defaults" -a -f "${curdir}/parent" ]; do
 		parent="$(egrep -v '(^#|^ *$)' ${curdir}/parent)"
-		curdir="$(readlink -f ${curdir}/${parent})"
+		curdir="$(get_real_path ${curdir}/${parent})"
 	done
 
 	echo "${curdir}/make.defaults"
