@@ -11,7 +11,7 @@ from getopt import getopt,GetoptError
 
 __program__ = "glsa-check"
 __author__ = "Marius Mauch <genone@gentoo.org>"
-__version__ = "0.6.2"
+__version__ = "0.7"
 
 optionmap = [
 ["-l", "--list", "list all unapplied GLSA"],
@@ -25,6 +25,7 @@ optionmap = [
 ["-V", "--version", "some information about this tool"],
 ["-v", "--verbose", "print more information (option)"],
 ["-c", "--cve", "show CAN ids in listing mode (option)"],
+["-m", "--mail", "send a mail with the give GLSAs to the administrator"]
 ]
 
 # print a warning as this is beta code (but proven by now, so no more warning)
@@ -39,8 +40,8 @@ optionmap = [
 args = []
 params = []
 try:
-	args, params = getopt(sys.argv[1:], "dplfchinvVtc", \
-		["dump", "print", "list", "pretend", "fix", "inject", "help", "info", "version", "test", "nocolor", "cve"])
+	args, params = getopt(sys.argv[1:], "dplfchinvVtcm", \
+		["dump", "print", "list", "pretend", "fix", "inject", "help", "info", "version", "test", "nocolor", "cve", "mail"])
 	args = [a for a,b in args]
 	
 	for option in ["--nocolor", "-n"]:
@@ -80,7 +81,7 @@ except GetoptError, e:
 	mode = "help"
 
 # we need a set of glsa for most operation modes
-if len(params) <= 0 and mode in ["fix", "test", "pretend", "dump", "inject"]:
+if len(params) <= 0 and mode in ["fix", "test", "pretend", "dump", "inject", "mail"]:
 	sys.stderr.write("\nno GLSA given, so we'll do nothing for now. \n")
 	sys.stderr.write("If you want to run on all GLSA please tell me so \n")
 	sys.stderr.write("(specify \"all\" as parameter)\n\n")
@@ -135,6 +136,7 @@ glsalist = []
 if "new" in params:
 	glsalist = todolist
 	params.remove("new")
+	
 if "all" in params:
 	glsalist = completelist
 	params.remove("all")
@@ -159,18 +161,17 @@ for p in params[:]:
 
 glsalist.extend([g for g in params if g not in glsalist])
 
-# list short information for given or new GLSA
-if mode == "list":
-	sys.stderr.write(white("[A]")+" means this GLSA was already applied,\n")
-	sys.stderr.write(green("[U]")+" means the system is not affected and\n")
-	sys.stderr.write(red("[N]")+" indicates that the system might be affected.\n\n")
+def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr):
+	fd2.write(white("[A]")+" means this GLSA was already applied,\n")
+	fd2.write(green("[U]")+" means the system is not affected and\n")
+	fd2.write(red("[N]")+" indicates that the system might be affected.\n\n")
 
-	for myid in glsalist:
+	for myid in myglsalist:
 		try:
 			myglsa = Glsa(myid, glsaconfig)
 		except (GlsaTypeException, GlsaFormatException), e:
 			if verbose:
-				sys.stderr.write(("invalid GLSA: %s (error message was: %s)\n" % (myid, e)))
+				fd2.write(("invalid GLSA: %s (error message was: %s)\n" % (myid, e)))
 			continue
 		if myglsa.isApplied():
 			status = "[A]"
@@ -181,24 +182,27 @@ if mode == "list":
 		else:
 			status = "[U]"
 			color = green
-		sys.stdout.write(color(myglsa.nr) + " " + color(status) + " " + myglsa.title + " (")
+		fd1.write(color(myglsa.nr) + " " + color(status) + " " + myglsa.title + " (")
 		if not verbose:
 			for pkg in myglsa.packages.keys()[:3]:
-				sys.stdout.write(" " + pkg + " ")
+				fd1.write(" " + pkg + " ")
 			if len(myglsa.packages) > 3:
-				sys.stdout.write("... ")
+				fd1.write("... ")
 		else:
 			for pkg in myglsa.packages.keys():
 				mylist = portage.db["/"]["vartree"].dbapi.match(portage.dep_getkey(pkg))
 				if len(mylist) > 0:
 					pkg = color(" ".join(mylist))
-				sys.stdout.write(" " + pkg + " ")
+				fd1.write(" " + pkg + " ")
 
-		sys.stdout.write(")")
+		fd1.write(")")
 		if list_cve:
-			sys.stdout.write(" "+(",".join([r[:13] for r in myglsa.references if r[:4] in ["CAN-", "CVE-"]])))
-		sys.stdout.write("\n")		
-	sys.exit(0)
+			fd1.write(" "+(",".join([r[:13] for r in myglsa.references if r[:4] in ["CAN-", "CVE-"]])))
+		fd1.write("\n")		
+	return 0
+
+if mode == "list":
+	sys.exit(summarylist(glsalist))
 
 # dump, fix, inject and fix are nearly the same code, only the glsa method call differs
 if mode in ["dump", "fix", "inject", "pretend"]:
@@ -264,6 +268,52 @@ if mode == "test":
 		sys.stdout.write("\n".join(outputlist)+"\n")
 	else:
 		sys.stderr.write("This system is not affected by any of the listed GLSAs\n")
+	sys.exit(0)
+
+# mail mode as requested by solar
+if mode == "mail":
+	import portage_mail, socket
+	from StringIO import StringIO
+	
+	# color doesn't make any sense for mail
+	nocolor()
+
+	if glsaconfig.has_key("PORTAGE_ELOG_MAILURI"):
+		myrecipient = glsaconfig["PORTAGE_ELOG_MAILURI"].split()[0]
+	else:
+		myrecipient = "root@localhost"
+	
+	if glsaconfig.has_key("PORTAGE_ELOG_MAILFROM"):
+		myfrom = glsaconfig["PORTAGE_ELOG_MAILFROM"]
+	else:
+		myfrom = "glsa-check"
+
+	mysubject = "[glsa-check] Summary for %s" % socket.getfqdn()
+
+	# need a file object for summarylist()
+	myfd = StringIO()
+	myfd.write("GLSA Summary report for host %s\n" % socket.getfqdn())
+	myfd.write("(Command was: %s)\n\n" % " ".join(sys.argv))
+	summarylist(glsalist, fd1=myfd, fd2=myfd)
+	summary = str(myfd.getvalue())
+	myfd.close()
+
+	myattachments = []
+	for myid in glsalist:
+		try:
+			myglsa = Glsa(myid, glsaconfig)
+		except (GlsaTypeException, GlsaFormatException), e:
+			if verbose:
+				sys.stderr.write(("invalid GLSA: %s (error message was: %s)\n" % (myid, e)))
+			continue
+		myfd = StringIO()
+		myglsa.dump(outstream=myfd)
+		myattachments.append(str(myfd.getvalue()))
+		myfd.close()
+		
+	mymessage = portage_mail.create_message(myfrom, myrecipient, mysubject, summary, myattachments)
+	portage_mail.send_mail(glsaconfig, mymessage)
+		
 	sys.exit(0)
 	
 # something wrong here, all valid paths are covered with sys.exit()
