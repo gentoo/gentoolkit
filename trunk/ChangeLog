@@ -1,3 +1,8 @@
+2006-08-12 Marius Mauch <genone@gentoo.org>
+	* glsa-check: Add new --mail option to send out vulnerability reports
+	(output of --list plus --dump for each matched glsa as attachment),
+	using elog configuration.
+
 2006-07-31 Paul Varner <fuzzyray@gentoo.org>
 	* euse: Replace calls to readlink with bash function for Gentoo/ALT
 	compatibility. (Bugs #140477, #128960)
