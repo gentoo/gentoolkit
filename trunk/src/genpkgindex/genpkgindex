@@ -105,15 +105,17 @@ for cat, pkg, tbz2, stuff in packages:
 					fp.write("DESC: "+line+"\n")
 					break
 
-	for name in [ "PF", "CATEGORY", "LICENSE", "RDEPEND" , "SLOT"]:
+	for name in [ "PF", "CATEGORY", "LICENSE", "RDEPEND", "PDEPEND", "PROVIDE", "SLOT" ]:
 		item = xpak.getitem(stuff, name)
 		if (item != None) and item:
-			if name == "RDEPEND":
+			if name == "RDEPEND" or name == "PDEPEND":
 				val = string.strip(string.join(portage.flatten(portage_dep.use_reduce(portage_dep.paren_reduce(item), uselist=use.split())),' '))
 				if val:
 					fp.write(name+": " + string.join(val.split()) + "\n")
 			else:
 				val = string.strip(str(item))
+				if not len(val):
+					continue
 				if name == "SLOT":
 					if (val != "0"):
 						fp.write(name + ": " + val + "\n")
