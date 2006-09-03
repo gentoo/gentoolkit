@@ -28,8 +28,8 @@ be less verbose (This option is also passed to the emerge command)
 .TP 
 .B \-vv | \-\-extra\-verbose
 be extra verbose (currently prints the revdep\-rebuild search environment)
-
-All other options are passed to the emerge command
+.TP
+.B All other options are passed to the emerge command
 .SH "CONFIGURATION"
 revdep\-rebuild no longer uses hardcoded paths. To change the default behavior the following variables can be changed by the user.
 
@@ -86,10 +86,6 @@ Rebuilding using \-\-package\-names mode should be default, but emerge has no fe
 http://bugs.gentoo.org/show_bug.cgi?id=4698
 
 \fBNote:\fR The ability to update to the latest version of a slotted package has been added to revdep\-rebuild.  However, it is possible for this feature to still not work 100% correctly
-.LP 
-Does not correctly handle interactive emerge commands.
-.br 
-http://bugs.gentoo.org/show_bug.cgi?id=37485
 
 Report bugs to <http://bugs.gentoo.org>
 .SH "SEE ALSO"
