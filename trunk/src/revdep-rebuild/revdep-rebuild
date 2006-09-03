@@ -333,6 +333,10 @@ then
 	fi
 fi
 
+# Clean up no longer needed environment variables
+unset PREVIOUS_SEARCH_DIRS PREVIOUS_SEARCH_DIRS_MASK PREVIOUS_LD_LIBRARY_MASK PREVIOUS_PORTAGE_ROOT PREVIOUS_OPTIONS
+unset PRELIMINARY_SEARCH_DIRS PRELIMINARY_SEARCH_DIRS_MASK PRELIMINARY_LD_LIBRARY_MASK PRELIMINARY_CALLED_OPTIONS
+
 # Log our environment
 echo "SEARCH_DIRS=\"$SEARCH_DIRS\"" > $LIST.0_env
 echo "SEARCH_DIRS_MASK=\"$SEARCH_DIRS_MASK\"" >> $LIST.0_env
@@ -645,6 +649,9 @@ else
 	fi
 	echo -e " done.\n  ($LLIST.5_order)"
 fi
+
+# Clean up no longer needed environment variables
+unset COMPLETE_LD_LIBRARY_PATH SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK PORTAGE_ROOT CALLED_OPTIONS
 
 REBUILD_LIST="$(cat $LLIST.5_order | sed s/^/=/ | tr '\n' ' ')"
 
