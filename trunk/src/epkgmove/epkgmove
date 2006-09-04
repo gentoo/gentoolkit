@@ -404,7 +404,7 @@ class CVSAbstraction:
                     for choice in choice_list:
 	                print "%s: Replace with '%s'," % (white(choice), green(choice_list[choice])),
 		if match_count == 0:
-		    print "%s: Pass, %s: Skipp this file, %s: Custom" % (white(str(len(choice_list)+1)), white(str(len(choice_list)+2)), white(str(len(choice_list)+3))),
+		    print "%s: Pass, %s: Skip this file, %s: Custom" % (white(str(len(choice_list)+1)), white(str(len(choice_list)+2)), white(str(len(choice_list)+3))),
 		else:
 		    print "%s: Pass, %s: Custom" % (white(str(len(choice_list)+1)), white(str(len(choice_list)+2))),
 		try:
@@ -859,8 +859,8 @@ if __name__ == "__main__":
     parser = OptionParser(usage="%prog [ option ] [ origin ] [ destination ]", version="%s-%s" % (__productname__, __version__))
     parser.add_option("--usage", action="store_true", dest="usage", default=False, help="Pint usage information")
     parser.add_option("-q", "--queue-check", action="store_true", dest="commit_queue", default=False, help="Check the cvs tree for files awaiting commit")
-    parser.add_option("-u", "--no-cvs-up", action="store_true", dest="cvs_up", default=False, help="Skipp running cvs up in the origin and destination categories")
-    parser.add_option("-c", "--no-countdown", action="store_true", dest="countdown", default=False, help="Skipp countdown before performing")
+    parser.add_option("-u", "--no-cvs-up", action="store_true", dest="cvs_up", default=False, help="Skip running cvs up in the origin and destination categories")
+    parser.add_option("-c", "--no-countdown", action="store_true", dest="countdown", default=False, help="Skip countdown before performing")
     parser.add_option("-R", "--remove", action="store_true", dest="remove", default=False, help="Remove package")
     parser.add_option("-F", "--force", action="store_true", dest="force", default=False, help="Force removal of package, ignoring any reverse deps")
     (options, args) = parser.parse_args()
