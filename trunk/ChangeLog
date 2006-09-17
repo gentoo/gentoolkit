@@ -1,3 +1,8 @@
+2006-09-03 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Remove unused environment variables before calling
+	emerge (Bug #142074). Check for permissions to write temporary files
+	(Bug #142308)
+
 2006-08-12 Marius Mauch <genone@gentoo.org>
 	* glsa-check: Add new --mail option to send out vulnerability reports
 	(output of --list plus --dump for each matched glsa as attachment),
