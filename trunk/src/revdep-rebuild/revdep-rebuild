@@ -548,15 +548,15 @@ if $PACKAGE_NAMES ; then
 				# Get the slot
 				PKG="$(echo $EXACT_PKG | sed 's/-r[0-9].*$//;s/\(^.*\/*\)-.*$/\1/')"
 				SLOT=$(cat /var/db/pkg/${EXACT_PKG}/SLOT)
+				OTHER_VERSIONS=$(/usr/lib/gentoolkit/bin/find_pkgs.py $PKG | grep -v "($SLOT)" | awk '{print $2}')
 				# If SLOT is equal to 0, then just see what portage says is latest version
-				if [ "$SLOT" = "0" ]
+				if [ "$SLOT" = "0" -o "x$OTHER_VERSIONS" = "x" ]
 				then
 					best_visible=$(portageq best_visible $PORTAGE_ROOT $PKG)
 					[ "x" != "x$best_visible" ] && echo $best_visible
 					continue
 				fi
 				# Otherwise mask the other SLOTTED versions and check for latest
-				OTHER_VERSIONS=$(/usr/lib/gentoolkit/bin/find_pkgs.py $PKG | grep -v "($SLOT)" | awk '{print $2}')
 				if [ -f /etc/portage/package.mask ]
 				then
 					mv -f /etc/portage/package.mask /etc/portage/package.mask.revdep-rebuild.backup
@@ -610,6 +610,7 @@ echo -n -e "${GR}Evaluating package order...${NO}"
 if [ -f $LLIST.5_order ] ; then
 	echo " using existing $LLIST.5_order."
 else
+	set_trap "$LLIST.5_order"
 	RAW_REBUILD_LIST="$(cat $LLIST.4_ebuilds | sed s/^/=/ | tr '\n' ' ')"
 	if [ ! -z "$RAW_REBUILD_LIST" ] ; then
 		REBUILD_GREP="^\\($( (EMERGE_DEFAULT_OPTS="" emerge --nospinner --pretend --oneshot --nodeps --quiet $RAW_REBUILD_LIST ; echo $? >$LLIST.5a_status ) | sed -n 's/\./\\&/g;s/ //g;s/$/\\/;s/\[[^]]*\]//gp' | tr '\n' '|' | sed 's/|$//'))\$"
