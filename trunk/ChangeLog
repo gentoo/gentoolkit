@@ -1,3 +1,7 @@
+2006-09-21 Paul Varner <fuzzyray@gentoo.org>
+	* eread: Add eread script for reading and managing portage ELOG files.
+	Thanks to Donnie Berkholz for writing this.
+
 2006-09-03 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Remove unused environment variables before calling
 	emerge (Bug #142074). Check for permissions to write temporary files
