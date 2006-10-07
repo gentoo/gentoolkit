@@ -59,7 +59,7 @@ get_real_path() {
 	set -P
 	cd "$1"
 	pwd
-	cd $OLDPWD
+	cd "$OLDPWD"
 	set +P
 }
 
