@@ -65,8 +65,11 @@ def fileAsStr(name, fdesc, showType=0, showMD5=0, showTimestamp=0):
 	elif fdesc[0] == "fif":
 		type = "fifo"
 		fname = name
+	elif fdesc[0] == "dev":
+		type = "device"
+		fname = name
 	else:
-		raise Exception(fdesc[1] + " has unknown type: " + fdesc[0])
+		raise Exception(name + " has unknown type: " + fdesc[0])
 
 	s = ""
 	if showType:
