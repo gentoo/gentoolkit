@@ -3,8 +3,10 @@
 # Distributed under the terms of the GNU General Public License v2
 
 import os, string, stat, sys, time
+if getattr(__builtins__, "set", None) is None:
+	from sets import Set as set
 
-for x in ['CFLAGS','LDFLAGS','USE']:
+for x in ['CFLAGS','CXXFLAGS', 'LDFLAGS','USE']:
 	os.environ[x]=''
 
 import xpak, portage, portage_checksum, portage_dep, portage_util
@@ -74,7 +76,7 @@ if argc <= 1:
 	fp.write("PACKAGES: "+str(len(packages)) +"\n")
 	fp.write("TIMESTAMP: "+timestamp+"\n")
 
-	vmask = [ "AUTOCLEAN", "DISTDIR", "PKGDIR", "PORTDIR" , "PORTAGE_TMPDIR" ]
+	vmask = [ "AUTOCLEAN", "DISTDIR", "PKGDIR", "PORTDIR" , "PORTAGE_TMPDIR" , "PORTAGE_RSYNC_OPTS" ]
 	vars = portage_util.grabfile(portage.settings["PORTDIR"]+"/profiles/info_vars")
 	for x in vmask:
 		vars.remove(x)
@@ -91,46 +93,72 @@ else:
 
 fp.write("\n")
 
+def serialize_depset(src, context='and'):
+	l = []
+	if not src:
+		return ''
+	if isinstance(src, basestring):
+		return src
+	i = iter(src)
+	for x in i:
+		if isinstance(x, basestring):
+			if x != '||':
+				l.append(x)
+				continue
+			x = i.next()
+			if len(x) == 1:
+				l.append(serialize_depset(x[0]))
+			else:
+				l.append("|| ( %s )" % serialize_depset(x))
+		else:
+			# and block.
+			if context == 'and':
+				v = serialize_depset(x, context=context)
+				if v.strip():
+					l.append(v)
+			else:
+				v = serialize_depset(x, context='or')
+				if v.strip():
+					l.append("( %s )" % v)
+	return ' '.join(l)
+
 for cat, pkg, tbz2, stuff in packages:
 	use = xpak.getitem(stuff, "USE")
+	if use is None:
+		use = ''
 	iuse = xpak.getitem(stuff, "IUSE")
+	if iuse is None:
+		iuse = ''
 
-	for name in tbz2.filelist():
-		if name.endswith(".ebuild"):
-			elines=tbz2.getfile(name).splitlines()
-			for line in elines:
-				if line.startswith("DESCRIPTION="):
-					line = line[13:]
-					line = line[:-1]
-					fp.write("DESC: "+line+"\n")
-					break
+	s = xpak.getitem(stuff, "DESCRIPTION")
+	if s is not None:
+		s = s.split()
+		if s:
+			fp.write("DESC: %s\n" % ' '.join(s))
+	# drop '.tbz2'
+	fp.write("PF: %s\nCATEGORY: %s\n" % (pkg[:-5], cat.strip()))
+	s = xpak.getitem(stuff, "SLOT")
+	if s is not None:
+		s = s.strip()
+		if s and s != "0":
+			fp.write("SLOT: %s\n" % s)
 
-	for name in [ "PF", "CATEGORY", "LICENSE", "RDEPEND", "PDEPEND", "PROVIDE", "SLOT" ]:
+	split_use = use.split()
+	for name in ("LICENSE", "RDEPEND", "PDEPEND", "PROVIDE"):
 		item = xpak.getitem(stuff, name)
-		if (item != None) and item:
-			if name == "RDEPEND" or name == "PDEPEND":
-				val = string.strip(string.join(portage.flatten(portage_dep.use_reduce(portage_dep.paren_reduce(item), uselist=use.split())),' '))
-				if val:
-					fp.write(name+": " + string.join(val.split()) + "\n")
-			else:
-				val = string.strip(str(item))
-				if not len(val):
-					continue
-				if name == "SLOT":
-					if (val != "0"):
-						fp.write(name + ": " + val + "\n")
-				else:
-					fp.write(name + ": " + val + "\n")
+		if item is None:
+			continue
+		val = portage_dep.use_reduce(portage_dep.paren_reduce(item.strip()), uselist=split_use)
+		if val:
+			fp.write("%s: %s\n" % (name, serialize_depset(val)))
 
 	# map IUSE->USE and look for matching flags, filter dupes
 	# if both flags match then this is what matters.
-	used=[]
-	for x in iuse.split(' '):
-		for y in use.split(' '):
-			if x == y and y not in used:
-				used += [y]
-	if used:
-		fp.write("USE: " + str(string.join(used)) +"\n")
+	s = set(split_use).intersection(iuse.split())
+	if s:
+		l = list(s)
+		l.sort()
+		fp.write("USE: %s\n" % ' '.join(l))
 
 	st = os.stat(pkg)
 	fp.write("SIZE: "+ str(st[stat.ST_SIZE]) +"\n")
