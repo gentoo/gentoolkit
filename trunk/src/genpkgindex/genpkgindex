@@ -119,7 +119,7 @@ def serialize_depset(src, context='and'):
 			else:
 				v = serialize_depset(x, context='or')
 				if v.strip():
-					l.append("( %s )" % v)
+					l.append("( %s )" % v.strip())
 	return ' '.join(l)
 
 for cat, pkg, tbz2, stuff in packages:
@@ -132,14 +132,14 @@ for cat, pkg, tbz2, stuff in packages:
 
 	s = xpak.getitem(stuff, "DESCRIPTION")
 	if s is not None:
-		s = s.split()
+		s = ' '.join(s.split())
 		if s:
-			fp.write("DESC: %s\n" % ' '.join(s))
+			fp.write("DESC: %s\n" % s)
 	# drop '.tbz2'
 	fp.write("PF: %s\nCATEGORY: %s\n" % (pkg[:-5], cat.strip()))
 	s = xpak.getitem(stuff, "SLOT")
 	if s is not None:
-		s = s.strip()
+		s = ' '.join(s.split())
 		if s and s != "0":
 			fp.write("SLOT: %s\n" % s)
 
@@ -148,7 +148,7 @@ for cat, pkg, tbz2, stuff in packages:
 		item = xpak.getitem(stuff, name)
 		if item is None:
 			continue
-		val = portage_dep.use_reduce(portage_dep.paren_reduce(item.strip()), uselist=split_use)
+		val = portage_dep.use_reduce(portage_dep.paren_reduce(' '.join(item.split())), uselist=split_use)
 		if val:
 			fp.write("%s: %s\n" % (name, serialize_depset(val)))
 
