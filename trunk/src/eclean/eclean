@@ -157,7 +157,7 @@ def printUsage(error=None,help=None):
 		print >>out, yellow(" -f, --fetch-restricted")+ \
 			"   - protect fetch-restricted files (when --destructive)"
 		print >>out, yellow(" -s, --size-limit=<size>")+ \
-			"  - don't delete disfiles bigger than "+yellow("<size>")
+			"  - don't delete distfiles bigger than "+yellow("<size>")
 		print >>out, "   "+yellow("<size>"), "is a size specification: "+ \
 				"\"10M\" is \"ten megabytes\", \"200K\" is"
 		print >>out, "   "+"\"two hundreds kilobytes\", etc.  Units are: "+ \
