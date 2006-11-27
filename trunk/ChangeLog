@@ -1,3 +1,6 @@
+2006-11-27 Paul Varner <fuzzyray@gentoo.org>
+	* eclean: Fix typographical error in help and man page. (Bug #156243)
+
 2006-10-11 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Fix fileAsStr to understand device files.
 	(http://forums.gentoo.org/viewtopic-p-3639575.html)
