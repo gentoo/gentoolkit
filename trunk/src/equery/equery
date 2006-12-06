@@ -703,6 +703,8 @@ class CmdDisplaySize(Command):
 	"""Display disk size consumed by a package"""
 	def __init__(self):
 		self.default_opts = {
+			"regex": 0,
+			"exact": 0,
 			"reportSizeInBytes": 0
 			}
 
@@ -725,10 +727,15 @@ class CmdDisplaySize(Command):
 				break
 			elif x in ["-b","--bytes"]:
 				opts["reportSizeInBytes"] = 1
+			elif x in ["-f", "--full-regex"]:
+				opts["regex"] = 1
+			elif x in ["-e", "--exact-name"]:
+				opts["exact"] = 1
 			else:
 				query = x
 
-		if need_help or query == "":
+#		if need_help or query == "":
+		if need_help:
 			print_info(0, self.longHelp())
 			sys.exit(-1)
 			
@@ -737,32 +744,69 @@ class CmdDisplaySize(Command):
 	def perform(self, args):
 		(query, opts) = self.parseArgs(args)
 
+		rev = ""
+		name = ""
+		ver = ""
+		cat = ""
+
+		if query != "":
+			(cat, name, ver, rev) = gentoolkit.split_package_name(query)
+			if rev == "r0": rev = ""
+
+		# replace empty strings with .* and escape regular expression syntax
+		if query != "":
+			if not opts["regex"]:
+				cat, name, ver, rev = [re.sub('^$', ".*", re.escape(x)) for x in cat, name, ver, rev]
+			else:
+				cat, name, ver, rev = [re.sub('^$', ".*", x) for x in cat, name, ver, rev]
+
+			try:
+				if opts["exact"]:
+					filter_fn = lambda x: re.match(cat+"/"+name, x)
+				else:
+					filter_fn = lambda x: re.match(cat+"/.*"+name, x)
+				matches = gentoolkit.find_all_installed_packages(filter_fn)
+			except:
+				die(2, "The query '" + pp.regexpquery(query) + "' does not appear to be a valid regular expression")
+		else:
+			cat, name, ver, rev = [re.sub('^$', ".*", x) for x in cat, name, ver, rev]
+			matches = gentoolkit.find_all_installed_packages()
+
+		matches = gentoolkit.sort_package_list(matches)
+
 		if not Config["piping"] and Config["verbosityLevel"] >= 3:
 			print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
 
-		matches = gentoolkit.find_packages(query, True)
+		# If no version supplied, fix regular expression
+		if ver == ".*": ver = "[0-9]+[^-]*"
+
+		if rev != ".*":	# revision supplied
+			ver = ver + "-" + rev
+
+		if opts["exact"]:
+			rx = re.compile(cat + "/" + name + "-" + ver)
+		else:
+			rx = re.compile(cat + "/.*" + name + ".*-" + ver)
 
 		for pkg in matches:
-			if not pkg.is_installed():
-				continue
+			if rx.search(pkg.get_cpv()):
+				(size, files, uncounted) = pkg.size()
 
-			(size, files, uncounted) = pkg.size()
+				if Config["piping"]:
+					print_info(0, pkg.get_cpv() + ": total(" + str(files) + "), inaccessible(" + str(uncounted) + \
+						"), size(" + str(size) + ")")
+				else:
+					print_info(0, pp.section("* ") + "size of " + pp.cpv(pkg.get_cpv()))
+					print_info(0, string.rjust(" Total files : ",25) + pp.number(str(files)))
 
-			if Config["piping"]:
-				print_info(0, pkg.get_cpv() + ": total(" + str(files) + "), inaccessible(" + str(uncounted) + \
-					"), size(" + str(size) + ")")
-			else:
-				print_info(0, pp.section("* ") + "size of " + pp.cpv(pkg.get_cpv()))
-				print_info(0, string.rjust(" Total files : ",25) + pp.number(str(files)))
-	
-				if uncounted:
-					print_info(0, string.rjust(" Inaccessible files : ",25) + pp.number(str(uncounted)))
-	
-				sz = "%.2f KiB" % (size/1024.0)				
-				if opts["reportSizeInBytes"]:
-					sz = pp.number(str(size)) + " bytes"
-				
-				print_info(0, string.rjust("Total size  : ",25) + pp.number(sz))
+					if uncounted:
+						print_info(0, string.rjust(" Inaccessible files : ",25) + pp.number(str(uncounted)))
+
+					sz = "%.2f KiB" % (size/1024.0)				
+					if opts["reportSizeInBytes"]:
+						sz = pp.number(str(size)) + " bytes"
+
+					print_info(0, string.rjust("Total size  : ",25) + pp.number(sz))
 
 					
 	def shortHelp(self):
@@ -774,7 +818,9 @@ class CmdDisplaySize(Command):
 			   "  " + pp.command("size") + pp.localoption(" <local-opts> ") + pp.pkgquery("pkgspec") + \
 			   "\n" + \
 			   pp.localoption("<local-opts>") + " is: \n" + \
-			   "  " + pp.localoption("-b, --bytes") + " - report size in bytes\n"
+			   "  " + pp.localoption("-b, --bytes") + "      - report size in bytes\n" \
+			   "  " + pp.localoption("-f, --full-regex") + " - query is a regular expression\n" + \
+			   "  " + pp.localoption("-e, --exact-name") + " - list only those packages that exactly match\n"
 
 class CmdDisplayChanges(Command):
 	"""Display changes for pkgQuery"""

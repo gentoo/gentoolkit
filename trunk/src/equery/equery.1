@@ -214,14 +214,21 @@ equery list \-\-full\-regex '(mozilla\-firefox|mozilla\-thunderbird)' \- list al
 
 equery list \-\-duplicates \- list all installed slotted packages
 .PP 
+.TP
 .B size <local\-opts> pkgspec
 This command outputs the number of files in the specified package, as well as
 their total size in an appropriate unit.
 
-The only possible value for <local\-opts>, if specified, is:
+The possible values for <local\-opts>, if specified, are:
 .br 
 .B \-b, \-\-bytes 
 report size in bytes
+.br 
+.B \-f, \-\-full\-regex
+query is a regular expression
+.br 
+.B \-e, \-\-exact\-name
+list only those packages that exactly match
 .PP 
 .TP 
 .B uses <local\-opts> pkgspec 
