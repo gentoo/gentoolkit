@@ -1,3 +1,7 @@
+2006-12-06 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Modify equery size command to work like the equery list
+	command for pkgspec arguments
+
 2006-11-27 Paul Varner <fuzzyray@gentoo.org>
 	* eclean: Fix typographical error in help and man page. (Bug #156243)
 
