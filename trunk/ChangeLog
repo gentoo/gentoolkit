@@ -1,3 +1,7 @@
+2006-12-12 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Add --tree option to equery files command. (Bug #62898)
+	Thanks to scope for the patch.
+
 2006-12-06 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Modify equery size command to work like the equery list
 	command for pkgspec arguments

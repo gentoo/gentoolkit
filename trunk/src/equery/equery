@@ -116,6 +116,7 @@ class CmdListFiles(Command):
 			"showType": 0,
 			"showTimestamp": 0,
 			"showMD5": 0,
+			"tree": 0,
 			"filter": None
 			}
 
@@ -132,6 +133,8 @@ class CmdListFiles(Command):
 				opts["showTimestamp"] = 1
 			elif x in ["--type"]:
 				opts["showType"] = 1
+			elif x in ["--tree"]:
+				opts["tree"] = 1
 			elif x[:9] == "--filter=":
 				opts["filter"] = string.split(x[9:],',')
 			elif x[0] == "/":
@@ -223,6 +226,10 @@ class CmdListFiles(Command):
 
 		(query, opts) = self.parseArgs(args)
 
+		# Turn off filtering for tree output
+		if opts["tree"]:
+			opts["filter"] = None
+
 		if not Config["piping"] and Config["verbosityLevel"] >= 3:
 			print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
 			
@@ -239,13 +246,37 @@ class CmdListFiles(Command):
 			filenames = cnt.keys()
 			filenames.sort()
 			
+			last=[]
 			for name in filenames:
-				print_info(0, fileAsStr(name,
-									cnt[name],
-									showType=opts["showType"],
-									showTimestamp=opts["showTimestamp"],
-									showMD5=opts["showMD5"]))
-		
+				if not opts["tree"]:
+					print_info(0, fileAsStr(name,
+								cnt[name],
+								showType=opts["showType"],
+								showTimestamp=opts["showTimestamp"],
+								showMD5=opts["showMD5"]))
+				else:
+					c = name.split( "/" )[1:]
+					if cnt[name][0] == "dir":
+						if len(last) == 0:
+							last = c
+							print pp.path(" /" + c[0])
+							continue
+						numol = 0
+						for d in c:
+							if d in last:
+								numol = last.index(d) + 1
+								continue
+							last = c
+							if len(last) == 1:
+								print pp.path(" " + last[0])
+								continue
+							print pp.path(" " * ( numol * 3 ) + "> " + "/" + last[-1])
+					elif cnt[name][0] == "sym":
+						print pp.path(" " * ( bl * 3 ) + "+ ") + pp.path_symlink(c[-1] + " -> " +  cnt[name][2])
+					else:
+						bl = len(last)
+						print pp.path(" " * ( bl * 3 ) + "+ ") + c[-1]
+
 	def longHelp(self):
 		return "List files owned by a particular package\n" + \
 			   "\n" + \
@@ -258,6 +289,7 @@ class CmdListFiles(Command):
 			   "  " + pp.localoption("--timestamp") + "      - append timestamp\n" + \
 			   "  " + pp.localoption("--md5sum") + "         - append md5sum\n" + \
 			   "  " + pp.localoption("--type") + "           - prepend file type\n" + \
+			   "  " + pp.localoption("--tree") + "           - display results in a tree (turns off other options)\n" + \
 			   "  " + pp.localoption("--filter=<rules>") + " - filter output\n" + \
 			   "  " + pp.localoption("<rules>") + " is a comma separated list of elements you want to see:\n" + \
 			   "  " + "  " + pp.localoption("dir") + \
