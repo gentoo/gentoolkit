@@ -1,3 +1,7 @@
+2006-12-13 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix handling of /etc/portage/package.mask (Bug
+	#158025) Thanks to Wolfram Schlich for the patch.
+
 2006-12-12 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Add --tree option to equery files command. (Bug #62898)
 	Thanks to scope for the patch.

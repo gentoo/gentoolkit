@@ -557,7 +557,7 @@ if $PACKAGE_NAMES ; then
 					continue
 				fi
 				# Otherwise mask the other SLOTTED versions and check for latest
-				if [ -f /etc/portage/package.mask ]
+				if [ -e /etc/portage/package.mask ]
 				then
 					mv -f /etc/portage/package.mask /etc/portage/package.mask.revdep-rebuild.backup
 				else
@@ -571,11 +571,10 @@ if $PACKAGE_NAMES ; then
 				done
 				best_visible=$(portageq best_visible $PORTAGE_ROOT $PKG)
 				[ "x" != "x$best_visible" ] && echo $best_visible
-				if [ -f /etc/portage/package.mask.revdep-rebuild.backup ]
+				rm -f /etc/portage/package.mask
+				if [ -e /etc/portage/package.mask.revdep-rebuild.backup ]
 				then
 					mv -f /etc/portage/package.mask.revdep-rebuild.backup /etc/portage/package.mask
-				else
-					rm -f /etc/portage/package.mask
 				fi
 			done > $LLIST.4_ebuilds
 			echo -e " done.\n  ($LLIST.4_ebuilds)"
