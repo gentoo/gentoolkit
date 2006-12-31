@@ -1107,6 +1107,9 @@ class CmdListDepends(Command):
 			print_info(3, "[ Searching for packages depending on " + pp.pkgquery(query) + "... ]")
 
 		isdepend = gentoolkit.split_package_name(query)
+		isdepends = map((lambda x: x.get_cpv()), gentoolkit.find_packages(query))
+		if not isdepends:
+			print_warn("Warning: No packages found matching %s" % query)
 		
 		if opts["onlyInstalled"]:
 			packages = gentoolkit.find_all_installed_packages()
@@ -1149,50 +1152,54 @@ class CmdListDepends(Command):
 			for dependency in deps:
 				# TODO determine if dependency is enabled by USE flag
 				# Find all packages matching the dependency
-				Config["verbosityLevel"] = 4
-				for x in gentoolkit.find_packages(dependency[0]+dependency[2]):
-					cpvs=gentoolkit.split_package_name(x.get_cpv())
-					cat_match=0
-					name_match=0
-					ver_match=0
-					# Match Category
-					if not isdepend[0] or \
-						cpvs[0] == isdepend[0]:
+				for x in map((lambda x: x.get_cpv()), gentoolkit.find_packages(dependency[0]+dependency[2])):
+					cpvs=gentoolkit.split_package_name(x)
+					if x in isdepends:
 						cat_match=1
-					# Match Name
-					if cpvs[1] == isdepend[1]:
 						name_match=1
-					# Match Version
-					if not isdepend[2] or \
-						( cpvs[2] == isdepend[2] and \
-					  	(isdepend[3] or \
-					   	isdepend[3] == "r0" or \
-					   	cpvs[3] == isdepend[3])):
-					  	ver_match=1
+						ver_match=1
+					else:
+						cat_match=0
+						name_match=0
+						ver_match=0
+						# Match Category
+						if not isdepend[0] or cpvs[0] == isdepend[0]:
+							cat_match=1
+						# Match Name
+						if cpvs[1] == isdepend[1]:
+							name_match=1
+						# Match Version
+						if not isdepend[2] or ( cpvs[2] == isdepend[2] and (isdepend[3] \
+						   or isdepend[3] == "r0" or cpvs[3] == isdepend[3])):
+							ver_match=1
+
 					if cat_match and ver_match and name_match:
 						if not isdep:
 							if dependency[1]:
-								print pkg.get_cpv(),
-								if Config["verbosityLevel"] >= 4:
-								   	print "(" +string.join(dependency[1],"&")+ "? " + \
-									      dependency[0]+dependency[2] + ")"
+								if not Config["piping"] and Config["verbosityLevel"] >= 3:
+									print pp.cpv(pkg.get_cpv()),
+								   	print "(" + \
+									pp.useflag(string.join(dependency[1],"&") + "? ") + \
+									pp.pkgquery(dependency[0]+dependency[2]) + ")"
 								else:
-									print
+									print pkg.get_cpv()
 							else:
-								print pkg.get_cpv(),
-								if Config["verbosityLevel"] >= 4:
-									print "(" + dependency[0]+dependency[2] + ")"
+								if not Config["piping"] and Config["verbosityLevel"] >= 3:
+									print pp.cpv(pkg.get_cpv()),
+									print "(" + pp.pkgquery(dependency[0]+dependency[2]) + ")"
 								else:
-									print
+									print pkg.get_cpv()
 							isdep = 1
-						elif Config["verbosityLevel"] >= 4:
+						elif not Config["piping"] and Config["verbosityLevel"] >= 3:
 							if dependency[1]:
 								print " "*len(pkg.get_cpv()) + \
-								      " (" + string.join(dependency[1],"&")+ " ? " + \
-								      dependency[0]+dependency[2] + ")"
+								      " (" + pp.useflag(string.join(dependency[1],"&")+ "? ") + \
+								      pp.pkgquery(dependency[0]+dependency[2]) + ")"
 							else:
 								print " "*len(pkg.get_cpv()) + " (" + \
-								      dependency[0]+dependency[2] + ")"	
+								      pp.pkgquery(dependency[0]+dependency[2]) + ")"	
+
+						break
 			if isdep and not opts["onlyDirect"] :
 				 subdeps(pkg.get_cpv(), " ")
  
