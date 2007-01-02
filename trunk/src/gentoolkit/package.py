@@ -54,9 +54,9 @@ class Package:
 		"""Returns full Category/Package-Version string"""
 		return self._cpv
 
-	def get_provides(self):
+	def get_provide(self):
 		"""Return a list of provides, if any"""
-		return vartree.get_provides(self._cpv)
+		return vartree.get_provide(self._cpv)
 
 	def get_dependants(self):
 		"""Retrieves a list of CPVs for all packages depending on this one"""
