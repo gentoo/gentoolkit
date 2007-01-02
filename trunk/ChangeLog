@@ -1,3 +1,6 @@
+2007-01-02 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix equery depends --indirect command. (Bug #124552)
+
 2006-12-31 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Reworked equery depends command to be more accurate.
 
