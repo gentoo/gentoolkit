@@ -56,7 +56,14 @@ class Package:
 
 	def get_provide(self):
 		"""Return a list of provides, if any"""
-		return vartree.get_provide(self._cpv)
+		if not self.is_installed():
+			try:
+				x = [self.get_env_var('PROVIDE')]
+			except KeyError:
+				x = []
+			return x
+		else:
+			return vartree.get_provide(self._cpv)
 
 	def get_dependants(self):
 		"""Retrieves a list of CPVs for all packages depending on this one"""
