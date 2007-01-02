@@ -1039,8 +1039,11 @@ class CmdListDepends(Command):
 	def __init__(self):
 		self.default_opts = {
 			"onlyDirect": 1,
-			"onlyInstalled": 1
+			"onlyInstalled": 1,
+			"spacing": 0,
+			"depth": 0
 			}
+		self.pkgcache = []
 
 	def parseArgs(self, args):
 
@@ -1064,6 +1067,10 @@ class CmdListDepends(Command):
 				opts["onlyDirect"] = 0
 			elif x in ["-a", "--all-packages"]:
 				opts["onlyInstalled"] = 0
+			elif x[:10] == "--spacing=":
+				opts["spacing"] = int(x[10:])
+			elif x[:8] == "--depth=":
+				opts["depth"] = int(x[8:])
 			else:
 				query = x
 	 
@@ -1073,37 +1080,13 @@ class CmdListDepends(Command):
 		return (query, opts)
  
 	def perform(self, args):
-		def subdeps(cpv, spacing):
-			"Find subdeps of a package"
-			cpvs=gentoolkit.split_package_name(cpv) 
- 
-			catname = cpvs[0]+"/"+cpvs[1]
-			if depscache.has_key(catname):
-				isdep = 0
-				for dep in depscache[catname]:
-					pkg = dep[0]
-					x = dep[1]
-					if string.find(x[2],"/") != -1 and \
-						   portage.match_from_list(x[0]+x[2], [cpv]):
-						if x[1]:
-							print spacing+pkg.get_cpv(),
-							if Config["verbosityLevel"] >= 4:
-								print " (" +string.join(x[1],"&")+ " ? " + x[0]+x[2] + ")"
-							else:
-								print
-						else:
-							print spacing+pkg.get_cpv(),
-							if Config["verbosityLevel"] >= 4:
-								print " (" + x[0]+x[2] + ")"
-							else:
-								print
-						isdep = 1
-					if isdep:
-						subdeps(pkg.get_cpv(), spacing+" ")
-  
+
 		(query, opts) = self.parseArgs(args)
 
-		if not Config["piping"] and Config["verbosityLevel"] >= 3:
+		# We call ourself recursively if --indirect specified. spacing is used to control printing the tree.
+		spacing = opts["spacing"]
+
+		if not Config["piping"] and Config["verbosityLevel"] >= 3 and not spacing:
 			print_info(3, "[ Searching for packages depending on " + pp.pkgquery(query) + "... ]")
 
 		isdepend = gentoolkit.split_package_name(query)
@@ -1118,28 +1101,6 @@ class CmdListDepends(Command):
 
 		packages = gentoolkit.sort_package_list(packages)
 
-		if not opts["onlyDirect"]:
-			# TODO Fix indirect dependency matching
-			print_info(4, "Caching indirect dependencies...")
-			depscache = {"":[]}
-			for pkg in packages:
-				print_info(1, pp.section("* ") + "Dependencies for " + pp.cpv(pkg.get_cpv()) + ":")
-
-				try:
-					deps = pkg.get_runtime_deps() + pkg.get_compiletime_deps() + pkg.get_postmerge_deps()
-				except KeyError, e:
-					# If the ebuild is not found... 
-					continue
-				for x in deps:
-					cpvs=gentoolkit.split_package_name(x[2]) 
-					#print cpvs
-					catname = cpvs[0]+"/"+cpvs[1]
-					if depscache.has_key(catname):
-						depscache[catname].append((pkg,x))
-					else:
-						depscache[catname] = [(pkg,x)]
-			print "done"
- 
 		for pkg in packages:
 			try:
 				deps = pkg.get_runtime_deps() + pkg.get_compiletime_deps() + pkg.get_postmerge_deps()
@@ -1177,31 +1138,36 @@ class CmdListDepends(Command):
 						if not isdep:
 							if dependency[1]:
 								if not Config["piping"] and Config["verbosityLevel"] >= 3:
-									print pp.cpv(pkg.get_cpv()),
+									print " " * (spacing * 2) + pp.cpv(pkg.get_cpv()),
 								   	print "(" + \
-									pp.useflag(string.join(dependency[1],"&") + "? ") + \
+									pp.useflag(string.join(dependency[1]," & ") + "? ") + \
 									pp.pkgquery(dependency[0]+dependency[2]) + ")"
 								else:
-									print pkg.get_cpv()
+									print " " * (spacing * 2) + pkg.get_cpv()
 							else:
 								if not Config["piping"] and Config["verbosityLevel"] >= 3:
-									print pp.cpv(pkg.get_cpv()),
+									print " " * (spacing * 2) + pp.cpv(pkg.get_cpv()),
 									print "(" + pp.pkgquery(dependency[0]+dependency[2]) + ")"
 								else:
-									print pkg.get_cpv()
+									print " " * (spacing * 2) + pkg.get_cpv()
 							isdep = 1
 						elif not Config["piping"] and Config["verbosityLevel"] >= 3:
 							if dependency[1]:
-								print " "*len(pkg.get_cpv()) + \
+								print " "*len(pkg.get_cpv()) + " " * (spacing * 2) + \
 								      " (" + pp.useflag(string.join(dependency[1],"&")+ "? ") + \
 								      pp.pkgquery(dependency[0]+dependency[2]) + ")"
 							else:
-								print " "*len(pkg.get_cpv()) + " (" + \
+								print " "*len(pkg.get_cpv()) + " " * (spacing * 2) + " (" + \
 								      pp.pkgquery(dependency[0]+dependency[2]) + ")"	
 
 						break
-			if isdep and not opts["onlyDirect"] :
-				 subdeps(pkg.get_cpv(), " ")
+
+			# if --indirect specified, call ourselves again with the dependency
+			# Do not call, if we have already called ourselves.
+			if isdep and not opts["onlyDirect"] and pkg.get_cpv() not in self.pkgcache and spacing < opts["depth"]:
+				self.pkgcache.append(pkg.get_cpv())
+				self.perform(['=' + pkg.get_cpv(), '--indirect', '--spacing=' + str(int(opts["spacing"]+1))])
+				opts["spacing"] = spacing;
  
  
 	def shortHelp(self):
