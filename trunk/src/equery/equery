@@ -1041,9 +1041,13 @@ class CmdListDepends(Command):
 			"onlyDirect": 1,
 			"onlyInstalled": 1,
 			"spacing": 0,
-			"depth": 0
+			"depth": -1
 			}
-		self.pkgcache = []
+		# Used to cache and detect looping
+		self.pkgseen = []
+		self.pkglist = []
+		self.pkgdeps = {}
+		self.deppkgs = {}
 
 	def parseArgs(self, args):
 
@@ -1094,26 +1098,42 @@ class CmdListDepends(Command):
 		if not isdepends:
 			print_warn("Warning: No packages found matching %s" % query)
 		
-		if opts["onlyInstalled"]:
-			packages = gentoolkit.find_all_installed_packages()
-		else:
-			packages = gentoolkit.find_all_packages()
+		# Cache the list of packages
+		if not self.pkglist:
+			if opts["onlyInstalled"]:
+				packages = gentoolkit.find_all_installed_packages()
+			else:
+				packages = gentoolkit.find_all_packages()
 
-		packages = gentoolkit.sort_package_list(packages)
+			packages = gentoolkit.sort_package_list(packages)
+			self.pkglist = packages
+		else:
+			packages = self.pkglist
 
 		for pkg in packages:
-			try:
-				deps = pkg.get_runtime_deps() + pkg.get_compiletime_deps() + pkg.get_postmerge_deps()
-			except KeyError, e:
-				# If the ebuild is not found... 
-				continue
-			# Remove duplicate deps
-			deps = unique_array(deps)
+			pkgcpv = pkg.get_cpv()
+			if not pkgcpv in self.pkgdeps:
+				try:
+					deps = pkg.get_runtime_deps() + pkg.get_compiletime_deps() + pkg.get_postmerge_deps()
+				except KeyError, e:
+					# If the ebuild is not found... 
+					continue
+				# Remove duplicate deps
+				deps = unique_array(deps)
+				self.pkgdeps[pkgcpv] = deps
+			else:
+				deps = self.pkgdeps[pkgcpv]
 			isdep = 0
 			for dependency in deps:
 				# TODO determine if dependency is enabled by USE flag
 				# Find all packages matching the dependency
-				for x in map((lambda x: x.get_cpv()), gentoolkit.find_packages(dependency[0]+dependency[2])):
+				depstr = dependency[0]+dependency[2]
+				if not depstr in self.deppkgs:
+					depcpvs = map((lambda x: x.get_cpv()), gentoolkit.find_packages(depstr))
+					self.deppkgs[depstr] = depcpvs
+				else:
+					depcpvs = self.deppkgs[depstr]
+				for x in depcpvs:
 					cpvs=gentoolkit.split_package_name(x)
 					if x in isdepends:
 						cat_match=1
@@ -1164,8 +1184,9 @@ class CmdListDepends(Command):
 
 			# if --indirect specified, call ourselves again with the dependency
 			# Do not call, if we have already called ourselves.
-			if isdep and not opts["onlyDirect"] and pkg.get_cpv() not in self.pkgcache and spacing < opts["depth"]:
-				self.pkgcache.append(pkg.get_cpv())
+			if isdep and not opts["onlyDirect"] and pkg.get_cpv() not in self.pkgseen \
+			   and (spacing < opts["depth"] or opts["depth"] == -1):
+				self.pkgseen.append(pkg.get_cpv())
 				self.perform(['=' + pkg.get_cpv(), '--indirect', '--spacing=' + str(int(opts["spacing"]+1))])
 				opts["spacing"] = spacing;
  
@@ -1183,7 +1204,8 @@ class CmdListDepends(Command):
 				pp.localoption("<local-opts>") + " is either of: \n" + \
 				"  " + pp.localoption("-a, --all-packages") + " - search in all available packages (slow)\n" + \
 				"  " + pp.localoption("-d, --direct") + "       - search direct dependencies only (default)\n" + \
-				"  " + pp.localoption("-D, --indirect") + "     - search indirect dependencies (VERY slow)\n"
+				"  " + pp.localoption("-D, --indirect") + "     - search indirect dependencies (VERY slow)\n" + \
+				"  " + pp.localoption("--depth=x") + "          - limit indirect dependency tree to specified depth"
 
 
 class CmdListPackages(Command):
