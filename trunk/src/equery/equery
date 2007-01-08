@@ -527,8 +527,8 @@ class CmdDisplayUSEs(Command):
 
 		if not Config["piping"] and Config["verbosityLevel"] >= 3: 
 			print_info(3, "[ Colour Code : " + pp.useflagon("set") + " " + pp.useflagoff("unset") + " ]")
-			print_info(3, "[ Legend	: Left column  (U) - USE flags from make.conf			  ]")
-			print_info(3, "[		   : Right column (I) - USE flags packages was installed with ]")
+			print_info(3, "[ Legend : Left column  (U) - USE flags from make.conf              ]")
+			print_info(3, "[        : Right column (I) - USE flags packages was installed with ]")
 
 		# Iterate through matches, printing a report for each package
 		matches_found = 0
