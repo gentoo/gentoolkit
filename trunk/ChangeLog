@@ -1,3 +1,9 @@
+2007-01-10 Paul Varner <fuzzyray@gentoo.org>
+	* epkgmove: removed epkgmove command due to popular demand. (Bug
+	161360)
+	* gensync: Deprecated gensync in favor of app-portage/layman (multiple
+	bugs)
+
 2007-01-02 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Fix equery depends --indirect command. (Bug #124552)
 
