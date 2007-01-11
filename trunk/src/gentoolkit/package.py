@@ -67,7 +67,7 @@ class Package:
 
 	def get_dependants(self):
 		"""Retrieves a list of CPVs for all packages depending on this one"""
-		raise "Not implemented yet!"
+		raise NotImplementedError("Not implemented yet!")
 
 	def get_runtime_deps(self):
 		"""Returns a linearised list of first-level run time dependencies for this package, on
