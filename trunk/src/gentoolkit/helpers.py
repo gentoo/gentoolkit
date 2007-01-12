@@ -1,4 +1,4 @@
-#! /usr/bin/python2
+# /usr/bin/python2
 #
 # Copyright(c) 2004, Karl Trygve Kalleberg <karltk@gentoo.org>
 # Copyright(c) 2004, Gentoo Foundation
@@ -85,7 +85,7 @@ def find_system_packages(prefilter=None):
 def find_world_packages(prefilter=None):
 	"""Returns a tuple of lists, first list is resolved world packages,
 	seond is unresolved package names."""
-	f = open(portage.WORLD_FILE)
+	f = open(portage.root+portage.WORLD_FILE)
 	pkglist = f.readlines()
 	resolved = []
 	unresolved = []
