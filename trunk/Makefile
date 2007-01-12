@@ -20,7 +20,7 @@ clean:
 	rm -rf release/*
 
 dist:
-	echo "Err0r: Must use either dist-gentoolkit or dist-gentoolkit-dev"
+	echo "Error: Must use either dist-gentoolkit or dist-gentoolkit-dev"
 	exit 1
 
 dist-gentoolkit-dev:
@@ -80,6 +80,6 @@ install-gentoolkit-dev:
 
 	install -m 0644 AUTHORS ChangeLog COPYING NEWS README README.Developer TODO $(docdir)/
 
-	for x in ekeyword echangelog ego ebump gensync epkgmove eviewcvs ; do \
+	for x in ekeyword echangelog ego ebump gensync eviewcvs ; do \
 		( cd src/$$x ; make DESTDIR=$(DESTDIR) install ) \
 	done
