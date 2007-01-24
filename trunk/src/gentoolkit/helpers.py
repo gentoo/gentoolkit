@@ -55,13 +55,8 @@ def find_installed_packages(search_key, masked=False):
 
 def find_best_match(search_key):
 	"""Returns a Package object for the best available installed candidate that
-	matched the search key. Doesn't handle virtuals perfectly"""
-	# FIXME: How should we handled versioned virtuals??
-	cat,pkg,ver,rev = split_package_name(search_key)
-	if cat == "virtual":
-		t = portage.db["/"]["vartree"].dep_bestmatch(cat+"/"+pkg)
-	else:
-		t = portage.db["/"]["vartree"].dep_bestmatch(search_key)
+	matched the search key."""
+	t = portage.db["/"]["vartree"].dep_bestmatch(search_key)
 	if t:
 		return Package(t)
 	return None
