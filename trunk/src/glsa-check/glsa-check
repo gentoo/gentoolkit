@@ -40,8 +40,9 @@ optionmap = [
 args = []
 params = []
 try:
-	args, params = getopt(sys.argv[1:], "dplfchinvVtcm", \
-		["dump", "print", "list", "pretend", "fix", "inject", "help", "info", "version", "test", "nocolor", "cve", "mail"])
+	args, params = getopt(sys.argv[1:], "".join([o[0][1] for o in optionmap]), \
+		[x[2:] for x in reduce(lambda x,y: x+y, [z[1:-1] for z in optionmap])])
+#		["dump", "print", "list", "pretend", "fix", "inject", "help", "verbose", "version", "test", "nocolor", "cve", "mail"])
 	args = [a for a,b in args]
 	
 	for option in ["--nocolor", "-n"]:
