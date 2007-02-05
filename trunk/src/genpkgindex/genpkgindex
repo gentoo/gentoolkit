@@ -13,6 +13,7 @@ import xpak, portage, portage_checksum, portage_dep, portage_util
 
 argc=len(sys.argv)
 
+
 if argc >= 2:
 	if (sys.argv[1][0] == "-"):
 		print "Usage:\tgenpkgindex <pkgdir>"
@@ -56,14 +57,43 @@ packages = []
 for pkg in os.listdir('.'):
         if not os.path.basename(pkg).endswith("tbz2"):
                 continue
-        tbz2 = xpak.tbz2(pkg)
-        stuff = tbz2.getboth()
-        if not stuff:
-		print "Not a tbz2: "+str(pkg)
-                continue
-        cat = xpak.getitem(stuff, "CATEGORY")
-        if cat:
-                packages.append((cat, pkg, tbz2, stuff))
+
+	st = os.stat(pkg)
+
+	if not os.path.exists(portage.settings["PORTAGE_TMPDIR"]+"/portage/.xpak/"):
+		os.mkdir(portage.settings["PORTAGE_TMPDIR"]+"/portage/.xpak/")
+
+	fname = portage.settings["PORTAGE_TMPDIR"]+"/portage/.xpak/"+os.path.basename(pkg)[:-5]+".xpak"
+
+	if os.path.exists(fname):
+		if st.st_mtime != os.stat(fname).st_mtime:
+			#print "unlinking "+fname
+			os.unlink(fname)
+
+	if not os.path.exists(fname):
+
+	        tbz2 = xpak.tbz2(pkg)
+		xpdata = xpak.xpak_mem(tbz2.get_data())
+		fp = open(fname, "w")
+		fp.write(xpdata+xpak.encodeint(len(xpdata))+"STOP")
+		fp.close()
+
+		chksum = portage_checksum.perform_md5(pkg)
+		fp = open(fname[:-5]+".md5", "w")
+		fp.write(chksum)
+		fp.close()
+
+		os.utime(fname, (st.st_mtime, st.st_mtime))
+
+	else:
+		if os.path.exists(fname[:-5]+".md5"):
+			chksum = "".join(portage.grabfile(fname[:-5]+".md5"))
+		else:
+			chksum = portage_checksum.perform_md5(pkg)
+
+		tbz2 = xpak.tbz2(fname)
+
+	packages.append((pkg, tbz2, chksum, st))
 
 packages.sort()
 
@@ -122,7 +152,14 @@ def serialize_depset(src, context='and'):
 					l.append("( %s )" % v.strip())
 	return ' '.join(l)
 
-for cat, pkg, tbz2, stuff in packages:
+for pkg, tbz2, chksum, st in packages:
+	stuff = tbz2.getboth()
+	if not stuff:
+		print "Not a tbz2: "+str(pkg)
+		continue
+
+	cat = xpak.getitem(stuff, "CATEGORY")
+
 	use = xpak.getitem(stuff, "USE")
 	if use is None:
 		use = ''
@@ -160,15 +197,24 @@ for cat, pkg, tbz2, stuff in packages:
 		l.sort()
 		fp.write("USE: %s\n" % ' '.join(l))
 
-	st = os.stat(pkg)
 	fp.write("SIZE: "+ str(st[stat.ST_SIZE]) +"\n")
-	fp.write("MD5: "+portage_checksum.perform_md5(pkg)+"\n")
+	fp.write("MD5: "+chksum+"\n")
 	fp.write("\n")
 
 fp.write("\n")
 fp.flush()
 fp.close()
 os.rename(".Packages", "Packages")
+
+os.chdir(portage.settings["PORTAGE_TMPDIR"]+"/portage/.xpak")
+for pkg in os.listdir('.'):
+	p = os.path.basename(pkg)
+	if not p.endswith(".xpak"):
+		continue
+	if not os.path.exists(All + "/" + p[:-5] + ".tbz2"):
+		#print "Stale entry: " + All + "/" + p[:-5] + ".tbz2"
+		os.unlink(p)
+		os.unlink(p[:-5]+".md5")
 
 finish = time.time()
 
