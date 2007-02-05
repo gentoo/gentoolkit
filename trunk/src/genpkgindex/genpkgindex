@@ -9,7 +9,7 @@ if getattr(__builtins__, "set", None) is None:
 for x in ['CFLAGS','CXXFLAGS', 'LDFLAGS','USE']:
 	os.environ[x]=''
 
-import xpak, portage, portage_checksum, portage_dep, portage_util
+import xpak, portage, portage_checksum, portage_dep, portage_util, portage_const
 
 argc=len(sys.argv)
 
@@ -40,7 +40,7 @@ control_file = ".Packages"
 try:
 	import re
 	profilever = os.path.normpath("///"+os.readlink("/etc/make.profile"))
-	basepath   = os.path.normpath("///"+portage.settings["PORTDIR"]+"/profiles")
+	basepath = os.path.normpath("///"+portage.settings["PORTDIR"]+"/profiles")
 	if re.match(basepath,profilever):
 		profilever = profilever[len(basepath)+1:]
 	else:
@@ -55,15 +55,15 @@ except:
 
 packages = []
 for pkg in os.listdir('.'):
-        if not os.path.basename(pkg).endswith("tbz2"):
-                continue
+	if not os.path.basename(pkg).endswith("tbz2"):
+		continue
 
 	st = os.stat(pkg)
 
-	if not os.path.exists(portage.settings["PORTAGE_TMPDIR"]+"/portage/.xpak/"):
-		os.mkdir(portage.settings["PORTAGE_TMPDIR"]+"/portage/.xpak/")
+	if not os.path.exists(portage_const.CACHE_PATH+"/xpak/"):
+		os.mkdir(portage_const.CACHE_PATH+"/xpak/")
 
-	fname = portage.settings["PORTAGE_TMPDIR"]+"/portage/.xpak/"+os.path.basename(pkg)[:-5]+".xpak"
+	fname = portage_const.CACHE_PATH+"/xpak/"+os.path.basename(pkg)[:-5]+".xpak"
 
 	if os.path.exists(fname):
 		if st.st_mtime != os.stat(fname).st_mtime:
@@ -71,8 +71,7 @@ for pkg in os.listdir('.'):
 			os.unlink(fname)
 
 	if not os.path.exists(fname):
-
-	        tbz2 = xpak.tbz2(pkg)
+		tbz2 = xpak.tbz2(pkg)
 		xpdata = xpak.xpak_mem(tbz2.get_data())
 		fp = open(fname, "w")
 		fp.write(xpdata+xpak.encodeint(len(xpdata))+"STOP")
@@ -206,7 +205,8 @@ fp.flush()
 fp.close()
 os.rename(".Packages", "Packages")
 
-os.chdir(portage.settings["PORTAGE_TMPDIR"]+"/portage/.xpak")
+# Clean up stale cache files
+os.chdir(portage_const.CACHE_PATH+"/xpak")
 for pkg in os.listdir('.'):
 	p = os.path.basename(pkg)
 	if not p.endswith(".xpak"):
