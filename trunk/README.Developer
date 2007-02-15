@@ -1,7 +1,7 @@
 
 OVERVIEW
 
-The CVS module 'gentoolkit' contains all the scripts and stuff for both the 
+The SVN module 'gentoolkit' contains all the scripts and stuff for both the 
 gentoolkit and the gentoolkit-dev package. The gentoolkit-dev package is
 an optional add-on, that is only intented for the Gentoo developers.
 
@@ -61,7 +61,6 @@ Currently, the following people have "release access":
  - karltk@gentoo.org
  - genone@gentoo.org
  - port001@gentoo.org
- - agriffis@gentoo.org
  - fuzzyray@gentoo.org
 
 If you want a new release, ping either of us. If you want to get 
