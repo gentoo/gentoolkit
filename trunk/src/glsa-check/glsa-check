@@ -11,7 +11,7 @@ from getopt import getopt,GetoptError
 
 __program__ = "glsa-check"
 __author__ = "Marius Mauch <genone@gentoo.org>"
-__version__ = "0.7"
+__version__ = "0.8"
 
 optionmap = [
 ["-l", "--list", "list all unapplied GLSA"],
@@ -183,7 +183,13 @@ def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr):
 		else:
 			status = "[U]"
 			color = green
-		fd1.write(color(myglsa.nr) + " " + color(status) + " " + myglsa.title + " (")
+
+		if verbose:
+			access = ("[%-8s] " % myglsa.access)
+		else:
+			access=""
+
+		fd1.write(color(myglsa.nr) + " " + color(status) + " " + color(access) + myglsa.title + " (")
 		if not verbose:
 			for pkg in myglsa.packages.keys()[:3]:
 				fd1.write(" " + pkg + " ")
