@@ -1129,8 +1129,15 @@ class CmdListDepends(Command):
 				# Find all packages matching the dependency
 				depstr = dependency[0]+dependency[2]
 				if not depstr in self.deppkgs:
-					depcpvs = map((lambda x: x.get_cpv()), gentoolkit.find_packages(depstr))
-					self.deppkgs[depstr] = depcpvs
+					try:
+						depcpvs = map((lambda x: x.get_cpv()), gentoolkit.find_packages(depstr))
+						self.deppkgs[depstr] = depcpvs
+					except KeyError, e:
+						print_warn("")
+						print_warn("Package: " + depstr + " contains invalid dependency specification.")
+						print_warn("Portage error: " + str(e))
+						print_warn("")
+						continue
 				else:
 					depcpvs = self.deppkgs[depstr]
 				for x in depcpvs:
@@ -1741,7 +1748,7 @@ if __name__ == "__main__":
 				print_error("")
 				print_error("Note: The symbols > and < are used for redirection in the shell")
 				print_error("and must be quoted if either one is used.")
-				
+
 			else:
 				print_error("Internal portage error, terminating")
 				if len(e[0]):
