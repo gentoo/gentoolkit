@@ -1134,7 +1134,7 @@ class CmdListDepends(Command):
 						self.deppkgs[depstr] = depcpvs
 					except KeyError, e:
 						print_warn("")
-						print_warn("Package: " + depstr + " contains invalid dependency specification.")
+						print_warn("Package: " + pkgcpv + " contains invalid dependency specification.")
 						print_warn("Portage error: " + str(e))
 						print_warn("")
 						continue
