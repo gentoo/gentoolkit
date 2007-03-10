@@ -1,3 +1,7 @@
+2007-03-09 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Add support to detect "no version information
+	available" message from ldd (Bug #169973)
+
 2007-03-08 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Improved handling of KeyError in equery depends command
 	(Bug #169929)
