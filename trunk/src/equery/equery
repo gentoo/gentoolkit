@@ -636,7 +636,8 @@ class CmdDisplayDepGraph(Command):
 	def __init__(self):
 		self.default_opts = {
 			"displayUSEFlags": 1,
-			"fancyFormatting": 1
+			"fancyFormatting": 1,
+			"depth": 0
 			}
 
 	def parseArgs(self, args):
@@ -660,6 +661,8 @@ class CmdDisplayDepGraph(Command):
 				opts["displayUSEFlags"] = 0
 			elif x in ["-l","--linear"]:
 				opts["fancyFormatting"] = 0
+			elif x[:8] == "--depth=":
+				opts["depth"] = int(x[8:])
 			else:
 				query = x
 
@@ -716,7 +719,8 @@ class CmdDisplayDepGraph(Command):
 				suffix += " (" + pp.cpv(cpv) + ")"
 			if len(x[1]) and opts["displayUSEFlags"]:
 				suffix += " [ " + pp.useflagon(string.join(x[1])) + " ]"
-			pkgtbl = self._graph(pkg, opts, stats, level+1, pkgtbl, suffix)
+			if (level < opts["depth"] or opts["depth"] <= 0):
+				pkgtbl = self._graph(pkg, opts, stats, level+1, pkgtbl, suffix)
 		return pkgtbl
 
 	def shortHelp(self):
@@ -729,7 +733,9 @@ class CmdDisplayDepGraph(Command):
 			   "\n" + \
 			   pp.localoption("<local-opts>") + " is either of: \n" + \
 			   "  " + pp.localoption("-U, --no-useflags") + " - do not show USE flags\n" + \
-			   "  " + pp.localoption("-l, --linear") + "      - do not use fancy formatting"
+			   "  " + pp.localoption("-l, --linear") + "      - do not use fancy formatting\n" + \
+			   "  " + pp.localoption("    --depth=n") + "     - limit dependency graph to specified depth"
+
 
 class CmdDisplaySize(Command):
 	"""Display disk size consumed by a package"""
@@ -1212,7 +1218,7 @@ class CmdListDepends(Command):
 				"  " + pp.localoption("-a, --all-packages") + " - search in all available packages (slow)\n" + \
 				"  " + pp.localoption("-d, --direct") + "       - search direct dependencies only (default)\n" + \
 				"  " + pp.localoption("-D, --indirect") + "     - search indirect dependencies (VERY slow)\n" + \
-				"  " + pp.localoption("--depth=x") + "          - limit indirect dependency tree to specified depth"
+				"  " + pp.localoption("--depth=n") + "          - limit indirect dependency tree to specified depth"
 
 
 class CmdListPackages(Command):

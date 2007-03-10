@@ -91,6 +91,9 @@ do not show USE flags.
 .br 
 .B \-l, \-\-linear    
 do not use fancy formatting 
+.br 
+.B \-\-depth=n
+Limit depth of dependency graph to n levels.
 .PP 
 .TP 
 .B files <local\-opts> pkgspec
@@ -220,7 +223,7 @@ equery list \-\-full\-regex '(mozilla\-firefox|mozilla\-thunderbird)' \- list al
 
 equery list \-\-duplicates \- list all installed slotted packages
 .PP 
-.TP
+.TP 
 .B size <local\-opts> pkgspec
 This command outputs the number of files in the specified package, as well as
 their total size in an appropriate unit.
