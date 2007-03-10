@@ -1,3 +1,7 @@
+2007-03-10 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Add --depth option to equery depgraph to limit the depth of
+	the dependency graph. (Bug #115807)
+
 2007-03-09 Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Add support to detect "no version information
 	available" message from ldd (Bug #169973)
