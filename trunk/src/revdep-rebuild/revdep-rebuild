@@ -634,7 +634,7 @@ else
 			done
 			ln -f $LLIST.4_ebuilds $LLIST.5_order
 		else
-			(EMERGE_DEFAULT_OPTS="" emerge --nospinner --pretend --oneshot --deep --quiet $RAW_REBUILD_LIST ; echo $? >$LLIST.5b_status ) | sed -n 's/ //g;s/^.*\]//p' | grep "$REBUILD_GREP" >$LLIST.5_order
+			(EMERGE_DEFAULT_OPTS="" emerge --nospinner --pretend --oneshot --deep --quiet $RAW_REBUILD_LIST ; echo $? >$LLIST.5b_status ) | sed -n 's/  *$//;s/^\[.*\] //p' | awk '{print $1}' | grep "$REBUILD_GREP" >$LLIST.5_order
 			if [ $(cat $LLIST.5b_status) -gt 0 ] ; then
 				echo ""
 				echo -e "${RD}Warning: Failed to resolve package order."

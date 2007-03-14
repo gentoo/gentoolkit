@@ -1,3 +1,7 @@
+2007-03-13 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix bug with --package-names option not rebuilding
+	packages (Bug #169761)
+
 2007-03-10 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Add --depth option to equery depgraph to limit the depth of
 	the dependency graph. (Bug #115807)
