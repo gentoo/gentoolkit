@@ -951,7 +951,8 @@ class CmdCheckIntegrity(Command):
 					elif type == "sym":
 						# FIXME: nastry strippery; portage should have this fixed!
 						t = files[file][2]
-						target = os.path.normpath(t.strip())
+						# target = os.path.normpath(t.strip())
+						target = t.strip()
 						if not os.path.islink(file):
 							raise CheckException(file + " exists, but is not a symlink")
 						tgt = os.readlink(file)

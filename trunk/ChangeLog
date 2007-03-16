@@ -1,3 +1,7 @@
+2007-03-15 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix equery check to not fail for symlinks prefixed with ./
+	(Bug #170702)
+
 2007-03-14 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Trim trailing slash from query for equery belongs command
 	(Bug #170981)
