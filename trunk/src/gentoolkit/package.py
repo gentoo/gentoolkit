@@ -204,7 +204,7 @@ class Package:
 		# if name is different
 		elif v1[1] != v2[1]:
 			return cmp(v1[1],v2[1])
-		# Compaare versions
+		# Compare versions
 		else:
 			return portage.pkgcmp(v1[1:],v2[1:])
 

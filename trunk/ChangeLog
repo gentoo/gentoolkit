@@ -1,3 +1,6 @@
+2007-03-16 Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Fix typo in package.py (Bug #168347)
+
 2007-03-15 Paul Varner <fuzzyray@gentoo.org>
 	* equery: Fix equery check to not fail for symlinks prefixed with ./
 	(Bug #170702)
