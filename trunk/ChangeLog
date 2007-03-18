@@ -1,3 +1,7 @@
+2007-03-18 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Change --no-color to --nocolor for consistency
+	within gentoolkit. (Bug #165165)
+
 2007-03-16 Paul Varner <fuzzyray@gentoo.org>
 	* gentoolkit: Fix typo in package.py (Bug #168347)
 
