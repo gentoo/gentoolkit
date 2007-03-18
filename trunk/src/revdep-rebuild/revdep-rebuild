@@ -41,7 +41,7 @@ then
 	echo "      --library=NAME   NAME can be a full path to the library or a basic"
 	echo "                       regular expression (man grep)"
 	echo " -np, --no-ld-path     Do not set LD_LIBRARY_PATH"
-	echo " -nc, --no-color       Turn off colored output"
+	echo " -nc, --nocolor        Turn off colored output"
 	echo "  -i, --ignore         Ignore temporary files from previous runs"
 	echo "  -q, --quiet          Be less verbose (also passed to emerge command)"
 	echo " -vv, --extra-verbose  Be extra verbose"
@@ -213,7 +213,7 @@ while [ ! -z "$1" ] ; do
 		PRELIMINARY_CALLED_OPTIONS="${PRELIMINARY_CALLED_OPTIONS} --library=${SONAME}"
 		shift 2
 		;;
-	-nc | --no-color )
+	-nc | --no-color | --nocolor )
 		NOCOLOR=true
 		shift
 		;;
