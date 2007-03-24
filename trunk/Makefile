@@ -26,7 +26,7 @@ dist:
 dist-gentoolkit-dev:
 	mkdir -p release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)
 	for x in ekeyword echangelog ego ebump gensync eviewcvs ; do \
-		( cd src/$$x ; make distdir=release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG) dist ) \
+		( cd src/$$x ; $(MAKE) distdir=release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG) dist ) \
 	done
 	cp Makefile AUTHORS README README.Developer TODO COPYING NEWS ChangeLog release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/
 	cat makedefs.mak | \
@@ -40,7 +40,7 @@ dist-gentoolkit:
 	mkdir -p release/gentoolkit-$(VERSION)$(RELEASE_TAG)
 	rm -rf release/gentoolkit-$(VERSION)$(RELEASE_TAG)/
 	for x in eclean equery eread etcat euse qpkg gentoolkit revdep-rebuild glsa-check genpkgindex epkginfo; do \
-		( cd src/$$x ; make distdir=release/gentoolkit-$(VERSION)$(RELEASE_TAG) dist ) \
+		( cd src/$$x ; $(MAKE) distdir=release/gentoolkit-$(VERSION)$(RELEASE_TAG) dist ) \
 	done
 	cp Makefile AUTHORS README TODO COPYING NEWS ChangeLog release/gentoolkit-$(VERSION)$(RELEASE_TAG)/
 	cp src/99gentoolkit-env release/gentoolkit-$(VERSION)$(RELEASE_TAG)/src/
@@ -66,7 +66,7 @@ install-gentoolkit:
 	install -m 0644 src/99gentoolkit-env $(sysconfdir)/env.d/
 
 	for x in eclean equery eread etcat euse qpkg gentoolkit revdep-rebuild glsa-check genpkgindex epkginfo; do \
-		( cd src/$$x ; make DESTDIR=$(DESTDIR) install )  \
+		( cd src/$$x ; $(MAKE) DESTDIR=$(DESTDIR) install )  \
 	done
 
 
@@ -81,5 +81,5 @@ install-gentoolkit-dev:
 	install -m 0644 AUTHORS ChangeLog COPYING NEWS README README.Developer TODO $(docdir)/
 
 	for x in ekeyword echangelog ego ebump gensync eviewcvs ; do \
-		( cd src/$$x ; make DESTDIR=$(DESTDIR) install ) \
+		( cd src/$$x ; $(MAKE) DESTDIR=$(DESTDIR) install ) \
 	done
