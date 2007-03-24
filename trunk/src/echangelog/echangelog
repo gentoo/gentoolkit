@@ -22,7 +22,7 @@ $Text::Wrap::unexpand = 0;
 my (@files, @ebuilds, @conflicts, @trivial, @unknown, @new_versions, %actions);
 my ($input, $editor, $entry, $user, $date, $text, $version, $year, $vcs);
 
-my %vcs =     ( cvs => { diff => "cvs -f -U0 diff",
+my %vcs =     ( cvs => { diff => "cvs -f diff -U0",
 			 status => "cvs -fn up",
 			 add => "cvs -f add",
 			 skip => 6,
@@ -249,7 +249,7 @@ if (@ebuilds) {
     if ($vcs eq "git") {
     	open C, $vcs{$vcs}{diff}." 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
     } else { 
-        open C, $vcs{$vcs}{diff}."@ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
+        open C, $vcs{$vcs}{diff}." @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
     }
     $_ = <C>;
     while (defined $_) {
@@ -282,7 +282,7 @@ if (@ebuilds) {
             # and we have the next line in $_ for processing
             next;
         }
-        elsif (/^$vcs*?: (([^\/]*?)\.ebuild) is a new entry/) { 
+        elsif (/^$vcs.*?: (([^\/]*?)\.ebuild) is a new entry/) { 
             push @files, $1;
             push @new_versions, $2;  # new ebuild, will create a new entry
         }
