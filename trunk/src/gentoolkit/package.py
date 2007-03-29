@@ -72,24 +72,33 @@ class Package:
 	def get_runtime_deps(self):
 		"""Returns a linearised list of first-level run time dependencies for this package, on
 		the form [(comparator, [use flags], cpv), ...]"""
-		# Always use the portage tree, since emerge only uses the tree when calculating dependencies
-		cd = self.get_env_var("RDEPEND").split()
+		# Try to use the portage tree first, since emerge only uses the tree when calculating dependencies
+		try:
+			cd = self.get_env_var("RDEPEND", porttree).split()
+		except KeyError:
+			cd = self.get_env_var("RDEPEND", vartree).split()
 		r,i = self._parse_deps(cd)
 		return r
 
 	def get_compiletime_deps(self):
 		"""Returns a linearised list of first-level compile time dependencies for this package, on
 		the form [(comparator, [use flags], cpv), ...]"""
-		# Always use the portage tree, since emerge only uses the tree when calculating dependencies
-		rd = self.get_env_var("DEPEND").split()
+		# Try to use the portage tree first, since emerge only uses the tree when calculating dependencies
+		try:
+			rd = self.get_env_var("DEPEND", porttree).split()
+		except KeyError:
+			rd = self.get_env_var("DEPEND", vartree).split()
 		r,i = self._parse_deps(rd)
 		return r
 
 	def get_postmerge_deps(self):
 		"""Returns a linearised list of first-level post merge dependencies for this package, on
 		the form [(comparator, [use flags], cpv), ...]"""
-		# Always use the portage tree, since emerge only uses the tree when calculating dependencies
-		pd = self.get_env_var("PDEPEND").split()
+		# Try to use the portage tree first, since emerge only uses the tree when calculating dependencies
+		try:
+			pd = self.get_env_var("PDEPEND", porttree).split()
+		except KeyError:
+			pd = self.get_env_var("PDEPEND", vartree).split()
 		r,i = self._parse_deps(pd)
 		return r
 

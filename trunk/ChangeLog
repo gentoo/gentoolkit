@@ -1,4 +1,9 @@
 2007-03-29: Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Change package.get_???_deps() methods to try the portage
+	tree first, since emerge always uses the portage tree for dependencies.
+	(Bug #164678)
+
+2007-03-29: Paul Varner <fuzzyray@gentoo.org>
 	* equery: Convert deprecated strings functions to str methods (Bug
 	#172694)
 
