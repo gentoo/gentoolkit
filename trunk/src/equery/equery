@@ -17,7 +17,6 @@ import os
 import re
 import sys
 import time
-import string
 import types
 
 # portage (output module) and gentoolkit need special path modifications
@@ -136,7 +135,7 @@ class CmdListFiles(Command):
 			elif x in ["--tree"]:
 				opts["tree"] = 1
 			elif x[:9] == "--filter=":
-				opts["filter"] = string.split(x[9:],',')
+				opts["filter"] = x[9:].split(',')
 			elif x[0] == "/":
 				die(2, "The query '" + pp.pkgquery(x) + "' does not appear to be a valid package specification")
 			else:
@@ -366,7 +365,7 @@ class CmdListBelongs(Command):
 			q = map(lambda x: ((len(x) and x[0] == "/") and "^" or "/")
 			                   + re.escape(x) + "$", query)
 		try:
-			q = string.join(q, "|")
+			q = "|".join(q)
 			rx = re.compile(q)
 		except:
 			die(2, "The query '" + pp.regexpquery(q) + "' does not appear to be a valid regular expression")
@@ -378,7 +377,7 @@ class CmdListBelongs(Command):
 			filter_fn = lambda x: x.find(cat+"/")==0
 
 		if not Config["piping"] and Config["verbosityLevel"] >= 3:
-			print_info(3, "[ Searching for file(s) " + pp.regexpquery(string.join(query,",")) + " in " + pp.cpv(cat) + "... ]")
+			print_info(3, "[ Searching for file(s) " + pp.regexpquery(",".join(query)) + " in " + pp.cpv(cat) + "... ]")
 		
 		matches = portage.db["/"]["vartree"].dbapi.cpv_all()
 		#matches = gentoolkit.find_all_installed_packages(filter_fn)
@@ -722,7 +721,7 @@ class CmdDisplayDepGraph(Command):
 			if cpv.find("virtual") == 0:
 				suffix += " (" + pp.cpv(cpv) + ")"
 			if len(x[1]) and opts["displayUSEFlags"]:
-				suffix += " [ " + pp.useflagon(string.join(x[1])) + " ]"
+				suffix += " [ " + pp.useflagon(' '.join(x[1])) + " ]"
 			if (level < opts["depth"] or opts["depth"] <= 0):
 				pkgtbl = self._graph(pkg, opts, stats, level+1, pkgtbl, suffix)
 		return pkgtbl
@@ -839,16 +838,16 @@ class CmdDisplaySize(Command):
 						"), size(" + str(size) + ")")
 				else:
 					print_info(0, pp.section("* ") + "size of " + pp.cpv(pkg.get_cpv()))
-					print_info(0, string.rjust(" Total files : ",25) + pp.number(str(files)))
+					print_info(0, " Total files : ".rjust(25) + pp.number(str(files)))
 
 					if uncounted:
-						print_info(0, string.rjust(" Inaccessible files : ",25) + pp.number(str(uncounted)))
+						print_info(0, " Inaccessible files : ".rjust(25) + pp.number(str(uncounted)))
 
 					sz = "%.2f KiB" % (size/1024.0)				
 					if opts["reportSizeInBytes"]:
 						sz = pp.number(str(size)) + " bytes"
 
-					print_info(0, string.rjust("Total size  : ",25) + pp.number(sz))
+					print_info(0, "Total size  : ".rjust(25) + pp.number(sz))
 
 					
 	def shortHelp(self):
@@ -1178,7 +1177,7 @@ class CmdListDepends(Command):
 								if not Config["piping"] and Config["verbosityLevel"] >= 3:
 									print " " * (spacing * 2) + pp.cpv(pkg.get_cpv()),
 								   	print "(" + \
-									pp.useflag(string.join(dependency[1]," & ") + "? ") + \
+									pp.useflag(dependency[1].join(" & ") + "? ") + \
 									pp.pkgquery(dependency[0]+dependency[2]) + ")"
 								else:
 									print " " * (spacing * 2) + pkg.get_cpv()
@@ -1192,7 +1191,7 @@ class CmdListDepends(Command):
 						elif not Config["piping"] and Config["verbosityLevel"] >= 3:
 							if dependency[1]:
 								print " "*len(pkg.get_cpv()) + " " * (spacing * 2) + \
-								      " (" + pp.useflag(string.join(dependency[1],"&")+ "? ") + \
+								      " (" + pp.useflag(dependency[1].join("&")+ "? ") + \
 								      pp.pkgquery(dependency[0]+dependency[2]) + ")"
 							else:
 								print " "*len(pkg.get_cpv()) + " " * (spacing * 2) + " (" + \
@@ -1749,7 +1748,7 @@ if __name__ == "__main__":
 		try:
 			cmd.perform(local_opts)
 		except KeyError, e:
-			if e and string.find(e[0], "Specific key requires an operator") >= 0:
+			if e and e[0].find("Specific key requires an operator") >= 0:
 				print_error("Invalid syntax: missing operator")
 				print_error("If you want only specific versions please use one of")
 				print_error("the following operators as prefix for the package name:")
