@@ -1,3 +1,6 @@
+2007-03-31: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix traceback in equery which (Bug #134053)
+
 2007-03-29: Paul Varner <fuzzyray@gentoo.org>
 	* gentoolkit: Change package.get_???_deps() methods to try the portage
 	tree first, since emerge always uses the portage tree for dependencies.
