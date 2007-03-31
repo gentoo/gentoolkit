@@ -1027,7 +1027,12 @@ class CmdWhich(Command):
 		matches = gentoolkit.sort_package_list(matches)
 
 		if matches:
-			print_info(0, os.path.normpath(matches[-1].get_ebuild_path()))
+			pkg = matches[-1]
+			ebuild_path = pkg.get_ebuild_path()
+			if ebuild_path:
+				print_info(0, os.path.normpath(ebuild_path))
+			else:
+				print_warn("There are no ebuilds to satisfy %s" % pkg.get_name())
 		else:
 			print_error("No masked or unmasked packages found for " + pp.pkgquery(query))
 					
