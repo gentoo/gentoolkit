@@ -9,8 +9,10 @@
 
 # Gentoo metadata xml and arch keyword checking tool.
 
-import os,sys,portage
-import string,re
+import os
+import sys
+import portage
+import re
 from stat import *
 from output import *
 from xml.sax import saxutils, make_parser, handler
@@ -23,7 +25,7 @@ version="0.4.1"
 def getvar(pkg, var):
 	file = open(pkg + ".ebuild")
 	for line in file.readlines():
-		line = string.rstrip(line)
+		line = line.rstrip()
 		if re.match("^"+var+"=",line):
 			vars = re.split("\"",line)[1]
 			file.close
