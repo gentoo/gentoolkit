@@ -22,7 +22,11 @@ import fileinput
 
 sys.path.insert(0, "/usr/lib/portage/pym")
 import portage
-from output import *
+
+try:
+	from portage.output import *
+except ImportError:
+	from output import *
 
 class ConfigDefaults:
 	def __init__(self):

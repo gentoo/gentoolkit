@@ -7,7 +7,12 @@ import os
 import sys
 sys.path.insert(0, "/usr/lib/gentoolkit/pym")
 sys.path.insert(0, "/usr/lib/portage/pym")
-from output import *
+
+try:
+	from portage.output import *
+except ImportError:
+	from output import *
+
 from getopt import getopt,GetoptError
 
 __program__ = "glsa-check"
