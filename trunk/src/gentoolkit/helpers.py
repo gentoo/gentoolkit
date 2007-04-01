@@ -23,7 +23,7 @@ def find_packages(search_key, masked=False):
 			t += portage.db["/"]["vartree"].dbapi.match(search_key)
 	# catch the "amgigous package" Exception
 	except ValueError, e:
-		if type(e[0]) == types.ListType:
+		if isinstance(e[0],list):
 			t = []
 			for cp in e[0]:
 				if masked:
@@ -45,7 +45,7 @@ def find_installed_packages(search_key, masked=False):
 			t = portage.db["/"]["vartree"].dbapi.match(search_key)
 	# catch the "amgigous package" Exception
 	except ValueError, e:
-		if type(e[0]) == types.ListType:
+		if isinstance(e[0],list):
 			t = []
 			for cp in e[0]:
 				t += portage.db["/"]["vartree"].dbapi.match(cp)

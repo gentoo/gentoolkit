@@ -84,7 +84,6 @@ import os
 import sys
 import re
 import pprint
-import types
 import getopt
 import glob
 
@@ -664,7 +663,7 @@ def main():
 					print red("!!!"), e
 			sys.exit(2)
 		except ValueError, e:
-			if type(e[0]) == types.ListType:
+			if isinstance(e[0],list):
 				print red("!!!"), "Ambiguous package name \"%s\"" % query
 				print red("!!!"), "Please use one of the following long names:"
 				for p in e[0]:

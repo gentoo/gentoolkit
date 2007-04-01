@@ -17,7 +17,6 @@ import os
 import re
 import sys
 import time
-import types
 
 # portage (output module) and gentoolkit need special path modifications
 sys.path.insert(0, "/usr/lib/portage/pym")
@@ -1770,7 +1769,7 @@ if __name__ == "__main__":
 					print_error(str(e))
 			sys.exit(2)
 		except ValueError, e:
-			if e and type(e[0]) == types.ListType:
+			if isinstance(e[0], list):
 				print_error("Ambiguous package name " + pp.emph("\"" + local_opts[0] + "\""))
 				print_error("Please use one of the following long names:")
 				for p in e[0]:
