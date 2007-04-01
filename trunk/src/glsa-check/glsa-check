@@ -3,7 +3,8 @@
 # $Header: $
 # This program is licensed under the GPL, version 2
 
-import os,string,sys
+import os
+import sys
 sys.path.insert(0, "/usr/lib/gentoolkit/pym")
 sys.path.insert(0, "/usr/lib/portage/pym")
 from output import *
