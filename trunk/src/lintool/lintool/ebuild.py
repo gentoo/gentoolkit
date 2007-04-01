@@ -6,7 +6,6 @@ from test import Test
 import re
 import os
 import os.path
-import string
 
 class TestSpaces(Test):
 
@@ -277,7 +276,7 @@ class TestLicense(Test):
     k = self.re.match(s)
     if k:
       print k.group(1)
-      licenses = string.split(k.group(1), " ")
+      licenses = k.group(1).split(" ")
       for i in licenses:
     	if i not in self.licenses:
     	  self.errors.append("License '" + i + "' not known")
