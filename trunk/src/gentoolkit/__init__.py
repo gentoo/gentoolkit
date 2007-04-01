@@ -22,8 +22,6 @@ import sys
 sys.path.insert(0, "/usr/lib/portage/pym")
 import portage
 import re
-import string
-import types
 from threading import Lock
 
 settingslock = Lock()
