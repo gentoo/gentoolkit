@@ -6,6 +6,10 @@
 # Author: Donnie Berkholz <spyderous@gentoo.org>
 # Updated by: Uwe Klosa <uwe.klosa@gmail.com>
 
+# set decent PATH for bug 172969
+
+PATH=/usr/bin:/bin:${PATH}
+
 # Set ELOGDIR
 PORT_LOGDIR="$(portageq envvar PORT_LOGDIR)"
 [ "$PORT_LOGDIR" = "" ] && PORT_LOGDIR="/var/log/portage"
@@ -18,14 +22,14 @@ if [ ! -d "$ELOGDIR" ]; then
 fi
 
 # Use the pager from the users environment
-[ -z "$PAGER" ] && PAGER="/usr/bin/less"
+[ -z "$PAGER" ] && PAGER="less"
 
 # Set up select prompt
 PS3="Choice? "
 
 select_loop() {
-	ANY_FILES=$(/usr/bin/find . -type f)
-	ANY_FILES=$(echo ${ANY_FILES} | /bin/sed -e "s:\./::g")
+	ANY_FILES=$(find . -type f)
+	ANY_FILES=$(echo ${ANY_FILES} | sed -e "s:\./::g")
 
 	if [[ -z ${ANY_FILES} ]]; then
 		echo "No log items to read"
@@ -54,7 +58,7 @@ select_loop() {
 						break
 						;;
 					y|Y)
-						/usr/bin/rm -f ${FILE}
+						rm -f ${FILE}
 						SUCCESS=$?
 						if [[ ${SUCCESS} = 0 ]]; then
 							echo "Deleted ${FILE}"
