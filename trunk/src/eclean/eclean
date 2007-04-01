@@ -24,7 +24,10 @@ import fpformat
 import signal
 sys.path.insert(0,'/usr/lib/portage/pym')
 import portage
-from output import *
+try:
+	from portage.output import *
+except ImportError:
+	from output import *
 
 listdir = portage.listdir
 

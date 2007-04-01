@@ -12,12 +12,20 @@ if getattr(__builtins__, "set", None) is None:
 for x in ['CFLAGS','CXXFLAGS', 'LDFLAGS','USE']:
 	os.environ[x]=''
 
-import xpak
 import portage
-import portage_checksum
-import portage_dep
-import portage_util
-import portage_const
+
+try:
+	import portage.xpak as xpak
+	import portage.checksum as portage_checksum
+	import portage.dep as portage_dep
+	import portage.util as portage_util
+	import portage.const as portage_const
+except ImportError:
+	import xpak
+	import portage_checksum
+	import portage_dep
+	import portage_util
+	import portage_const
 
 argc=len(sys.argv)
 

@@ -6,9 +6,14 @@
 #
 # $Header$
 
-import gentoolkit
-import output
 import sys
+import gentoolkit
+
+try:
+	import portage.output as output
+except ImportError:
+	import output
+
 
 def print_error(s):
 	"""Prints an error string to stderr."""

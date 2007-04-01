@@ -7,7 +7,10 @@
 
 import sys
 import gentoolkit
-from output import *
+try:
+	from portage.output import *
+except ImportError:
+	from output import *
 
 __author__      = "Karl Trygve Kalleberg, Brandon Low, Jerry Haltom"
 __email__       = "karltk@gentoo.org, lostlogic@gentoo.org, ssrit@larvalstage"

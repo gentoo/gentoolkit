@@ -93,7 +93,10 @@ sys.path.insert(0, "/usr/lib/gentoolkit/pym")
 
 import gentoolkit
 from stat import *
-from output import *
+try:
+	from portage.output import *
+except ImportError:
+	from output import *
 
 __author__ = "Alastair Tse"
 __email__ = "liquidx@gentoo.org"

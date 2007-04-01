@@ -17,7 +17,10 @@ from random import randint
 from optparse import OptionParser
 
 import portage
-from output import *
+try:
+	from portage.output import *
+except ImportError:
+	from output import *
 
 __author__	=	"Ian Leitch"
 __email__ 	=	"port001@gentoo.org"
