@@ -8,7 +8,6 @@
 import commands
 import re
 import sys
-import string
 import time
 import os
 
@@ -25,7 +24,7 @@ pkg_file_list = pkg_files.splitlines()
 pkg_hash = {}
 for time_pkg_pair in pkg_file_list:
 	(pkg_time, pkg) = time_pkg_pair.split()
-	pkg_time = string.atoi(pkg_time)
+	pkg_time = int(pkg_time)
 	# This covers developer trees with not-accepted categories
 	tmp_name = re.match(r'/var/db/pkg/(.*/.*)/.*', pkg)
 	if not tmp_name: continue
@@ -76,12 +75,12 @@ for pkg_core in pkg_hash.keys():
 	
 	ins = open(tmpname)
 	for j in ins.readlines():
-		idx = string.atoi(j)
+		idx = int(j)
 		if idx == 0:
 			break
 
 		full_path = pkg_hash[pkg_core][idx-1][PKG]
-		ebuild = string.replace(full_path, "/var/db/pkg/", "")
+		ebuild = full_path.replace("/var/db/pkg/", "")
 
 		if not assume_yes: 
 			params = "dialog --backtitle \"" + ebuild + "\" " + \
