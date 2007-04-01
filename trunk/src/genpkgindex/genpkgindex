@@ -2,14 +2,22 @@
 # Copyright 2006 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-import os, string, stat, sys, time
+import os
+import stat
+import sys
+import time
 if getattr(__builtins__, "set", None) is None:
 	from sets import Set as set
 
 for x in ['CFLAGS','CXXFLAGS', 'LDFLAGS','USE']:
 	os.environ[x]=''
 
-import xpak, portage, portage_checksum, portage_dep, portage_util, portage_const
+import xpak
+import portage
+import portage_checksum
+import portage_dep
+import portage_util
+import portage_const
 
 argc=len(sys.argv)
 
