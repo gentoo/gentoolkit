@@ -171,7 +171,7 @@ class Package:
 		p = self.get_ebuild_path()
 		sp = p.split("/")
 		if len(sp):
-			return string.join(sp[:-1],"/")
+			return "/".join(sp[:-1])
 
 	def get_env_var(self, var, tree=""):
 		"""Returns one of the predefined env vars DEPEND, RDEPEND, SRC_URI,...."""
