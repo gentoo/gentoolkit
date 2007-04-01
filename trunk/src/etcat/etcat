@@ -80,8 +80,13 @@
 
 
 
-import os,sys,string,re,pprint,types
-import getopt,glob
+import os
+import sys
+import re
+import pprint
+import types
+import getopt
+import glob
 
 # portage and gentoolkit need special path modifications
 sys.path.insert(0, "/usr/lib/portage/pym")
@@ -298,7 +303,7 @@ def versions(query, matches):
 
 		ver = pkg.get_version()
 		slot = pkg.get_env_var("SLOT")
-		print " "*8 + "[" + string.join(state,"") + "] " + color(ver) + " (" + color(slot) + ")" + overlay
+		print " "*8 + "[" + "".join(state) + "] " + color(ver) + " (" + color(slot) + ")" + overlay
 
 # .-------------------------------------------------------.
 # | List USE flags for a single ebuild, if it's installed |
@@ -444,7 +449,7 @@ def rgraph(pkg,level=0,pkgtbl=[],suffix=""):
 		if cpv.find("virtual")==0:
 			suffix+=" (" + cpv + ")"
 		if len(x[1]):
-			suffix+=" [ " + string.join(x[1]) + " ]"
+			suffix+=" [ " + "".join(x[1]) + " ]"
 		pkgtbl=rgraph(pkg,level+1,pkgtbl,suffix)
 	return pkgtbl
 
@@ -476,7 +481,7 @@ def depends(query, matches):
 				if isdepend[1] == cpvs[1]:
 					name_match=1
 				if cat_match and ver_match and name_match:
-					print turquoise("*"), white(pkg.get_cpv()), white("[ ") + string.join(x[1]), white("]")
+					print turquoise("*"), white(pkg.get_cpv()), white("[ ") + "".join(x[1]), white("]")
 
 # .-------------------------------------------------------.
 # | Belongs to which package							  |
@@ -528,10 +533,10 @@ def size(query,packages):
 		files=x[1]
 		uncounted=x[2]
 		print turquoise("*") + " " + white(pkg.get_cpv())
-		print string.rjust(" Total Files : ",25) + str(files)
+		print " Total Files : ".rjust(25) + str(files)
 		if uncounted:
-			print string.rjust(" Inaccessible Files : ",25) + str(uncounted)
-		print string.rjust(" Total Size : ",25) + "%.2f KB" % (size/1024.0)
+			print " Inaccessible Files : ".rjust(25) + str(uncounted)
+		print " Total Size : ".rjust(25) + "%.2f KB" % (size/1024.0)
 
 
 def report_matches(query, matches, installed_only=1):
@@ -646,7 +651,7 @@ def main():
 		try:
 			matches = gentoolkit.find_packages(query)
 		except KeyError, e:
-			if string.find(e[0], "Specific key requires operator") == 0:
+			if e[0].find("Specific key requires operator") == 0:
 				print red("!!!"), "Invalid syntax: missing operator"
 				print red("!!!"), "If you want only specific versions please use one of"
 				print red("!!!"), "the following operators as prefix for the package name:"
