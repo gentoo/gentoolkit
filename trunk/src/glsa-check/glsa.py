@@ -13,7 +13,12 @@
 
 __author__ = "Marius Mauch <genone@gentoo.org>"
 
-import os, sys, urllib, time, string, codecs, re
+import os
+import sys
+import urllib
+import time
+import codecs
+import re
 import xml.dom.minidom
 
 if sys.version_info[0:2] < (2,3):
@@ -518,8 +523,8 @@ class Glsa:
 			for k in self.packages.keys():
 				pkg = self.packages[k]
 				for path in pkg:
-					vul_vers = string.join(path["vul_vers"])
-					unaff_vers = string.join(path["unaff_vers"])
+					vul_vers = "".join(path["vul_vers"])
+					unaff_vers = "".join(join(path["unaff_vers"])
 					outstream.write("Affected package:  %s\n" % k)
 					outstream.write("Affected archs:    ")
 					if path["arch"] == "*":
