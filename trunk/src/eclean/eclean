@@ -17,7 +17,7 @@ __description__ = "A cleaning tool for Gentoo distfiles and binaries."
 # Python imports:
 import sys
 import os, stat
-import string, re
+import re
 import time
 import getopt
 import fpformat
@@ -249,7 +249,7 @@ def parseSize(size):
 		mymatch = re.match(r"^(?P<value>\d+)(?P<unit>[GMKBgmkb])?$",size)
 		mysize = int(mymatch.group('value'))
 		if mymatch.group('unit'):
-			mysize *= myunits[string.capitalize(mymatch.group('unit'))]
+			mysize *= myunits[mymatch.group('unit').capitalize()]
 	except:
 		raise ParseArgsException('size')
 	return mysize
@@ -271,7 +271,7 @@ def parseTime(timespec):
 		mymatch = re.match(r"^(?P<value>\d+)(?P<unit>[YMWDHymwdh])?$",timespec)
 		myvalue = int(mymatch.group('value'))
 		if not mymatch.group('unit'): myunit = 'D'
-		else: myunit = string.capitalize(mymatch.group('unit'))
+		else: myunit = mymatch.group('unit').capitalize()
 	except: raise ParseArgsException('time')
 	# calculate the limit EPOCH date
 	mytime = time.time() - (myvalue * myunits[myunit])
