@@ -1,3 +1,8 @@
+2007-04-10: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Change equery uses to command to display the best matching
+	uninstalled package version if an uninstalled package is specified.
+	Changed the meaning of -a to mean display all versions. (Bug #152325)
+
 2007-04-01: Alec Warner <antarus@gentoo.org>
 	* eread: Fix path and fully qualified paths (Bug #172969)
 
