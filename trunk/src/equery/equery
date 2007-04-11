@@ -447,7 +447,7 @@ class CmdDisplayUSEs(Command):
 	"""Advanced report of a package's USE flags"""
 	def __init__(self):
 		self.default_opts = {
-			"installedOnly" : True
+			"allPackages" : False
 			}
 	def parseArgs(self, args):
 
@@ -467,7 +467,7 @@ class CmdDisplayUSEs(Command):
 				need_help = 1
 				break
 			elif x in ["-a", "--all"]:
-				opts["installedOnly"] = False
+				opts["allPackages"] = True
 			else:
 				query = x
 
@@ -484,8 +484,13 @@ class CmdDisplayUSEs(Command):
 		if not Config["piping"] and Config["verbosityLevel"] >= 3:
 			print_info(3, "[ Searching for packages matching " + pp.pkgquery(query) + "... ]")
 		
-		if opts["installedOnly"]:
+		if not opts["allPackages"]:
 			matches = gentoolkit.find_installed_packages(query, True)
+			if not matches:
+				matches = gentoolkit.find_packages(query, False)
+				if matches:
+					matches = gentoolkit.sort_package_list(matches)
+					matches = matches[-1:]
 		else:
 			matches = gentoolkit.find_packages(query, True)
 
@@ -533,12 +538,10 @@ class CmdDisplayUSEs(Command):
 			print_info(3, "[        : Right column (I) - USE flags packages was installed with ]")
 
 		# Iterate through matches, printing a report for each package
+		matches = gentoolkit.sort_package_list(matches)
 		matches_found = 0
 		for p in matches:
 
-			if not p.is_installed() and opts["installedOnly"]:
-				continue
-	
 			matches_found += 1
 			
 			bestver = p.get_cpv()
@@ -615,8 +618,6 @@ class CmdDisplayUSEs(Command):
 		if Config["verbosityLevel"] >= 2:
 			if matches_found == 0:
 				s = ""
-				if opts["installedOnly"]:
-					s = "installed "
 				die(3, "No " + s + "packages found for " + pp.pkgquery(query))
 				
 					
@@ -629,7 +630,7 @@ class CmdDisplayUSEs(Command):
 			   "  " + pp.command("uses") + pp.localoption(" <local-opts> ") + pp.pkgquery("pkgspec") + \
 			   "\n" + \
 			   pp.localoption("<local-opts>") + " is: \n" + \
-			   "  " + pp.localoption("-a, --all") + " - include non-installed packages\n"
+			   "  " + pp.localoption("-a, --all") + " - include all package versions\n"
 
 
 class CmdDisplayDepGraph(Command):
