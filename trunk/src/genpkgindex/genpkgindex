@@ -6,6 +6,7 @@ import os
 import stat
 import sys
 import time
+
 if getattr(__builtins__, "set", None) is None:
 	from sets import Set as set
 
@@ -29,18 +30,27 @@ except ImportError:
 
 argc=len(sys.argv)
 
+compress = bool(os.environ.get("COMPRESSPKGFILE", ''))
 
 if argc >= 2:
 	if (sys.argv[1][0] == "-"):
-		print "Usage:\tgenpkgindex <pkgdir>"
-		print "\t- default dir "+portage.settings["PKGDIR"]+"/All"
-		sys.exit(1)
+		if (sys.argv[1] != "--compress"):
+			print "Usage:\tgenpkgindex [--compress] <pkgdir>"
+			print "\t- default dir "+portage.settings["PKGDIR"]+"/All"
+			sys.exit(1)
+		else:
+			compress=1
+			if argc >= 3:
+				sys.argv[1] = sys.argv[2]
+			argc = argc - 1;
 
+if argc >= 2:
 	All=sys.argv[1]
 else:
 	All=portage.settings["PKGDIR"]+"/All"
 
 All=os.path.normpath(All)
+
 
 if os.path.exists("/usr/bin/eclean") and "cleanpkgdir" in portage.settings["FEATURES"]:
 	os.system("/usr/bin/eclean -d packages")
@@ -219,7 +229,11 @@ for pkg, tbz2, chksum, st in packages:
 fp.write("\n")
 fp.flush()
 fp.close()
-os.rename(".Packages", "Packages")
+if (compress):
+	os.system("bzip2 .Packages")
+	os.rename(".Packages.bz2", "Packages.bz2")
+else:
+	os.rename(".Packages", "Packages")
 
 # Clean up stale cache files
 os.chdir(portage_const.CACHE_PATH+"/xpak")
