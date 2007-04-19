@@ -1182,7 +1182,7 @@ class CmdListDepends(Command):
 								if not Config["piping"] and Config["verbosityLevel"] >= 3:
 									print " " * (spacing * 2) + pp.cpv(pkg.get_cpv()),
 								   	print "(" + \
-									pp.useflag(dependency[1].join(" & ") + "? ") + \
+									pp.useflag("&".join(dependency[1]) + "? ") + \
 									pp.pkgquery(dependency[0]+dependency[2]) + ")"
 								else:
 									print " " * (spacing * 2) + pkg.get_cpv()
@@ -1196,7 +1196,7 @@ class CmdListDepends(Command):
 						elif not Config["piping"] and Config["verbosityLevel"] >= 3:
 							if dependency[1]:
 								print " "*len(pkg.get_cpv()) + " " * (spacing * 2) + \
-								      " (" + pp.useflag(dependency[1].join("&")+ "? ") + \
+								      " (" + pp.useflag("&".join(dependency[1]) + "? ") + \
 								      pp.pkgquery(dependency[0]+dependency[2]) + ")"
 							else:
 								print " "*len(pkg.get_cpv()) + " " * (spacing * 2) + " (" + \
