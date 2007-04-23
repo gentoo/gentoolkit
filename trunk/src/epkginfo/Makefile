@@ -6,12 +6,11 @@
 include ../../makedefs.mak
 
 all:
-	echo "ABWONG (AB-wong vb.) To bounce cheerfully on a bed."
+	echo "CLIXBY (adj.) Politely rude. Bliskly vague. Firmly uninformative."
 
 dist:
 	mkdir -p ../../$(distdir)/src/epkginfo
 	cp Makefile epkginfo ../../$(distdir)/src/epkginfo/
 
 install:
-	install -d $(DESTDIR)/usr/lib/gentoolkit/bin/
-	install -m 0755 epkginfo $(DESTDIR)/usr/lib/gentoolkit/bin/
+	install -m 0755 epkginfo $(bindir)/

@@ -14,5 +14,4 @@ dist:
 	cp Makefile genpkgindex ../../$(distdir)/src/genpkgindex/
 
 install:
-	install -d $(DESTDIR)/usr/lib/gentoolkit/bin/
-	install -m 0755 genpkgindex $(DESTDIR)/usr/lib/gentoolkit/bin/
+	install -m 0755 genpkgindex $(bindir)/
