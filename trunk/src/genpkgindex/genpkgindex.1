@@ -1,0 +1,48 @@
+.TH "genpkgindex" "1" "" "Ned Ludd" "gentoolkit"
+.SH "NAME"
+.LP 
+genpkgindex \- Generates package metadata from binary packages for use with programs such a qmerge from portage\-utils
+.SH "USAGE"
+.LP 
+genpkgindex [\fI\-\-compress\fP] <\fIpkgdir\fP>
+
+.SH "DESCRIPTION"
+.LP 
+Generates package metadata from binary packages for use with programs such a qmerge from portage\-utils
+.SH "OPTIONS"
+.LP 
+.TP 
+\fB\-\-compress\fR
+Compresses the generated metadata with bzip2.
+.TP 
+<\fIpkgdir\fP> is the location of the binary packages.  The default is normally /usr/portage/packages/All
+
+.SH "ENVIRONMENT VARIABLES"
+.LP 
+.TP 
+\fBPKGDIR\fP
+is the location of binary packages that you can have created with FEATURES=buildpkg, '\-\-buildpkg' or '\-b/\-B' while emerging a package.
+.SH "EXAMPLES"
+.LP 
+Typical usage is to simply run:
+.LP 
+genpkgindex
+.LP
+Alternatively if you want the metadata compressed:
+.LP 
+genpkgindex \-\-compress
+.LP
+.SH "NOTES"
+.LP 
+When no package directories are directly given to genpkgindex on the command line it will output additional variables that it assumes from the running portage environment.
+.LP
+When FEATURES=cleanpkgdir is enabled genpkgindex will invoke "/usr/bin/eclean \-d packages" before creating any package metadata.
+.LP
+genpkgindex intended use is to be run from /etc/portage/bashrc in the $EBUILD_PHASE of "postinst".
+.LP
+.SH "AUTHORS"
+.LP 
+Ned Ludd <solar@gentoo.org>
+.SH "SEE ALSO"
+.LP 
+emerge(1) qmerge(1) make.conf(5) portage(5) 
