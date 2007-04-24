@@ -10,7 +10,8 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/epkginfo
-	cp Makefile epkginfo ../../$(distdir)/src/epkginfo/
+	cp Makefile epkginfo epkginfo.1 ../../$(distdir)/src/epkginfo/
 
 install:
 	install -m 0755 epkginfo $(bindir)/
+	install -m 0644 epkginfo.1 $(mandir)/
