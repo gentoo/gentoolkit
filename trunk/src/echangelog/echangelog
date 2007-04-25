@@ -20,7 +20,38 @@ $Text::Wrap::unexpand = 0;
 
 # Global variables
 my (@files, @ebuilds, @conflicts, @trivial, @unknown, @new_versions, %actions);
-my ($input, $editor, $entry, $user, $date, $text, $version, $year);
+my ($input, $editor, $entry, $user, $date, $text, $version, $year, $vcs);
+
+my %vcs =     ( cvs => { diff => "cvs -f diff -U0",
+			 status => "cvs -fn up",
+			 add => "cvs -f add",
+			 skip => 6,
+			 regex => qr/^Index: ()(([^\/]*?)\.ebuild)\s*$/ },
+		svn => { diff => "svn diff -N",
+			 status => "svn status",
+			 add => "svn add",
+			 skip => 6,
+			 regex => qr/^Index: ()(([^\/]*?)\.ebuild)\s*$/ },
+		git => { diff => "git diff",
+			 status => "git diff-index HEAD --name-status",
+			 add => "git add",
+			 skip => 4,
+			 regex => qr/^diff \-\-git \S*\/((\S*)\.ebuild)/ }
+
+);
+
+# Figure out what kind of repo we are in.
+
+if ( -d "CVS" ) {
+   $vcs = "cvs";
+} elsif ( -d '.svn' ) {
+    $vcs = "svn";
+} elsif ( open GIT, "git rev-parse --git-dir |" ) {
+    $vcs = "git";
+    close GIT;
+} else {
+    die "No CVS, .git, .svn directories found, what kind of repo is this?";
+}
 
 # Read the current ChangeLog
 if (-f 'ChangeLog') {
@@ -30,8 +61,12 @@ if (-f 'ChangeLog') {
 } else {
     # No ChangeLog here, maybe we should make one...
     if (<*.ebuild>) {
-        open I, '<../../skel.ChangeLog' 
-            or die "Can't open ../../skel.ChangeLog for input: $!\n";
+	open C, "portageq envvar PORTDIR |" or die "Can't find PORTDIR";
+	my ($new) = <C>;
+	close C;
+	$new =~ s/\s+$//;
+        open I, "< $new/skel.ChangeLog" 
+            or die "Can't open $new/skel.ChangeLog for input: $!\n";
         { local $/ = undef; $text = <I>; }
         close I;
         my ($cwd) = getcwd();
@@ -46,19 +81,47 @@ if (-f 'ChangeLog') {
     }
 }
 
+
 # Figure out what has changed around here
-open C, 'cvs -fn up 2>&1 |' or die "Can't run cvs -fn up: $!\n";
+open C, $vcs{$vcs}{status}.' 2>&1 |' or die "Can't run ".$vcs{$vcs}{status}.": $!\n";
 while (<C>) {
-    if (/^C (\S+)/) {
-        push @conflicts, $1; 
+    if (/^C\s+(\S+)/) {
+        if($vcs eq "git") {
+            my $filename = $2;
+            $filename =~ /\S*\/(\S*)/;
+	    if( -d $1 ) {
+		next;
+	    }
+            push @conflicts, $1;
+            next; 
+        }
+        push @conflicts, $1;
         next;
-    } elsif (/^\? (\S+)/) {
-        push @unknown, $1;
+    } elsif (/^\?\s+(\S+)/) {
+        if($vcs eq "git") {
+            my $filename = $2;
+            $filename =~ /\S*\/(\S*)/;
+	    if( -d $1 ) {
+		next;
+	    }
+            push @unknown, $1;
+            next; 
+        } else {
+            push @unknown, $1;
+        }
         $actions{$1} = '+';
         next;
-    } elsif (/^([ARM]) (\S+)/) {
-        push @files, $2;
-        ($actions{$2} = $1) =~ tr/ARM/+-/d;
+    } elsif (/^([ARMD])\s+(\S+)/) {        
+        my ($status, $filename) = ($1,$2);
+        if($vcs eq "git") {
+            $filename =~ /\S*\/(\S*)/;
+	    $filename = $1;
+        }
+	if( -d $filename ) {
+	    next;
+	}
+        push @files, $filename;
+        ($actions{$filename} = $status) =~ tr/DARM/-+-/d;
     }
 }
 
@@ -66,6 +129,7 @@ while (<C>) {
 @files = grep { 
     !/files.digest|Manifest|ChangeLog/ or do { push @trivial, $_; 0; }
 } @files;
+
 @unknown = grep { 
     !/files.digest|Manifest|ChangeLog/ or do { push @trivial, $_; 0; }
 } @unknown;
@@ -73,7 +137,7 @@ while (<C>) {
 # Don't allow any conflicts
 if (@conflicts) {
     print STDERR <<EOT;
-Cvs reports the following conflicts.  Please resolve them before
+$vcs reports the following conflicts.  Please resolve them before
 running echangelog.
 EOT
     print STDERR map "C $_\n", @conflicts;
@@ -84,7 +148,7 @@ EOT
 # out above)
 if (@unknown) {
     print STDERR <<EOT;
-Cvs reports the following unknown files.  Please use "cvs add" before
+$vcs reports the following unknown files.  Please use "$vcs add" before
 running echangelog, or remove the files in question.
 EOT
     print STDERR map "? $_\n", @unknown;
@@ -177,25 +241,36 @@ sub sortfunc($$) {
 
 # Forget ebuilds that only have changed copyrights, unless that's all
 # the changed files we have
+
 @ebuilds = grep /\.ebuild$/, @files;
 @files = grep !/\.ebuild$/, @files;
+
 if (@ebuilds) {
-    open C, "cvs -f diff -U0 @ebuilds 2>&1 |" or die "Can't run cvs diff: $!\n";
+    if ($vcs eq "git") {
+    	open C, $vcs{$vcs}{diff}." 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
+    } else { 
+        open C, $vcs{$vcs}{diff}." @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
+    }
     $_ = <C>;
     while (defined $_) {
-        if (/^cvs diff: (([^\/]*?)\.ebuild) was removed/) { 
+	# only possible with cvs
+        if (/^$vcs diff: (([^\/]*?)\.ebuild) was removed/) { 
             push @files, $1;
         }
-        elsif (/^Index: (([^\/]*?)\.ebuild)\s*$/) { 
-            my ($f, $v) = ($1, $2);
+
+	# We assume GNU diff output format here.
+	# git format: diff --git a/app-doc/repodoc/metadata.xml b/app-doc/repodoc/metadata.xml
+	elsif (/$vcs{$vcs}{regex}/) {
+            my ($f) = ($2);
+            # file was removed from git 
+	    if (/^deleted file mode/) {
+		    $_ = <C>; # just eat the line
+            }
             # check if more than just copyright date changed.
-            # skip some lines
-            $_ = <C>;	# ====================================
-            $_ = <C>;	# RCS file: ...
-            $_ = <C>;	# retrieving revision
-            $_ = <C>;	# diff -u ...
-            $_ = <C>;	# --- vim-6.2-r6.ebuild
-            $_ = <C>;	# +++ vim-6.2-r6.ebuild
+            # skip some lines (vcs dependent)
+	    foreach(1..$vcs{$vcs}{skip}){
+	            $_ = <C>;
+	    }
             while (<C>) {
                 last if /^[A-Za-z]/;
                 if (/^[-+](?!# Copyright)/) {
@@ -207,7 +282,7 @@ if (@ebuilds) {
             # and we have the next line in $_ for processing
             next;
         }
-        elsif (/^cvs.*?: (([^\/]*?)\.ebuild) is a new entry/) { 
+        elsif (/^$vcs.*?: (([^\/]*?)\.ebuild) is a new entry/) { 
             push @files, $1;
             push @new_versions, $2;  # new ebuild, will create a new entry
         }
@@ -334,7 +409,7 @@ close O                  or die "Can't close ChangeLog.new: $!\n";
 # Update affected ebuild copyright dates.  There is no reason to update the
 # copyright lines on ebuilds that haven't changed.  I verified this with an IP
 # lawyer.
-for my $e (grep { /\.ebuild$/ && -e } @files) {
+for my $e (grep /\.ebuild$/, @files) {
     my ($etext, $netext);
     open E, "<$e" or warn("Can't read $e to update copyright year\n"), next;
     { local $/ = undef; $etext = <E>; }
@@ -360,9 +435,7 @@ rename 'ChangeLog.new', 'ChangeLog' or die "Can't rename ChangeLog.new: $!\n";
 
 # Okay, now we have a starter ChangeLog to work with.
 # The text will be added just like with any other ChangeLog below.  
-# Add the new ChangeLog to cvs before continuing.
-if (open F, "CVS/Entries") {
-    system("cvs -f add ChangeLog") unless (scalar grep /^\/ChangeLog\//, <F>);
-}
+# Add the new changelog to vcs, maybe it already is added, but who cares right?
+system("$vcs{$vcs}{add} ChangeLog 2>&1 >> /dev/null")
 
 # vim:sw=4 ts=8 expandtab

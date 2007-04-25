@@ -1,3 +1,7 @@
+2007-04-25: Paul Varner <fuzzyray@gentoo.org>
+	* echangelog: Re-added subversion/git support with fixes from genstef.
+	(Bug #136048)
+
 2007-04-24: Paul Varner <fuzzyray@gentoo.org>
 	* etcat: Removed from Makefile (deprecated since 04-25-2005)
 	* qpkg: Removed from Makefile (deprecated since 04-25-2005)
