@@ -230,10 +230,13 @@ fp.write("\n")
 fp.flush()
 fp.close()
 if (compress):
-	os.system("bzip2 .Packages")
+	os.system("bzip2 < .Packages > .Packages.bz2")
 	os.rename(".Packages.bz2", "Packages.bz2")
 else:
-	os.rename(".Packages", "Packages")
+	if os.path.exists("Packages.bz2"):
+		os.unlink("Packages.bz2")
+
+os.rename(".Packages", "Packages")
 
 # Clean up stale cache files
 os.chdir(portage_const.CACHE_PATH+"/xpak")
