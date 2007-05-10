@@ -1,3 +1,7 @@
+2007-05-10: Marius Mauch <genone@gentoo.org>
+	* euse: Fix incorrect flag status display when a flag appears multiple
+	times in a single location
+
 2007-04-25: Paul Varner <fuzzyray@gentoo.org>
 	* echangelog: Re-added subversion/git support with fixes from genstef.
 	(Bug #136048)
