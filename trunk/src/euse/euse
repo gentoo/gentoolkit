@@ -111,6 +111,26 @@ showversion() {
 	echo "This is free software; see the source for copying conditions."
 }
 
+# remove duplicate flags from the given list in both positive and negative forms
+# (but unlike portage always keep the last value even if it's negative)
+# Otherwise the status flags could be incorrect if a flag appers multiple times in
+# one location (like make.conf).
+# Using python here as bash sucks for list handling.
+reduce_incrementals() {
+	echo $@ | python -c "import sys
+r=[]
+for x in sys.stdin.read().split():
+	if x[0] == '-' and x[1:] in r:
+		r.remove(x[1:])
+		r.append(x)
+	elif x[0] != '-' and '-'+x in r:
+		r.remove('-'+x)
+		r.append(x)
+	elif x not in r:
+		r.append(x)
+print ' '.join(r)" 
+}
+
 # the following function creates a bash array ACTIVE_FLAGS that contains the
 # global use flags, indexed by origin: 0: environment, 1: make.conf, 
 # 2: make.defaults, 3: make.globals
@@ -121,18 +141,18 @@ get_useflags() {
 	# backup portdir so get_portdir() doesn't give false results later
 	portdir_backup="${PORTDIR}"
 
-	ACTIVE_FLAGS[0]="${USE}"
+	ACTIVE_FLAGS[0]="$(reduce_incrementals ${USE})"
 	USE=""
 	source "${MAKE_CONF_PATH}"
-	ACTIVE_FLAGS[1]="${USE}"
+	ACTIVE_FLAGS[1]="$(reduce_incrementals ${USE})"
 	USE=""
 	for x in $(get_all_make_defaults); do
 		source "${x}"
-		ACTIVE_FLAGS[2]="${ACTIVE_FLAGS[2]} ${USE}"
+		ACTIVE_FLAGS[2]="$(reduce_incrementals ${ACTIVE_FLAGS[2]} ${USE})"
 	done
 	USE=""
 	source "${MAKE_GLOBALS_PATH}"
-	ACTIVE_FLAGS[3]="${USE}"
+	ACTIVE_FLAGS[3]="$(reduce_incrementals ${USE})"
 
 	# restore saved env variables
 	USE="${ACTIVE_FLAGS[0]}"
