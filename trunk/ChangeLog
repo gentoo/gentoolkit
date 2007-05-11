@@ -1,3 +1,7 @@
+2007-05-11: Paul Varner <fuzzyray@gentoo.org>
+	* eclean: Updated eclean to not delete metadata.dtd by default (Bug
+	#176951)
+
 2007-05-10: Marius Mauch <genone@gentoo.org>
 	* euse: Fix incorrect flag status display when a flag appears multiple
 	times in a single location
