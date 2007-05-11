@@ -785,8 +785,8 @@ def main():
 			sys.exit(1)
 	else: exclude_dict={}
 	# security check for non-pretend mode
-	if not myoptions['pretend'] and portage.secpass != 2:
-		eerror("Permission denied: you must be root.", \
+	if not myoptions['pretend'] and portage.secpass == 0:
+		eerror("Permission denied: you must be root or belong to the portage group.", \
 		       myoptions['nocolor'])
 		sys.exit(1)
 	# execute action
