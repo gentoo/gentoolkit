@@ -46,7 +46,7 @@ if ( -d "CVS" ) {
    $vcs = "cvs";
 } elsif ( -d '.svn' ) {
     $vcs = "svn";
-} elsif ( open GIT, "git rev-parse --git-dir |" ) {
+} elsif ( -d '/usr/bin/git' and open GIT, "git rev-parse --git-dir |" ) {
     $vcs = "git";
     close GIT;
 } else {
@@ -305,7 +305,7 @@ unless (@files) {
     print STDERR "**\n";
     print STDERR "** NOTE: No non-trivial changed files found.  Normally echangelog\n";
     print STDERR "** should be run after all affected files have been added and/or\n";
-    print STDERR "** modified.  Did you forget to cvs add?\n";
+    print STDERR "** modified.  Did you forget to $vcs add?\n";
     print STDERR "**\n";
     @files = sort sortfunc @trivial;
     @files = qw/ChangeLog/ unless @files;  # last resort to put something in the list
@@ -435,7 +435,17 @@ rename 'ChangeLog.new', 'ChangeLog' or die "Can't rename ChangeLog.new: $!\n";
 
 # Okay, now we have a starter ChangeLog to work with.
 # The text will be added just like with any other ChangeLog below.  
-# Add the new changelog to vcs, maybe it already is added, but who cares right?
-system("$vcs{$vcs}{add} ChangeLog 2>&1 >> /dev/null")
+# Add the new ChangeLog to vcs before continuing.
+if ($vcs eq "cvs") {
+    if (open F, "CVS/Entries") {
+        system("cvs -f add ChangeLog") unless (scalar grep /^\/ChangeLog\//, <F>);
+    }
+} elsif ($vcs eq "svn") {
+    if (open F, ".svn/entries") {
+        system("svn add ChangeLog") unless (scalar grep /^ChangeLog$/, <F>);
+    }
+} else {
+    system("$vcs{$vcs}{add} ChangeLog 2>&1 >> /dev/null");
+}
 
 # vim:sw=4 ts=8 expandtab
