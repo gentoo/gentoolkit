@@ -1,3 +1,6 @@
+2007-05-21: Paul Varner <fuzzyray@gentoo.org>
+	* echangelog: Add patch from genstef to fix issues from Bug 176337
+
 2007-05-11: Paul Varner <fuzzyray@gentoo.org>
 	* eclean: Changed permission check to see if you are either root or
 	belong to the portage group (Bug #177385)
