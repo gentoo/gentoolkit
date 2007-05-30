@@ -3,6 +3,7 @@
 	* glsa-check: new --emergelike option to use the best version 
 	within the same SLOT instead of the one with the smallest delta.
 	* glsa-check: prefer visible upgrades to masked upgrades
+	* equery: check for and warn about unknown options (bug 119674)
 
 2007-05-21: Paul Varner <fuzzyray@gentoo.org>
 	* echangelog: Add patch from genstef to fix issues from Bug 176337
