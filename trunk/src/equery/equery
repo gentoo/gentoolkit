@@ -23,7 +23,11 @@ sys.path.insert(0, "/usr/lib/portage/pym")
 sys.path.insert(0, "/usr/lib/gentoolkit/pym")
 
 import gentoolkit
-import portage
+try:
+	import portage
+except ImportError:
+	sys.path.insert(0, "/usr/lib/portage/pym")
+	import portage
 import portage_checksum
 from portage_util import unique_array
 

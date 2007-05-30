@@ -19,8 +19,11 @@ __description__ = "Gentoolkit Common Library"
 
 import os
 import sys
-sys.path.insert(0, "/usr/lib/portage/pym")
-import portage
+try:
+	import portage
+except ImportError:
+	sys.path.insert(0, "/usr/lib/portage/pym")
+	import portage
 import re
 from threading import Lock
 

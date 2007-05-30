@@ -25,9 +25,11 @@ if sys.version_info[0:2] < (2,3):
 	raise NotImplementedError("Python versions below 2.3 have broken XML code " \
 								+"and are not supported")
 
-sys.path.insert(0, "/usr/lib/portage/pym")	# to find portage.py
-
-import portage
+try:
+	import portage
+except ImportError:
+	sys.path.insert(0, "/usr/lib/portage/pym")
+	import portage
 
 # Note: the space for rgt and rlt is important !!
 opMapping = {"le": "<=", "lt": "<", "eq": "=", "gt": ">", "ge": ">=", 

@@ -6,7 +6,11 @@
 import os
 import sys
 sys.path.insert(0, "/usr/lib/gentoolkit/pym")
-sys.path.insert(0, "/usr/lib/portage/pym")
+try:
+	import portage
+except ImportError:
+	sys.path.insert(0, "/usr/lib/portage/pym")
+	import portage
 
 try:
 	from portage.output import *
