@@ -11,14 +11,19 @@
 
 import os
 import sys
-import portage
+try:
+	import portage
+except ImportError:
+	sys.path.insert(0, "/usr/lib/portage/pym")
+	import portage
 import re
 from stat import *
-from output import *
+try:
+	from portage.output import *
+except ImportError:
+	from output import *
 from xml.sax import saxutils, make_parser, handler
 from xml.sax.handler import feature_namespaces
-
-#sys.path.insert(0, "/usr/lib/portage/pym")
 
 version="0.4.1"
 

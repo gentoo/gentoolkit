@@ -22,8 +22,11 @@ import time
 import getopt
 import fpformat
 import signal
-sys.path.insert(0,'/usr/lib/portage/pym')
-import portage
+try:
+	import portage
+except ImportError:
+	sys.path.insert(0, "/usr/lib/portage/pym")
+	import portage
 try:
 	from portage.output import *
 except ImportError:
