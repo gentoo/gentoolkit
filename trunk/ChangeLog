@@ -1,3 +1,8 @@
+2007-05-30: Marius Mauch <genone@gentoo.org>
+	* glsa-check: check SLOT when selecting and displaying upgrades
+	* glsa-check: new --emergelike option to use the best version 
+	within the same SLOT instead of the one with the smallest delta.
+
 2007-05-21: Paul Varner <fuzzyray@gentoo.org>
 	* echangelog: Add patch from genstef to fix issues from Bug 176337
 

@@ -288,7 +288,7 @@ def makeVersion(versionNode):
 	return opMapping[versionNode.getAttribute("range")] \
 			+getText(versionNode, format="strip")
 
-def match(atom, portdbname):
+def match(atom, portdbname, match_type="default"):
 	"""
 	wrapper that calls revisionMatch() or portage.dbapi.match() depending on 
 	the given atom.
@@ -297,16 +297,22 @@ def match(atom, portdbname):
 	@param	atom: a <~ or >~ atom or a normal portage atom that contains the atom to match against
 	@type	portdb: portage.dbapi
 	@param	portdb:	one of the portage databases to use as information source
+	@type	match_type: string
+	@param	match_type: if != "default" passed as first argument to dbapi.xmatch 
+				to apply the wanted visibility filters
 	
 	@rtype:		list of strings
 	@return:	a list with the matching versions
 	"""
+	db = portage.db["/"][portdbname].dbapi
 	if atom[2] == "~":
-		return revisionMatch(atom, portage.db["/"][portdbname].dbapi)
+		return revisionMatch(atom, db, match_type=match_type)
+	elif match_type == "default" or not hasattr(db, "xmatch"):
+		return db.match(atom)
 	else:
-		return portage.db["/"][portdbname].dbapi.match(atom)
+		return db.xmatch(match_type, atom)
 
-def revisionMatch(revisionAtom, portdb):
+def revisionMatch(revisionAtom, portdb, match_type="default"):
 	"""
 	handler for the special >~, >=~, <=~ and <~ atoms that are supposed to behave
 	as > and < except that they are limited to the same version, the range only
@@ -316,11 +322,17 @@ def revisionMatch(revisionAtom, portdb):
 	@param	revisionAtom: a <~ or >~ atom that contains the atom to match against
 	@type	portdb: portage.dbapi
 	@param	portdb:	one of the portage databases to use as information source
+	@type	match_type: string
+	@param	match_type: if != "default" passed as first argument to portdb.xmatch 
+				to apply the wanted visibility filters
 	
 	@rtype:		list of strings
 	@return:	a list with the matching versions
 	"""
-	mylist = portdb.match(re.sub("-r[0-9]+$", "", revisionAtom[2:]))
+	if match_type == "default" or not hasattr(portdb, "xmatch"):
+		mylist = portdb.match(re.sub("-r[0-9]+$", "", revisionAtom[2:]))
+	else:
+		mylist = portdb.xmatch(match_type, re.sub("-r[0-9]+$", "", revisionAtom[2:]))
 	rValue = []
 	for v in mylist:
 		r1 = portage.pkgsplit(v)[-1][1:]
@@ -330,7 +342,7 @@ def revisionMatch(revisionAtom, portdb):
 	return rValue
 		
 
-def getMinUpgrade(vulnerableList, unaffectedList):
+def getMinUpgrade(vulnerableList, unaffectedList, minimize=True):
 	"""
 	Checks if the systemstate is matching an atom in
 	I{vulnerableList} and returns string describing
@@ -344,6 +356,9 @@ def getMinUpgrade(vulnerableList, unaffectedList):
 	@param	vulnerableList: atoms matching vulnerable package versions
 	@type	unaffectedList: List of Strings
 	@param	unaffectedList: atoms matching unaffected package versions
+	@type	minimize:	Boolean
+	@param	minimize:	True for a least-change upgrade, False for emerge-like algorithm
+	
 	@rtype:		String | None
 	@return:	the lowest unaffected version that is greater than
 				the installed version.
@@ -363,21 +378,21 @@ def getMinUpgrade(vulnerableList, unaffectedList):
 			install_unaffected = False
 
 	if install_unaffected:
-		return []
+		return rValue
 	
 	for u in unaffectedList:
-		if u[2] == "~":
-			mylist = revisionMatch(u, portage.db["/"]["porttree"].dbapi)
-		else:
-			mylist = portage.db["/"]["porttree"].dbapi.xmatch("match-all", u)
+		mylist = match(u, "porttree", match_type="match-all")
 		for c in mylist:
 			c_pv = portage.catpkgsplit(c)
 			i_pv = portage.catpkgsplit(portage.best(v_installed))
-			if portage.pkgcmp(c_pv[1:], i_pv[1:]) > 0 and (rValue == None or portage.pkgcmp(c_pv[1:], portage.catpkgsplit(rValue)[1:]) < 0):
+			if portage.pkgcmp(c_pv[1:], i_pv[1:]) > 0 \
+					and (rValue == None or (minimize ^ (portage.pkgcmp(c_pv[1:], portage.catpkgsplit(rValue)[1:]) > 0))) \
+					and portage.db["/"]["porttree"].dbapi.aux_get(c, ["SLOT"]) == portage.db["/"]["vartree"].dbapi.aux_get(portage.best(v_installed), ["SLOT"]):
 				rValue = c_pv[0]+"/"+c_pv[1]+"-"+c_pv[2]
 				if c_pv[3] != "r0":		# we don't like -r0 for display
 					rValue += "-"+c_pv[3]
 	return rValue
+
 
 # simple Exception classes to catch specific errors
 class GlsaTypeException(Exception):
@@ -602,20 +617,22 @@ class Glsa:
 			checkfile.close()
 		return None
 	
-	def getMergeList(self):
+	def getMergeList(self, least_change=True):
 		"""
 		Returns the list of package-versions that have to be merged to
 		apply this GLSA properly. The versions are as low as possible 
 		while avoiding downgrades (see L{getMinUpgrade}).
 		
+		@type	least_change: Boolean
+		@param	least_change: True if the smallest possible upgrade should be selected,
+					False for an emerge-like algorithm
 		@rtype:		List of Strings
 		@return:	list of package-versions that have to be merged
 		"""
 		rValue = []
 		for pkg in self.packages.keys():
 			for path in self.packages[pkg]:
-				update = getMinUpgrade(path["vul_atoms"],
-										path["unaff_atoms"])
+				update = getMinUpgrade(path["vul_atoms"], path["unaff_atoms"], minimize=least_change)
 				if update:
 					rValue.append(update)
 		return rValue

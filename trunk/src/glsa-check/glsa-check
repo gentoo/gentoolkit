@@ -17,7 +17,7 @@ from getopt import getopt,GetoptError
 
 __program__ = "glsa-check"
 __author__ = "Marius Mauch <genone@gentoo.org>"
-__version__ = "0.8"
+__version__ = "0.9"
 
 optionmap = [
 ["-l", "--list", "list all unapplied GLSA"],
@@ -27,6 +27,7 @@ optionmap = [
 ["-f", "--fix", "try to auto-apply this GLSA (experimental)"],
 ["-i", "--inject", "inject the given GLSA into the checkfile"],
 ["-n", "--nocolor", "disable colors (option)"],
+["-e", "--emergelike", "do not use a least-change algorithm (option)"],
 ["-h", "--help", "show this help message"],
 ["-V", "--version", "some information about this tool"],
 ["-v", "--verbose", "print more information (option)"],
@@ -66,6 +67,12 @@ try:
 	for option in ["--cve", "-c"]:
 		if option in args:
 			list_cve = True
+			args.remove(option)
+	
+	least_change = True
+	for option in ["--emergelike", "-e"]:
+		if option in args:
+			least_change = False
 			args.remove(option)
 
 	# sanity checking
@@ -124,6 +131,9 @@ if mode == "version":
 from glsa import *
 
 glsaconfig = checkconfig(portage.config(clone=portage.settings))
+
+vardb = portage.db["/"]["vartree"].dbapi
+portdb = portage.db["/"]["porttree"].dbapi
 
 # Check that we really have a glsa dir to work on
 if not (os.path.exists(glsaconfig["GLSA_DIR"]) and os.path.isdir(glsaconfig["GLSA_DIR"])):
@@ -203,7 +213,7 @@ def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr):
 				fd1.write("... ")
 		else:
 			for pkg in myglsa.packages.keys():
-				mylist = portage.db["/"]["vartree"].dbapi.match(portage.dep_getkey(pkg))
+				mylist = vardb.match(portage.dep_getkey(pkg))
 				if len(mylist) > 0:
 					pkg = color(" ".join(mylist))
 				fd1.write(" " + pkg + " ")
@@ -230,7 +240,7 @@ if mode in ["dump", "fix", "inject", "pretend"]:
 			myglsa.dump()
 		elif mode == "fix":
 			sys.stdout.write("fixing "+myid+"\n")
-			mergelist = myglsa.getMergeList()
+			mergelist = myglsa.getMergeList(least_change=least_change)
 			for pkg in mergelist:
 				sys.stdout.write(">>> merging "+pkg+"\n")
 				# using emerge for the actual merging as it contains the dependency
@@ -245,12 +255,16 @@ if mode in ["dump", "fix", "inject", "pretend"]:
 			myglsa.inject()
 		elif mode == "pretend":
 			sys.stdout.write("Checking GLSA "+myid+"\n")
-			mergelist = myglsa.getMergeList()
+			mergelist = myglsa.getMergeList(least_change=least_change)
 			if mergelist:
 				sys.stdout.write("The following updates will be performed for this GLSA:\n")
 				for pkg in mergelist:
-					# we simplify a bit here
-					oldver = portage.db["/"]["vartree"].dbapi.match(portage.dep_getkey(pkg))[-1]
+					oldver = None
+					for x in vardb.match(portage.dep_getkey(pkg)):
+						if vardb.aux_get(x, ["SLOT"]) == portdb.aux_get(pkg, ["SLOT"]):
+							oldver = x
+					if oldver == None:
+						raise ValueError("could not find old version for package %s" % pkg)
 					oldver = oldver[len(portage.dep_getkey(oldver))+1:]
 					sys.stdout.write("     " + pkg + " (" + oldver + ")\n")
 			else:
