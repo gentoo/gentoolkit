@@ -137,6 +137,8 @@ class CmdListFiles(Command):
 				opts["filter"] = x[9:].split(',')
 			elif x[0] == "/":
 				die(2, "The query '" + pp.pkgquery(x) + "' does not appear to be a valid package specification")
+			elif x[0] == "-":
+				print_warn("unknown local option %s, ignoring" % x)
 			else:
 				query = x
 
@@ -342,6 +344,8 @@ class CmdListBelongs(Command):
 				opts["fullRegex"] = 1
 			elif x in ["-n", "--name-only"]:
 				opts["nameOnly"] = 1
+			elif x[0] == "-":
+				print_warn("unknown local option %s, ignoring" % x)
 			else:
 				query.append(x)
 
@@ -468,6 +472,8 @@ class CmdDisplayUSEs(Command):
 				break
 			elif x in ["-a", "--all"]:
 				opts["allPackages"] = True
+			elif x[0] == "-":
+				print_warn("unknown local option %s, ignoring" % x)
 			else:
 				query = x
 
@@ -666,6 +672,8 @@ class CmdDisplayDepGraph(Command):
 				opts["fancyFormatting"] = 0
 			elif x[:8] == "--depth=":
 				opts["depth"] = int(x[8:])
+			elif x[0] == "-":
+				print_warn("unknown local option %s, ignoring" % x)
 			else:
 				query = x
 
@@ -772,6 +780,8 @@ class CmdDisplaySize(Command):
 				opts["regex"] = 1
 			elif x in ["-e", "--exact-name"]:
 				opts["exact"] = 1
+			elif x[0] == "-":
+				print_warn("unknown local option %s, ignoring" % x)
 			else:
 				query = x
 
@@ -898,6 +908,8 @@ class CmdCheckIntegrity(Command):
 			if x in ["-h","--help"]:
 				need_help = 1
 				break
+			elif x[0] == "-":
+				print_warn("unknown local option %s, ignoring" % x)
 			else:
 				query = x
 
@@ -1011,6 +1023,8 @@ class CmdWhich(Command):
 				break
 			elif x in ["-m", "--include-masked"]:
 				opts["includeMasked"] = True
+			elif x[0] == "-":
+				print_warn("unknown local option %s, ignoring" % x)
 			else:
 				query = x
 
@@ -1090,6 +1104,8 @@ class CmdListDepends(Command):
 				opts["spacing"] = int(x[10:])
 			elif x[:8] == "--depth=":
 				opts["depth"] = int(x[8:])
+			elif x[0] == "-":
+				print_warn("unknown local option %s, ignoring" % x)
 			else:
 				query = x
 	 
@@ -1277,6 +1293,8 @@ class CmdListPackages(Command):
 				opts["exact"] = 1
 			elif x in ["-d", "--duplicates"]:
 				opts["duplicates"] = 1
+			elif x[0] == "-":
+				print_warn("unknown local option %s, ignoring" % x)
 			else:
 				query = x
 
@@ -1493,6 +1511,8 @@ class CmdFindUSEs(Command):
 				opts["includeOverlayTree"] = 1
 			elif x in ["-m", "--exclude-masked"]:
 				opts["includeMasked"] = 0
+			elif x[0] == "-":
+				print_warn("unknown local option %s, ignoring" % x)
 			else:
 				query = x
 
@@ -1735,10 +1755,13 @@ def parseArgs(args):
 			Config["verbosityLevel"] = 0
 		elif expand(x) in Known_commands.keys():
 			command = Known_commands[expand(x)]
-			local_opts = args[i+1:]
+			local_opts.extend(args[i+1:])
 			if showhelp:
 				local_opts.append("--help")
 			break
+		else:
+			print_warn("unknown global option %s, reusing as local option" % x)
+			local_opts.append(x)
 		
 	if not command and showhelp:
 		printUsage()
