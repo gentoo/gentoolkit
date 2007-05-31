@@ -1,17 +1,22 @@
 #!/usr/bin/python
-# Copyright 2006 Gentoo Foundation
+# Copyright 2006-2007 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
+
 
 import os
 import stat
 import sys
 import time
+import getopt
+from stat import *
 
 if getattr(__builtins__, "set", None) is None:
 	from sets import Set as set
 
 for x in ['CFLAGS','CXXFLAGS', 'LDFLAGS','USE']:
-	os.environ[x]=''
+	os.environ[x] = ''
+
+os.environ["USE_EXPAND"] = "-*"
 
 import portage
 
@@ -28,125 +33,114 @@ except ImportError:
 	import portage_util
 	import portage_const
 
-argc=len(sys.argv)
-
 compress = bool(os.environ.get("COMPRESSPKGFILE", ''))
+pkgdir = portage.settings["PKGDIR"]
+opt_args_short="hqvcP:"
+opt_args_long=["help", "quiet", "verbose", "compress", "pkgdir"]
+quiet = False
+verbose = False
 
-if argc >= 2:
-	if (sys.argv[1][0] == "-"):
-		if (sys.argv[1] != "--compress"):
-			print "Usage:\tgenpkgindex [--compress] <pkgdir>"
-			print "\t- default dir "+portage.settings["PKGDIR"]+"/All"
-			sys.exit(1)
-		else:
-			compress=1
-			if argc >= 3:
-				sys.argv[1] = sys.argv[2]
-			argc = argc - 1;
+def usage():
+	print portage.output.green("Usage:")+"\t"+portage.output.yellow("genpkgindex")+" -"+portage.output.blue("["+opt_args_short+"]")
+	print portage.output.white(" Options:")+"  --"+" --".join(opt_args_long)
+	sys.exit(1)
 
-if argc >= 2:
-	All=sys.argv[1]
-else:
-	All=portage.settings["PKGDIR"]+"/All"
+def update_pkgdir():
+	if not os.path.exists(portage.settings["PKGDIR"]+"/All"):
+		return
 
-All=os.path.normpath(All)
+	os.chdir(portage.settings["PKGDIR"]+"/All")
+	for x in os.listdir("."):
+		pkg = os.path.basename(x)
+		if pkg[-5:] != ".tbz2":
+			continue
 
-
-if os.path.exists("/usr/bin/eclean") and "cleanpkgdir" in portage.settings["FEATURES"]:
-	os.system("/usr/bin/eclean -d packages")
-
-os.chdir(All)
-
-portage.writemsg(portage.green(' * ')+'Update binary package index %s\n' % All);
-start = time.time()
-
-# generic name of our package index.
-control_file = ".Packages"
-
-try:
-	import re
-	profilever = os.path.normpath("///"+os.readlink("/etc/make.profile"))
-	basepath = os.path.normpath("///"+portage.settings["PORTDIR"]+"/profiles")
-	if re.match(basepath,profilever):
-		profilever = profilever[len(basepath)+1:]
-	else:
-		profilever = "!"+profilever
-
-	del basepath
-
-except SystemExit, e:
-	raise # Needed else can't exit
-except:
-	profilever="unavailable"
-
-packages = []
-for pkg in os.listdir('.'):
-	if not os.path.basename(pkg).endswith("tbz2"):
-		continue
-
-	st = os.stat(pkg)
-
-	if not os.path.exists(portage_const.CACHE_PATH+"/xpak/"):
-		os.mkdir(portage_const.CACHE_PATH+"/xpak/")
-
-	fname = portage_const.CACHE_PATH+"/xpak/"+os.path.basename(pkg)[:-5]+".xpak"
-
-	if os.path.exists(fname):
-		if st.st_mtime != os.stat(fname).st_mtime:
-			#print "unlinking "+fname
-			os.unlink(fname)
-
-	if not os.path.exists(fname):
+		mode = os.lstat(pkg)[ST_MODE]
+		if not S_ISREG(mode):
+			if S_ISLNK(mode):
+				if not os.path.exists(os.readlink(x)):
+					if verbose:
+						portage.writemsg(portage.output.yellow(" * ")+"Removing broken symlink: "+x+"\n")
+					os.unlink(x)
+			continue
 		tbz2 = xpak.tbz2(pkg)
-		xpdata = xpak.xpak_mem(tbz2.get_data())
-		fp = open(fname, "w")
-		fp.write(xpdata+xpak.encodeint(len(xpdata))+"STOP")
-		fp.close()
+		data = tbz2.getboth()
+		cat = xpak.getitem(data, "CATEGORY")
+		cat = cat[:-1]
+		if not os.path.exists("../"+cat):
+			os.mkdir("../"+cat)
+		if os.path.exists("../"+ cat + "/" + pkg):
+			os.unlink("../"+ cat + "/" + pkg)
+		os.rename(pkg, "../"+ cat + "/" + pkg)
+		os.symlink("../"+ cat + "/"+ pkg, pkg)
 
-		chksum = portage_checksum.perform_md5(pkg)
-		fp = open(fname[:-5]+".md5", "w")
-		fp.write(chksum)
-		fp.close()
+def grabpkgnames(dirp):
+	names = []
+	categories = portage.grabfile(portage.settings["PORTDIR"]+"/profiles/categories")
+	os.chdir(dirp)
+	for cat in os.listdir('.'):
+		if cat in categories:
+			for pkg in os.listdir(cat):
+				if os.path.basename(pkg).endswith("tbz2"):
+					names.append(cat+"/"+pkg)
+	names.sort()
+	return names
 
-		os.utime(fname, (st.st_mtime, st.st_mtime))
+def cleanxfiles(dirp):
+	global verbose
+	# Clean up stale cache files
+	os.chdir(portage_const.CACHE_PATH+"/xpak")
+	for pkg in os.listdir('.'):
+		p = os.path.basename(pkg)
+		if not p.endswith(".xpak"):
+			continue
+		tbz2 = xpak.tbz2(p)
+		stuff = tbz2.getboth()
+		cat = xpak.getitem(stuff, "CATEGORY")
+		if not os.path.exists(dirp + "/" + cat[:-1] + "/" + p[:-5] + ".tbz2"):
+			# tidy up
+			if verbose:
+				portage.writemsg(portage.output.yellow(" * ") + "Stale entry: " + dirp + "/" + cat[:-1] + "/" + p[:-5] + ".tbz2\n")
+			os.unlink(p)
+			os.unlink(p[:-5]+".md5")
 
+def cleanpkgdir():
+	if os.path.exists("/usr/bin/eclean"):
+		os.system("/usr/bin/eclean -d packages")
+
+
+def parseargs():
+	global pkgdir
+	global compress
+	global verbose
+	global quiet
+
+	if portage.settings.get("NOCOLOR") not in ("yes","true"):
+		portage.output.havecolor = 1
 	else:
-		if os.path.exists(fname[:-5]+".md5"):
-			chksum = "".join(portage.grabfile(fname[:-5]+".md5"))
-		else:
-			chksum = portage_checksum.perform_md5(pkg)
+		portage.output.havecolor = 0
 
-		tbz2 = xpak.tbz2(fname)
+	# Parse the cmdline.
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], opt_args_short, opt_args_long)
+	except getopt.GetoptError:
+		usage()
+		sys.exit(2)
 
-	packages.append((pkg, tbz2, chksum, st))
+	for opt, optarg in opts:
+		if opt in ("-v", "verbose"):
+			verbose = True
+		if opt in ("-h", "--help"):
+			usage()
+		if opt in ("-c", "--compress"):
+			compress = True
+		if opt in ("-q", "--quiet"):
+			quiet = True
+		if opt in ("-P", "--pkgdir"):
+			pkgdir = optarg
 
-packages.sort()
-
-timestamp=str(start).split(".")[0]
-# trunc the file and begin write operations.
-fp = open(control_file, "w")
-
-if argc <= 1:
-	fp.write("PROFILE: "+profilever+"\n")
-	fp.write("PACKAGES: "+str(len(packages)) +"\n")
-	fp.write("TIMESTAMP: "+timestamp+"\n")
-
-	vmask = [ "AUTOCLEAN", "DISTDIR", "PKGDIR", "PORTDIR" , "PORTAGE_TMPDIR" , "PORTAGE_RSYNC_OPTS" ]
-	vars = portage_util.grabfile(portage.settings["PORTDIR"]+"/profiles/info_vars")
-	for x in vmask:
-		vars.remove(x)
-
-	vars.sort()
-
-	for x in vars:
-		if portage.settings.has_key(x):
-			if (len(portage.settings[x])):
-				fp.write(x+": "+portage.settings[x]+"\n")
-else:
-	fp.write("PACKAGES: "+str(len(packages)) +"\n")
-	fp.write("TIMESTAMP: "+timestamp+"\n")
-
-fp.write("\n")
+	if "cleanpkgdir" in portage.settings["FEATURES"]:
+		cleanpkgdir()
 
 def serialize_depset(src, context='and'):
 	l = []
@@ -177,78 +171,175 @@ def serialize_depset(src, context='and'):
 					l.append("( %s )" % v.strip())
 	return ' '.join(l)
 
-for pkg, tbz2, chksum, st in packages:
-	stuff = tbz2.getboth()
-	if not stuff:
-		print "Not a tbz2: "+str(pkg)
-		continue
+def getallpkgs():
+	packages = []
+	os.chdir(pkgdir)
+	for pkg in grabpkgnames(pkgdir):
 
-	cat = xpak.getitem(stuff, "CATEGORY")
+		st = os.stat(pkg)
 
-	use = xpak.getitem(stuff, "USE")
-	if use is None:
-		use = ''
-	iuse = xpak.getitem(stuff, "IUSE")
-	if iuse is None:
-		iuse = ''
+		if not os.path.exists(portage_const.CACHE_PATH+"/xpak/"):
+			os.mkdir(portage_const.CACHE_PATH+"/xpak/")
 
-	s = xpak.getitem(stuff, "DESCRIPTION")
-	if s is not None:
-		s = ' '.join(s.split())
-		if s:
-			fp.write("DESC: %s\n" % s)
-	# drop '.tbz2'
-	fp.write("PF: %s\nCATEGORY: %s\n" % (pkg[:-5], cat.strip()))
-	s = xpak.getitem(stuff, "SLOT")
-	if s is not None:
-		s = ' '.join(s.split())
-		if s and s != "0":
-			fp.write("SLOT: %s\n" % s)
+		fname = portage_const.CACHE_PATH+"/xpak/"+os.path.basename(pkg)[:-5]+".xpak"
 
-	split_use = use.split()
-	for name in ("LICENSE", "RDEPEND", "PDEPEND", "PROVIDE"):
-		item = xpak.getitem(stuff, name)
-		if item is None:
-			continue
-		val = portage_dep.use_reduce(portage_dep.paren_reduce(' '.join(item.split())), uselist=split_use)
-		if val:
-			fp.write("%s: %s\n" % (name, serialize_depset(val)))
+		if os.path.exists(fname):
+			if st.st_mtime != os.stat(fname).st_mtime:
+				#print "unlinking "+fname
+				os.unlink(fname)
 
-	# map IUSE->USE and look for matching flags, filter dupes
-	# if both flags match then this is what matters.
-	s = set(split_use).intersection(iuse.split())
-	if s:
-		l = list(s)
-		l.sort()
-		fp.write("USE: %s\n" % ' '.join(l))
+		if not os.path.exists(fname):
+			tbz2 = xpak.tbz2(pkg)
+			xpdata = xpak.xpak_mem(tbz2.get_data())
+			fp = open(fname, "w")
+			fp.write(xpdata+xpak.encodeint(len(xpdata))+"STOP")
+			fp.close()
 
-	fp.write("SIZE: "+ str(st[stat.ST_SIZE]) +"\n")
-	fp.write("MD5: "+chksum+"\n")
+			chksum = portage_checksum.perform_md5(pkg)
+			fp = open(fname[:-5]+".md5", "w")
+			fp.write(chksum)
+			fp.close()
+
+			os.utime(fname, (st.st_mtime, st.st_mtime))
+
+		else:
+			if os.path.exists(fname[:-5]+".md5"):
+				chksum = "".join(portage.grabfile(fname[:-5]+".md5"))
+			else:
+				chksum = portage_checksum.perform_md5(pkg)
+
+			tbz2 = xpak.tbz2(fname)
+
+		packages.append((pkg, tbz2, chksum, st))
+	return packages
+
+def genpkgindex_header(fp, packages):
+	try:
+		import re
+		profilever = os.path.normpath("///"+os.readlink("/etc/make.profile"))
+		basepath = os.path.normpath("///"+portage.settings["PORTDIR"]+"/profiles")
+		if re.match(basepath,profilever):
+			profilever = profilever[len(basepath)+1:]
+		else:
+			profilever = "!"+profilever
+
+		del basepath
+
+	except SystemExit, e:
+		raise # Needed else can't exit
+	except:
+		profilever="unavailable"
+
+	timestamp = str(time.time()).split(".")[0]
+	fp.write("# This file was auto generated by " + os.path.basename(sys.argv[0]) + "\n")
+	if pkgdir == portage.settings["PKGDIR"]:
+		fp.write("PROFILE: "+profilever+"\n")
+		fp.write("PACKAGES: "+str(len(packages)) +"\n")
+		fp.write("TIMESTAMP: "+timestamp+"\n")
+
+		vmask = [ "AUTOCLEAN", "DISTDIR", "PKGDIR", "PORTDIR" , "PORTAGE_TMPDIR" , "PORTAGE_RSYNC_OPTS" ]
+		vars = portage_util.grabfile(portage.settings["PORTDIR"]+"/profiles/info_vars")
+		for x in vmask:
+			vars.remove(x)
+
+		vars.sort()
+
+		for x in vars:
+			if portage.settings.has_key(x):
+				if (len(portage.settings[x])):
+					fp.write(x+": "+portage.settings[x]+"\n")
+	else:
+		fp.write("PACKAGES: "+str(len(packages)) +"\n")
+		fp.write("TIMESTAMP: "+timestamp+"\n")
 	fp.write("\n")
 
-fp.write("\n")
-fp.flush()
-fp.close()
-if (compress):
-	os.system("bzip2 < .Packages > .Packages.bz2")
-	os.rename(".Packages.bz2", "Packages.bz2")
-else:
-	if os.path.exists("Packages.bz2"):
-		os.unlink("Packages.bz2")
+def genpkgindex(packages):
+	os.chdir(pkgdir)
+	control_file = ".Packages"
+	fp = open(control_file, "w")
+	genpkgindex_header(fp, packages)
 
-os.rename(".Packages", "Packages")
+	for pkg, tbz2, chksum, st in packages:
+		stuff = tbz2.getboth()
+		if not stuff:
+			print "Not a tbz2: "+str(pkg)
+			continue
 
-# Clean up stale cache files
-os.chdir(portage_const.CACHE_PATH+"/xpak")
-for pkg in os.listdir('.'):
-	p = os.path.basename(pkg)
-	if not p.endswith(".xpak"):
-		continue
-	if not os.path.exists(All + "/" + p[:-5] + ".tbz2"):
-		#print "Stale entry: " + All + "/" + p[:-5] + ".tbz2"
-		os.unlink(p)
-		os.unlink(p[:-5]+".md5")
+		cat = xpak.getitem(stuff, "CATEGORY")
 
-finish = time.time()
+		use = xpak.getitem(stuff, "USE")
+		if use is None:
+			use = ''
+		iuse = xpak.getitem(stuff, "IUSE")
+		if iuse is None:
+			iuse = ''
 
-portage.writemsg(portage.green(' * ')+"PKGDIR contains "+ str(len(packages)) + ' packages. (%.01fsec)\n' % (finish - start));
+		s = xpak.getitem(stuff, "DESCRIPTION")
+		if s is not None:
+			s = ' '.join(s.split())
+			if s:
+				fp.write("DESC: %s\n" % s)
+		# drop '.tbz2'
+		fp.write("CPV: %s/%s\n" % (cat.strip(), os.path.basename(pkg[:-5])))
+		s = xpak.getitem(stuff, "SLOT")
+		if s is not None:
+			s = ' '.join(s.split())
+			if s and s != "0":
+				fp.write("SLOT: %s\n" % s)
+
+		split_use = use.split()
+		for name in ("LICENSE", "RDEPEND", "PDEPEND", "PROVIDE"):
+			item = xpak.getitem(stuff, name)
+			if item is None:
+				continue
+			val = portage_dep.use_reduce(portage_dep.paren_reduce(' '.join(item.split())), uselist=split_use)
+			if val:
+				fp.write("%s: %s\n" % (name, serialize_depset(val)))
+
+		# map IUSE->USE and look for matching flags, filter dupes
+		# if both flags match then this is what matters.
+		s = set(split_use).intersection(iuse.split())
+		if s:
+			l = list(s)
+			l.sort()
+			fp.write("USE: %s\n" % ' '.join(l))
+
+		fp.write("SIZE: "+ str(st[stat.ST_SIZE]) +"\n")
+		fp.write("MD5: "+chksum+"\n")
+		fp.write("\n")
+
+	fp.write("\n")
+	fp.flush()
+	fp.close()
+
+	if (compress):
+		os.system("bzip2 < .Packages > .Packages.bz2")
+		os.rename(".Packages.bz2", "Packages.bz2")
+	else:
+		if os.path.exists("Packages.bz2"):
+			os.unlink("Packages.bz2")
+
+	os.rename(".Packages", "Packages")
+
+
+
+def main():
+	update_pkgdir()
+
+	parseargs()
+
+	if not quiet:
+		portage.writemsg(portage.output.green(' * ')+'Update binary package index %s/Packages\n' % pkgdir);
+
+	start = time.time()
+	packages = getallpkgs()
+	genpkgindex(packages)
+	cleanxfiles(pkgdir)
+	finish = time.time()
+
+	if not quiet:
+		portage.writemsg(portage.output.green(' * ')+"PKGDIR contains "+ str(len(packages)) + ' packages. (%.01fsec)\n' % (finish - start));
+
+
+if __name__ == "__main__":
+	main()
