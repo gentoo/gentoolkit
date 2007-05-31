@@ -4,18 +4,29 @@
 genpkgindex \- Generates package metadata from binary packages for use with programs such a qmerge from portage\-utils
 .SH "USAGE"
 .LP 
-genpkgindex [\fI\-\-compress\fP] <\fIpkgdir\fP>
+genpkgindex [\fI\-\-options\fP]
 
 .SH "DESCRIPTION"
 .LP 
 Generates package metadata from binary packages for use with programs such a qmerge from portage\-utils
 .SH "OPTIONS"
 .LP 
+.TP
+\fB\-h, \-\-help\fR
+ Display help and exit
 .TP 
-\fB\-\-compress\fR
-Compresses the generated metadata with bzip2.
+\fB\-v, \-\-verbose\fR
+ Be verbose
 .TP 
-<\fIpkgdir\fP> is the location of the binary packages.  The default is normally /usr/portage/packages/All
+\fB\-q, \-\-quiet\fR
+ Be quiet
+.TP 
+\fB\-c, \-\-compress\fR
+ Compresses the generated metadata with bzip2.
+.TP 
+\fB\-P, \-\-pkgdir <path>\fR
+ Set the base location of the binary packages.  The default is normally /usr/portage/packages
+.TP 
 
 .SH "ENVIRONMENT VARIABLES"
 .LP 
