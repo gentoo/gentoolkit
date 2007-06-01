@@ -1247,7 +1247,7 @@ class CmdListDepends(Command):
 				"  " + pp.localoption("-a, --all-packages") + " - search in all available packages (slow)\n" + \
 				"  " + pp.localoption("-d, --direct") + "       - search direct dependencies only (default)\n" + \
 				"  " + pp.localoption("-D, --indirect") + "     - search indirect dependencies (VERY slow)\n" + \
-				"  " + pp.localoption("--depth=n") + "          - limit indirect dependency tree to specified depth"
+				"  " + pp.localoption("    --depth=n") + "      - limit indirect dependency tree to specified depth"
 
 
 class CmdListPackages(Command):
