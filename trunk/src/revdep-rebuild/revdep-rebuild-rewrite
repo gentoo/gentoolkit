@@ -1,0 +1,788 @@
+#!/bin/bash
+# Copyright 1999-2007 Gentoo Foundation
+
+# revdep-rebuild: Reverse dependency rebuilder.
+# Original Author: Stanislav Brabec
+# Current Maintainer: Paul Varner <fuzzyray@gentoo.org>
+
+# Known problems:
+#
+# In exact ebuild mode revdep-rebuild can fail to properly order packages,
+# which are not up to date.
+# http://bugs.gentoo.org/show_bug.cgi?id=23018
+#
+# Rebuilding using --package-names mode should be default, but emerge has no
+# feature to update to latest version of defined SLOT.
+# http://bugs.gentoo.org/show_bug.cgi?id=4698
+
+# Customizable variables:
+#
+# LD_LIBRARY_MASK - Mask of specially evaluated libraries
+# SEARCH_DIRS - List of directories to search for executables and libraries
+# SEARCH_DIRS_MASK - List of directories to not search
+#
+# These variables can be prepended to either by setting the variable in 
+# your environment prior to execution, or by placing an entry in
+# /etc/make.conf.
+#
+# An entry of "-*" means to clear the variable from that point forward.
+# Example: env SEARCH_DIRS="/usr/bin -*" revdep-rebuild will set SEARCH_DIRS
+# to contain only /usr/bin
+
+# Print pre-release disclaimer to stderr
+cat 1>&2 << EOF
+
+WARNING
+WARNING *** This is a rewritten version of revdep-rebuild ***
+WARNING
+WARNING
+WARNING Please report any bugs to http://bugs.gentoo.org
+WARNING 
+WARNING In the bug report please include the following information:
+WARNING     emerge --info
+WARNING     A copy of the output from the revdep-rebuild command
+WARNING     A copy of the .revdep-rebuild* files as an attachment
+WARNING
+WARNING If the bug is severe, the previous version of revdep-rebuild is located
+WARNING at: /usr/lib/gentoolkit/bin/revdep-rebuild
+WARNING
+WARNING
+WARNING *** This is a rewritten version of revdep-rebuild ***
+WARNING
+
+EOF
+sleep 2
+
+rm() {
+	[[ $LIST && $appname ]] || 
+		die 1 '$LIST or $appname is not defined! (This is a bug.)'
+	for i in $@; do
+		[[ $i = -* || $i = *.$appname* ]] || 
+			die 1 "Oops, I'm not allowed to delete that. ($@)"
+	done
+	command rm "$@"
+}
+# Somewhat more portable find -executable
+# FIXME/UNTESTED (I don't have access to all of the different versions of 
+# find.)
+# Usage: find PATH ARGS -- use find like normal, except use -executable instead 
+# of various versions of -perm /+ blah blah and hacks
+find() {
+	hash find || { die 1 'find not found!'; }
+	# We can be pretty sure "$0" should be executable.
+	if [[ $(command find "$0" -executable 2> /dev/null) ]]; then
+		unset -f find # We can just use the command find
+	elif [[ $(command find "$0" -perm /u+x 2> /dev/null) ]]; then
+		find() {
+			a=(${@//-executable/-perm \/u+x})
+			a=(${a//-writable/-perm \/u+w})
+			a=(${a//-readable/-perm \/r+w})
+			command find "${a[@]}"
+		}
+	elif [[ $(command find "$0" -perm +u+x 2> /dev/null) ]]; then
+		find() {
+			a=(${@//-executable/-perm +u+x})
+			a=(${a//-writable/-perm +u+w})
+			a=(${a//-readable/-perm +r+w})
+			command find "${a[@]}"
+		}
+	else # Last resort
+		find() {
+			a=(${@//-executable/-exec test -x '{}' \;})
+			a=(${a//-writable/-exec test -w '{}' \;})
+			a=(${a//-readable/-exec test -r '{}' \;})
+			command find "${a[@]}"
+		}
+	fi
+	find "$@"
+}
+print_usage() {
+cat << EOF
+Usage: $0 [OPTIONS] [--] [EMERGE_OPTIONS]
+
+Broken reverse dependency rebuilder.
+
+  -h, --help           Print this usage
+  -k, --keep-temp      Do not delete temporary files on exit
+  -e, --exact          Emerge based on exact package version
+  -l, --no-ld-path     Do not set LD_LIBRARY_PATH
+  -C, --nocolor        Turn off colored output
+  -i, --ignore         Ignore temporary files from previous runs
+  -o, --no-order       Do not check the build order
+                       (Saves time, but may cause breakage.)
+  -q, --quiet          Be less verbose (also passed to emerge command)
+  -v, --verbose        Be more verbose
+  -u, --no-util UTIL   Do not use features provided by UTIL
+      --no-util=UTIL   UTIL can be one of portage-utils, pkgcore, or equery
+                       or it can be a *quoted* space-delimited list.
+  -L, --library NAME   Emerge existing packages that use the library with NAME
+      --library=NAME   NAME can be a full path to the library or a basic
+                       regular expression (man grep)
+
+Calls emerge, all other options are used for it (e. g. -p, --pretend).
+
+Report bugs to <http://bugs.gentoo.org>
+EOF
+}
+# Usage: progress i n
+#        i: current item
+#        n: total number of items to process
+progress() {
+	if [[ $quiet ]]; then
+		progress() { :; }
+	else
+		progress() {
+			echo -ne '\r                         \r'
+			echo -n "[ $(( $1 * 100 / $2 ))% ] "
+		}
+		progress $@
+	fi
+}
+# Replace whitespace with linebreaks, normalize repeated '/' chars, and sort -u
+# (If any libs have whitespace in their filenames, someone needs punishment.)
+clean_var() {
+	local a=$(echo ${@%%-\**}) # Deliberately unquoted
+	# A benchmark shows this loop is faster than piping to sed,
+	# as long as there aren't more than a handful of '/' chars.
+	while [[ $a = *//* ]]; do a="${a//\/\///}"; done
+	sort -u <<< "${a// /$'\n'}"
+}
+# Exit and optionally output to sterr
+die() {
+	local status=$1
+	shift
+	echo "$@" >&2
+	exit $status
+}
+# What to do when dynamic linking is consistent
+clean_exit() {
+	[[ $KEEP_TEMP ]] || rm $LIST.?_*
+	set_color green
+	die 0 $'\n'"$OK_TEXT... All done. "
+}
+# Set the output color
+set_color() {
+	# sets itself the first time it's called, so we don't have to check $NOCOLOR
+	# each time
+	if [[ $NOCOLOR ]]; then
+		set_color() { :; }
+	else
+		set_color() {
+			case $1 in
+				black)   tput setaf 0;;
+				maroon)  tput setaf 1;;
+				green)   tput setaf 2;;
+				tan)     tput setaf 3;;
+				blue)    tput setaf 4;;
+				magenta) tput setaf 5;;
+				aqua)    tput setaf 6;;
+				gray)    tput setaf 7;;
+				red)     tput setaf 8;;
+				*)       tput setaf 9;;
+			esac
+		}
+		set_color "$@"
+	fi
+}
+# Echo with a particular color
+color_echo() {
+	set_color $1
+	shift
+	echo "$@"
+	set_color normal
+}
+get_args() {
+	appname="${0##*/}"
+	echo_v() { echo "$@"; }
+	unset VERBOSE KEEP_TEMP EMERGE_OPTIONS remove_old_tempfiles
+	order_packages=1
+	PACKAGE_NAMES=1
+	SONAME="not found"
+	SEARCH_BROKEN=1
+	FULL_LD_PATH=1
+	local avoid_utils
+	while [[ $1 ]]; do
+		case $1 in
+		-h|--help)
+			print_usage
+			exit 0
+			;;
+		-e|--exact)
+			unset PACKAGE_NAMES
+			;;
+		-o|--no-order)
+			unset order_packages
+			;;
+		-q|--quiet)
+			echo_v() { : ; }
+			quiet=1
+			EMERGE_OPTIONS+=" $1"
+			;;
+		-L=*|--library=*|--soname=*|--soname-regexp=*)
+			SONAME="${1#*=}"
+			unset SEARCH_BROKEN
+			;;
+		-L|--library|--soname|--soname-regexp)
+			[[ ! $2 || $2 = -* ]] && die 1 "Missing expected argument to $1"
+			shift
+			SONAME="$1"
+			unset SEARCH_BROKEN
+			;;
+		-u=*|--no-util=*)
+			# TODO: check for invalid values
+			avoid_utils="${1#*=}"
+			;;
+		-u|--no-util)
+			[[ ! $2 || $2 = -* ]] && die 1 "Missing expected argument to $1"
+			shift
+			avoid_utils="$1"
+			;;
+		-nc|-C|--no-color|--nocolor)
+			export NOCOLOR=1
+			;;
+		-l|-np|--no-ld-path)
+			unset FULL_LD_PATH
+			;;
+		-i|--ignore)
+			remove_old_tempfiles=1
+			;;
+		-k|--keep-temp)
+			KEEP_TEMP=1
+			;;
+		-vv|--extra-verbose|-v|--verbose)
+			VERBOSE=1
+			EMERGE_OPTIONS+=" $1"
+			;;
+		--)
+			;;
+		*)
+			EMERGE_OPTIONS+=" $1"
+			;;
+		esac
+		shift
+	done
+	# Check if various utils are allowed and installed
+	if [[ avoid_utils != *portage-utils* ]] && hash q 2> /dev/null; then
+		PORTAGE_UTILS=1
+	elif [[ avoid_utils != *pkgcore* ]] && hash pquery 2> /dev/null; then
+		PKGCORE=1
+	elif [[ avoid_utils != *equery* ]] && hash equery 2> /dev/null; then
+		EQUERY=1
+	fi
+}
+get_args "$@"
+
+echo "Configuring search environment for $appname"
+
+# Obey PORTAGE_NICENESS
+PORTAGE_NICENESS=$(portageq envvar PORTAGE_NICENESS)
+if [[ $PORTAGE_NICENESS ]]; then
+	renice $PORTAGE_NICENESS $$ > /dev/null
+	# Since we have already set our nice value for our processes,
+	# reset PORTAGE_NICENESS to zero to avoid having emerge renice again.
+	export PORTAGE_NICENESS="0"
+fi
+
+PORTAGE_ROOT=$(portageq envvar ROOT)
+PORTAGE_ROOT="${PORTAGE_ROOT:-/}"
+
+# Update the incremental variables using /etc/profile.env, /etc/ld.so.conf,
+# portage, and the environment
+
+# Read the incremental variables from environment and portage
+# Until such time as portage supports these variables as incrementals
+# The value will be what is in /etc/make.conf
+SEARCH_DIRS+=" "$(unset SEARCH_DIRS; portageq envvar SEARCH_DIRS)
+SEARCH_DIRS_MASK+=" "$(unset SEARCH_DIRS_MASK; portageq envvar SEARCH_DIRS_MASK)
+LD_LIBRARY_MASK+=" "$(unset LD_LIBRARY_MASK; portageq envvar LD_LIBRARY_MASK)
+
+# Add the defaults
+if [[ -d /etc/revdep-rebuild ]]; then
+	for file in /etc/revdep-rebuild/*; do
+		SEARCH_DIRS+=" "$(. $file; echo $SEARCH_DIRS)
+		SEARCH_DIRS_MASK+=" "$(. $file; echo $SEARCH_DIRS_MASK)
+		LD_LIBRARY_MASK+=" "$(. $file; echo $LD_LIBRARY_MASK)
+	done
+else
+	SEARCH_DIRS+=" /bin /sbin /usr/bin /usr/sbin /lib* /usr/lib*"
+	SEARCH_DIRS_MASK+=" /opt/OpenOffice /usr/lib/openoffice"
+	LD_LIBRARY_MASK+=" libodbcinst.so libodbc.so libjava.so libjvm.so"
+fi
+
+# Get the ROOTPATH and PATH from /etc/profile.env
+if [[ -r "/etc/profile.env" ]]; then
+	SEARCH_DIRS+=" "$(. /etc/profile.env; /usr/bin/tr ':' ' ' <<< "$ROOTPATH $PATH")
+fi
+
+# Get the directories from /etc/ld.so.conf
+if [[ -r /etc/ld.so.conf ]]; then
+	SEARCH_DIRS+=" "$(sed '/^#/d;s/#.*$//' /etc/ld.so.conf)
+fi	
+
+# Set the final variables
+SEARCH_DIRS=$(clean_var "$SEARCH_DIRS")
+SEARCH_DIRS_MASK=$(clean_var "$SEARCH_DIRS_MASK")
+LD_LIBRARY_MASK=$(clean_var "$LD_LIBRARY_MASK")
+
+# Use the color preference from portage
+NOCOLOR=$(portageq envvar NOCOLOR)
+
+# Find a place to put temporary files
+# TODO; let the user choose where to put tempfiles
+# gfind $HOME/ /var/tmp/ /tmp/ -writable -print -quit
+# TODO: This is a rather noisy, but portable way to implement -quit
+LIST=$(
+	find $HOME/ /var/tmp/ /tmp/ -writable | while read LIST; do
+		echo "$LIST.$appname"
+		break
+	done
+)
+if [[ $LIST = .$appname ]]; then
+	die 1 "!!! Unable to find a satisfactory location for temporary files !!!"
+fi
+[[ $remove_old_tempfiles ]] && rm -f $LIST.*
+
+function set_trap () {
+	trap "rm_temp $1" SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+}
+function rm_temp () {
+	rm $1
+	die 1 $'  ...terminated.\nRemoving incomplete '"$1."
+}
+if [[ $SEARCH_BROKEN ]]; then
+	SONAME_SEARCH="$SONAME"
+	HEAD_TEXT="broken by a package update"
+	OK_TEXT="Dynamic linking on your system is consistent"
+	WORKING_TEXT=" consistency"
+else
+	# first case is needed to test against /path/to/foo.so
+	if [[ $SONAME = /* ]]; then
+		# Set to "<space>$SONAME<space>"
+		SONAME_SEARCH=" $SONAME "
+	else
+		# Set to "<tab>$SONAME<space>"
+		SONAME_SEARCH=$'\t'"$SONAME "
+	fi
+	# NOTE: Using a redirect instead of echo is good, but it will cause a minor
+	#       incompatibility with older versions of revdep-rebuild, because the
+	#       string sent to md5sum will no longer have a newline at the end.
+	SOMD5=$(md5sum <<< "$SONAME_SEARCH$SONAME")
+	LIST+="_${SOMD5:0:8}"
+	HEAD_TEXT="using $SONAME"
+	OK_TEXT="There are no dynamic links to $SONAME"
+	unset WORKING_TEXT SOMD5
+fi
+
+[[ $LIST ]] || die 1 $LIST IS NOT DEFINED
+
+# If any of our temporary files are older than 1 day, remove them all
+[[ ! $keep_tempfiles && -r $LIST &&
+	$(
+		find -L "$LIST" -type f -mmin +1440 -print |
+			while read; do echo 1; break; done
+	) ]] && rm -f $LIST.*
+
+# Don't use our previous files if environment doesn't match
+if [[ -r $LIST.0_env ]]; then
+	oIFS="$IFS"; IFS=$'\a'
+	PREVS=( $(
+		source "$LIST.0_env"
+		echo "$SEARCH_DIRS"$'\a'"$SEARCH_DIRS_MASK"$'\a'"$LD_LIBRARY_MASK"$'\a'"$PORTAGE_ROOT"
+	) )
+	IFS="$oIFS"
+	if [[ ${PREVS[0]} != $SEARCH_DIRS ||
+				${PREVS[1]} != $SEARCH_DIRS_MASK ||
+				${PREVS[2]} != $LD_LIBRARY_MASK ||
+				${PREVS[3]} != $PORTAGE_ROOT ]]; then
+		echo 'Environment mismatch from previous run, deleting temporary files...'
+		rm -f $LIST*
+	fi
+	unset PREVS
+fi
+
+# Log the current environment
+cat > "$LIST.0_env" <<- EOF
+	SEARCH_DIRS="$SEARCH_DIRS"
+	SEARCH_DIRS_MASK="$SEARCH_DIRS_MASK"
+	LD_LIBRARY_MASK="$LD_LIBRARY_MASK"
+	PORTAGE_ROOT="$PORTAGE_ROOT"
+	EMERGE_OPTIONS="$EMERGE_OPTIONS"
+EOF
+
+if [[ $VERBOSE ]]; then
+	echo
+	echo "$appname environment:"
+	cat $LIST.0_env
+fi
+
+cat <<- EOF
+
+	Checking reverse dependencies...
+
+	Packages containing binaries and libraries $HEAD_TEXT
+	will be emerged.
+
+EOF
+color_echo green -n "Collecting system binaries and libraries..."
+
+if [[ -r $LIST.1_files ]]; then
+	echo " using existing $LIST.1_files."
+else
+	# Be safe and remove any extraneous temporary files
+	rm -f $LIST.[1-9]_*
+
+	set_trap "$LIST.1_*"
+
+	findMask=($SEARCH_DIRS_MASK)
+	findMask="${findMask[@]/#/-o -path }"
+	findMask="${findMask#-o }"
+	find ${SEARCH_DIRS[@]} \( $findMask \) -prune -o -type f \( -executable -o \
+		-name '*.so' -o -name '*.so.*' -o -name '*.la' \) -print 2> /dev/null |
+		sort -u > $LIST.1_files
+	echo -e " done.\n  ($LIST.1_files)"
+fi
+
+if [[ $SEARCH_BROKEN && $FULL_LD_PATH ]]; then
+	echo
+	color_echo green -n 'Collecting complete LD_LIBRARY_PATH...'
+	if [[ -f $LIST.2_ldpath ]] ; then
+		echo " using existing $LIST.2_ldpath."
+		COMPLETE_LD_LIBRARY_PATH=$(<"$LIST.2_ldpath")
+	else
+		set_trap "$LIST.2_ldpath"
+		# Ensure that the "trusted" lib directories are at the start of the path
+		COMPLETE_LD_LIBRARY_PATH=(
+			/lib*
+			/usr/lib*
+			$(sed '/^#/d;s/#.*$//' < /etc/ld.so.conf)
+			$(sed 's:/[^/]*$::' < "$LIST.1_files" | sort -ru)
+		)
+		oIFS="$IFS"; IFS=':'
+		COMPLETE_LD_LIBRARY_PATH="${COMPLETE_LD_LIBRARY_PATH[*]}"
+		IFS="$oIFS"
+		echo "$COMPLETE_LD_LIBRARY_PATH" > "$LIST.2_ldpath"
+		echo -e " done.\n  ($LIST.2_ldpath)"
+	fi
+fi
+
+echo
+color_echo green -n "Checking dynamic linking$WORKING_TEXT..."
+if [[ -s $LIST.3_rebuild ]]; then
+	echo " using existing $LIST.3_rebuild."
+else
+	[[ $LIST ]] || die 1 "$LIST" 'is undefined! (This is a bug.)'
+	echo_v
+	set_trap "$LIST.3_rebuild"
+	rm -f $LIST.3*
+	files=($(<"$LIST.1_files"))
+	numFiles=${#files[@]}; i=0
+
+	for FILE in ${files[@]}; do
+		if [[ $FILE != *.la ]]; then
+			# Note: double checking seems to be faster than single with complete path
+			# (special add ons are rare).
+			ldd_output=$(ldd "$FILE" 2>> "$LIST.3_ldd_errors" | sort -u)
+			ldd_status=$? # TODO: Check this for problems with sort
+			if grep -vF "$LD_LIBRARY_MASK" <<< "$ldd_output" |
+				grep -q "$SONAME_SEARCH"; then
+				if [[ $SEARCH_BROKEN && $FULL_LD_PATH ]]; then
+
+					if LD_LIBRARY_PATH="$COMPLETE_LD_LIBRARY_PATH" ldd "$FILE" 2>/dev/null |
+						grep -v "$LD_LIBRARY_MASK" | grep -q "$SONAME_SEARCH"; then
+						# FIXME: I hate duplicating code
+						# Only build missing direct dependencies
+						MISSING_LIBS=$(
+							expr='s/[[:space:]]*\([^[:space:]]*\) => not found/\1/p'
+							sed -n "$expr" <<< "$ldd_output"
+						)
+						REQUIRED_LIBS=$(
+							expr='s/^[[:space:]]*NEEDED[[:space:]]*\([^[:space:]]*\).*/\1/p';
+							objdump -x "$FILE" | sed "$expr" | sort -u
+						)
+						MISSING_LIBS=$(grep -F "$REQUIRED_LIBS" <<< "$MISSING_LIBS")
+						if [[ $MISSING_LIBS ]]; then
+							echo "obj $FILE" >> "$LIST.3_rebuild"
+							echo_v "  broken $FILE (requires $MISSING_LIBS)"
+						fi
+					fi
+				else
+					# FIXME: I hate duplicating code
+					# Only rebuild for direct dependencies
+					MISSING_LIBS=$(
+						expr="/$SONAME_SEARCH/s/^\([^[:space:]]*\).*$/\1/p"
+						sort -u <<< "$ldd_output" | sed -n "$expr"
+					)
+					REQUIRED_LIBS=$(
+						expr='s/^[[:space:]]*NEEDED[[:space:]]*\([^[:space:]]*\).*/\1/p';
+						objdump -x "$FILE" | sed "$expr" | sort -u
+					)
+					MISSING_LIBS=$(grep -F "$REQUIRED_LIBS")
+					if [[ $MISSING_LIBS ]]; then
+						echo "obj $FILE" >> "$LIST.3_rebuild"
+						if [[ $SEARCH_BROKEN ]]; then
+							echo_v "  broken $FILE (requires $MISSING_LIBS)"
+						else
+							echo_v "  found $FILE"
+						fi
+					fi
+				fi
+			fi
+		elif [[ $SEARCH_BROKEN ]]; then
+			# Look for broken .la files
+			for depend in $(
+				awk -F"[=']" '/^dependency_libs/{
+					gsub("^-[^[:space:]]*", "", $2);
+					gsub("[[:space:]]-[^[:space:]]*", "", $2);
+					print $2
+				}' "$FILE"
+			); do
+				if [[ $depend != /* && ! -e $depend ]]; then
+					echo "obj $FILE" >> "$LIST.3_rebuild"
+					echo_v "  broken $FILE (requires $depend)"
+				fi
+			done
+		fi
+		[[ $VERBOSE ]] &&
+			progress $((++i)) $numFiles $FILE ||
+			progress $((++i)) $numFiles
+	done
+	if [[ $SEARCH_BROKEN ]]; then
+		# Look for missing version
+		for FILE in $(
+			awk '/no version information available/{
+				gsub("[()]", "", $NF);
+				print $NF
+			}' "$LIST.3_ldd_errors" | sort -u
+		); do
+			echo "obj $FILE" >> "$LIST.3_rebuild"
+			echo_v "  broken $FILE (no version information available)"
+		done
+	fi
+	[[ -s $LIST.3_rebuild ]] || clean_exit
+	echo -e " done.\n  ($LIST.3_rebuild)"
+fi
+
+if [[ $PACKAGE_NAMES ]]; then
+	echo
+	color_echo green -n 'Assigning files to packages...'
+	if [[ -r $LIST.4_packages_raw ]]; then
+		echo " using existing $LIST.4_packages_raw."
+	else
+		set_trap "$LIST.4_packages*"
+		rm -f $LIST.4*
+		while read obj FILE; do
+			if [[ $PORTAGE_UTILS ]]; then
+				EXACT_PKG=$(qfile -qvC $FILE)
+			elif [[ $PKGCORE ]]; then
+				EXACT_PKG=$(pquery --nocolor --owns="$FILE")
+			elif [[ $EQUERY ]]; then
+				EXACT_PKG=$(equery -q -C b $FILE)
+			else
+				EXACT_PKG=$(
+					find /var/db/pkg -name CONTENTS |
+						xargs grep -Fl "obj $FILE " |
+						sed -e 's:/var/db/pkg/\(.*\)/CONTENTS:\1:g'
+				)
+			fi
+			if [[ $EXACT_PKG ]]; then
+				# Strip version information
+				PKG="${EXACT_PKG%%-r[[:digit:]]*}"
+				PKG="${PKG%-*}"
+				echo "$EXACT_PKG" >> $LIST.4_packages_raw
+				echo "$FILE -> $EXACT_PKG" >> $LIST.4_package_owners
+				echo_v -n -e "\n  $FILE -> $PKG"
+			else
+				color_echo -n -e "\n  *** $FILE not owned by any package is broken! ***"
+				echo "$FILE -> (none)" >> $LIST.4_package_owners
+				echo_v -n -e "\n  $FILE -> (none)"
+			fi
+		done < "$LIST.3_rebuild"
+		echo_v
+		echo -e " done.\n  ($LIST.4_packages_raw, $LIST.4_package_owners)"
+	fi
+
+	echo
+	color_echo green -n "Cleaning list of packages to rebuild..."
+	if [[ -f $LIST.4_packages ]]; then
+		echo " using existing $LIST.4_packages."
+	else
+		sort -u $LIST.4_packages_raw > $LIST.4_packages
+		echo -e " done.\n  ($LIST.4_packages)"
+	fi
+
+	echo
+	color_echo green -n 'Assigning packages to ebuilds...'
+	if [[ -f $LIST.4_ebuilds ]]; then
+		echo " using existing $LIST.4_ebuilds."
+	else
+		if [[ -s $LIST.4_packages ]]; then
+			set_trap "$LIST.4_ebuilds"
+			while read EXACT_PKG; do
+				# Get the slot
+				PKG="${EXACT_PKG%%-r[[:digit:]]*}"
+				PKG="${PKG%-*}"
+				SLOT=$(</var/db/pkg/$EXACT_PKG/SLOT)
+				portageq best_visible $PORTAGE_ROOT $PKG:$SLOT
+			done < "$LIST.4_packages" > "$LIST.4_ebuilds"
+			echo -e " done.\n  ($LIST.4_ebuilds)"
+		else
+			echo " Nothing to rebuild"
+			rm -f "$LIST.4_ebuilds"
+		fi
+	fi
+else
+	echo
+	color_echo green -n 'Assigning files to ebuilds...'
+	if [[ -r $LIST.4_ebuilds ]]; then
+		echo " using existing $LIST.4_ebuilds."
+	else
+		if [[ -s $LIST.3_rebuild ]]; then
+			rebuildList=" $(<"$LIST.3_rebuild") "
+			rebuildList="${rebuildList//[[:space:]]obj[[:space:]]/ }"
+			if [[ $PORTAGE_UTILS ]]; then
+				qfile -qvC $rebuildList # Don't put quotes around $rebuildList
+			# elif [[ $PKGCORE ]]; then
+				# This is really slow...
+				# pquery --nocolor --early-out --vdb --owns-re="(${rebuildList//[[:space:]]/|})"
+			# elif [[ $EQUERY ]]; then
+				# equery can't seem to do this operation on multiple args at all
+			else
+				find /var/db/pkg -name CONTENTS |
+					xargs grep -Fl "$rebuildList" |
+					sed 's:/var/db/pkg/\(.*\)/CONTENTS:=\1:'
+			fi > $LIST.4_ebuilds
+			echo -e " done.\n  ($LIST.4_ebuilds)"
+		else
+			echo " Nothing to rebuild"
+			rm -f $LIST.4_ebuilds
+		fi
+	fi
+fi
+
+if [[ $order_packages ]]; then
+	color_echo green -n $'\nEvaluating package order...'
+	if [[ -r $LIST.5_order ]]; then
+	echo " using existing $LIST.5_order."
+	else
+	set_trap "$LIST.5_order"
+	RAW_REBUILD_LIST=$(<"$LIST.4_ebuilds")
+	if [[ $RAW_REBUILD_LIST ]]; then
+		OLD_EMERGE_DEFAULT_OPTS="$EMERGE_DEFAULT_OPTS"
+		export EMERGE_DEFAULT_OPTS="--nospinner --pretend --oneshot --nodeps --quiet"
+		RAW_REBUILD_LIST="=${RAW_REBUILD_LIST//[[:space:]]/ =}"
+		REBUILD_GREP=$(emerge $RAW_REBUILD_LIST | awk '{print $NF}') &&
+			emerge --deep $RAW_REBUILD_LIST | awk '{print $NF}' |
+			grep -F "$REBUILD_GREP" > $LIST.5_order || {
+				set_color red
+				cat <<- EOF
+					Warning: Failed to resolve package order.
+					Will merge in "random" order!
+				EOF
+				set_color
+				cat <<- EOF
+					Possible reasons:
+					- An ebuild is no longer in the portage tree.
+					- An ebuild is masked, use /etc/portage/packages.keyword
+						and/or /etc/portage/package.unmask to unmask it
+				EOF
+				for i in {1..5}; do
+					echo -n -e '\a.'
+					sleep 1
+				done
+			}
+		export EMERGE_DEFAULT_OPTS="$OLD_EMERGE_DEFAULT_OPTS"
+	else
+		rm -f "$LIST.5_order"
+	fi
+	[[ -f $LIST.5_order ]] && echo -e " done.\n  ($LIST.5_order)" ||
+		echo -e " done.\n  ($LIST.4_ebuilds)"
+	fi
+else
+	color_echo green "Skipping package ordering"
+fi
+
+# Clean up no longer needed environment variables
+unset COMPLETE_LD_LIBRARY_PATH SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK PORTAGE_ROOT
+
+[[ -f $LIST.5_order ]] && REBUILD_LIST=$(<"$LIST.5_order") ||
+	REBUILD_LIST=$(<"$LIST.4_ebuilds")
+
+trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+
+REBUILD_LIST="=${REBUILD_LIST//[[:space:]]/ =}"
+
+IS_REAL_MERGE=1
+for option in $EMERGE_OPTIONS; do
+	case $option in
+		-p|--pretend|-f|--fetchonly)
+			unset IS_REAL_MERGE
+			break;;
+	esac
+done
+
+echo
+color_echo green -e "All prepared. Starting rebuild..."
+
+echo "emerge --oneshot $EMERGE_OPTIONS $REBUILD_LIST"
+
+if [[ $IS_REAL_MERGE ]]; then
+	for i in {1..10}; do
+		echo -n -e '\a.'
+		sleep 1
+	done
+	echo
+fi
+
+# Link file descriptor #6 with stdin so --ask will work
+exec 6<&0
+
+# Run in background to correctly handle Ctrl-C
+{
+	EMERGE_DEFAULT_OPTS="" emerge --oneshot $EMERGE_OPTIONS $REBUILD_LIST <&6
+	echo $? > $LIST.6_status
+} &
+wait
+
+# Now restore stdin from fd #6, where it had been saved, and close fd #6 ( 6<&- ) to free it for other processes to use.
+exec 0<&6 6<&-
+
+if (( $(<"$LIST.6_status") != 0 )); then
+	set_color red
+	cat <<- EOF
+
+		revdep-rebuild failed to emerge all packages.
+		you have the following choices:
+
+	EOF
+	set_color
+	cat <<- EOF
+		- if emerge failed during the build, fix the problems and re-run revdep-rebuild
+		    or
+		- use -X or --package-names as first argument (trys to rebuild package, not exact
+		  ebuild)
+		    or
+		- set ACCEPT_KEYWORDS=\"~<your platform>\" and/or /etc/portage/package.unmask
+		  (and remove $LIST.5_order to be evaluated again)
+		    or
+		- modify the above emerge command and run it manually
+		    or
+		- compile or unmerge unsatisfied packages manually, remove temporary files and
+		  try again (you can edit package/ebuild list first)
+	EOF
+	color_echo green 'To remove temporary files, please run:'
+	echo "rm $LIST*.?_*"
+	exit $EMERGE_STATUS
+else
+	if [[ $IS_REAL_MERGE ]]; then
+		trap "echo -e \" terminated. Please remove them manually:\nrm $LIST*.?_*\" ; exit 1" \
+			SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+		color_echo green "Build finished correctly. Removing temporary files..."
+		cat <<- EOF
+			You can re-run revdep-rebuild to verify that all libraries and binaries
+			are fixed. If some inconsistency remains, it can be orphaned file, deep
+			dependency, binary package or specially evaluated library.
+		EOF
+	else
+		color_echo green 'Now you can remove -p (or --pretend) from arguments and re-run revdep-rebuild.'
+	fi
+fi

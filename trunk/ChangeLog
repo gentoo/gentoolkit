@@ -1,3 +1,7 @@
+2007-07-05: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Added refactored revdep-rebuild from Michael A.
+	Smith (Bug #184042)
+
 2007-05-30: Marius Mauch <genone@gentoo.org>
 	* glsa-check: check SLOT when selecting and displaying upgrades
 	* glsa-check: new --emergelike option to use the best version 
