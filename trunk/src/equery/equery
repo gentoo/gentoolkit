@@ -1412,6 +1412,9 @@ class CmdListPackages(Command):
 	def _get_mask_status(self, pkg):
 		pkgmask = 0
 		if pkg.is_masked():
+		# Uncomment to only have package masked files show an 'M'
+		# maskreasons = portage.getmaskingstatus(pkg.get_cpv())
+		# if "package.mask" in maskreasons:
 			pkgmask = pkgmask + 3
 		keywords = pkg.get_env_var("KEYWORDS").split()
 		if "~" + gentoolkit.settings["ARCH"] in keywords:
