@@ -5,24 +5,6 @@
 # Original Author: Stanislav Brabec
 # Current Maintainer: Paul Varner <fuzzyray@gentoo.org>
 
-source /etc/init.d/functions.sh
-# TODO:
-# - Use more /etc/init.d/functions.sh
-
-# Customizable variables:
-#
-# LD_LIBRARY_MASK - Mask of specially evaluated libraries
-# SEARCH_DIRS - List of directories to search for executables and libraries
-# SEARCH_DIRS_MASK - List of directories to not search
-#
-# These variables can be prepended to either by setting the variable in 
-# your environment prior to execution, or by placing an entry in
-# /etc/make.conf.
-#
-# An entry of "-*" means to clear the variable from that point forward.
-# Example: env SEARCH_DIRS="/usr/bin -*" revdep-rebuild will set SEARCH_DIRS
-# to contain only /usr/bin
-
 # Print pre-release disclaimer to stderr
 cat 1>&2 << EOF
 
@@ -48,6 +30,23 @@ EOF
 sleep 2
 # End pre-release disclaimer to stderr
 
+source /etc/init.d/functions.sh
+# TODO:
+# - Use more /etc/init.d/functions.sh
+
+# Customizable variables:
+#
+# LD_LIBRARY_MASK - Mask of specially evaluated libraries
+# SEARCH_DIRS - List of directories to search for executables and libraries
+# SEARCH_DIRS_MASK - List of directories to not search
+#
+# These variables can be prepended to either by setting the variable in 
+# your environment prior to execution, or by placing an entry in
+# /etc/make.conf.
+#
+# An entry of "-*" means to clear the variable from that point forward.
+# Example: env SEARCH_DIRS="/usr/bin -*" revdep-rebuild will set SEARCH_DIRS
+# to contain only /usr/bin
 declare -r oIFS="$IFS"
 
 rm() {
@@ -110,7 +109,7 @@ Broken reverse dependency rebuilder.
   -q, --quiet          Be less verbose (also passed to emerge command)
   -v, --verbose        Be more verbose
   -u, --no-util UTIL   Do not use features provided by UTIL
-      --no-util=UTIL   UTIL can be one of portage-utils, pkgcore, or equery
+      --no-util=UTIL   UTIL can be one of portage-utils or pkgcore
                        or it can be a *quoted* space-delimited list.
   -L, --library NAME   Emerge existing packages that use the library with NAME
       --library=NAME   NAME can be a full path to the library or a basic
@@ -136,6 +135,9 @@ progress() {
 		progress $@
 	fi
 }
+# Get the name of a package owning a file on the filesystem using one of several
+# utilities: This is a placeholder. The function is defined in get_args()
+get_file_owner() { :; }
 # Replace whitespace with linebreaks, normalize repeated '/' chars, and sort -u
 # (If any libs have whitespace in their filenames, someone needs punishment.)
 clean_var() {
@@ -155,8 +157,9 @@ die() {
 # What to do when dynamic linking is consistent
 clean_exit() {
 	[[ $KEEP_TEMP ]] || rm $LIST.?_*
-	set_color green
-	die 0 $'\n'"$OK_TEXT... All done. "
+	echo
+	einfo "$OK_TEXT... All done. "
+	exit 0
 }
 get_args() {
 	appname="${0##*/}"
@@ -230,17 +233,21 @@ get_args() {
 		shift
 	done
 	# Check if various utils are allowed and installed
-	if [[ $avoid_utils != *portage-utils* ]] && hash q 2> /dev/null; then
-		PORTAGE_UTILS=1
+	if [[ $avoid_utils != *portage-utils* ]] && hash qfile 2> /dev/null; then
+		get_file_owner() { qfile -qvC "$@"; }
 	elif [[ $avoid_utils != *pkgcore* ]] && hash pquery 2> /dev/null; then
-		PKGCORE=1
-	elif [[ $avoid_utils != *equery* ]] && hash equery 2> /dev/null; then
-		EQUERY=1
+		get_file_owner() { local IFS=,; pquery --nocolor --owns="$*"; }
+	# equery disabled for incompatibility with modern portage.
+	# elif [[ $avoid_utils != *equery* ]] && hash equery 2> /dev/null; then
+	# 	get_file_owner() { equery -q -C b $@; }
+	else
+		get_file_owner() {
+			local IFS=$'\n'
+			find /var/db/pkg -name CONTENTS -print0 |
+				xargs -0 grep -Fl "$*" |
+				sed 's:/var/db/pkg/\(.*\)/CONTENTS:\1:'
+		}
 	fi
-	# Don't use equery until portage 2.1.3 is stable
-	# Portage 2.1.2 doesn't write all errors to stderr and this
-	# causes equery output to be potentially hosed
-	unset EQUERY
 	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-p/--pretend})
 	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-f/--fetchonly})
 	if [[ ${EMERGE_OPTIONS[@]} != *--pretend* && $UID -ne 0 ]]; then
@@ -369,6 +376,9 @@ get_search_env() {
 	# Compare old and new environments
 	# Don't use our previous files if environment doesn't match
 	new_env=$(
+		# We don't care if these options change
+		EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]//--pretend/})
+		EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]//--fetchonly/})
 		cat <<- EOF
 			SEARCH_DIRS="$SEARCH_DIRS"
 			SEARCH_DIRS_MASK="$SEARCH_DIRS_MASK"
@@ -549,19 +559,7 @@ get_packages() {
 		set_trap "$LIST.4_packages*"
 		rm -f $LIST.4*
 		while read obj FILE; do
-			if [[ $PORTAGE_UTILS ]]; then
-				EXACT_PKG=$(qfile -qvC $FILE)
-			elif [[ $PKGCORE ]]; then
-				EXACT_PKG=$(pquery --nocolor --owns="$FILE")
-			elif [[ $EQUERY ]]; then
-				EXACT_PKG=$(equery -q -C b $FILE)
-			else
-				EXACT_PKG=$(
-					find /var/db/pkg -name CONTENTS |
-						xargs grep -Fl "obj $FILE " |
-						sed -e 's:/var/db/pkg/\(.*\)/CONTENTS:\1:g'
-				)
-			fi
+			EXACT_PKG=$(get_file_owner $FILE)
 			if [[ $EXACT_PKG ]]; then
 				# Strip version information
 				PKG="${EXACT_PKG%%-r[[:digit:]]*}"
@@ -576,6 +574,18 @@ get_packages() {
 			fi
 		done < "$LIST.3_rebuild"
 		einfo "Generated new $LIST.4_packages_raw and $LIST.4_package_owners"
+	fi
+	# if we find '(none)' on every line, exit out
+	if ! grep -qvF '(none)' "$LIST.4_package_owners"; then
+		ewarn "Found some broken files, but none of them were associated with known packages"
+		ewarn "Unable to proceed with automatic repairs."
+		if [[ $VERBOSE ]]; then
+			ewarn "The broken files are:"
+			while read filename junk; do
+				ewarn "  $filename"
+			done < "$LIST.4_package_owners"
+		fi
+		exit 0 # FIXME: Should we exit 1 here?
 	fi
 }
 clean_packages() {
@@ -613,19 +623,7 @@ get_exact_ebuilds() {
 	elif [[ -rs $LIST.3_rebuild ]]; then
 		rebuildList=" $(<"$LIST.3_rebuild") "
 		rebuildList=(${rebuildList//[[:space:]]obj[[:space:]]/ })
-		if [[ $PORTAGE_UTILS ]]; then
-			qfile -qvC ${rebuildList[@]}
-		elif [[ $PKGCORE ]]; then
-			IFS=,
-			pquery --nocolor --owns="${rebuildList[*]}"
-			IFS="$oIFS"
-		elif [[ $EQUERY ]]; then
-			equery -q -C b ${rebuildList[@]}
-		else
-			find /var/db/pkg -name CONTENTS |
-				xargs grep -Fl "$rebuildList" |
-				sed 's:/var/db/pkg/\(.*\)/CONTENTS:=\1:'
-		fi > $LIST.4_ebuilds
+		get_file_owner "${rebuildList[@]}" > $LIST.4_ebuilds
 		einfo "Generated new $LIST.4_ebuilds"
 	else
 		einfo 'Nothing to rebuild.'
