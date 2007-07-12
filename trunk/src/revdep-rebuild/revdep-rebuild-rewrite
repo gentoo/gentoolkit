@@ -579,6 +579,7 @@ get_packages() {
 	if ! grep -qvF '(none)' "$LIST.4_package_owners"; then
 		ewarn "Found some broken files, but none of them were associated with known packages"
 		ewarn "Unable to proceed with automatic repairs."
+		ewarn "The broken files are listed in $LIST.4_package_owners"
 		if [[ $VERBOSE ]]; then
 			ewarn "The broken files are:"
 			while read filename junk; do
@@ -757,6 +758,20 @@ elif is_real_merge; then
 	einfo 'You can re-run revdep-rebuild to verify that all libraries and binaries'
 	einfo 'are fixed. If some inconsistency remains, it can be orphaned file, deep'
 	einfo 'dependency, binary package or specially evaluated library.'
+	[[ $KEEP_TEMP ]] || rm $LIST*.?_*
 else
 	einfo 'Now you can remove -p (or --pretend) from arguments and re-run revdep-rebuild.'
+fi
+
+if grep -qF '(none)' "$LIST.4_package_owners"; then
+	ewarn "Found some broken files that weren't associated with known packages"
+	ewarn "The broken files are listed in $LIST.4_package_owners"
+	if [[ $VERBOSE ]]; then
+		ewarn "The broken files are:"
+		while read filename junk; do
+			if [[ ${junk} == *none* ]]; then
+				ewarn "  $filename"
+			fi
+		done < "$LIST.4_package_owners"
+	fi
 fi
