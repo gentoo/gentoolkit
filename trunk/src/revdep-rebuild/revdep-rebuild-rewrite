@@ -642,9 +642,9 @@ get_build_order() {
 		RAW_REBUILD_LIST=$(<"$LIST.4_ebuilds")
 		if [[ $RAW_REBUILD_LIST ]]; then
 			OLD_EMERGE_DEFAULT_OPTS="$EMERGE_DEFAULT_OPTS"
-			export EMERGE_DEFAULT_OPTS="--nospinner --pretend --oneshot --nodeps --quiet"
+			export EMERGE_DEFAULT_OPTS="--nospinner --pretend --oneshot --quiet"
 			RAW_REBUILD_LIST="=${RAW_REBUILD_LIST//[[:space:]]/ =}"
-			REBUILD_GREP=$(emerge $RAW_REBUILD_LIST | sed 's/\[[^]]*\]//g') &&
+			REBUILD_GREP=$(emerge --nodeps $RAW_REBUILD_LIST | sed 's/\[[^]]*\]//g') &&
 				emerge --deep $RAW_REBUILD_LIST | sed 's/\[[^]]*\]//g' |
 				grep -F "$REBUILD_GREP" > $LIST.5_order || {
 					eerror
