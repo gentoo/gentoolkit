@@ -43,7 +43,7 @@ def cpv(s):
 
 def slot(s):
 	"""Print a slot string"""
-	return output.white(s)
+	return output.bold(s)
 	
 def useflag(s):
 	"""Print a USE flag strign"""
@@ -65,7 +65,7 @@ def maskflag(s):
 
 def installedflag(s):
 	"""Print an installed flag string"""
-	return output.white(s)
+	return output.bold(s)
 	
 def number(s):
 	"""Print a number string"""
@@ -73,15 +73,15 @@ def number(s):
 
 def pkgquery(s):
 	"""Print a package query string."""
-	return output.white(s)
+	return output.bold(s)
 
 def regexpquery(s):
 	"""Print a regular expression string"""
-	return output.white(s)
+	return output.bold(s)
 
 def path(s):
 	"""Print a file or directory path string"""
-	return output.white(s)
+	return output.bold(s)
 
 def path_symlink(s):
 	"""Print a symlink string."""
@@ -113,4 +113,4 @@ def subsection(s):
 	
 def emph(s):
 	"""Print a string as emphasized."""
-	return output.white(s)
+	return output.bold(s)
