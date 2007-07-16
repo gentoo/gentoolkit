@@ -354,14 +354,12 @@ get_search_env() {
 			# Set to "<tab>$SONAME<space>"
 			SONAME_SEARCH=$'\t'"$SONAME "
 		fi
-		# NOTE: Using a redirect instead of echo is good, but it will cause a minor
-		#       incompatibility with older versions of revdep-rebuild, because the
-		#       string sent to md5sum will no longer have a newline at the end.
-		SOMD5=$(md5sum <<< "$SONAME_SEARCH$SONAME")
-		LIST+="_${SOMD5:0:8}"
+		local uuid="${SONAME##*/}"
+		uuid="${uuid//[[:space:]]}"
+		LIST+="_$uuid"
 		HEAD_TEXT="using $SONAME"
 		OK_TEXT="There are no dynamic links to $SONAME"
-		unset WORKING_TEXT SOMD5
+		unset WORKING_TEXT
 	fi
 
 	[[ $LIST ]] || die 1 $LIST IS NOT DEFINED
@@ -769,9 +767,7 @@ if grep -qF '(none)' "$LIST.4_package_owners"; then
 	if [[ $VERBOSE ]]; then
 		ewarn "The broken files are:"
 		while read filename junk; do
-			if [[ ${junk} == *none* ]]; then
-				ewarn "  $filename"
-			fi
+			[[ junk = *none* ]] && ewarn "  $filename"
 		done < "$LIST.4_package_owners"
 	fi
 fi
