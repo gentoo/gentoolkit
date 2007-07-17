@@ -350,6 +350,8 @@ get_search_env() {
 		if [[ $SONAME = /* ]]; then
 			# Set to "<space>$SONAME<space>"
 			SONAME_SEARCH=" $SONAME "
+			# Escape the "/" characters
+			SONAME_SEARCH="${SONAME_SEARCH//\//\\/}"
 		else
 			# Set to "<tab>$SONAME<space>"
 			SONAME_SEARCH=$'\t'"$SONAME "
