@@ -496,14 +496,14 @@ main_checks() {
 						# FIXME: I hate duplicating code
 						# Only rebuild for direct dependencies
 						MISSING_LIBS=$(
-							expr="/$SONAME_SEARCH/s/^\([^[:space:]]*\).*$/\1/p"
+							expr="/$SONAME_SEARCH/s/^[[:space:]]*\([^[:space:]]*\).*$/\1/p"
 							sort -u <<< "$ldd_output" | sed -n "$expr"
 						)
 						REQUIRED_LIBS=$(
 							expr='s/^[[:space:]]*NEEDED[[:space:]]*\([^[:space:]]*\).*/\1/p';
 							objdump -x "$FILE" | sed "$expr" | sort -u
 						)
-						MISSING_LIBS=$(grep -F "$REQUIRED_LIBS")
+						MISSING_LIBS=$(grep -F "$REQUIRED_LIBS" <<< "$MISSING_LIBS")
 						if [[ $MISSING_LIBS ]]; then
 							echo "obj $FILE" >> "$LIST.3_rebuild"
 							if [[ $SEARCH_BROKEN ]]; then
