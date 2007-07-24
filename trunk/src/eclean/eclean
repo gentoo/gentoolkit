@@ -515,7 +515,7 @@ def findDistfiles( \
 		size_limit=0):
 	# this regexp extracts files names from SRC_URI. It is not very precise,
 	# but we don't care (may return empty strings, etc.), since it is fast.
-	file_regexp = re.compile('([a-zA-Z0-9_,\.\-\+]*)[\s\)]')
+	file_regexp = re.compile('([a-zA-Z0-9_,\.\-\+\~]*)[\s\)]')
 	clean_dict = {}
 	keep = []
 	pkg_dict = {}
