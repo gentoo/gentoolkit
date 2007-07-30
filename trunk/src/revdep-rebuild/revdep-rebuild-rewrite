@@ -419,7 +419,7 @@ get_search_env() {
 	# Compare old and new environments
 	# Don't use our previous files if environment doesn't match
 	new_env=$(
-		# We don't care if these emerge options change
+		# We do not care if these emerge options change
 		EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]//--pretend/})
 		EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]//--fetchonly/})
 		EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]//--verbose/})
@@ -787,6 +787,16 @@ wait
 # Now restore stdin from fd #6, where it had been saved, and close fd #6 ( 6<&- ) to free it for other processes to use.
 exec 0<&6 6<&-
 
+show_unowned_files() {
+	if grep -qF '(none)' "$LIST.4_package_owners"; then
+		ewarn "Found some broken files that weren't associated with known packages"
+		ewarn "The broken files are:"
+		while read filename junk; do
+			[[ $junk = *none* ]] && ewarn "  $filename"
+		done < "$LIST.4_package_owners"
+	fi
+}
+
 if (( $(<"$LIST.6_status") != 0 )); then
 	ewarn
 	ewarn "$APP_NAME failed to emerge all packages."
@@ -801,6 +811,7 @@ if (( $(<"$LIST.6_status") != 0 )); then
 	einfo
 	einfo 'To remove temporary files, please run:'
 	einfo "rm $LIST*.?_*"
+	show_unowned_files
 	exit $EMERGE_STATUS
 elif is_real_merge; then
 	trap_cmd() {
@@ -814,18 +825,9 @@ elif is_real_merge; then
 	einfo 'You can re-run revdep-rebuild to verify that all libraries and binaries'
 	einfo 'are fixed. If some inconsistency remains, it can be orphaned file, deep'
 	einfo 'dependency, binary package or specially evaluated library.'
+	show_unowned_files
 	[[ $KEEP_TEMP ]] || rm $LIST*.?_*
 else
 	einfo 'Now you can remove -p (or --pretend) from arguments and re-run revdep-rebuild.'
 fi
 
-if grep -qF '(none)' "$LIST.4_package_owners"; then
-	ewarn "Found some broken files that weren't associated with known packages"
-	ewarn "The broken files are listed in $LIST.4_package_owners"
-	if [[ $VERBOSE ]]; then
-		ewarn "The broken files are:"
-		while read filename junk; do
-			[[ junk = *none* ]] && ewarn "  $filename"
-		done < "$LIST.4_package_owners"
-	fi
-fi
