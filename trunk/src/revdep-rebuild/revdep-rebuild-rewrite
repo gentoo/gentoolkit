@@ -105,22 +105,22 @@ find() {
 	elif [[ $(command find "$0" -perm /u+x 2> /dev/null) ]]; then
 		find() {
 			a=(${@//-executable/-perm \/u+x})
-			a=(${a//-writable/-perm \/u+w})
-			a=(${a//-readable/-perm \/r+w})
+			a=(${a[@]//-writable/-perm \/u+w})
+			a=(${a[@]//-readable/-perm \/r+w})
 			command find "${a[@]}"
 		}
 	elif [[ $(command find "$0" -perm +u+x 2> /dev/null) ]]; then
 		find() {
 			a=(${@//-executable/-perm +u+x})
-			a=(${a//-writable/-perm +u+w})
-			a=(${a//-readable/-perm +r+w})
+			a=(${a[@]//-writable/-perm +u+w})
+			a=(${a[@]//-readable/-perm +r+w})
 			command find "${a[@]}"
 		}
 	else # Last resort
 		find() {
 			a=(${@//-executable/-exec test -x '{}' \;})
-			a=(${a//-writable/-exec test -w '{}' \;})
-			a=(${a//-readable/-exec test -r '{}' \;})
+			a=(${a[@]//-writable/-exec test -w '{}' \;})
+			a=(${a[@]//-readable/-exec test -r '{}' \;})
 			command find "${a[@]}"
 		}
 	fi
