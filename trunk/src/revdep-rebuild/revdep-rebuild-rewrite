@@ -348,12 +348,12 @@ else
 fi
 
 # Get the ROOTPATH and PATH from /etc/profile.env
-if [[ -rs "/etc/profile.env" ]]; then
+if [[ -r "/etc/profile.env" && -s "/etc/profile.env" ]]; then
 	SEARCH_DIRS+=" "$(. /etc/profile.env; /usr/bin/tr ':' ' ' <<< "$ROOTPATH $PATH")
 fi
 
 # Get the directories from /etc/ld.so.conf
-if [[ -rs /etc/ld.so.conf ]]; then
+if [[ -r /etc/ld.so.conf && -s /etc/ld.so.conf ]]; then
 	SEARCH_DIRS+=" "$(sed '/^#/d;s/#.*$//' /etc/ld.so.conf)
 fi
 
@@ -433,7 +433,7 @@ get_search_env() {
 			FULL_LD_PATH="$FULL_LD_PATH"
 		EOF
 	)
-	if [[ -rs $LIST.0_env ]]; then
+	if [[ -r $LIST.0_env && -s $LIST.0_env ]]; then
 		old_env=$(<"$LIST.0_env")
 		if [[ $old_env != $new_env ]]; then
 			ewarn 'Environment mismatch from previous run, deleting temporary files...'
@@ -459,7 +459,7 @@ get_search_env() {
 }
 get_files() {
 	einfo "Collecting system binaries and libraries"
-	if [[ -rs $LIST.1_files ]]; then
+	if [[ -r $LIST.1_files && -s $LIST.1_files ]]; then
 		einfo "Found existing $LIST.1_files"
 	else
 		# Be safe and remove any extraneous temporary files
@@ -483,7 +483,7 @@ get_ldpath() {
 	local COMPLETE_LD_LIBRARY_PATH
 	[[ $SEARCH_BROKEN && $FULL_LD_PATH ]] || return
 	einfo 'Collecting complete LD_LIBRARY_PATH'
-	if [[ -rs $LIST.2_ldpath ]] ; then
+	if [[ -r $LIST.2_ldpath && -s $LIST.2_ldpath ]] ; then
 		einfo "Found existing $LIST.2_ldpath."
 	else
 		set_trap "$LIST.2_ldpath"
@@ -510,11 +510,11 @@ main_checks() {
 	local numFiles
 	local COMPLETE_LD_LIBRARY_PATH
 	if [[ $SEARCH_BROKEN && $FULL_LD_PATH ]]; then
-		[[ -rs $LIST.2_ldpath ]] || die 1 "unable to find $LIST.2_ldpath"
+		[[ -r $LIST.2_ldpath && -s $LIST.2_ldpath ]] || die 1 "unable to find $LIST.2_ldpath"
 		COMPLETE_LD_LIBRARY_PATH=$(<"$LIST.2_ldpath")
 	fi
 	einfo "Checking dynamic linking $WORKING_TEXT"
-	if [[ -rs $LIST.3_rebuild ]]; then
+	if [[ -r $LIST.3_rebuild && -s $LIST.3_rebuild ]]; then
 		einfo "Found existing $LIST.3_rebuild."
 	else
 		[[ $LIST ]] || die 1 "$LIST" 'is undefined! (This is a bug.)'
@@ -603,7 +603,7 @@ main_checks() {
 				echo_v "  broken $target_file (no version information available)"
 			done
 		fi
-		[[ -rs $LIST.3_rebuild ]] || clean_exit
+		[[ -r $LIST.3_rebuild && -s $LIST.3_rebuild ]] || clean_exit
 		einfo "Generated new $LIST.3_rebuild"
 	fi
 }
@@ -613,7 +613,7 @@ get_packages() {
 	local PKG
 	local obj
 	einfo 'Assigning files to packages'
-	if [[ -rs $LIST.4_packages_raw ]]; then
+	if [[ -r $LIST.4_packages_raw && -s $LIST.4_packages_raw ]]; then
 		einfo "Found existing $LIST.4_packages_raw"
 	else
 		set_trap "$LIST.4_packages*"
@@ -651,7 +651,7 @@ get_packages() {
 }
 clean_packages() {
 	einfo 'Cleaning list of packages to rebuild'
-	if [[ -rs $LIST.4_packages ]]; then
+	if [[ -r $LIST.4_packages && -s $LIST.4_packages ]]; then
 		einfo "Found existing $LIST.4_packages"
 	else
 		sort -u $LIST.4_packages_raw > $LIST.4_packages
@@ -663,9 +663,9 @@ assign_packages_to_ebuilds() {
 	local PKG
 	local SLOT
 	einfo 'Assigning packages to ebuilds'
-	if [[ -rs $LIST.4_ebuilds ]]; then
+	if [[ -r $LIST.4_ebuilds && -s $LIST.4_ebuilds ]]; then
 		einfo "Found existing $LIST.4_ebuilds"
-	elif [[ -rs $LIST.4_packages ]]; then
+	elif [[ -r $LIST.4_packages && -s $LIST.4_packages ]]; then
 			set_trap "$LIST.4_ebuilds"
 			while read EXACT_PKG; do
 				# Get the slot
@@ -682,9 +682,9 @@ assign_packages_to_ebuilds() {
 }
 get_exact_ebuilds() {
 	einfo 'Assigning files to ebuilds'
-	if [[ -rs $LIST.4_ebuilds ]]; then
+	if [[ -r $LIST.4_ebuilds && -s $LIST.4_ebuilds ]]; then
 		einfo "Found existing $LIST.4_ebuilds"
-	elif [[ -rs $LIST.3_rebuild ]]; then
+	elif [[ -r $LIST.3_rebuild && -s $LIST.3_rebuild ]]; then
 		rebuildList=" $(<"$LIST.3_rebuild") "
 		rebuildList=(${rebuildList//[[:space:]]obj[[:space:]]/ })
 		get_file_owner "${rebuildList[@]}" > $LIST.4_ebuilds
@@ -704,7 +704,7 @@ get_build_order() {
 		return
 	fi
 	einfo 'Evaluating package order'
-	if [[ -rs $LIST.5_order ]]; then
+	if [[ -r $LIST.5_order && -s $LIST.5_order ]]; then
 		einfo "Found existing $LIST.5_order"
 	else
 		set_trap "$LIST.5_order"
@@ -734,7 +734,7 @@ get_build_order() {
 			die 1 '(The program should have already quit, so this is a minor bug.)'
 		fi
 	fi
-	[[ -rs $LIST.5_order ]] && einfo "Generated new $LIST.5_order"
+	[[ -r $LIST.5_order && -s $LIST.5_order ]] && einfo "Generated new $LIST.5_order"
 }
 
 get_search_env
@@ -761,7 +761,7 @@ echo
 # Clean up no longer needed environment variables
 unset SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK PORTAGE_ROOT
 
-[[ -rs $LIST.5_order ]] && REBUILD_LIST=($(<"$LIST.5_order")) ||
+[[ -r $LIST.5_order && -s $LIST.5_order ]] && REBUILD_LIST=($(<"$LIST.5_order")) ||
 	REBUILD_LIST=($(<"$LIST.4_ebuilds"))
 
 trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
