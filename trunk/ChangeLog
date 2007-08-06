@@ -1,3 +1,6 @@
+2007-08-06: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix processing of .la files (Bug #187453)
+
 2007-07-30: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix grepping for non-existant package-owners file
 	(Bug #187141)

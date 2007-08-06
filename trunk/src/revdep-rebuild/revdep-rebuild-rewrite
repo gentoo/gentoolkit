@@ -576,12 +576,12 @@ main_checks() {
 				# Look for broken .la files
 				for depend in $(
 					awk -F"[=']" '/^dependency_libs/{
-						gsub("^-[^[:space:]]*", "", $2);
-						gsub("[[:space:]]-[^[:space:]]*", "", $2);
-						print $2
+						gsub("^-[^[:space:]]*", "", $3);
+						gsub("[[:space:]]-[^[:space:]]*", "", $3);
+						print $3
 					}' "$target_file"
 				); do
-					if [[ $depend != /* && ! -e $depend ]]; then
+					if [[ $depend = /* && ! -e $depend ]]; then
 						echo "obj $target_file" >> "$LIST.3_rebuild"
 						echo_v "  broken $target_file (requires $depend)"
 					fi
