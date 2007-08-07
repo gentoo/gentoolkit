@@ -1,5 +1,7 @@
 2007-08-06: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix processing of .la files (Bug #187453)
+	* revdep-rebuild: Add -X option back for backwards compatibilty (Bug
+	#187366)
 
 2007-07-30: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix grepping for non-existant package-owners file
