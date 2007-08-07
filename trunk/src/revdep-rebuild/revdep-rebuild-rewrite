@@ -266,6 +266,11 @@ get_args() {
 			VERBOSE=1
 			EMERGE_OPTIONS+=($1)
 			;;
+		-X|--package-names)
+			# No longer used, since it is the default.
+			# We accept it for backwards compatibility
+			PACKAGE_NAMES=1
+			;;
 		--)
 			;;
 		*)
