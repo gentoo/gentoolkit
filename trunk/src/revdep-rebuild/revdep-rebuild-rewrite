@@ -418,7 +418,7 @@ get_search_env() {
 		while read; do
 			RM_OLD_TEMPFILES=1
 			break
-		done < <(find -L "$LIST."* -maxdepth 0 -type f -mmin +1440 -print)
+		done < <(find -L "$LIST."* -maxdepth 0 -type f -mmin +1440 -print 2>/dev/null)
 	fi
 
 	# Compare old and new environments
