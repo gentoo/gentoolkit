@@ -547,7 +547,7 @@ main_checks() {
 							)
 							REQUIRED_LIBS=$(
 								expr='s/^[[:space:]]*NEEDED[[:space:]]*\([^[:space:]]*\).*/\1/p';
-								objdump -x "$target_file" | sed "$expr" | sort -u
+								objdump -x "$target_file" | grep NEEDED | sed "$expr" | sort -u
 							)
 							MISSING_LIBS=$(grep -F "$REQUIRED_LIBS" <<< "$MISSING_LIBS")
 							if [[ $MISSING_LIBS ]]; then
@@ -564,7 +564,7 @@ main_checks() {
 						)
 						REQUIRED_LIBS=$(
 							expr='s/^[[:space:]]*NEEDED[[:space:]]*\([^[:space:]]*\).*/\1/p';
-							objdump -x "$target_file" | sed "$expr" | sort -u
+							objdump -x "$target_file" | grep NEEDED | sed "$expr" | sort -u
 						)
 						MISSING_LIBS=$(grep -F "$REQUIRED_LIBS" <<< "$MISSING_LIBS")
 						if [[ $MISSING_LIBS ]]; then
