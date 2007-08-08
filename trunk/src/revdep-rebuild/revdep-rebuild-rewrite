@@ -70,6 +70,7 @@ declare SEARCH_DIRS      # List of dirs to search for executables and libraries
 declare SEARCH_DIRS_MASK # List of dirs not to search
 
 # Other globals:
+declare OLDPROG                # Previous pass through the progress meter
 declare EXACT_PKG              # Versionated atom to emerge
 declare HEAD_TEXT              # Feedback string about the search
 declare LIST                   # Prefix for temporary filenames
@@ -162,9 +163,11 @@ progress() {
 		progress() { :; }
 	else
 		progress() {
+			local curProg=$(( $1 * 100 / $2 ))
+			(( curProg == OLDPROG )) && return # no change, output nothing
+			OLDPROG="$curProg" # must be a global variable
 			(( $1 == $2 )) && local lb=$'\n'
-			echo -ne '\r                         \r'
-			echo -n "[ $(( $1 * 100 / $2 ))% ] $lb"
+			echo -ne '\r                         \r'"[ $curProg% ] $lb"
 		}
 		progress $@
 	fi
@@ -295,6 +298,12 @@ get_args() {
 				sed 's:/var/db/pkg/\(.*\)/CONTENTS:\1:'
 		}
 	fi
+
+	# Use the color preference from portage
+	export NOCOLOR=$(portageq envvar NOCOLOR)
+	[[ $NOCOLOR = yes || $NOCOLOR = true ]] && export RC_NOCOLOR=yes # HACK! (grr)
+	source /etc/init.d/functions.sh
+	
 	# Normalize some EMERGE_OPTIONS
 	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-p/--pretend})
 	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-f/--fetchonly})
@@ -309,10 +318,6 @@ is_real_merge() [[
 ]]
 
 get_args "$@"
-# Use the color preference from portage
-export NOCOLOR=$(portageq envvar NOCOLOR)
-[[ $NOCOLOR = yes || $NOCOLOR = true ]] && export RC_NOCOLOR=yes # HACK! (grr)
-source /etc/init.d/functions.sh
 
 einfo "Configuring search environment for $APP_NAME"
 
