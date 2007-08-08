@@ -1,3 +1,9 @@
+2007-08-08: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix progress bar to only update when there is a
+	change (Bug #186945)
+	* revdep-rebuild: Ensure that we source functions.sh before calling
+	ewarn, etc.
+
 2007-08-06: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix processing of .la files (Bug #187453)
 	* revdep-rebuild: Add -X option back for backwards compatibilty (Bug
