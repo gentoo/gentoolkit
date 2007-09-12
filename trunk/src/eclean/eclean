@@ -334,12 +334,12 @@ def parseArgs(myoptions={}):
 
 	# here are the different allowed command line options (getopt args)
 	getopt_options = {'short':{}, 'long':{}}
-	getopt_options['short']['global'] = "Cdipqe::t::nhV"
+	getopt_options['short']['global'] = "Cdipqe:t:nhV"
 	getopt_options['long']['global'] = ["nocolor", "destructive", \
-			"interactive", "pretend", "quiet", "exclude-file", "time-limit", \
+			"interactive", "pretend", "quiet", "exclude-file=", "time-limit=", \
 			"package-names", "help", "version"]
-	getopt_options['short']['distfiles'] = "fs::"
-	getopt_options['long']['distfiles'] = ["fetch-restricted", "size-limit"]
+	getopt_options['short']['distfiles'] = "fs:"
+	getopt_options['long']['distfiles'] = ["fetch-restricted", "size-limit="]
 	getopt_options['short']['packages'] = ""
 	getopt_options['long']['packages'] = [""]
 	# set default options, except 'nocolor', which is set in main()
