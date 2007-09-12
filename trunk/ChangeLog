@@ -1,3 +1,7 @@
+2007-09-12: Paul Varner <fuzzyray@gentoo.org>
+	* eclean: Fix processing of the long arguments to work correctly. (Bug
+	#192345)
+
 2007-08-08: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix progress bar to only update when there is a
 	change (Bug #186945)
