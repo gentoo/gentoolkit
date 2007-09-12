@@ -5,31 +5,47 @@ revdep\-rebuild \- Gentoo: Reverse Dependency Rebuilder
 .B revdep\-rebuild
 [OPTIONS] [\-\-] [EMERGE OPTIONS]
 .SH "DESCRIPTION"
-revdep\-rebuild scans libraries and binaries for missing shared library dependencies and fixes them by re\-emerging those broken binaries and shared libraries.  It is useful when an upgraded package breaks other software packages that are dependent upon the upgraded package.
+revdep\-rebuild scans libraries and binaries for missing shared library dependencies and attempts to fix them by re\-emerging those broken binaries and shared libraries.  It is useful when an upgraded package breaks other software packages that are dependent upon the upgraded package.
 .SH "OPTIONS"
 .TP 
-.B \-X | \-\-package\-names
-emerge the best packages available, not neccessarily the exact version of the installed package
+.B \-C | \-\-nocolor
+Turn off colored output. (This option is also passed to portage.)
 .TP      
-.B \-\-library=NAME
-emerge packages that use the named library. Name can be a full path to a library or basic regular expression. (See man grep for the definition of basic regular expressions)
+.B \-e | \-\-exact
+Emerge the most recent version of found packages, without regard to SLOT.
 .TP 
-.B \-np | \-\-no\-ld\-path
+.B \-h | \-\-help
+Print usage.
+.TP
+.B \-i | \-\-ignore
+Delete temporary files from previous runs.
+.TP
+.B \-k | \-\-keep\-temp
+Force revdep\-rebuild not to delete temporary files after it successfully rebuilds packages. This option will NOT prevent revdep\-rebuild from deleting inconsistent or out\-of\-date temporary files.
+.TP
+.B \-\-library NAME | -L NAME
+Search for reverse dependencies for a particular library or group of libraries, rather than every library on the system. Emerge packages that use the named library. NAME can be a full path to a library or basic regular expression.  (See regex(7).)
+.TP 
+.B \-l | \-\-no\-ld\-path
 Do not set LD_LIBRARY_PATH. \fBNote:\fR Using this option will cause revdep-rebuild to report some false positives.
 .TP 
-.B \-nc | \-\-no\-color
-turn off colored output (This option is also passed to the emerge command)
+.B \-o | \-\-no-order
+Do not check the build order against the deep dependency list.  This will make revdep-rebuild faster, but it can cause emerge failures.  Please try revdep\-rebuild without \-o before reporting any bugs.
 .TP 
-.B \-i | \-\-ignore
-ignore temporary files from previous runs
+.B \-p | \-\-pretend
+Do a dry-run.  Do not delete temporary files.  (\-k \-p is redundant, but harmless.)  \-\-pretend is assumed when not running revdep\-rebuild as root.
 .TP 
 .B \-q | \-\-quiet
-be less verbose (This option is also passed to the emerge command)
+Print less output and disable the progress meter.  (This option is also passed to portage.)
 .TP 
-.B \-vv | \-\-extra\-verbose
-be extra verbose (currently prints the revdep\-rebuild search environment)
+.B \-u UTIL | \-\-no-util UTIL
+Do not use features provided by UTIL.
+UTIL can be one of portage-utils or pkgcore, or it can be a \fBquoted\fR space-delimited list.
 .TP
-.B All other options are passed to the emerge command
+.B \-v | \-\-verbose
+More output.  (Prints the revdep\-rebuild search environment.)
+.TP
+.B All other options (including unrecognized ones) are passed to the emerge command.  Single\-letter options may not be combined, so for example, \-pv is not valid.  Please use \-p \-v.
 .SH "CONFIGURATION"
 revdep\-rebuild no longer uses hardcoded paths. To change the default behavior the following variables can be changed by the user.
 
@@ -39,15 +55,15 @@ SEARCH_DIRS \- List of directories to search for executables and libraries
 .LP 
 SEARCH_DIRS_MASK \- List of directories to not search
 
-These variables can be prepended to either by setting the variable in your environment prior to execution, by placing an entry in /etc/make.conf, or by placing a file in /etc/revdep\-rebuild containing the appropriate variables.
+You can prepend to these variables by setting the variable in your environment prior to execution, by placing an entry in /etc/make.conf, or by placing a file in /etc/revdep\-rebuild containing the appropriate variables.
 
 The variables are read and set in the following order:
 
 environment settings \- one time changes by user
 .br 
-/etc/make.conf \- persistant changes by user
+/etc/make.conf \- persistent changes by user
 .br 
-/etc/revdep\-rebuild/* \- persistant changes by ebuild authors
+/etc/revdep\-rebuild/* \- persistent changes by ebuild authors
 
 While a user can edit and modify the files in the /etc/revdep\-rebuild directory, please be aware that the /etc/revdep\-rebuild directory is not under configuration protection and files can be removed and/or overwritten by an ebuild. To change this add /etc/revdep\-rebuild to the CONFIG_PROTECT variable in /etc/make.conf.
 
@@ -73,21 +89,10 @@ To rebuild packages that depend upon libImlib.so and libImlib2.so:
 \fBrevdep\-rebuild \-\-library libImlib[2]*.so.*\fR
 
 .SH "EXIT STATUS"
-revdep\-rebuild returns a zero exit status if it succeeds.
-Non zero is returned in case of failure.
+revdep\-rebuild returns a zero exit status if it \fBand emerge\fR succeeds, and a nonzero exit status otherwise.
 .SH "BUGS"
 .LP 
-In exact ebuild mode revdep\-rebuild can fail to properly order packages, which are not up to date.
-.br 
-http://bugs.gentoo.org/show_bug.cgi?id=23018
-.LP 
-Rebuilding using \-\-package\-names mode should be default, but emerge has no feature to update to latest version of a defined SLOT.
-.br 
-http://bugs.gentoo.org/show_bug.cgi?id=4698
+Report bugs to <http://bugs.gentoo.org>. Please do not report emerge failures caused by \-o or \-e. Please include your .revdep\-rebuild* files, your emerge \-\-info, and patches. ;)
 
-\fBNote:\fR The ability to update to the latest version of a slotted package has been added to revdep\-rebuild.  However, it is possible for this feature to still not work 100% correctly
-
-Report bugs to <http://bugs.gentoo.org>
 .SH "SEE ALSO"
-emerge(1), portage(5), grep(1)
-
+emerge(1), portage(5), regex(7)
