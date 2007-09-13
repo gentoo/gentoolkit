@@ -3,32 +3,8 @@
 
 # revdep-rebuild: Reverse dependency rebuilder.
 # Original Author: Stanislav Brabec
+# Rewrite Author: Michael A. Smith
 # Current Maintainer: Paul Varner <fuzzyray@gentoo.org>
-
-# Print pre-release disclaimer to stderr
-cat 1>&2 << EOF
-
-WARNING
-WARNING *** This is a rewritten version of revdep-rebuild ***
-WARNING
-WARNING
-WARNING Please report any bugs to http://bugs.gentoo.org
-WARNING 
-WARNING In the bug report please include the following information:
-WARNING     emerge --info
-WARNING     A copy of the output from the revdep-rebuild command
-WARNING     A copy of the .revdep-rebuild* files as an attachment
-WARNING
-WARNING If the bug is severe, the previous version of revdep-rebuild is located
-WARNING at: /usr/lib/gentoolkit/bin/revdep-rebuild
-WARNING
-WARNING
-WARNING *** This is a rewritten version of revdep-rebuild ***
-WARNING
-
-EOF
-sleep 2
-# End pre-release disclaimer to stderr
 
 # TODO:
 # - Use more /etc/init.d/functions.sh
