@@ -3,6 +3,8 @@
 	#192345)
 	* revdep-rebuild: Correctly handle the case where an ebuild no longer
 	exists for a package (Bug #188918)
+	* eread: Fix eread to not accept invalid input for file selection.
+	(Bug #189994)
 
 2007-08-08: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix progress bar to only update when there is a

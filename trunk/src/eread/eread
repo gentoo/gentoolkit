@@ -49,31 +49,36 @@ select_loop() {
 				break
 				;;
 			*)
-				${PAGER} ${FILE}
-				read -p "Delete file? [y/N] " DELETE
-				case ${DELETE} in
-					q)
-						echo "Quitting"
-						QUIT="yes"
-						break
-						;;
-					y|Y)
-						rm -f ${FILE}
-						SUCCESS=$?
-						if [[ ${SUCCESS} = 0 ]]; then
-							echo "Deleted ${FILE}"
-						else
-							echo "Unable to delete ${FILE}"
-						fi
-						;;
-					# Empty string defaults to N (save file)
-					n|N|"")
-						echo "Saving ${FILE}"
-						;;
-					*)
-						echo "Invalid response. Saving ${FILE}"
-						;;
-				esac
+				if [ -f "$FILE" ]; then
+					${PAGER} ${FILE}
+					read -p "Delete file? [y/N] " DELETE
+					case ${DELETE} in
+						q)
+							echo "Quitting"
+							QUIT="yes"
+							break
+							;;
+						y|Y)
+							rm -f ${FILE}
+							SUCCESS=$?
+							if [[ ${SUCCESS} = 0 ]]; then
+								echo "Deleted ${FILE}"
+							else
+								echo "Unable to delete ${FILE}"
+							fi
+							;;
+						# Empty string defaults to N (save file)
+						n|N|"")
+							echo "Saving ${FILE}"
+							;;
+						*)
+							echo "Invalid response. Saving ${FILE}"
+							;;
+					esac
+				else
+					echo
+					echo "Invalid response."
+				fi
 				;;
 		esac
 		break
