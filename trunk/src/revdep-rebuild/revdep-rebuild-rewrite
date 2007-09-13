@@ -117,6 +117,7 @@ Broken reverse dependency rebuilder.
   -i, --ignore         Ignore temporary files from previous runs
   -o, --no-order       Do not check the build order
                        (Saves time, but may cause breakage.)
+  -P, --no-progress    Turn off the progress meter
   -q, --quiet          Be less verbose (also passed to emerge command)
   -v, --verbose        Be more verbose
   -u, --no-util UTIL   Do not use features provided by UTIL
@@ -135,9 +136,7 @@ EOF
 #        i: current item
 #        n: total number of items to process
 progress() {
-	if [[ $quiet ]]; then
-		progress() { :; }
-	else
+	if [[ -t 1 ]]; then
 		progress() {
 			local curProg=$(( $1 * 100 / $2 ))
 			(( curProg == OLDPROG )) && return # no change, output nothing
@@ -146,6 +145,8 @@ progress() {
 			echo -ne '\r                         \r'"[ $curProg% ] $lb"
 		}
 		progress $@
+	else # STDOUT is not a tty. Disable progress meter.
+		progress() { :; }
 	fi
 }
 # Usage: countdown n
@@ -205,8 +206,11 @@ get_args() {
 		-o|--no-order)
 			unset ORDER_PKGS
 			;;
+		-P|--no-progress)
+			progress() { :; }
 		-q|--quiet)
-			echo_v() { : ; }
+			echo_v() { :; }
+			progress() { :; }
 			quiet=1
 			EMERGE_OPTIONS+=($1)
 			;;
