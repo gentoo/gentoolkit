@@ -208,6 +208,7 @@ get_args() {
 			;;
 		-P|--no-progress)
 			progress() { :; }
+			;;
 		-q|--quiet)
 			echo_v() { :; }
 			progress() { :; }
@@ -583,15 +584,19 @@ main_checks() {
 		done
 		if [[ $SEARCH_BROKEN ]]; then
 			# Look for missing version
-			for target_file in $(
-				awk '/no version information available/{
-					gsub("[()]", "", $NF);
-					print $NF
-				}' "$LIST.3_ldd_errors" | sort -u
-			); do
+			while read target_file; do
 				echo "obj $target_file" >> "$LIST.3_rebuild"
 				echo_v "  broken $target_file (no version information available)"
-			done
+			done < <(
+				awk -v ldmask="($LD_LIBRARY_MASK)" '
+					BEGIN{ gsub(/\n/, "|", ldmask) }
+					/no version information available/{
+					gsub("[()]", "", $NF);
+						if (seen[$NF]++)  next;
+						if ($NF ~ ldmask) next;
+					print $NF
+					}' "$LIST.3_ldd_errors"
+			); do
 		fi
 		[[ -r $LIST.3_rebuild && -s $LIST.3_rebuild ]] || clean_exit
 		einfo "Generated new $LIST.3_rebuild"
