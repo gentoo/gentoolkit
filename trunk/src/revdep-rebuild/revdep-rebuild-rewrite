@@ -593,10 +593,10 @@ main_checks() {
 					/no version information available/{
 					gsub("[()]", "", $NF);
 						if (seen[$NF]++)  next;
-						if ($NF ~ ldmask) next;
+						if ($0 ~ ldmask) next;
 					print $NF
 					}' "$LIST.3_ldd_errors"
-			); do
+			)
 		fi
 		[[ -r $LIST.3_rebuild && -s $LIST.3_rebuild ]] || clean_exit
 		einfo "Generated new $LIST.3_rebuild"
