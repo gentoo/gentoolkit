@@ -1417,10 +1417,11 @@ class CmdListPackages(Command):
 		# if "package.mask" in maskreasons:
 			pkgmask = pkgmask + 3
 		keywords = pkg.get_env_var("KEYWORDS").split()
-		if "~" + gentoolkit.settings["ARCH"] in keywords:
-			pkgmask = pkgmask + 1
-		elif "-*" in keywords or "-" + gentoolkit.settings["ARCH"] in keywords:
-			pkgmask = pkgmask + 2
+		if gentoolkit.settings["ARCH"] not in keywords:
+			if "~" + gentoolkit.settings["ARCH"] in keywords:
+				pkgmask = pkgmask + 1
+			elif "-" + gentoolkit.settings["ARCH"] in keywords or "-*" in keywords:
+				pkgmask = pkgmask + 2
 		return pkgmask
 
 	def _generic_print(self, header, exclude, matches, rx, status):

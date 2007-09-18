@@ -1,3 +1,7 @@
+2007-09-18: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Apply patch from Carlo Marcelo Arenas Belon to fix incorrect
+	display of masking status in list command. (Bug #188678)
+
 2007-09-12: Paul Varner <fuzzyray@gentoo.org>
 	* eclean: Fix processing of the long arguments to work correctly. (Bug
 	#192345)
