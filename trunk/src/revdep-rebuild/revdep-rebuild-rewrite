@@ -510,6 +510,7 @@ main_checks() {
 	else
 		[[ $LIST ]] || die 1 "$LIST" 'is undefined! (This is a bug.)'
 		set_trap "$LIST.3_rebuild"
+		set_trap "$LIST.3_ldd_errors"
 		rm -f "$LIST.3"*
 		files=($(<"$LIST.1_files"))
 		numFiles="${#files[@]}"
@@ -588,13 +589,13 @@ main_checks() {
 				echo "obj $target_file" >> "$LIST.3_rebuild"
 				echo_v "  broken $target_file (no version information available)"
 			done < <(
-				awk -v ldmask="($LD_LIBRARY_MASK)" '
-					BEGIN{ gsub(/\n/, "|", ldmask) }
-					/no version information available/{
-					gsub("[()]", "", $NF);
-						if (seen[$NF]++)  next;
-						if ($0 ~ ldmask) next;
-					print $NF
+				# Regexify LD_LIBRARY_MASK. Exclude it from the search.
+				LD_LIBRARY_MASK="${LD_LIBRARY_MASK//$'\n'/|}"
+				awk -v ldmask="(${LD_LIBRARY_MASK//./\\\.})" '
+					/no version information available/ && $0 !~ ldmask {
+						gsub(/[()]/, "", $NF)
+						if (seen[$NF]++)  next
+						print $NF
 					}' "$LIST.3_ldd_errors"
 			)
 		fi
