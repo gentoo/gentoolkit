@@ -626,7 +626,7 @@ get_packages() {
 			else
 				ewarn " !!! $target_file not owned by any package is broken !!!"
 				echo "$target_file -> (none)" >> $LIST.4_package_owners
-				echo_v -n -e "\n  $target_file -> (none)"
+				echo_v "  $target_file -> (none)"
 			fi
 		done < "$LIST.3_rebuild"
 		einfo "Generated new $LIST.4_packages_raw and $LIST.4_package_owners"
