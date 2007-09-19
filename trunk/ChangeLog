@@ -1,3 +1,6 @@
+2007-09-19: Paul Varner <fuzzyray@gentoo.org>
+	* epkginfo: Fix handling of KEYWORDS="" in an ebuild. (Bug #193108)
+
 2007-09-18: Paul Varner <fuzzyray@gentoo.org>
 	* equery: Apply patch from Carlo Marcelo Arenas Belon to fix incorrect
 	display of masking status in list command. (Bug #188678)
