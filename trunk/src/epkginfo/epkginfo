@@ -58,10 +58,13 @@ def earch(workdir):
 				arch = None
 			archdict[arch] = pkg
 
+	archlist = archdict.keys();
+	archlist.sort()
+
 	for pkg in ebuildlist:
-		print darkgreen("Keywords: ") + pkg + ": ",
-		for value,key in archdict.iteritems():
-			if (key == pkg and value):
+		print darkgreen("Keywords: ") + pkg + ":",
+		for value in archlist:
+			if (value and archdict[value] == pkg):
 				if value[0] == "-":
 					print red(value),
 				elif "~" == value[0]:
