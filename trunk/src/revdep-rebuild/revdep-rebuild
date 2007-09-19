@@ -276,7 +276,7 @@ get_args() {
 	else
 		get_file_owner() {
 			local IFS=$'\n'
-			find /var/db/pkg -name CONTENTS -print0 |
+			find -L /var/db/pkg -name CONTENTS -print0 |
 				xargs -0 grep -Fl "$*" |
 				sed 's:/var/db/pkg/\(.*\)/CONTENTS:\1:'
 		}
