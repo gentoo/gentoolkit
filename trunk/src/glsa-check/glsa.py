@@ -237,7 +237,8 @@ def getText(node, format):
 	if format == "strip":
 		rValue = rValue.strip(" \n\t")
 		rValue = re.sub("[\s]{2,}", " ", rValue)
-	return str(rValue)
+	# Hope that the utf conversion doesn't break anything else
+	return rValue.encode("utf_8")
 
 def getMultiTagsText(rootnode, tagname, format):
 	"""
