@@ -1,3 +1,7 @@
+2007-10-05: Marius Mauch <genone@gentoo.org>
+	* glsa-check: Use UTF-8 strings to avoid EncodeErrors if a GLSA contains
+	non-ascii characters (bug #162493)
+
 2007-09-19: Paul Varner <fuzzyray@gentoo.org>
 	* epkginfo: Fix handling of KEYWORDS="" in an ebuild. (Bug #193108)
 	* revdep-rebuild: Fix handling of /var/db/pkg when it is a symbolic

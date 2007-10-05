@@ -308,6 +308,7 @@ if mode == "test":
 if mode == "mail":
 	import portage_mail, socket
 	from StringIO import StringIO
+	from email.mime.text import MIMEText
 	
 	# color doesn't make any sense for mail
 	nocolor()
@@ -342,7 +343,7 @@ if mode == "mail":
 			continue
 		myfd = StringIO()
 		myglsa.dump(outstream=myfd)
-		myattachments.append(str(myfd.getvalue()))
+		myattachments.append(MIMEText(str(myfd.getvalue()), _charset="utf8"))
 		myfd.close()
 		
 	mymessage = portage_mail.create_message(myfrom, myrecipient, mysubject, summary, myattachments)
