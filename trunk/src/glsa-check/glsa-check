@@ -162,8 +162,8 @@ if "all" in params:
 	glsalist = completelist
 	params.remove("all")
 if "affected" in params:
-	# maybe this should be todolist instead
-	for x in completelist:
+	# replaced completelist with todolist on request of wschlich
+	for x in todolist:
 		try:
 			myglsa = Glsa(x, glsaconfig)
 		except (GlsaTypeException, GlsaFormatException), e:

@@ -1,3 +1,7 @@
+2007-10-09: Marius Mauch <genone@gentoo.org>
+	* glsa-check: Change "affected" target so it's based on "new" instead of 
+	"all" (IOW: exclude already applied/injected GLSAs).
+
 2007-10-05: Marius Mauch <genone@gentoo.org>
 	* glsa-check: Use UTF-8 strings to avoid EncodeErrors if a GLSA contains
 	non-ascii characters (bug #162493)
