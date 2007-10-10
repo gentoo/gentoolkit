@@ -165,13 +165,9 @@ get_file_owner() { :; }
 # Replace whitespace with linebreaks, normalize repeated '/' chars, and sort -u
 # (If any libs have whitespace in their filenames, someone needs punishment.)
 clean_var() {
-	[[ $@ = '-*'* ]] && return
-	shopt -s extglob
-	local a="$@"
-	a="${a%%[[:space:]]-\*[[:space:]]*}" # Delete what follows -*
-	a="${a//+([[:space:]])/$'\n'}"       # Turn spaces into linebreaks
-	a="${a//+(\/\/)//}"                  # Normalize slashes
-	sort -u <<< "$a"
+	awk 'BEGIN         {RS="[[:space:]]"}
+	     /-\*/         {exit}
+	     /[^[:space:]]/ {gsub(/\/\/+/, "/"); print}' | sort -u
 }
 # Exit and optionally output to sterr
 die() {
@@ -352,9 +348,9 @@ fi
 
 # Set the final variables
 [[ $SEARCH_DIRS ]] || die 1 "No search defined -- this is a bug."
-SEARCH_DIRS=$(clean_var "$SEARCH_DIRS")
-SEARCH_DIRS_MASK=$(clean_var "$SEARCH_DIRS_MASK")
-LD_LIBRARY_MASK=$(clean_var "$LD_LIBRARY_MASK")
+SEARCH_DIRS=$(clean_var <<< "$SEARCH_DIRS")
+SEARCH_DIRS_MASK=$(clean_var <<< "$SEARCH_DIRS_MASK")
+LD_LIBRARY_MASK=$(clean_var <<< "$LD_LIBRARY_MASK")
 
 set_trap() {
 	trap "rm_temp $1" SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
