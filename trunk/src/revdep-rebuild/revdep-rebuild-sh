@@ -156,7 +156,7 @@ while [ -n "$1" ]; do
 			shift
 		;;
 		-e|--exact) exact=true;;
-		-X|--package-names) #compat ;;
+		-X|--package-names) ;; #compat
 		--) shift; emerge_opts="$@"; break;;
 		*) eerror "$0: unknown option $1"; exit 1;;
 	esac
