@@ -64,7 +64,7 @@ elf_broken() {
 	local lib=
 	
 	for lib in $(ldd "$1" 2>/dev/null | \
-		sed -n -e 's/[[:space:]]*\(.*\) => not found .*/\1/p'); do
+		sed -n -e 's/[[:space:]]*\(.*\) => not found.*/\1/p'); do
 		if elf_needed "$1" "${lib}"; then
 			echo "(missing ${lib})"
 			return 0
