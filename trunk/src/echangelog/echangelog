@@ -10,6 +10,7 @@
 
 use strict;
 use POSIX qw(strftime getcwd setlocale);
+use File::Find;
 
 # Fix bug 21022 by restricting to C locale
 setlocale(&POSIX::LC_ALL, "C");
@@ -46,7 +47,7 @@ if ( -d "CVS" ) {
    $vcs = "cvs";
 } elsif ( -d '.svn' ) {
     $vcs = "svn";
-} elsif ( -d '/usr/bin/git' and open GIT, "git rev-parse --git-dir |" ) {
+} elsif ( -f '/usr/bin/git' and open GIT, "git rev-parse --git-dir |" ) {
     $vcs = "git";
     close GIT;
 } else {
@@ -81,7 +82,6 @@ if (-f 'ChangeLog') {
     }
 }
 
-
 # Figure out what has changed around here
 open C, $vcs{$vcs}{status}.' 2>&1 |' or die "Can't run ".$vcs{$vcs}{status}.": $!\n";
 while (<C>) {
@@ -114,8 +114,17 @@ while (<C>) {
     } elsif (/^([ARMD])\s+(\S+)/) {        
         my ($status, $filename) = ($1,$2);
         if($vcs eq "git") {
-            $filename =~ /\S*\/(\S*)/;
-	    $filename = $1;
+            open P, "git-rev-parse --sq --show-prefix |";
+            my $prefix = <P>;
+            $prefix = substr($prefix, 0, -1);
+            close P;
+        	
+            if ($filename =~ /$prefix(\S*)/) {
+            	$filename = $1 ;
+            }
+            else {
+            	next;
+            }
         }
 	if( -d $filename ) {
 	    next;
@@ -123,6 +132,28 @@ while (<C>) {
         push @files, $filename;
         ($actions{$filename} = $status) =~ tr/DARM/-+-/d;
     }
+}
+
+# git only shows files already added so we need to check for unknown files
+# separately here. 
+if($vcs eq "git") {
+	find(\&git_unknown_objects, "./");
+}
+
+sub git_unknown_objects {
+	my $object = $_;
+	my ($dev,$ino,$mode,$nlink,$uid,$gid);
+
+	# Ignore empty directories - git doesn't version them and cvs removes them.
+    if ((($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_)) && ! -d _) { 
+		open C, $vcs." status $_ 2>&1 1>/dev/null |";
+
+    	while (<C>) {
+			$_ = <C>;
+			push @unknown, $object;
+    	};
+    	close C;
+	};
 }
 
 # Separate out the trivial files for now
@@ -247,31 +278,41 @@ sub sortfunc($$) {
 
 if (@ebuilds) {
     if ($vcs eq "git") {
-    	open C, $vcs{$vcs}{diff}." 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
+    	open C, $vcs{$vcs}{diff}." HEAD -- @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
     } else { 
         open C, $vcs{$vcs}{diff}." @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
     }
     $_ = <C>;
     while (defined $_) {
 	# only possible with cvs
-        if (/^$vcs diff: (([^\/]*?)\.ebuild) was removed/) { 
-            push @files, $1;
-        }
+	if (/^$vcs diff: (([^\/]*?)\.ebuild) was removed/) { 
+		push @files, $1;
+	}
 
 	# We assume GNU diff output format here.
 	# git format: diff --git a/app-doc/repodoc/metadata.xml b/app-doc/repodoc/metadata.xml
 	elsif (/$vcs{$vcs}{regex}/) {
-            my ($f) = ($2);
-            # file was removed from git 
-	    if (/^deleted file mode/) {
-		    $_ = <C>; # just eat the line
-            }
+		my $f;
+		if ($vcs eq "git") {
+    		($f) = ($1);
+    		my $version = ($2);
+       		while (<C>) {
+               	last if /^deleted file mode|^index/;
+               	if (/^new file mode/) {
+    				push @new_versions, $version;  # new ebuild, will create a new entry
+                   	last;
+       			}
+    		}
+		} else { 
+			($f) = ($2);
+		}
+
             # check if more than just copyright date changed.
             # skip some lines (vcs dependent)
-	    foreach(1..$vcs{$vcs}{skip}){
-	            $_ = <C>;
-	    }
-            while (<C>) {
+           foreach(1..$vcs{$vcs}{skip}){
+				$_ = <C>;
+           }
+        	while (<C>) {
                 last if /^[A-Za-z]/;
                 if (/^[-+](?!# Copyright)/) {
                     push @files, $f;
