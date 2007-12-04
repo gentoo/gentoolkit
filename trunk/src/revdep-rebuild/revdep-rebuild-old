@@ -552,37 +552,10 @@ if $PACKAGE_NAMES ; then
 			set_trap "$LLIST.4_ebuilds"
 			cat $LLIST.4_packages | while read EXACT_PKG
 			do
-				# Get the slot
 				PKG="$(echo $EXACT_PKG | sed 's/-r[0-9].*$//;s/\(^.*\/*\)-.*$/\1/')"
 				SLOT=$(cat /var/db/pkg/${EXACT_PKG}/SLOT)
-				OTHER_VERSIONS=$(/usr/lib/gentoolkit/bin/find_pkgs.py $PKG | grep -v "($SLOT)" | awk '{print $2}')
-				# If SLOT is equal to 0, then just see what portage says is latest version
-				if [ "$SLOT" = "0" -o "x$OTHER_VERSIONS" = "x" ]
-				then
-					best_visible=$(portageq best_visible $PORTAGE_ROOT $PKG)
-					[ "x" != "x$best_visible" ] && echo $best_visible
-					continue
-				fi
-				# Otherwise mask the other SLOTTED versions and check for latest
-				if [ -e /etc/portage/package.mask ]
-				then
-					mv -f /etc/portage/package.mask /etc/portage/package.mask.revdep-rebuild.backup
-				else
-					# Make sure that /etc/portage/package.mask exists
-					mkdir -p /etc/portage
-					touch /etc/portage/package.mask
-				fi
-				for pkg_version in $(echo $OTHER_VERSIONS | tr '\n' ' ') 
-				do
-					echo "=${PKG}-${pkg_version}" >> /etc/portage/package.mask
-				done
-				best_visible=$(portageq best_visible $PORTAGE_ROOT $PKG)
+				best_visible=$(portageq best_visible $PORTAGE_ROOT ${PKG}:${SLOT})
 				[ "x" != "x$best_visible" ] && echo $best_visible
-				rm -f /etc/portage/package.mask
-				if [ -e /etc/portage/package.mask.revdep-rebuild.backup ]
-				then
-					mv -f /etc/portage/package.mask.revdep-rebuild.backup /etc/portage/package.mask
-				fi
 			done > $LLIST.4_ebuilds
 			echo -e " done.\n  ($LLIST.4_ebuilds)"
 		else
