@@ -213,6 +213,11 @@ list only those packages that exactly match
 only list installed duplicate packages
 .br 
 
+\fBOutput:\fR
+
+.br
+The list command searches packages for the name given. If found, the following info will be displayed: the package location between the first square brackets (I for Installed packages, P for Portage, O for Overlay), the possible masks between the second (~ by keyword, - by arch or M hard masked), then the category and complete name and last of all, the slot in which the package is stored.
+
 \fBExamples:\fR
 
 equery list zilla \- list all installed versions of packages containing the string 'zilla'
