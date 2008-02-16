@@ -54,6 +54,7 @@ declare NOCOLOR                # Set to "true" not to output term colors
 declare OK_TEXT                # Feedback about a search which found no errors
 declare RC_NOCOLOR             # Hack to insure we respect NOCOLOR
 declare REBUILD_LIST           # Array of atoms to emerge
+declare SKIP_LIST              # Array of atoms that cannot be emerged (masked?)
 declare SONAME                 # Soname/soname path pattern given on commandline
 declare SONAME_SEARCH          # Value of SONAME modified to match ldd's output
 declare WORKING_TEXT           # Feedback about the search
@@ -679,7 +680,7 @@ assign_packages_to_ebuilds() {
 				PKG="${EXACT_PKG%%-r[[:digit:]]*}"
 				PKG="${PKG%-*}"
 				SLOT=$(</var/db/pkg/$EXACT_PKG/SLOT)
-				portageq best_visible $PORTAGE_ROOT $PKG:$SLOT
+				echo "$PKG:$SLOT"
 			done < "$LIST.4_packages" > "$LIST.4_ebuilds"
 			einfo "Generated new $LIST.4_ebuilds"
 	else
@@ -701,6 +702,15 @@ get_exact_ebuilds() {
 		die 1 '(The program should have already quit, so this is a minor bug.)'
 	fi
 }
+list_skipped_packages() {
+	ewarn
+	ewarn 'Portage could not find any version of the following packages it could build:'
+	ewarn "${SKIP_LIST[@]}"
+	ewarn
+	ewarn '(Perhaps they are masked, blocked, or removed from portage.)'
+	ewarn 'Try to emerge them manually.'
+	ewarn
+}
 get_build_order() {
 	local -r OLD_EMERGE_DEFAULT_OPTS="$EMERGE_DEFAULT_OPTS"
 	local RAW_REBUILD_LIST
@@ -719,10 +729,32 @@ get_build_order() {
 		if [[ $RAW_REBUILD_LIST ]]; then
 			export EMERGE_DEFAULT_OPTS="--nospinner --pretend --oneshot --quiet"
 			RAW_REBUILD_LIST=($RAW_REBUILD_LIST)
-			RAW_REBUILD_LIST="${RAW_REBUILD_LIST[@]/#/=}"
-			REBUILD_GREP=$(emerge --nodeps $RAW_REBUILD_LIST | sed 's/\[[^]]*\]//g') &&
-				emerge --deep $RAW_REBUILD_LIST | sed 's/\[[^]]*\]//g' |
-				grep -F "$REBUILD_GREP" > $LIST.5_order || {
+			# If PACKAGE_NAMES is defined we're using slots, not versions
+			if [[ $PACKAGE_NAMES ]]; then
+				# Eliminate atoms that can't be built
+				for (( i=0; i<${#RAW_REBUILD_LIST[@]}; i++ )); do
+					portageq best_visible "$PORTAGE_ROOT" "${RAW_REBUILD_LIST[i]}" >/dev/null && continue
+					SKIP_LIST+=("${RAW_REBUILD_LIST[i]}")
+					unset RAW_REBUILD_LIST[i]
+				done
+				# If RAW_REBUILD_LIST is empty, then we have nothing to build.
+				if (( ${#RAW_REBUILD_LIST[@]} == 0 )); then
+					list_skipped_packages
+					die 1 'Warning: Portage cannot rebuild any of the necessary packages.'
+				fi
+			else
+				RAW_REBUILD_LIST=("${RAW_REBUILD_LIST[@]/#/=}")
+			fi
+			RAW_REBUILD_LIST="${RAW_REBUILD_LIST[@]}"
+			REBUILD_GREP=$(emerge --nodeps $RAW_REBUILD_LIST | sed 's/\[[^]]*\]//g')
+			if (( ${PIPESTATUS[0]} == 0 )); then
+				emerge --deep $RAW_REBUILD_LIST |
+					sed 's/\[[^]]*\]//g' |
+					grep -F "$REBUILD_GREP" > $LIST.5_order
+			fi
+
+			# Here we use the PIPESTATUS from the second emerge, the --deep one.
+			if (( ${PIPESTATUS[0]} != 0 )); then
 					eerror
 					eerror 'Warning: Failed to resolve package order.'
 					eerror 'Will merge in arbitrary order'
@@ -735,7 +767,7 @@ get_build_order() {
 					EOF
 					countdown 5
 					rm -f "$LIST.5_order"
-				}
+			fi
 			export EMERGE_DEFAULT_OPTS="$OLD_EMERGE_DEFAULT_OPTS"
 		else
 			einfo 'Nothing to rebuild.'
@@ -769,13 +801,15 @@ echo
 # Clean up no longer needed environment variables
 unset SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK PORTAGE_ROOT
 
-[[ -r $LIST.5_order && -s $LIST.5_order ]] && REBUILD_LIST=($(<"$LIST.5_order")) ||
-	REBUILD_LIST=($(<"$LIST.4_ebuilds"))
+[[ -r $LIST.5_order && -s $LIST.5_order ]] &&
+	REBUILD_LIST=($(<"$LIST.5_order")) ||
+	REBUILD_LIST=($(sort -u "$LIST.4_ebuilds"))
 
 trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 
-REBUILD_LIST="=${REBUILD_LIST[@]}"
-REBUILD_LIST="${REBUILD_LIST//[[:space:]]/ =}"
+REBUILD_LIST="${REBUILD_LIST[@]}"
+# PACKAGE_NAMES means slots, not versions, so no '=' is required
+[[ $PACKAGE_NAMES ]] || REBUILD_LIST="=${REBUILD_LIST//[[:space:]]/ =}"
 
 einfo 'All prepared. Starting rebuild'
 echo "emerge --oneshot ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
@@ -827,13 +861,16 @@ elif is_real_merge; then
 		eerror "rm $LIST*.?_*"
 		exit 1
 	}
+	(( "${#SKIP_LIST[@]}" != 0 )) && list_skipped_packages
 	trap trap_cmd SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 	einfo 'Build finished correctly. Removing temporary files...'
 	einfo
 	einfo 'You can re-run revdep-rebuild to verify that all libraries and binaries'
 	einfo 'are fixed. If some inconsistency remains, it can be orphaned file, deep'
 	einfo 'dependency, binary package or specially evaluated library.'
+	if [[ -r "$LIST.4_package_owners" && -s "$LIST.4_package_owners" ]]; then
 	show_unowned_files
+	fi
 	[[ $KEEP_TEMP ]] || rm $LIST*.?_*
 else
 	einfo 'Now you can remove -p (or --pretend) from arguments and re-run revdep-rebuild.'
