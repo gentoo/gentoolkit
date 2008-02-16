@@ -348,10 +348,22 @@ if [[ -r /etc/ld.so.conf && -s /etc/ld.so.conf ]]; then
 fi
 
 # Set the final variables
-[[ $SEARCH_DIRS ]] || die 1 "No search defined -- this is a bug."
 SEARCH_DIRS=$(clean_var <<< "$SEARCH_DIRS")
 SEARCH_DIRS_MASK=$(clean_var <<< "$SEARCH_DIRS_MASK")
 LD_LIBRARY_MASK=$(clean_var <<< "$LD_LIBRARY_MASK")
+# Filter masked paths from SEARCH_DIRS
+filter_SEARCH_DIRS=
+for sdir in ${SEARCH_DIRS} ; do
+	unset skip_me
+	for mdir in ${SEARCH_DIRS_MASK} ; do
+		[[ ${sdir} == ${mdir}/* ]] \
+			&& skip_me=1 && break
+	done
+	[[ -n ${skip_me} ]] || filter_SEARCH_DIRS+=" ${sdir}"
+done
+SEARCH_DIRS=$(clean_var "${filter_SEARCH_DIRS}")
+unset sdir mdir skip_me filter_SEARCH_DIRS
+[[ $SEARCH_DIRS ]] || die 1 "No search defined -- this is a bug."
 
 set_trap() {
 	trap "rm_temp $1" SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
