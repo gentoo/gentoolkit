@@ -76,17 +76,18 @@ rm() {
 # of various versions of -perm /+ blah blah and hacks
 find() {
 	hash find || { die 1 'find not found!'; }
-	# We can be pretty sure "$0" should be executable.
-	if [[ $(command find "$0" -executable 2> /dev/null) ]]; then
+	# We can be pretty sure find itself should be executable.
+	local testsubject="$(type -P find)"
+	if [[ $(command find "$testsubject" -executable 2> /dev/null) ]]; then
 		unset -f find # We can just use the command find
-	elif [[ $(command find "$0" -perm /u+x 2> /dev/null) ]]; then
+	elif [[ $(command find "$testsubject" -perm /u+x 2> /dev/null) ]]; then
 		find() {
 			a=(${@//-executable/-perm \/u+x})
 			a=(${a[@]//-writable/-perm \/u+w})
 			a=(${a[@]//-readable/-perm \/r+w})
 			command find "${a[@]}"
 		}
-	elif [[ $(command find "$0" -perm +u+x 2> /dev/null) ]]; then
+	elif [[ $(command find "$testsubject" -perm +u+x 2> /dev/null) ]]; then
 		find() {
 			a=(${@//-executable/-perm +u+x})
 			a=(${a[@]//-writable/-perm +u+w})
@@ -368,7 +369,7 @@ get_search_env() {
 	# HACK: This is a rather noisy, but portable way to implement -quit
 	while read LIST; do
 		break # Set LIST
-	done < <(find $HOME/ /var/tmp/ /tmp/ -writable)
+	done < <(find $HOME/ /var/tmp/ /tmp/ -writable -print)
 	[[ $LIST ]] ||
 		die 1 "Unable to find a satisfactory location for temporary files"
 
