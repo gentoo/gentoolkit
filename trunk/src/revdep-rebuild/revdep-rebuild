@@ -274,8 +274,10 @@ get_args() {
 	else
 		get_file_owner() {
 			local IFS=$'\n'
+			# ${*/%/ } adds a space to the end of each object name to prevent false
+			# matches, for example /usr/bin/dia matching /usr/bin/dialog (bug #196460).
 			find -L /var/db/pkg -name CONTENTS -print0 |
-				xargs -0 grep -Fl "$*" |
+				xargs -0 grep -Fl "${*/%/ }" |
 				sed 's:/var/db/pkg/\(.*\)/CONTENTS:\1:'
 		}
 	fi
