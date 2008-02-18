@@ -58,9 +58,7 @@ you can make a release in the following fashion:
 
 Currently, the following people have "release access":
 
- - karltk@gentoo.org
  - genone@gentoo.org
- - port001@gentoo.org
  - fuzzyray@gentoo.org
 
 If you want a new release, ping either of us. If you want to get 
