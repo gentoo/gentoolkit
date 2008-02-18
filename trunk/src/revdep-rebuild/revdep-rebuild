@@ -13,6 +13,9 @@
 ##
 # Global Variables:
 
+# Must-be-blank variables:
+unset GREP_OPTIONS
+
 # Readonly variables:
 declare -r APP_NAME="${0##*/}" # The name of this application
 declare -r OIFS="$IFS"         # Save the IFS
