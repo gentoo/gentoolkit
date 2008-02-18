@@ -1325,7 +1325,13 @@ class CmdListPackages(Command):
 		cat = ""
 
 		if query != "":
-			(cat, name, ver, rev) = gentoolkit.split_package_name(query)
+			try: (cat, name, ver, rev) = gentoolkit.split_package_name(query)
+			except ValueError, e:
+				if str(e) == 'too many values to unpack':
+					print_error("A pattern to match against package names was expected, ")
+					warn_msg = "but %s has too many slashes ('/') to match any package."
+					die (1, warn_msg % query)
+				else: raise ValueError(e)
 			if rev == "r0": rev = ""
 
 		package_finder = None
