@@ -1,3 +1,12 @@
+2008-02-18: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Apply patch to allow combined short options. (Bug 188343)
+	* revdep-rebuild: Don't duplicate broken file output. (Bug 201319)
+	* revdep-rebuild: unset GREP_OPTIONS to prevent problems with grep. (Bug 189257)
+	* revdep-rebuild: Apply patch to prevent false matches of object names. (Bug 196460)
+	* revdep-rebuild: Apply patch to better handle masked and removed packages. (Bug 205227)
+	* revdep-rebuild: Filter SEARCH_DIRS_MASK paths from SEARCH_DIRS. (Bug 194993)
+	* revdep-rebuild: Apply patch for revdep-rebuild portable find function. (Bug 194234)
+
 2007-10-09: Marius Mauch <genone@gentoo.org>
 	* glsa-check: Change "affected" target so it's based on "new" instead of 
 	"all" (IOW: exclude already applied/injected GLSAs).
@@ -14,6 +23,8 @@
 2007-09-18: Paul Varner <fuzzyray@gentoo.org>
 	* equery: Apply patch from Carlo Marcelo Arenas Belon to fix incorrect
 	display of masking status in list command. (Bug #188678)
+	* revdep-rebuild: Correctly handle LD_LIBRARY_MASK when checking for
+	"no version information" errors/ (Bug #182882)
 
 2007-09-12: Paul Varner <fuzzyray@gentoo.org>
 	* eclean: Fix processing of the long arguments to work correctly. (Bug
