@@ -1284,6 +1284,8 @@ class CmdListPackages(Command):
 			elif x in ["-i", "--installed"]:
 				opts["includeInstalled"] = 1
 			elif x in ["-I", "--exclude-installed"]:
+				# If -I is the only option, warn
+				# (warning located in perform())
 				opts["includeInstalled"] = 0
 			elif x in ["-p", "--portage-tree"]:
 				opts["includePortTree"] = 1
@@ -1328,15 +1330,18 @@ class CmdListPackages(Command):
 
 		package_finder = None
 
-		if opts["includeInstalled"] and (opts["includePortTree"] or opts["includeOverlayTree"]):
-			package_finder = gentoolkit.find_all_packages
-		elif opts["includeInstalled"]:
-			package_finder = gentoolkit.find_all_installed_packages
+		if opts["includeInstalled"]:
+			if opts["includePortTree"] or opts["includeOverlayTree"]:
+				package_finder = gentoolkit.find_all_packages
+			else:
+				package_finder = gentoolkit.find_all_installed_packages
 		elif opts["includePortTree"] or opts["includeOverlayTree"]:
 			package_finder = gentoolkit.find_all_uninstalled_packages
-
-		if not package_finder:
-			die(2, "You must specify one of -i, -p or -o")
+		else:
+			# -I was specified, and no selection of what packages to list was made
+			print_warn("With -I you must specify one of -i, -p or -o. Assuming -p")
+			opts["includePortTree"] = 1
+			package_finder = gentoolkit.find_all_uninstalled_packages
 
 		filter_fn = None
 
