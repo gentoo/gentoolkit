@@ -840,7 +840,7 @@ show_unowned_files() {
 		ewarn "The broken files are:"
 		while read filename junk; do
 			[[ $junk = *none* ]] && ewarn "  $filename"
-		done < "$LIST.4_package_owners"
+		done < "$LIST.4_package_owners" | awk '!s[$0]++' # (omit dupes)
 	fi
 }
 
