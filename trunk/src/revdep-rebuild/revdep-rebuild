@@ -919,8 +919,7 @@ unset SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK PORTAGE_ROOT
 trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 
 REBUILD_LIST="${REBUILD_LIST[@]}"
-# PACKAGE_NAMES means slots, not versions, so no '=' is required
-[[ $PACKAGE_NAMES ]] || REBUILD_LIST="=${REBUILD_LIST//[[:space:]]/ =}"
+REBUILD_LIST="=${REBUILD_LIST//[[:space:]]/ =}"
 
 einfo 'All prepared. Starting rebuild'
 echo "emerge --oneshot ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
