@@ -473,7 +473,7 @@ for sdir in ${SEARCH_DIRS} ; do
 	done
 	[[ -n ${skip_me} ]] || filter_SEARCH_DIRS+=" ${sdir}"
 done
-SEARCH_DIRS=$(clean_var "${filter_SEARCH_DIRS}")
+SEARCH_DIRS=$(clean_var <<< "${filter_SEARCH_DIRS}")
 unset sdir mdir skip_me filter_SEARCH_DIRS
 [[ $SEARCH_DIRS ]] || die 1 "No search defined -- this is a bug."
 
