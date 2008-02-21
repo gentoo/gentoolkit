@@ -231,7 +231,7 @@ setup_color() {
 	# environment.
 	export NOCOLOR=$(portageq envvar NOCOLOR)
 	[[ $NOCOLOR = yes || $NOCOLOR = true ]] && export RC_NOCOLOR=yes # HACK! (grr)
-	. /sbin/functions.sh
+	. /etc/init.d/functions.sh
 }
 
 ##

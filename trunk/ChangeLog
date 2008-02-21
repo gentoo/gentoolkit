@@ -1,3 +1,7 @@
+2008-02-21: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: "Use /etc/init.d/functions.sh instead of
+	/sbin/functions.sh. (Bug 210940)
+
 2008-02-18: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Apply patch to allow combined short options.
 	(Bug 188343)
