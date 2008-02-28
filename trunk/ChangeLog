@@ -1,3 +1,7 @@
+2008-02-28: Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Fix traceback when accessing the portage
+	db. (Bug #211716)
+
 2008-02-21: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: "Use /etc/init.d/functions.sh instead of
 	/sbin/functions.sh. (Bug 210940)

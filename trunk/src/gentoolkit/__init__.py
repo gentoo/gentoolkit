@@ -27,11 +27,20 @@ except ImportError:
 import re
 from threading import Lock
 
-settingslock = Lock()
-settings = portage.config(clone=portage.settings)
-porttree = portage.db[portage.root]["porttree"]
-vartree  = portage.db[portage.root]["vartree"]
-virtuals = portage.db[portage.root]["virtuals"]
+try:
+	import portage.exception as portage_exception
+except ImportError:
+	import portage_exception
+
+try:
+	settingslock = Lock()
+	settings = portage.config(clone=portage.settings)
+	porttree = portage.db[portage.root]["porttree"]
+	vartree  = portage.db[portage.root]["vartree"]
+	virtuals = portage.db[portage.root]["virtuals"]
+except portage_exception.PermissionDenied, e:
+	sys.stderr.write("Permission denied: '%s'\n" % str(e))
+	sys.exit(e.errno)
 
 Config = {
 	"verbosityLevel": 3
