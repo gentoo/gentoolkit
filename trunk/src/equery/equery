@@ -19,7 +19,6 @@ import sys
 import time
 
 # portage (output module) and gentoolkit need special path modifications
-sys.path.insert(0, "/usr/lib/portage/pym")
 sys.path.insert(0, "/usr/lib/gentoolkit/pym")
 
 import gentoolkit
