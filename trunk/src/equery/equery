@@ -28,8 +28,13 @@ try:
 except ImportError:
 	sys.path.insert(0, "/usr/lib/portage/pym")
 	import portage
-import portage_checksum
-from portage_util import unique_array
+
+try:
+	import portage.checksum as checksum
+	from portage.util import unique_array
+except ImportError:
+	import portage_checksum as checksum
+	from portage_util import unique_array
 
 import gentoolkit.pprinter as pp
 from gentoolkit.pprinter import print_info, print_error, print_warn, die
@@ -924,7 +929,7 @@ class CmdCheckIntegrity(Command):
 		return (query, opts)
 
 	def getMD5sum(self, file):
-		return portage_checksum.perform_md5(file, calc_prelink=1)
+		return checksum.perform_md5(file, calc_prelink=1)
 	
 	def perform(self, args):
 		(query, opts) = self.parseArgs(args)

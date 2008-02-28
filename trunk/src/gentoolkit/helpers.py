@@ -10,7 +10,10 @@
 import portage
 from gentoolkit import *
 from package import *
-from portage_util import unique_array
+try:
+	from portage.util import unique_array
+except ImportError:
+	from portage_util import unique_array
 
 def find_packages(search_key, masked=False):
 	"""Returns a list of Package objects that matched the search key."""
