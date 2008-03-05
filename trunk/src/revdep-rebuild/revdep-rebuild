@@ -196,9 +196,11 @@ clean_exit() {
 ##
 # Check if various portage utils are allowed and installed
 setup_get_file_owner() {
-	if [[ $avoid_utils != *portage-utils* ]] && hash qfile 2> /dev/null; then
-		get_file_owner() { qfile -qvC "$@"; }
-	elif [[ $avoid_utils != *pkgcore* ]] && hash pquery 2> /dev/null; then
+	# portage-utils disabled until it is able to handle category names without
+	# a hyphen.  See Bug #210386
+	# if [[ $avoid_utils != *portage-utils* ]] && hash qfile 2> /dev/null; then
+	#	get_file_owner() { qfile -qvC "$@"; }
+	if [[ $avoid_utils != *pkgcore* ]] && hash pquery 2> /dev/null; then
 		get_file_owner() { local IFS=,; pquery --nocolor --owns="$*"; }
 	# equery disabled for incompatibility with modern portage.
 	# elif [[ $avoid_utils != *equery* ]] && hash equery 2> /dev/null; then
