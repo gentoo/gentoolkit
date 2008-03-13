@@ -30,7 +30,10 @@ the given USE flags from make.conf.
 Prints detail information about the USE flag(s). If no arguments are given then
 it assumes you want information for all USE flags. If one or more
 arguments are given (space separated) then only information for those flags is
-printed. 
+printed.
+.TP 
+\fB\-I, \-\-info\-installed\fI
+Same as \-\-info, except that it will also list the currently installed packages that are utilizing the flag.
 .sp
 .RS
 The output is in the following format:

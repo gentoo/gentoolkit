@@ -23,15 +23,16 @@ parse_arguments() {
 	fi
 	while [ -n "${1}" ]; do
 		case "${1}" in
-			-h | --help)    MODE="showhelp";;
-			-v | --version) MODE="showversion";;
-			-i | --info)    MODE="showdesc";;
-			-l | --local)   SCOPE="local";;
-			-g | --global)  SCOPE="global";;
-			-a | --active)  MODE="showflags";;
-			-E | --enable)  MODE="modify"; ACTION="add";;
-			-D | --disable) MODE="modify"; ACTION="remove";;
-			-P | --prune)   MODE="modify"; ACTION="prune";;
+			-h | --help)           MODE="showhelp";;
+			-v | --version)        MODE="showversion";;
+			-i | --info)           MODE="showdesc";;
+			-I | --info-installed) MODE="showinstdesc";;
+			-l | --local)          SCOPE="local";;
+			-g | --global)         SCOPE="global";;
+			-a | --active)         MODE="showflags";;
+			-E | --enable)         MODE="modify"; ACTION="add";;
+			-D | --disable)        MODE="modify"; ACTION="remove";;
+			-P | --prune)          MODE="modify"; ACTION="prune";;
 			-*)
 				echo "ERROR: unknown option ${1} specified."
 				echo
@@ -81,34 +82,40 @@ check_sanity() {
 }
 
 showhelp() {
-	echo "${PROGRAM_NAME} v${PROGRAM_VERSION}"
-	echo
-	echo "Syntax: ${PROGRAM_NAME} <option> [suboptions] [useflaglist]"
-	echo
-	echo "Options: -h, --help      - show this message"
-	echo "         -v, --version   - show version information"
-	echo "         -i, --info      - show descriptions for the given useflags"
-	echo "         -g, --global    - show only global use flags (suboption)"
-	echo "         -l, --local     - show only local use flags (suboption)"
-	echo "         -a, --active    - show currently active useflags and their origin"
-	echo "         -E, --enable    - enable the given useflags"
-	echo "         -D, --disable   - disable the given useflags"
-	echo "         -P, --prune     - remove all references to the given flags from"
-	echo "                           make.conf to revert to default settings"
-	echo
-	echo "Notes: ${PROGRAM_NAME} currently only works for global flags defined"
-	echo "       in make.globals, make.defaults or make.conf, it doesn't handle"
-	echo "       use.defaults, use.mask or package.use yet (see portage(5) for details on"
-	echo "       these files). It also might have issues with cascaded profiles."
-	echo "       If multiple options are specified only the last one will be used."
+cat << HELP
+${PROGRAM_NAME} v${PROGRAM_VERSION}
+
+Syntax: ${PROGRAM_NAME} <option> [suboptions] [useflaglist]
+
+Options: -h, --help           - show this message
+         -v, --version        - show version information
+         -i, --info           - show descriptions for the given useflags
+         -I, --info-installed - show descriptions for the given useflags and
+                                their current impact on the installed system
+         -g, --global         - show only global use flags (suboption)
+         -l, --local          - show only local use flags (suboption)
+         -a, --active         - show currently active useflags and their origin
+         -E, --enable         - enable the given useflags
+         -D, --disable        - disable the given useflags
+         -P, --prune          - remove all references to the given flags from
+                                make.conf to revert to default settings
+
+Notes: ${PROGRAM_NAME} currently only works for global flags defined
+       in make.globals, make.defaults or make.conf, it doesn't handle
+       use.defaults, use.mask or package.use yet (see portage(5) for details on
+       these files). It also might have issues with cascaded profiles.
+       If multiple options are specified only the last one will be used.
+HELP
 }
 
 showversion() {
-	echo "${PROGRAM_NAME} v${PROGRAM_VERSION}"
-	echo "Written by Marius Mauch"
-	echo
-	echo "Copyright (C) 2004 Gentoo Foundation, Inc."
-	echo "This is free software; see the source for copying conditions."
+cat << VER
+${PROGRAM_NAME} v${PROGRAM_VERSION}
+Written by Marius Mauch
+
+Copyright (C) 2004-2008 Gentoo Foundation, Inc.
+This is free software; see the source for copying conditions.
+VER
 }
 
 # remove duplicate flags from the given list in both positive and negative forms
@@ -116,6 +123,9 @@ showversion() {
 # Otherwise the status flags could be incorrect if a flag appers multiple times in
 # one location (like make.conf).
 # Using python here as bash sucks for list handling.
+# NOTE: bash isn't actually that bad at handling lists -- sh is. This may be
+#       worth another look to avoid calling python unnecessariy. Or we could
+#       just write the whole thing in python. ;)
 reduce_incrementals() {
 	echo $@ | python -c "import sys
 r=[]
@@ -313,6 +323,77 @@ showdesc() {
 	done
 	
 	if [ ${foundone} == 0 ]; then
+		echo "no matching entries found"
+	fi
+}
+
+# Works like showdesc() but displays only descriptions of which the appropriate
+# ebuild is installed and prints the name of those packages.
+showinstdesc() {
+	local descdir
+	local current_desc
+	local args
+	local -i foundone=0
+	local IFS
+
+	args=("${@:-*}")
+
+	case "${SCOPE}" in
+		"global") echo "global use flags (searching: ${args})";;
+		 "local") echo "local use flags (searching: ${args})";;
+		       *) SCOPE="global" showinstdesc "${args[@]}"
+		          echo
+		          SCOPE="local" showinstdesc "${args[@]}"
+		          return;;
+	esac
+
+	descdir="$(get_portdir)/profiles"
+	echo "************************************************************"
+	
+	if [ "${args}" = "*" ]; then
+		args="$(get_useflaglist | sort -u)"
+	fi
+	
+	set "${args[@]}"
+	
+	while [ -n "${1}" ]; do
+		case "${SCOPE}" in
+			"global")
+				if desc=$(grep "^${1}  *-" "${descdir}/use.desc"); then
+					get_flagstatus "${1}"
+					echo "$desc"
+					# get list of installed packages matching this USE flag.
+					IFS=$'\n'
+					packages=($(equery -q -C hasuse -i "${1}" | awk '{ print $(NF-1) }'))
+					foundone+=${#packages[@]}
+					printf "\nInstalled packages matching this USE flag: "
+					if [ ${foundone} -gt 0 ]; then
+						echo $'\n'"${packages[*]}"
+					else
+						echo "none"
+					fi
+				fi
+			;;
+			"local")
+				# local flags are a bit more complicated as there can be multiple
+				# entries per flag and we can't pipe into printf
+				IFS=': ' # Use a space instead of a dash because dashes occur in cat/pkg
+				while read pkg flag desc; do
+					# print name only if package is installed
+					# NOTE: If we implement bug #114086 's enhancement we can just use the
+					#       exit status of equery instead of a subshell and pipe to wc -l
+					if [ $(equery -q -C list -i -e "${pkg}" | wc -l) -gt 0 ]; then
+						foundone=1
+						get_flagstatus "${flag}"
+						printf "%s (%s):\n%s\n\n" "${flag}" "${pkg}" "${desc#- }"
+					fi
+				done < <(grep ":${1}  *-" "${descdir}/use.local.desc")
+			;;
+		esac
+		shift
+	done
+	
+	if [ ${foundone} -lt 1 ]; then
 		echo "no matching entries found"
 	fi
 }
