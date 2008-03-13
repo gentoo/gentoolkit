@@ -841,18 +841,25 @@ get_build_order() {
 		RAW_REBUILD_LIST=$(<"$LIST.4_ebuilds")
 		if [[ $RAW_REBUILD_LIST ]]; then
 			export EMERGE_DEFAULT_OPTS="--nospinner --pretend --oneshot --quiet"
-			RAW_REBUILD_LIST=($RAW_REBUILD_LIST)
+			RAW_REBUILD_LIST=($RAW_REBUILD_LIST) # convert into array
 			# If PACKAGE_NAMES is defined we're using slots, not versions
 			if [[ $PACKAGE_NAMES ]]; then
 				# Eliminate atoms that can't be built
-				for (( i=0; i<${#RAW_REBUILD_LIST[@]}; i++ )); do
-					portageq best_visible "$PORTAGE_ROOT" "${RAW_REBUILD_LIST[i]}" >/dev/null && continue
-					SKIP_LIST+=("${RAW_REBUILD_LIST[i]}")
+				for i in "${!RAW_REBUILD_LIST[@]}"; do
+					if [[ "${RAW_REBUILD_LIST[i]}" = *[A-Za-z]* ]]; then
+						portageq best_visible "$PORTAGE_ROOT" "${RAW_REBUILD_LIST[i]}" >/dev/null && continue
+						SKIP_LIST+=("${RAW_REBUILD_LIST[i]}")
+					fi
 					unset RAW_REBUILD_LIST[i]
 				done
 				# If RAW_REBUILD_LIST is empty, then we have nothing to build.
 				if (( ${#RAW_REBUILD_LIST[@]} == 0 )); then
-					list_skipped_packages
+					if (( ${#SKIP_LIST[@]} == 0 )); then
+						ewarn "The list of packages to skip is empty, but there are no"
+						ewarn "packages listed to rebuild either. This is a bug."
+					else
+						list_skipped_packages
+					fi
 					die 1 'Warning: Portage cannot rebuild any of the necessary packages.'
 				fi
 			else

@@ -1,3 +1,7 @@
+2008-03-13: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix trying to emerge an empty list of packages. (Bug
+	213294)
+
 2008-02-28: Paul Varner <fuzzyray@gentoo.org>
 	* gentoolkit: Fix traceback when accessing the portage
 	db. (Bug #211716)
