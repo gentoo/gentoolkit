@@ -808,7 +808,7 @@ get_exact_ebuilds() {
 	elif [[ -r $LIST.3_rebuild && -s $LIST.3_rebuild ]]; then
 		rebuildList=" $(<"$LIST.3_rebuild") "
 		rebuildList=(${rebuildList//[[:space:]]obj[[:space:]]/ })
-		get_file_owner "${rebuildList[@]}" > $LIST.4_ebuilds
+		get_file_owner "${rebuildList[@]}" | sed 's/^/=/' > "$LIST.4_ebuilds"
 		einfo "Generated new $LIST.4_ebuilds"
 	else
 		einfo 'Nothing to rebuild.'
@@ -921,14 +921,14 @@ echo
 # Clean up no longer needed environment variables
 unset SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK PORTAGE_ROOT
 
-[[ -r $LIST.5_order && -s $LIST.5_order ]] &&
-	REBUILD_LIST=($(<"$LIST.5_order")) ||
-	REBUILD_LIST=($(sort -u "$LIST.4_ebuilds"))
+if [[ -r $LIST.5_order && -s $LIST.5_order ]]; then
+	REBUILD_LIST=( $(<"$LIST.5_order") )
+	REBUILD_LIST="${REBUILD_LIST[@]/#/=}"
+else
+	REBUILD_LIST=$(sort -u "$LIST.4_ebuilds")
+fi
 
 trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
-
-REBUILD_LIST="${REBUILD_LIST[@]}"
-REBUILD_LIST="=${REBUILD_LIST//[[:space:]]/ =}"
 
 einfo 'All prepared. Starting rebuild'
 echo "emerge --oneshot ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
