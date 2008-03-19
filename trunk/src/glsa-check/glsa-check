@@ -313,8 +313,11 @@ if mode == "mail":
 		
 	import socket
 	from StringIO import StringIO
-	from email.mime.text import MIMEText
-	
+	try:
+		from email.mime.text import MIMEText
+	except ImportError:
+		from email.MIMEText import MIMEText
+
 	# color doesn't make any sense for mail
 	nocolor()
 
