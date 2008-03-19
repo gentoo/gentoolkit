@@ -1,3 +1,7 @@
+2008-03-19: Paul Varner <fuzzyray@gentoo.org>
+	* glsa-check: Fix imports so mail functionality in glsa-check works
+	with python versions less than 2.5 (Bug 211706)
+
 2008-03-13: Paul Varner <fuzzyray@gentoo.org>
 	* euse: Add --info-installed option from patch provided by Andreas
 	Waidler. (Bug 212573)
