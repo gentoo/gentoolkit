@@ -247,12 +247,15 @@ die_if_missing_arg() {
 die_invalid_option() {
 	# We cannot use eerror and einfo because this gets called before function.sh 
 	# is sourced
-	print_usage
 	echo
 	echo  "Encountered unrecognized option $1." >&2
 	echo
 	echo  "$APP_NAME no longer automatically passes unrecognized options to portage."
 	echo  "Separate emerge-only options from revdep-rebuild options with the -- flag."
+	echo
+	echo  "For example, $APP_NAME -v -- --ask"
+	echo
+	echo  "See the man page or $APP_NAME -h for more detail."
 	echo
 	exit 1
 }
