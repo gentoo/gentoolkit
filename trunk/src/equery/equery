@@ -921,7 +921,7 @@ class CmdCheckIntegrity(Command):
 			else:
 				query = x
 
-		if need_help or query == "":
+		if need_help:
 			print_info(0, self.longHelp())
 			sys.exit(-1)
 			
@@ -933,7 +933,12 @@ class CmdCheckIntegrity(Command):
 	def perform(self, args):
 		(query, opts) = self.parseArgs(args)
 
-		matches = gentoolkit.find_packages(query, True)
+		if query == "":
+			matches=gentoolkit.find_all_installed_packages()
+		else:
+			matches = gentoolkit.find_packages(query, True)
+
+		matches = gentoolkit.sort_package_list(matches)
 
 		for pkg in matches:
 			if not pkg.is_installed():
