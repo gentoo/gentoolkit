@@ -1,3 +1,7 @@
+2008-06-16: Marius Mauch <genone@gentoo.org>
+	* euse: Add support for multi-parent profiles, account for missing 
+	final newline in make.conf
+
 2008-03-19: Paul Varner <fuzzyray@gentoo.org>
 	* glsa-check: Fix imports so mail functionality in glsa-check works
 	with python versions less than 2.5 (Bug 211706)
