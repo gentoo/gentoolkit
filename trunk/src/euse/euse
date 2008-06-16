@@ -136,6 +136,9 @@ for x in sys.stdin.read().split():
 	elif x[0] != '-' and '-'+x in r:
 		r.remove('-'+x)
 		r.append(x)
+	elif x == '-*':
+		r = []
+		r.append(x)
 	elif x not in r:
 		r.append(x)
 print ' '.join(r)" 
@@ -195,13 +198,15 @@ get_all_make_defaults() {
 	local parent
 	local rvalue
 	
-	curdir="$(get_real_path ${MAKE_PROFILE_PATH})"
+	curdir="${1:-$(get_real_path ${MAKE_PROFILE_PATH})}"
 	
-	while [ -f "${curdir}/parent" ]; do
-		[ -f "${curdir}/make.defaults" ] && rvalue="${curdir}/make.defaults ${rvalue}"
-		parent="$(egrep -v '(^#|^ *$)' ${curdir}/parent)"
-		curdir="$(get_real_path ${curdir}/${parent})"
-	done
+	[ -f "${curdir}/make.defaults" ] && rvalue="${curdir}/make.defaults ${rvalue}"
+	if [ -f "${curdir}/parent" ]; then
+		for parent in $(egrep -v '(^#|^ *$)' ${curdir}/parent); do
+			pdir="$(get_real_path ${curdir}/${parent})"
+			rvalue="$(get_all_make_defaults ${pdir}) ${rvalue}"
+		done
+	fi
 
 	echo "${rvalue}"
 }
@@ -211,12 +216,16 @@ get_make_defaults() {
 	local curdir
 	local parent
 	
-	curdir="$(get_real_path ${MAKE_PROFILE_PATH})"
+	curdir="${1:-$(get_real_path ${MAKE_PROFILE_PATH})}"
 	
-	while [ ! -f "${curdir}/make.defaults" -a -f "${curdir}/parent" ]; do
-		parent="$(egrep -v '(^#|^ *$)' ${curdir}/parent)"
-		curdir="$(get_real_path ${curdir}/${parent})"
-	done
+	if [ ! -f "${curdir}/make.defaults" -a -f "${curdir}/parent" ]; then
+		for parent in $(egrep -v '(^#|^ *$)' ${curdir}/parent); do
+			if [ -f "$(get_make_defaults ${curdir}/${parent})" ]; then
+				curdir="${curdir}/${parent}"
+				break
+			fi
+		done
+	fi
 
 	echo "${curdir}/make.defaults"
 }
@@ -501,7 +510,10 @@ modify() {
 	# closing ", printing our new USE line there instead.
 	inuse=0
 	had_use=0
-	(while read -r line; do
+	x=0
+	(while [ "$x" -eq "0" ]; do
+		read -r line
+		x="$?"
 		[ "${line:0:4}" == "USE=" ] && inuse=1
 		[ "${inuse}" == "0" ] && echo -E "${line}"
 		if [ "${inuse}" == "1" ] && echo "${line}" | egrep '" *(#.*)?$' > /dev/null; then
