@@ -1,4 +1,8 @@
 2008-07-09: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix revdep-rebuild to use TMPDIR instead of HOME for
+	temporary files. (Bug 203414)
+
+2008-07-09: Paul Varner <fuzzyray@gentoo.org>
 	* gentoolkit: Fix gentoolkit to work without thread support in 
 	python. (Bug 223255)
 
