@@ -826,6 +826,7 @@ main_checks() {
 			)
 		fi
 		[[ -r "$BROKEN_FILE" && -s "$BROKEN_FILE" ]] || clean_exit
+		sort -u "$BROKEN_FILE" -o "$BROKEN_FILE"
 		einfo "Generated new $BROKEN_FILE"
 	fi
 }
