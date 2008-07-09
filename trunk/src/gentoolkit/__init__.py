@@ -25,7 +25,16 @@ except ImportError:
 	sys.path.insert(0, "/usr/lib/portage/pym")
 	import portage
 import re
-from threading import Lock
+try:
+	from threading import Lock
+except ImportError:
+	# If we don't have thread support, we don't need to worry about
+	# locking the global settings object. So we define a "null" Lock.
+	class Lock:
+		def acquire(self):
+			pass
+		def release(self):
+			pass
 
 try:
 	import portage.exception as portage_exception
