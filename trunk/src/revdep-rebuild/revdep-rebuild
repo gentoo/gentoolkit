@@ -602,8 +602,7 @@ get_search_env() {
 	# Save the environment in a file for next time
 	echo "$new_env" > "$ENV_FILE"
 
-#	[[ $VERBOSE ]] && echo $'\n'"$APP_NAME environment:"$'\n'"$new_env"
-	[[ $VERBOSE ]] && echo $'\n'"$APP_NAME environment:"$'\n'"$(cat $ENV_FILE)"
+	[[ $VERBOSE ]] && echo $'\n'"$APP_NAME environment:"$'\n'"$new_env"
 
 	echo
 	einfo "Checking reverse dependencies"
@@ -616,7 +615,7 @@ get_files() {
 		einfo "Found existing $FILES_FILE"
 	else
 		# Be safe and remove any extraneous temporary files
-		# Don't remove -_env.rr - The first file in the array
+		# Don't remove 0_env.rr - The first file in the array
 		rm -f "${FILES[@]:1}"
 
 		clean_trap "$FILES_FILE"
