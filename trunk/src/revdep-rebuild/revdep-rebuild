@@ -13,7 +13,7 @@
 ##
 # Global Variables:
 
-# Must-be-blank variables:
+# Must-be-blank:
 unset GREP_OPTIONS
 
 # Readonly variables:
@@ -62,7 +62,7 @@ declare PORTAGE_NICENESS       # Renice to this value
 declare PORTAGE_ROOT           # The root path for portage
 
 # Customizable incremental variables:
-# These variables can be prepended to either by setting the variable in 
+# These variables can be prepended to either by setting the variable in
 # your environment prior to execution, or by placing an entry in
 # /etc/make.conf.
 #
@@ -86,6 +86,35 @@ declare SONAME                 # Soname/soname path pattern given on commandline
 declare SONAME_SEARCH          # Value of SONAME modified to match ldd's output
 declare WORKING_TEXT           # Feedback about the search
 
+main() {
+	# preliminary setup
+	get_opts "$@"
+	setup_portage
+	setup_search_paths_and_masks
+	get_search_env
+	echo
+
+	# Search for broken binaries
+	get_files
+	get_ldpath
+	main_checks
+
+	# Associate broken binaries with packages to rebuild
+	if [[ $PACKAGE_NAMES ]]; then
+		get_packages
+		clean_packages
+		assign_packages_to_ebuilds
+	else
+		get_exact_ebuilds
+	fi
+
+	# Rebuild packages owning broken binaries
+	get_build_order
+	rebuild
+
+	# All done
+	cleanup
+}
 ##
 # Refuse to delete anything before we cd to our tmpdir
 # (See mkdir_and_cd_to_tmpdir()
@@ -93,10 +122,10 @@ rm() {
 	eerror "I was instructed to rm '$@'"
 	die 1 "Refusing to delete anything before changing to temporary directory."
 }
-# Somewhat more portable find -executable
-# FIXME/UNTESTED (I don't have access to all of the different versions of 
-# find.)
-# Usage: find PATH ARGS -- use find like normal, except use -executable instead 
+##
+# GNU find has -executable, but if our users' finds do not have that flag
+# we emulate it with this function. Also emulates -writable and -readable.
+# Usage: find PATH ARGS -- use find like normal, except use -executable instead
 # of various versions of -perm /+ blah blah and hacks
 find() {
 	hash find || { die 1 'find not found!'; }
@@ -128,6 +157,7 @@ find() {
 	fi
 	find "$@"
 }
+
 print_usage() {
 cat << EOF
 Usage: $APP_NAME [OPTIONS] [--] [EMERGE_OPTIONS]
@@ -151,9 +181,6 @@ Broken reverse dependency rebuilder.
   -P, --no-progress    Turn off the progress meter
   -q, --quiet          Be less verbose (also passed to emerge command)
   -v, --verbose        Be more verbose (also passed to emerge command)
-  -u, --no-util UTIL   Do not use features provided by UTIL
-      --no-util=UTIL   UTIL can be one of portage-utils or pkgcore
-                       or it can be a *quoted* space-delimited list.
 
 Calls emerge, options after -- are ignored by $APP_NAME
 and passed directly to emerge.
@@ -161,6 +188,7 @@ and passed directly to emerge.
 Report bugs to <http://bugs.gentoo.org>
 EOF
 }
+##
 # Usage: progress i n
 #        i: current item
 #        n: total number of items to process
@@ -178,6 +206,7 @@ progress() {
 		progress() { :; }
 	fi
 }
+##
 # Usage: countdown n
 #        n: number of seconds to count
 countdown() {
@@ -188,9 +217,7 @@ countdown() {
 	done
 	echo -e '\a.'
 }
-# Get the name of a package owning a file on the filesystem using one of several
-# utilities: This is a placeholder. The function is defined in get_opts()
-get_file_owner() { :; }
+##
 # Replace whitespace with linebreaks, normalize repeated '/' chars, and sort -u
 # (If any libs have whitespace in their filenames, someone needs punishment.)
 clean_var() {
@@ -198,6 +225,7 @@ clean_var() {
 	     /-\*/         {exit}
 	     /[^[:space:]]/ {gsub(/\/\/+/, "/"); print}' | sort -u
 }
+##
 # Exit and optionally output to sterr
 die() {
 	local status=$1
@@ -205,6 +233,7 @@ die() {
 	eerror "$@"
 	exit $status
 }
+##
 # What to do when dynamic linking is consistent
 clean_exit() {
 	[[ $KEEP_TEMP ]] || rm -f "${FILES[@]}"
@@ -212,31 +241,16 @@ clean_exit() {
 	einfo "$OK_TEXT... All done. "
 	exit 0
 }
-
 ##
-# Check if various portage utils are allowed and installed
-setup_get_file_owner() {
-	# portage-utils disabled until it is able to handle category names without
-	# a hyphen.  See Bug #210386
-	# if [[ $avoid_utils != *portage-utils* ]] && hash qfile 2> /dev/null; then
-	#	get_file_owner() { qfile -qvC "$@"; }
-	if [[ $avoid_utils != *pkgcore* ]] && hash pquery 2> /dev/null; then
-		get_file_owner() { local IFS=,; pquery --nocolor --owns="$*"; }
-	# equery disabled for incompatibility with modern portage.
-	# elif [[ $avoid_utils != *equery* ]] && hash equery 2> /dev/null; then
-	# 	get_file_owner() { equery -q -C b $@; }
-	else
-		get_file_owner() {
-			local IFS=$'\n'
-			# ${*/%/ } adds a space to the end of each object name to prevent false
-			# matches, for example /usr/bin/dia matching /usr/bin/dialog (bug #196460).
-			find -L /var/db/pkg -name CONTENTS -print0 |
-				xargs -0 grep -Fl "${*/%/ }" |
-				sed 's:/var/db/pkg/\(.*\)/CONTENTS:\1:'
-		}
-	fi
+# Get the name of the package that owns a file or list of files given as args.
+get_file_owner() {
+	local IFS=$'\n'
+	# ${*/%/ } adds a space to the end of each object name to prevent false
+	# matches, for example /usr/bin/dia matching /usr/bin/dialog (bug #196460).
+	find -L /var/db/pkg -name CONTENTS -print0 |
+		xargs -0 grep -Fl "${*/%/ }" |
+		sed 's:/var/db/pkg/\(.*\)/CONTENTS:\1:'
 }
-
 ##
 # Normalize some EMERGE_OPTIONS
 normalize_emerge_opts() {
@@ -245,7 +259,6 @@ normalize_emerge_opts() {
 	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-f/--fetchonly})
 	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-f/--verbose})
 }
-
 ##
 # Use the color preference from portage
 setup_color() {
@@ -255,17 +268,15 @@ setup_color() {
 	[[ $NOCOLOR = yes || $NOCOLOR = true ]] && export RC_NOCOLOR=yes # HACK! (grr)
 	. /etc/init.d/functions.sh
 }
-
 ##
 # Die if an argument is missing.
 die_if_missing_arg() {
 	[[ ! $2 || $2 = -* ]] && die 1 "Missing expected argument to $1"
 }
-
 ##
 # Die because an option is not recognized.
 die_invalid_option() {
-	# We cannot use eerror and einfo because this gets called before function.sh 
+	# Can't use eerror and einfo because this gets called before function.sh
 	# is sourced
 	echo
 	echo  "Encountered unrecognized option $1." >&2
@@ -279,17 +290,15 @@ die_invalid_option() {
 	echo
 	exit 1
 }
-
 ##
 # Warn about deprecated options.
 warn_deprecated_opt() {
-	# We cannot use eerror and einfo because this gets called before function.sh 
+	# Can't use eerror and einfo because this gets called before function.sh
 	# is sourced
 	echo
 	echo "Encountered deprecated option $1." >&2
 	[[ $2 ]] && echo "Please use $2 instead." >&2
 }
-
 ##
 # Get whole-word commandline options preceded by two dashes.
 get_longopts() {
@@ -329,12 +338,6 @@ get_longopts() {
 		                                          progress() { :; }
 		                                          quiet=1
 		                                          EMERGE_OPTIONS+=($1);;
-		                             --no-util=*) # TODO: check for invalid values
-		                                          avoid_utils="${1#*=}";;
-		                               --no-util) # TODO: check for invalid values
-		                                          die_if_missing_arg $1 $2
-		                                          shift
-		                                          avoid_utils="$1";;
 		                               --verbose) VERBOSE=1
 		                                          EMERGE_OPTIONS+=("--verbose");;
 		                         --extra-verbose) warn_deprecated_opt "$1" "--verbose"
@@ -374,7 +377,6 @@ get_shortopts() {
 			   progress() { :; }
 			   quiet=1
 			   EMERGE_OPTIONS+=("--quiet");;
-			u) avoid_utils="$1";; # TODO: Check for invalid values
 			v) VERBOSE=1
 			   EMERGE_OPTIONS+=("--verbose");;
 			X) # No longer used, since it is the default.
@@ -385,7 +387,6 @@ get_shortopts() {
 		esac
 	done
 }
-
 ##
 # Get command-line options.
 get_opts() {
@@ -418,7 +419,6 @@ get_opts() {
 		unset args
 	done
 
-	setup_get_file_owner
 	setup_color
 	normalize_emerge_opts
 
@@ -428,84 +428,15 @@ get_opts() {
 		EMERGE_OPTIONS+=(--pretend)
 	fi
 }
-
+##
+# Is there a --pretend or --fetchonly flag in the EMERGE_OPTIONS array?
 is_real_merge() {
 	[[ ${EMERGE_OPTIONS[@]} != *--pretend* &&
 	   ${EMERGE_OPTIONS[@]} != *--fetchonly* ]]
 }
-
-get_opts "$@"
-
-einfo "Configuring search environment for $APP_NAME"
-
-# Obey PORTAGE_NICENESS
-PORTAGE_NICENESS=$(portageq envvar PORTAGE_NICENESS)
-if [[ $PORTAGE_NICENESS ]]; then
-	renice $PORTAGE_NICENESS $$ > /dev/null
-	# Since we have already set our nice value for our processes,
-	# reset PORTAGE_NICENESS to zero to avoid having emerge renice again.
-	export PORTAGE_NICENESS="0"
-fi
-
-PORTAGE_ROOT=$(portageq envvar ROOT)
-PORTAGE_ROOT="${PORTAGE_ROOT:-/}"
-
-# Update the incremental variables using /etc/profile.env, /etc/ld.so.conf,
-# portage, and the environment
-
-# Read the incremental variables from environment and portage
-# Until such time as portage supports these variables as incrementals
-# The value will be what is in /etc/make.conf
-SEARCH_DIRS+=" "$(unset SEARCH_DIRS; portageq envvar SEARCH_DIRS)
-SEARCH_DIRS_MASK+=" "$(unset SEARCH_DIRS_MASK; portageq envvar SEARCH_DIRS_MASK)
-LD_LIBRARY_MASK+=" "$(unset LD_LIBRARY_MASK; portageq envvar LD_LIBRARY_MASK)
-
-# Add the defaults
-if [[ -d /etc/revdep-rebuild ]]; then
-	for e in /etc/revdep-rebuild/*; do
-		SEARCH_DIRS+=" "$(. $e; echo $SEARCH_DIRS)
-		SEARCH_DIRS_MASK+=" "$(. $e; echo $SEARCH_DIRS_MASK)
-		LD_LIBRARY_MASK+=" "$(. $e; echo $LD_LIBRARY_MASK)
-	done
-	unset e # HACK
-else
-	SEARCH_DIRS+=" /bin /sbin /usr/bin /usr/sbin /lib* /usr/lib*"
-	SEARCH_DIRS_MASK+=" /opt/OpenOffice /usr/lib/openoffice"
-	LD_LIBRARY_MASK+=" libodbcinst.so libodbc.so libjava.so libjvm.so"
-fi
-
-# Get the ROOTPATH and PATH from /etc/profile.env
-if [[ -r "/etc/profile.env" && -s "/etc/profile.env" ]]; then
-	SEARCH_DIRS+=" "$(. /etc/profile.env; /usr/bin/tr ':' ' ' <<< "$ROOTPATH $PATH")
-fi
-
-# Get the directories from /etc/ld.so.conf
-if [[ -r /etc/ld.so.conf && -s /etc/ld.so.conf ]]; then
-	SEARCH_DIRS+=" "$(sed '/^#/d;s/#.*$//' /etc/ld.so.conf)
-fi
-
-# Set the final variables
-SEARCH_DIRS=$(clean_var <<< "$SEARCH_DIRS")
-SEARCH_DIRS_MASK=$(clean_var <<< "$SEARCH_DIRS_MASK")
-LD_LIBRARY_MASK=$(clean_var <<< "$LD_LIBRARY_MASK")
-# Filter masked paths from SEARCH_DIRS
-filter_SEARCH_DIRS=
-for sdir in ${SEARCH_DIRS} ; do
-	unset skip_me
-	for mdir in ${SEARCH_DIRS_MASK} ; do
-		[[ ${sdir} == ${mdir}/* ]] \
-			&& skip_me=1 && break
-	done
-	[[ -n ${skip_me} ]] || filter_SEARCH_DIRS+=" ${sdir}"
-done
-SEARCH_DIRS=$(clean_var <<< "${filter_SEARCH_DIRS}")
-unset sdir mdir skip_me filter_SEARCH_DIRS
-[[ $SEARCH_DIRS ]] || die 1 "No search defined -- this is a bug."
-
 ##
 # Clean up temporary files and exit
 cleanup_and_die() {
-	set -x
 	rm -f "$@"
 	die 1 "  ...terminated. Removing incomplete $@."
 }
@@ -517,7 +448,7 @@ clean_trap() {
 }
 ##
 # Returns 0 if the first arg is found in the remaining args, 1 otherwise
-# (Returns 2 if given less than 2 arguments)
+# (Returns 2 if given fewer than 2 arguments)
 has() {
 	(( $# > 1 )) || return 2
 	local IFS=$'\a' target="$1"
@@ -525,7 +456,7 @@ has() {
 	[[ $'\a'"$*"$'\a' = *$'\a'$target$'\a'* ]]
 }
 ##
-# Special custom cd
+# Dies when it can't change directories
 cd() {
 	if builtin cd -P "$@"; then
 		if [[ $1 != $PWD ]]; then
@@ -537,7 +468,7 @@ cd() {
 	fi
 }
 ##
-# Special custom rm
+# Tries not to delete any files or directories it shouldn't
 setup_rm() {
 	##
 	# Anything in the FILES array in tmpdir is fair game for removal
@@ -565,6 +496,7 @@ setup_rm() {
 ##
 # Make our temporary files directory
 setup_tmpdir() {
+	umask 007 || die $? "Unable to set umask 007"
 	if [[ ! $1 ]]; then
 		die 1 'Temporary file path is unset! (This is a bug.)'
 	elif [[ -d $1 ]]; then
@@ -660,15 +592,18 @@ get_search_env() {
 		rm -f "${FILES[@]}"
 	else
 		for file in "${FILES[@]}"; do
-			chown ${uid}:portage "$file"
-			chmod 700 "$file"
+			if [ -e "$file" ]; then
+				chown ${uid}:portage "$file"
+				chmod 700 "$file"
+			fi
 		done
 	fi
 
 	# Save the environment in a file for next time
 	echo "$new_env" > "$ENV_FILE"
 
-	[[ $VERBOSE ]] && echo $'\n'"$APP_NAME environment:"$'\n'"$new_env"
+#	[[ $VERBOSE ]] && echo $'\n'"$APP_NAME environment:"$'\n'"$new_env"
+	[[ $VERBOSE ]] && echo $'\n'"$APP_NAME environment:"$'\n'"$(cat $ENV_FILE)"
 
 	echo
 	einfo "Checking reverse dependencies"
@@ -681,6 +616,7 @@ get_files() {
 		einfo "Found existing $FILES_FILE"
 	else
 		# Be safe and remove any extraneous temporary files
+		# Don't remove -_env.rr - The first file in the array
 		rm -f "${FILES[@]:1}"
 
 		clean_trap "$FILES_FILE"
@@ -904,9 +840,9 @@ assign_packages_to_ebuilds() {
 }
 get_exact_ebuilds() {
 	einfo 'Assigning files to ebuilds'
-	if [[ -r "$EBUILDS_FILE" && -s "$EBUILDS_FILE" ]]; then
+	if [[ -r $EBUILDS_FILE && -s $EBUILDS_FILE ]]; then
 		einfo "Found existing $EBUILDS_FILE"
-	elif [[ -r "$BROKEN_FILE" && -s "$BROKEN_FILE" ]]; then
+	elif [[ -r $BROKEN_FILE && -s $BROKEN_FILE ]]; then
 		rebuildList=" $(<"$BROKEN_FILE") "
 		rebuildList=(${rebuildList//[[:space:]]obj[[:space:]]/ })
 		get_file_owner "${rebuildList[@]}" | sed 's/^/=/' > "$EBUILDS_FILE"
@@ -957,14 +893,12 @@ get_build_order() {
 				if (( ${#RAW_REBUILD_LIST[@]} == 0 )); then
 					if (( ${#SKIP_LIST[@]} == 0 )); then
 						ewarn "The list of packages to skip is empty, but there are no"
-						ewarn "packages listed to rebuild either. This is a bug."
+						ewarn "packages listed to rebuild either. (This is a bug.)"
 					else
 						list_skipped_packages
 					fi
 					die 1 'Warning: Portage cannot rebuild any of the necessary packages.'
 				fi
-			else
-				RAW_REBUILD_LIST=("${RAW_REBUILD_LIST[@]/#/=}")
 			fi
 			RAW_REBUILD_LIST="${RAW_REBUILD_LIST[@]}"
 			REBUILD_GREP=$(emerge --nodeps $RAW_REBUILD_LIST | sed 's/\[[^]]*\]//g')
@@ -998,57 +932,6 @@ get_build_order() {
 	[[ -r "$ORDER_FILE" && -s "$ORDER_FILE" ]] && einfo "Generated new $ORDER_FILE"
 }
 
-get_search_env
-echo
-get_files
-echo
-get_ldpath
-echo
-main_checks
-echo
-if [[ $PACKAGE_NAMES ]]; then
-	get_packages
-	echo
-	clean_packages
-	echo
-	assign_packages_to_ebuilds
-else
-	get_exact_ebuilds
-fi
-echo
-get_build_order
-echo
-
-# Clean up no longer needed environment variables
-unset SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK PORTAGE_ROOT
-
-if [[ -r "$ORDER_FILE" && -s "$ORDER_FILE" ]]; then
-	REBUILD_LIST=( $(<"$ORDER_FILE") )
-	REBUILD_LIST="${REBUILD_LIST[@]/#/=}"
-else
-	REBUILD_LIST=$(sort -u "$EBUILDS_FILE")
-fi
-
-trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
-
-einfo 'All prepared. Starting rebuild'
-echo "emerge --oneshot ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
-
-is_real_merge && countdown 10
-
-# Link file descriptor #6 with stdin so --ask will work
-exec 6<&0
-
-# Run in background to correctly handle Ctrl-C
-{
-	EMERGE_DEFAULT_OPTS="--oneshot ${EMERGE_OPTIONS[@]}" emerge $REBUILD_LIST <&6
-	echo $? > "$STATUS_FILE"
-} &
-wait
-
-# Now restore stdin from fd #6, where it had been saved, and close fd #6 ( 6<&- ) to free it for other processes to use.
-exec 0<&6 6<&-
-
 show_unowned_files() {
 	if grep -qF '(none)' "$OWNERS_FILE"; then
 		ewarn "Found some broken files that weren't associated with known packages"
@@ -1058,41 +941,146 @@ show_unowned_files() {
 		done < "$OWNERS_FILE" | awk '!s[$0]++' # (omit dupes)
 	fi
 }
+##
+# Setup portage and the search paths
+setup_portage() {
+	local PORTAGE_NICENESS=$(portageq envvar PORTAGE_NICENESS)
+	PORTAGE_ROOT=$(portageq envvar ROOT)
 
-if (( $(<"$STATUS_FILE") != 0 )); then
-	ewarn
-	ewarn "$APP_NAME failed to emerge all packages."
-	ewarn 'you have the following choices:'
-	einfo "- If emerge failed during the build, fix the problems and re-run $APP_NAME."
-	einfo '- Use /etc/portage/package.keywords to unmask a newer version of the package.'
-	einfo "  (and remove $ORDER_FILE to be evaluated again)"
-	einfo '- Modify the above emerge command and run it manually.'
-	einfo '- Compile or unmerge unsatisfied packages manually,'
-	einfo '  remove temporary files, and try again.'
-	einfo '  (you can edit package/ebuild list first)'
-	einfo
-	einfo 'To remove temporary files, please run:'
-	einfo "rm ${TMPDIR}/$APP_NAME/*.rr"
-	show_unowned_files
-	exit $EMERGE_STATUS
-elif is_real_merge; then
-	trap_cmd() {
-		eerror "terminated. Please remove the temporary files manually:"
-		eerror "rm ${TMPDIR}/$APP_NAME/*.rr"
-		exit 1
-	}
-	(( "${#SKIP_LIST[@]}" != 0 )) && list_skipped_packages
-	trap trap_cmd SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
-	einfo 'Build finished correctly. Removing temporary files...'
-	einfo
-	einfo 'You can re-run revdep-rebuild to verify that all libraries and binaries'
-	einfo 'are fixed. If some inconsistency remains, it can be orphaned file, deep'
-	einfo 'dependency, binary package or specially evaluated library.'
-	if [[ -r "$OWNERS_FILE" && -s "$OWNERS_FILE" ]]; then
-	show_unowned_files
+	# Obey PORTAGE_NICENESS
+	if [[ $PORTAGE_NICENESS ]]; then
+		renice $PORTAGE_NICENESS $$ > /dev/null
+		# Since we have already set our nice value for our processes,
+		# reset PORTAGE_NICENESS to zero to avoid having emerge renice again.
+		export PORTAGE_NICENESS="0"
 	fi
-	[[ $KEEP_TEMP ]] || rm "${FILES[@]}"
-else
-	einfo 'Now you can remove -p (or --pretend) from arguments and re-run revdep-rebuild.'
-fi
 
+	PORTAGE_ROOT="${PORTAGE_ROOT:-/}"
+}
+
+##
+# Setup the paths to search (and filter the ones to avoid)
+setup_search_paths_and_masks() {
+	local configfile sdir mdir skip_me filter_SEARCH_DIRS
+
+	einfo "Configuring search environment for $APP_NAME"
+
+	# Update the incremental variables using /etc/profile.env, /etc/ld.so.conf,
+	# portage, and the environment
+
+	# Read the incremental variables from environment and portage
+	# Until such time as portage supports these variables as incrementals
+	# The value will be what is in /etc/make.conf
+	SEARCH_DIRS+=" "$(unset SEARCH_DIRS; portageq envvar SEARCH_DIRS)
+	SEARCH_DIRS_MASK+=" "$(unset SEARCH_DIRS_MASK; portageq envvar SEARCH_DIRS_MASK)
+	LD_LIBRARY_MASK+=" "$(unset LD_LIBRARY_MASK; portageq envvar LD_LIBRARY_MASK)
+
+	# Add the defaults
+	if [[ -d /etc/revdep-rebuild ]]; then
+		for configfile in /etc/revdep-rebuild/*; do
+			SEARCH_DIRS+=" "$(. $configfile; echo $SEARCH_DIRS)
+			SEARCH_DIRS_MASK+=" "$(. $configfile; echo $SEARCH_DIRS_MASK)
+			LD_LIBRARY_MASK+=" "$(. $configfile; echo $LD_LIBRARY_MASK)
+		done
+	else
+		SEARCH_DIRS+=" /bin /sbin /usr/bin /usr/sbin /lib* /usr/lib*"
+		SEARCH_DIRS_MASK+=" /opt/OpenOffice /usr/lib/openoffice"
+		LD_LIBRARY_MASK+=" libodbcinst.so libodbc.so libjava.so libjvm.so"
+	fi
+
+	# Get the ROOTPATH and PATH from /etc/profile.env
+	if [[ -r "/etc/profile.env" && -s "/etc/profile.env" ]]; then
+		SEARCH_DIRS+=" "$(. /etc/profile.env; /usr/bin/tr ':' ' ' <<< "$ROOTPATH $PATH")
+	fi
+
+	# Get the directories from /etc/ld.so.conf
+	if [[ -r /etc/ld.so.conf && -s /etc/ld.so.conf ]]; then
+		SEARCH_DIRS+=" "$(sed '/^#/d;s/#.*$//' /etc/ld.so.conf)
+	fi
+
+	# Set the final variables
+	SEARCH_DIRS=$(clean_var <<< "$SEARCH_DIRS")
+	SEARCH_DIRS_MASK=$(clean_var <<< "$SEARCH_DIRS_MASK")
+	LD_LIBRARY_MASK=$(clean_var <<< "$LD_LIBRARY_MASK")
+	# Filter masked paths from SEARCH_DIRS
+	for sdir in ${SEARCH_DIRS} ; do
+		for mdir in ${SEARCH_DIRS_MASK}; do
+			[[ ${sdir} == ${mdir}/* ]] && skip_me=1 && break
+		done
+		[[ -n ${skip_me} ]] || filter_SEARCH_DIRS+=" ${sdir}"
+	done
+	SEARCH_DIRS=$(clean_var <<< "${filter_SEARCH_DIRS}")
+	[[ $SEARCH_DIRS ]] || die 1 "No search defined -- this is a bug."
+}
+##
+# Rebuild packages owning broken binaries
+rebuild() {
+	if [[ -r $LIST.5_order && -s $LIST.5_order ]]; then
+		REBUILD_LIST=( $(<"$LIST.5_order") )
+		REBUILD_LIST="${REBUILD_LIST[@]/#/=}"
+	else
+		REBUILD_LIST=$(sort -u "$EBUILDS_FILE")
+	fi
+
+	trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+
+	einfo 'All prepared. Starting rebuild'
+	echo "emerge --oneshot ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
+
+	is_real_merge && countdown 10
+
+	# Link file descriptor #6 with stdin so --ask will work
+	exec 6<&0
+
+	# Run in background to correctly handle Ctrl-C
+	{
+		EMERGE_DEFAULT_OPTS="--oneshot ${EMERGE_OPTIONS[@]}" emerge $REBUILD_LIST <&6
+		echo $? > "$STATUS_FILE"
+	} &
+	wait
+
+	# Now restore stdin from fd #6, where it had been saved, and close fd #6 ( 6<&- ) to free it for other processes to use.
+	exec 0<&6 6<&-
+}
+##
+# Finish up
+cleanup() {
+	if (( $(<"$STATUS_FILE") != 0 )); then
+		ewarn
+		ewarn "$APP_NAME failed to emerge all packages."
+		ewarn 'you have the following choices:'
+		einfo "- If emerge failed during the build, fix the problems and re-run $APP_NAME."
+		einfo '- Use /etc/portage/package.keywords to unmask a newer version of the package.'
+		einfo "  (and remove $ORDER_FILE to be evaluated again)"
+		einfo '- Modify the above emerge command and run it manually.'
+		einfo '- Compile or unmerge unsatisfied packages manually,'
+		einfo '  remove temporary files, and try again.'
+		einfo '  (you can edit package/ebuild list first)'
+		einfo
+		einfo 'To remove temporary files, please run:'
+		einfo "rm ${TMPDIR}/$APP_NAME/*.rr"
+		show_unowned_files
+		exit $EMERGE_STATUS
+	elif is_real_merge; then
+		trap_cmd() {
+			eerror "terminated. Please remove the temporary files manually:"
+			eerror "rm ${TMPDIR}/$APP_NAME/*.rr"
+			exit 1
+		}
+		[[ "${SKIP_LIST[@]}" != "" ]] && list_skipped_packages
+		trap trap_cmd SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+		einfo 'Build finished correctly. Removing temporary files...'
+		einfo
+		einfo 'You can re-run revdep-rebuild to verify that all libraries and binaries'
+		einfo 'are fixed. If some inconsistency remains, it can be orphaned file, deep'
+		einfo 'dependency, binary package or specially evaluated library.'
+		if [[ -r "$OWNERS_FILE" && -s "$OWNERS_FILE" ]]; then
+			show_unowned_files
+		fi
+		[[ $KEEP_TEMP ]] || rm "${FILES[@]}"
+	else
+		einfo 'Now you can remove -p (or --pretend) from arguments and re-run revdep-rebuild.'
+	fi
+}
+
+main "$@"
