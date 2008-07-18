@@ -565,6 +565,12 @@ class CmdDisplayUSEs(Command):
 				# Fix Bug #91623 by making sure the list of USE flags is unique
 				# Added sort to make output prettier
 				usevar = unique_array(iuse.split())
+
+				# Remove prefixed +/- from flags in IUSE, Bug #232019
+				for i in range(len(usevar)):
+					if usevar[i][0] == "+" or usevar[i][0] == "-":
+						usevar[i] = usevar[i][1:]
+
 				usevar.sort()
 			else:
 				usevar = []
