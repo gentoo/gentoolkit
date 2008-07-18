@@ -1,3 +1,7 @@
+2008-07-18: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Remove prefixed '+/-' signs from IUSE for equery uses
+	command. (Bug 232019)
+
 2008-07-09: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix revdep-rebuild to use TMPDIR instead of HOME for
 	temporary files. (Bug 203414)
