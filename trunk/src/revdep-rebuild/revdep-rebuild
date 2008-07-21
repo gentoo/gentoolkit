@@ -512,7 +512,7 @@ setup_tmpdir() {
 	else
 		die 1 "Unable to find or create a satisfactory location for temporary files"
 	fi
-	[[ $VERBOSE ]] && einfo "Temporary files are located in $PWD"
+	[[ $VERBOSE ]] && einfo "Temporary cache files are located in $PWD"
 	setup_rm
 }
 get_search_env() {
@@ -521,7 +521,7 @@ get_search_env() {
 	local uid=$(python -c 'import os; import pwd; print pwd.getpwuid(os.getuid())[0]')
 	# Find a place to put temporary files
 	# Use "${TMPDIR}/revdep-rebuild" or /tmp/revdep-rebuild
-	local tmp_target="${TMPDIR:=/tmp}/${APP_NAME}-${uid}"
+	local tmp_target="/var/tmp/${APP_NAME}-${uid}-cache"
 
 	# From here on all work is done inside the temporary directory
 	setup_tmpdir "$tmp_target" "$uid"
@@ -542,14 +542,18 @@ get_search_env() {
 			# Set to "<tab>$SONAME<space>"
 			SONAME_SEARCH=$'\t'"$SONAME "
 		fi
-		local uuid="${SONAME##*/}"
-		uuid="${uuid//[[:space:]]}"
-		uuid="${uuid//\*}"
-		uuid="${uuid//\\}"
+		# Hash the SONAME, to avoid unprintable characters.  We are using HMAC since
+		# the interface has remained consistent since python 2.2
+		local uuid_hash=$(python -c "import hmac; print hmac.new('revdep-rebuild',\"${SONAME##*/}\").hexdigest()")
+		# Delete me - keeping for reference if needed
+		#local uuid="${SONAME##*/}"
+		#uuid="${uuid//[[:space:]]}"
+		#uuid="${uuid//\*}"
+		#uuid="${uuid//\\}"
 		HEAD_TEXT="using $SONAME"
 		OK_TEXT="There are no dynamic links to $SONAME"
 		unset WORKING_TEXT
-		setup_tmpdir $tmp_target"/"$uuid" "$uid"
+		setup_tmpdir "$tmp_target"/"$uuid_hash" "$uid"
 	fi
 
 	# If any of our temporary files are older than 1 day, remove them all
