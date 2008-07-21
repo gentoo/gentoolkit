@@ -512,6 +512,13 @@ setup_tmpdir() {
 	else
 		die 1 "Unable to find or create a satisfactory location for temporary files"
 	fi
+	# HACK: I hate using find this way
+	# Double check the permissions one last time to be paranoid
+	if [[ $(find "$1" -type d ! \( -user $2 -group portage -perm -0700 \) ) ]]; then
+		eerror "Incorrect permissions on $1"
+		eerror "or at least one file in $1."
+		die 1  "Please make sure it's not a symlink and then remove it."
+	fi
 	[[ $VERBOSE ]] && einfo "Temporary cache files are located in $PWD"
 	setup_rm
 }
