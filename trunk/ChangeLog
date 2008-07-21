@@ -1,3 +1,7 @@
+2008-07-21: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix filtering of masked paths from SEARCH_DIRS
+	variable. (Bug 232270)
+
 2008-07-18: Paul Varner <fuzzyray@gentoo.org>
 	* equery: Remove prefixed '+/-' signs from IUSE for equery uses
 	command. (Bug 232019)

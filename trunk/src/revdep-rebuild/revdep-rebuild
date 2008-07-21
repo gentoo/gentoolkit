@@ -1008,6 +1008,7 @@ setup_search_paths_and_masks() {
 			[[ ${sdir} == ${mdir}/* ]] && skip_me=1 && break
 		done
 		[[ -n ${skip_me} ]] || filter_SEARCH_DIRS+=" ${sdir}"
+		unset skip_me
 	done
 	SEARCH_DIRS=$(clean_var <<< "${filter_SEARCH_DIRS}")
 	[[ $SEARCH_DIRS ]] || die 1 "No search defined -- this is a bug."
