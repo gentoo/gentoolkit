@@ -545,10 +545,11 @@ get_search_env() {
 		local uuid="${SONAME##*/}"
 		uuid="${uuid//[[:space:]]}"
 		uuid="${uuid//\*}"
+		uuid="${uuid//\\}"
 		HEAD_TEXT="using $SONAME"
 		OK_TEXT="There are no dynamic links to $SONAME"
 		unset WORKING_TEXT
-		setup_tmpdir "$uuid"
+		setup_tmpdir $tmp_target"/"$uuid" "$uid"
 	fi
 
 	# If any of our temporary files are older than 1 day, remove them all
