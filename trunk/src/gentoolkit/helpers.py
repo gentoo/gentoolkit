@@ -130,7 +130,7 @@ def split_package_name(name):
 	"""Returns a list on the form [category, name, version, revision]. Revision will
 	be 'r0' if none can be inferred. Category and version will be empty, if none can
 	be inferred."""
-	r = portage.catpkgsplit(name)
+	r = list(portage.catpkgsplit(name))
 	if not r:
 		r = name.split("/")
 		if len(r) == 1:
