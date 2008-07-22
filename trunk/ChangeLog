@@ -1,3 +1,8 @@
+2008-07-22: Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Fix gentoolkit.split_package_name to work with
+	newer portage.catpkgsplit that now returns a tuple instead of a
+	list. (Bug 232599)
+
 2008-07-21: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix filtering of masked paths from SEARCH_DIRS
 	variable. (Bug 232270)
