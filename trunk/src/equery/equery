@@ -976,7 +976,7 @@ class CmdCheckIntegrity(Command):
 							if self.getMD5sum(file) != md5sum:
 								raise CheckException(file + " has incorrect md5sum")
 						if opts["checkTimestamp"]:
-							if st.st_mtime != int(mtime):
+							if int(st.st_mtime) != int(mtime):
 								raise CheckException(file + (" has wrong mtime (is %d, should be %s)" % (st.st_mtime, mtime)))
 					elif type == "sym":
 						# FIXME: nastry strippery; portage should have this fixed!
