@@ -1,3 +1,8 @@
+2008-07-24: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix equery check to convert mtime to an integer so that
+	comparisions always work. Thanks to Alexey Parshin for discovering the
+	problem and providing a patch. (Bug 232803)
+
 2008-07-22: Paul Varner <fuzzyray@gentoo.org>
 	* gentoolkit: Fix gentoolkit.split_package_name to work with
 	newer portage.catpkgsplit that now returns a tuple instead of a
