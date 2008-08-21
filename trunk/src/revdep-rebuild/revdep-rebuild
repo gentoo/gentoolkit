@@ -85,6 +85,7 @@ declare SKIP_LIST              # Array of atoms that cannot be emerged (masked?)
 declare SONAME                 # Soname/soname path pattern given on commandline
 declare SONAME_SEARCH          # Value of SONAME modified to match ldd's output
 declare WORKING_TEXT           # Feedback about the search
+declare WORKING_DIR            # Working directory where cache files are kept
 
 main() {
 	# preliminary setup
@@ -236,7 +237,13 @@ die() {
 ##
 # What to do when dynamic linking is consistent
 clean_exit() {
-	[[ $KEEP_TEMP ]] || rm -f "${FILES[@]}"
+	if [[ ! $KEEP_TEMP ]]; then
+		rm -f "${FILES[@]}"
+		if [[ "$WORKING_DIR" != "/var/cache/${APP_NAME}" ]]; then
+			# Remove the working directory
+			builtin cd; rmdir "$WORKING_DIR"
+		fi
+	fi
 	echo
 	einfo "$OK_TEXT... All done. "
 	exit 0
@@ -495,29 +502,22 @@ setup_rm() {
 }
 ##
 # Make our temporary files directory
-setup_tmpdir() {
+# $1 - directory name
+# $2 - user name
+verify_tmpdir() {
 	umask 007 || die $? "Unable to set umask 007"
 	if [[ ! $1 ]]; then
 		die 1 'Temporary file path is unset! (This is a bug.)'
 	elif [[ -d $1 ]]; then
 		# HACK: I hate using find this way
-		if [[ $(find "$1" -type d ! \( -user $2 -group portage -perm -0700 \) ) ]]; then
+		if [[ $(find "$1" -type d ! \( -user $2 -perm -0700 \) ) ]]; then
 			eerror "Incorrect permissions on $1"
 			eerror "or at least one file in $1."
 			die 1  "Please make sure it's not a symlink and then remove it."
 		fi
 		cd "$1"
-	elif mkdir -m 0700 "$1" && chown :portage "$1"; then
-		cd "$1"
 	else
-		die 1 "Unable to find or create a satisfactory location for temporary files"
-	fi
-	# HACK: I hate using find this way
-	# Double check the permissions one last time to be paranoid
-	if [[ $(find "$1" -type d ! \( -user $2 -group portage -perm -0700 \) ) ]]; then
-		eerror "Incorrect permissions on $1"
-		eerror "or at least one file in $1."
-		die 1  "Please make sure it's not a symlink and then remove it."
+		die 1 "Unable to find a satisfactory location for temporary files ($1)"
 	fi
 	[[ $VERBOSE ]] && einfo "Temporary cache files are located in $PWD"
 	setup_rm
@@ -528,10 +528,15 @@ get_search_env() {
 	local uid=$(python -c 'import os; import pwd; print pwd.getpwuid(os.getuid())[0]')
 	# Find a place to put temporary files
 	# Use "${TMPDIR}/revdep-rebuild" or /tmp/revdep-rebuild
-	local tmp_target="/var/tmp/${APP_NAME}-${uid}-cache"
+	if [[ "$uid" == "root" ]]; then
+		local tmp_target="/var/cache/${APP_NAME}"
+	else
+		local tmp_target=$(mktemp -d -t revdep-rebuild.XXXXXXXXXX)
+	fi
 
 	# From here on all work is done inside the temporary directory
-	setup_tmpdir "$tmp_target" "$uid"
+	verify_tmpdir "$tmp_target" "$uid"
+	WORKING_DIR="$tmp_target"
 
 	if [[ $SEARCH_BROKEN ]]; then
 		SONAME_SEARCH="$SONAME"
@@ -549,18 +554,9 @@ get_search_env() {
 			# Set to "<tab>$SONAME<space>"
 			SONAME_SEARCH=$'\t'"$SONAME "
 		fi
-		# Hash the SONAME, to avoid unprintable characters.  We are using HMAC since
-		# the interface has remained consistent since python 2.2
-		local uuid_hash=$(python -c "import hmac; print hmac.new('revdep-rebuild',\"${SONAME##*/}\").hexdigest()")
-		# Delete me - keeping for reference if needed
-		#local uuid="${SONAME##*/}"
-		#uuid="${uuid//[[:space:]]}"
-		#uuid="${uuid//\*}"
-		#uuid="${uuid//\\}"
 		HEAD_TEXT="using $SONAME"
 		OK_TEXT="There are no dynamic links to $SONAME"
 		unset WORKING_TEXT
-		setup_tmpdir "$tmp_target"/"$uuid_hash" "$uid"
 	fi
 
 	# If any of our temporary files are older than 1 day, remove them all
@@ -621,6 +617,7 @@ get_search_env() {
 	einfo "Packages containing binaries and libraries $HEAD_TEXT"
 	einfo "will be emerged."
 }
+
 get_files() {
 	einfo "Collecting system binaries and libraries"
 	if [[ -r "$FILES_FILE" && -s "$FILES_FILE" ]]; then
