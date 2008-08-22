@@ -10,6 +10,7 @@
 import portage
 from gentoolkit import *
 from package import *
+from pprinter import print_warn
 try:
 	from portage.util import unique_array
 except ImportError:
@@ -37,6 +38,9 @@ def find_packages(search_key, masked=False):
 					t += portage.db["/"]["vartree"].dbapi.match(cp)
 		else:
 			raise ValueError(e)
+	except portage_exception.InvalidAtom, e:
+		print_warn("Invalid Atom: '%s'" % str(e))
+		return []
 	# Make the list of packages unique
 	t = unique_array(t)
 	t.sort()
@@ -54,6 +58,9 @@ def find_installed_packages(search_key, masked=False):
 				t += portage.db["/"]["vartree"].dbapi.match(cp)
 		else:
 			raise ValueError(e)
+	except portage_exception.InvalidAtom, e:
+		print_warn("Invalid Atom: '%s'" % str(e))
+		return []
 	return [Package(x) for x in t]
 
 def find_best_match(search_key):
