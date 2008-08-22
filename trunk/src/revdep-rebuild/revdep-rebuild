@@ -527,7 +527,6 @@ get_search_env() {
 	local old_env
 	local uid=$(python -c 'import os; import pwd; print pwd.getpwuid(os.getuid())[0]')
 	# Find a place to put temporary files
-	# Use "${TMPDIR}/revdep-rebuild" or /tmp/revdep-rebuild
 	if [[ "$uid" == "root" ]]; then
 		local tmp_target="/var/cache/${APP_NAME}"
 	else
@@ -1067,13 +1066,13 @@ cleanup() {
 		einfo '  (you can edit package/ebuild list first)'
 		einfo
 		einfo 'To remove temporary files, please run:'
-		einfo "rm ${TMPDIR}/$APP_NAME/*.rr"
+		einfo "rm ${WORKING_DIR}/*.rr"
 		show_unowned_files
 		exit $EMERGE_STATUS
 	elif is_real_merge; then
 		trap_cmd() {
 			eerror "terminated. Please remove the temporary files manually:"
-			eerror "rm ${TMPDIR}/$APP_NAME/*.rr"
+			eerror "rm ${WORKING_DIR}/*.rr"
 			exit 1
 		}
 		[[ "${SKIP_LIST[@]}" != "" ]] && list_skipped_packages
