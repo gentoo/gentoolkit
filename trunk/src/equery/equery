@@ -369,12 +369,13 @@ class CmdListBelongs(Command):
 		if opts["fullRegex"]:
 			q = query
 		else:
-			# Trim trailing slash from query
+			# Trim trailing and multiple slashes from query 
 			for i in range(0, len(query)):
-				if (query[i][-1] == "/"):
-					query[i] = query[i][:-1]
+				query[i] = re.compile('/+').sub('/', query[i])
+				query[i] = query[i].rstrip('/')
 			q = map(lambda x: ((len(x) and x[0] == "/") and "^" or "/")
 			                   + re.escape(x) + "$", query)
+			print q
 		try:
 			q = "|".join(q)
 			rx = re.compile(q)

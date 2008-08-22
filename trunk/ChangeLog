@@ -1,3 +1,7 @@
+2008-08-22: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix equery belongs to strip multiple slashes from path
+	names. (Bug #234584)
+
 2008-07-24: Paul Varner <fuzzyray@gentoo.org>
 	* equery: Fix equery check to convert mtime to an integer so that
 	comparisions always work. Thanks to Alexey Parshin for discovering the
