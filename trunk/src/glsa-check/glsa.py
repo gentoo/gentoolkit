@@ -122,7 +122,7 @@ def checkconfig(myconfig):
 		"PRINTWIDTH": "76"
 	}
 	for k in mysettings.keys():
-		if not myconfig.has_key(k):
+		if k not in myconfig:
 			myconfig[k] = mysettings[k]
 	return myconfig
 

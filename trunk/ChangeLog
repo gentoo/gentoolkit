@@ -1,4 +1,5 @@
 2008-08-26: Paul Varner <fuzzyray@gentoo.org>
+	* glsa-check: Fix has_key() deprecation message. (Bug #232797)
 	* revdep-rebuild: Update fix for Bug 232270 to utilize better patch
 	from Ian Abbott.
 
@@ -6,8 +7,6 @@
 	* gentoolkit: Fix find_packages and find_installed_packages to print
 	a warning instead of a traceback when an InvalidAtom exception occurs.
 	(Bug #234358)
-
-2008-08-22: Paul Varner <fuzzyray@gentoo.org>
 	* equery: Fix equery belongs to strip multiple slashes from path
 	names. (Bug #234584)
 
