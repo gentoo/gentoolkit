@@ -1,3 +1,7 @@
+2008-08-26: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Update fix for Bug 232270 to utilize better patch
+	from Ian Abbott.
+
 2008-08-22: Paul Varner <fuzzyray@gentoo.org>
 	* gentoolkit: Fix find_packages and find_installed_packages to print
 	a warning instead of a traceback when an InvalidAtom exception occurs.
