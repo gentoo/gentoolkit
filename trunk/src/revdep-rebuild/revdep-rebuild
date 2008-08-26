@@ -530,7 +530,7 @@ get_search_env() {
 	if [[ "$uid" == "root" ]]; then
 		local tmp_target="/var/cache/${APP_NAME}"
 	else
-		local tmp_target=$(mktemp -d -t revdep-rebuild.XXXXXXXXXX)
+		local tmp_target="$(mktemp -d -t revdep-rebuild.XXXXXXXXXX)"
 	fi
 
 	# From here on all work is done inside the temporary directory
@@ -1011,11 +1011,11 @@ setup_search_paths_and_masks() {
 	LD_LIBRARY_MASK=$(clean_var <<< "$LD_LIBRARY_MASK")
 	# Filter masked paths from SEARCH_DIRS
 	for sdir in ${SEARCH_DIRS} ; do
+		skip_me=
 		for mdir in ${SEARCH_DIRS_MASK}; do
 			[[ ${sdir} == ${mdir}/* ]] && skip_me=1 && break
 		done
 		[[ -n ${skip_me} ]] || filter_SEARCH_DIRS+=" ${sdir}"
-		unset skip_me
 	done
 	SEARCH_DIRS=$(clean_var <<< "${filter_SEARCH_DIRS}")
 	[[ $SEARCH_DIRS ]] || die 1 "No search defined -- this is a bug."
