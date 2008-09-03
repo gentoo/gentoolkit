@@ -375,7 +375,6 @@ class CmdListBelongs(Command):
 				query[i] = query[i].rstrip('/')
 			q = map(lambda x: ((len(x) and x[0] == "/") and "^" or "/")
 			                   + re.escape(x) + "$", query)
-			print q
 		try:
 			q = "|".join(q)
 			rx = re.compile(q)
