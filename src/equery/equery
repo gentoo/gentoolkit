@@ -375,7 +375,6 @@ class CmdListBelongs(Command):
 				query[i] = query[i].rstrip('/')
 			q = map(lambda x: ((len(x) and x[0] == "/") and "^" or "/")
 			                   + re.escape(x) + "$", query)
-			print q
 		try:
 			q = "|".join(q)
 			rx = re.compile(q)
@@ -738,6 +737,7 @@ class CmdDisplayDepGraph(Command):
 			cpv = x[2]
 			pkg = gentoolkit.find_best_match(x[0] + cpv)
 			if not pkg:
+				print pfx + x[0] + cpv + " (unable to resolve to a package / package masked or removed)"
 				continue
 			if pkg.get_cpv() in pkgtbl:
 				continue

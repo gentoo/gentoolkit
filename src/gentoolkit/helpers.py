@@ -64,9 +64,9 @@ def find_installed_packages(search_key, masked=False):
 	return [Package(x) for x in t]
 
 def find_best_match(search_key):
-	"""Returns a Package object for the best available installed candidate that
+	"""Returns a Package object for the best available candidate that
 	matched the search key."""
-	t = portage.db["/"]["vartree"].dep_bestmatch(search_key)
+	t = portage.db["/"]["porttree"].dep_bestmatch(search_key)
 	if t:
 		return Package(t)
 	return None

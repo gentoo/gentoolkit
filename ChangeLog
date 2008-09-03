@@ -1,3 +1,7 @@
+2008-09-03: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix depgraph function to print out dependencies that don't
+	resolve to a package (Bug #236492)
+
 2008-08-26: Paul Varner <fuzzyray@gentoo.org>
 	* glsa-check: Fix has_key() deprecation message. (Bug #232797)
 	* revdep-rebuild: Update fix for Bug 232270 to utilize better patch
