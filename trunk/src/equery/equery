@@ -738,6 +738,7 @@ class CmdDisplayDepGraph(Command):
 			cpv = x[2]
 			pkg = gentoolkit.find_best_match(x[0] + cpv)
 			if not pkg:
+				print pfx + x[0] + cpv + " (unable to resolve to a package / package masked or removed)"
 				continue
 			if pkg.get_cpv() in pkgtbl:
 				continue
