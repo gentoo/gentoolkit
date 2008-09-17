@@ -67,6 +67,7 @@ get_real_path() {
 check_sanity() {
 	# file permission tests
 	local descdir
+	local make_defaults
 	
 	descdir="$(get_portdir)/profiles"
 	
@@ -77,7 +78,10 @@ check_sanity() {
 	[ ! -d "${descdir}" ] && error "${descdir} does not exist or is not a directory"
 	[ ! -r "${descdir}/use.desc" ] && error "${descdir}/use.desc is not readable"
 	[ ! -r "${descdir}/use.local.desc" ] && error "${descdir}/use.local.desc is not readable"
-	[ ! -r "$(get_make_defaults)" ] && error "$(get_make_defaults) is not readable"
+	for make_defaults in $(get_all_make_defaults); do
+		[ ! -r "$make_defaults" ]  && error "$_make_defaults is not readable"
+	done
+#	[ ! -r "$(get_make_defaults)" ] && error "$(get_make_defaults) is not readable"
 	[ "${MODE}" == "modify" -a ! -w "${MAKE_CONF_PATH}" ] && error ""${MAKE_CONF_PATH}" is not writable"
 }
 
