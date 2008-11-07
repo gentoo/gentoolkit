@@ -333,6 +333,18 @@ if (@ebuilds) {
 }
 close C;
 
+# Subversion diff doesn't identify new versions. So use the status command
+if (($vcs eq "svn") and (@ebuilds)) {
+	open C, $vcs{$vcs}{status}." @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{status}."$!\n";
+	$_ = <C>;
+	while (defined $_) {
+		if (/^A\s*(\s{1}[^\s]*)\.ebuild/) {
+			push @new_versions, $1;
+		}
+		$_ = <C>;
+	}
+}
+
 # When a package move occurs, the versions appear to be new even though they are
 # not.  Trim them from @new_versions in that case.
 @new_versions = grep { $text !~ /^\*\Q$_\E\s/m } @new_versions;
