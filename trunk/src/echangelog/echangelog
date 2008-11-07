@@ -114,7 +114,7 @@ while (<C>) {
     } elsif (/^([ARMD])\s+(\S+)/) {        
         my ($status, $filename) = ($1,$2);
         if($vcs eq "git") {
-            open P, "git-rev-parse --sq --show-prefix |";
+            open P, "git rev-parse --sq --show-prefix |";
             my $prefix = <P>;
             $prefix = substr($prefix, 0, -1);
             close P;
