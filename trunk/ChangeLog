@@ -1,3 +1,6 @@
+2008-11-11: Paul Varner <fuzzyray@gentoo.org>
+	* echangelog: Add --strict option (Bug 246242).
+
 2008-09-17: Paul Varner <fuzzyray@gentoo.org>
 	* euse: Fix check_sanity function to use get_all_make_defaults
 	function when checking for the make.defaults files in the profile.
