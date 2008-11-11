@@ -75,7 +75,7 @@ if (-f 'ChangeLog') {
         { local $/ = undef; $text = <I>; }
         close I;
         my ($cwd) = getcwd();
-        $cwd =~ m|.*/(\w+-\w+)/([^/]+)| 
+        $cwd =~ m|.*/(\w+-\w+\|virtual)/([^/]+)| 
             or die "Can't figure out category/package.. sorry!\n";
         my ($category, $package_name) = ($1, $2);
         $text =~ s/^\*.*//ms;   # don't need the fake entry
