@@ -123,6 +123,7 @@ rm() {
 	eerror "I was instructed to rm '$@'"
 	die 1 "Refusing to delete anything before changing to temporary directory."
 }
+: <<'EW'
 ##
 # GNU find has -executable, but if our users' finds do not have that flag
 # we emulate it with this function. Also emulates -writable and -readable.
@@ -158,6 +159,7 @@ find() {
 	fi
 	find "$@"
 }
+EW
 
 print_usage() {
 cat << EOF
@@ -633,8 +635,8 @@ get_files() {
 			findMask="${findMask[@]/#/-o -path }"
 			findMask="( ${findMask#-o } ) -prune -o"
 		fi
-		# TODO: Check this
-		find ${SEARCH_DIRS[@]} $findMask -type f \( -executable -o \
+		# TODO: Check this -- afaict SEARCH_DIRS isn't an array, so this should just be $SEARCH_DIRS?
+		find ${SEARCH_DIRS[@]} $findMask -type f \( -perm -u+x -o -perm -g+x -o -perm -o+x -o \
 			-name '*.so' -o -name '*.so.*' -o -name '*.la' \) -print 2> /dev/null |
 			sort -u > "$FILES_FILE" ||
 			die $? "find failed to list binary files (This is a bug.)"
