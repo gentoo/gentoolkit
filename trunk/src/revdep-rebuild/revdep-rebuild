@@ -224,7 +224,7 @@ countdown() {
 # Replace whitespace with linebreaks, normalize repeated '/' chars, and sort -u
 # (If any libs have whitespace in their filenames, someone needs punishment.)
 clean_var() {
-	awk 'BEGIN         {RS="[[:space:]]"}
+	gawk 'BEGIN         {RS="[[:space:]]"}
 	     /-\*/         {exit}
 	     /[^[:space:]]/ {gsub(/\/\/+/, "/"); print}' | sort -u
 }
@@ -738,7 +738,7 @@ main_checks() {
 			elif [[ $SEARCH_BROKEN ]]; then
 				# Look for broken .la files
 				for depend in $(
-					awk -F"[=']" '/^dependency_libs/{
+					gawk -F"[=']" '/^dependency_libs/{
 						gsub("^-[^[:space:]]*", "", $3);
 						gsub("[[:space:]]-[^[:space:]]*", "", $3);
 						print $3
@@ -762,7 +762,7 @@ main_checks() {
 			done < <(
 				# Regexify LD_LIBRARY_MASK. Exclude it from the search.
 				LD_LIBRARY_MASK="${LD_LIBRARY_MASK//$'\n'/|}"
-				awk -v ldmask="(${LD_LIBRARY_MASK//./\\\.})" '
+				gawk -v ldmask="(${LD_LIBRARY_MASK//./\\\.})" '
 					/no version information available/ && $0 !~ ldmask {
 						gsub(/[()]/, "", $NF)
 						if (seen[$NF]++)  next
@@ -947,7 +947,7 @@ show_unowned_files() {
 		ewarn "The broken files are:"
 		while read filename junk; do
 			[[ $junk = *none* ]] && ewarn "  $filename"
-		done < "$OWNERS_FILE" | awk '!s[$0]++' # (omit dupes)
+		done < "$OWNERS_FILE" | gawk '!s[$0]++' # (omit dupes)
 	fi
 }
 ##
