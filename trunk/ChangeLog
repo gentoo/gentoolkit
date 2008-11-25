@@ -1,3 +1,8 @@
+2008-11-25: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fixes for non-linux Gentoo systems. Add patch from
+	igli to fix find command to comply with POSIX. Change awk calls to
+	gawk.
+
 2008-11-11: Paul Varner <fuzzyray@gentoo.org>
 	* echangelog: Add --strict option (Bug 246242).
 	* echangelog: Fix processing of virtual category (Bug 179530)
