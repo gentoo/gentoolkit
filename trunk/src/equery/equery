@@ -529,6 +529,12 @@ class CmdDisplayUSEs(Command):
 		except IOError:
 			print_warn(5, "Could not load USE flag descriptions from " + ppath(gentoolkit.settings["PORTDIR"] + "/profiles/use.desc"))
 
+		# TODO: Add USE_EXPANDED variables to usedesc hash -- Bug #238005
+		# Pseudo-code:
+		# for all files in gentoolkit.settings["PORTDIR"]+"/desc/*.desc
+		# variable name = <filename>_<field1>
+		# description = <field 2>
+
 		# Load local USE flag descriptions
 		try:
 			fd = open(gentoolkit.settings["PORTDIR"]+"/profiles/use.local.desc")
