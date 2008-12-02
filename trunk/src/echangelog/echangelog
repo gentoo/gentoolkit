@@ -27,12 +27,12 @@ my %vcs =     ( cvs => { diff => "cvs -f diff -U0",
 			 status => "cvs -fn up",
 			 add => "cvs -f add",
 			 skip => 6,
-			 regex => qr/^Index: ()(([^\/]*?)\.ebuild)\s*$/ },
+			 regex => qr/^Index: (([^\/]*?)\.ebuild)\s*$/ },
 		svn => { diff => "svn diff -N",
 			 status => "svn status",
 			 add => "svn add",
 			 skip => 6,
-			 regex => qr/^Index: ()(([^\/]*?)\.ebuild)\s*$/ },
+			 regex => qr/^Index: (([^\/]*?)\.ebuild)\s*$/ },
 		git => { diff => "git diff",
 			 status => "git diff-index HEAD --name-status",
 			 add => "git add",
@@ -115,7 +115,7 @@ while (<C>) {
         }
         $actions{$1} = '+';
         next;
-    } elsif (/^([ARMD])\s+(\S+)/) {        
+    } elsif (/^([ARMD])\s+\+?\s*(\S+)/) {
         my ($status, $filename) = ($1,$2);
         if($vcs eq "git") {
             open P, "git rev-parse --sq --show-prefix |";
