@@ -1082,8 +1082,11 @@ cleanup() {
 		einfo 'Build finished correctly. Removing temporary files...'
 		einfo
 		einfo 'You can re-run revdep-rebuild to verify that all libraries and binaries'
-		einfo 'are fixed. If some inconsistency remains, it can be orphaned file, deep'
-		einfo 'dependency, binary package or specially evaluated library.'
+		einfo 'are fixed. Possible reasons for remaining inconsistencies include:'
+		einfo '  orphaned files'
+		einfo '  deep dependencies'
+		einfo "  packages installed outside of portage's control"
+		einfo '  specially-evaluated libraries'
 		if [[ -r "$OWNERS_FILE" && -s "$OWNERS_FILE" ]]; then
 			show_unowned_files
 		fi
