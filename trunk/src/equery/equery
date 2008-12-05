@@ -1625,6 +1625,7 @@ class CmdFindUSEs(Command):
 				status = 2
 
 			useflags = pkg.get_env_var("IUSE").split()
+			useflags = [f.lstrip("+-") for f in useflags]
 
 			if query not in useflags:
 				continue 
