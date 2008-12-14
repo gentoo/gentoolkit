@@ -33,7 +33,7 @@ def print_warn(s):
 def die(err, s):
 	"""Print an error string and die with an error code."""
 	print_error(s)
-	sys.exit(-err)
+	sys.exit(err)
 
 # Colour settings
 
