@@ -108,7 +108,7 @@ for my $f (@ARGV) {
     close O;
     select STDOUT;
 
-    system "diff $f $f.new | grep -v '^[0-1]'";
+    system "diff -U 0 $f $f.new | sed -n '/KEYWORDS=/s:^:  :p'";
     rename "$f.new", "$f"       or die "Can't rename: $!\n";
     $files++;
 }
