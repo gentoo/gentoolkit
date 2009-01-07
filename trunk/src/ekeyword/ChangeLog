@@ -1,5 +1,6 @@
 07 Jan 2009 Mike Frysinger <vapier@gentoo.org>
 	* Support intended KEYWORDS
+	* Convert every instance of KEYWORDS in the file
 
 27 Oct 2005 Aron Griffis <agriffis@gentoo.org>
 	* Fix handling of comments
