@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Copyright 2003-2004, Gentoo Foundation
+# Copyright 2003-2009, Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # Written by Aron Griffis <agriffis@gentoo.org>
 #
@@ -18,98 +18,97 @@ my (@kw);
 
 # make sure the cmdline consists of keywords and ebuilds
 unless (@ARGV > 0) {
-    die "syntax: ekeyword { arch | ~[arch] | -[arch] } ebuild...\n" 
+	die "syntax: ekeyword { arch | ~[arch] | -[arch] } ebuild...\n" 
 }
 for my $a (@ARGV) {
-    $a = '~all' if $a eq '~' or $a eq $ENV{'HOME'};	# for vapier
-    next if $a =~ /$kw_re/o;				# keyword
-    next if $a =~ /^\S+\.ebuild$/;			# ebuild
-    die "I don't understand $a\n";
+	$a = '~all' if $a eq '~' or $a eq $ENV{'HOME'};	# for vapier
+	next if $a =~ /$kw_re/o;				# keyword
+	next if $a =~ /^\S+\.ebuild$/;			# ebuild
+	die "I don't understand $a\n";
 }
 
 my $files = 0;
 for my $f (@ARGV) {
-    if ($f =~ /$kw_re/o) {
-	push @kw, $f;
-	next;
-    }
-
-    print "$f\n";
-
-    open I, "<$f"       or die "Can't read $f: $!\n";
-    open O, ">$f.new"   or die "Can't create $f.new: $!\n";
-    select O;
-
-    while (<I>) {
-	/^\s*KEYWORDS=/ or print, next;
-
-	# extract the quoted section from KEYWORDS
-	(my $quoted = $_) =~ s/^.*?["'](.*?)["'].*/$1/s;
-
-	# replace -* with -STAR for our convenience below
-	$quoted =~ s/-\*/-STAR/;
-
-	for my $k (@kw) {
-	    my ($leader, $arch, $star) = ($k =~ /$kw_re/o);
-
-	    # handle -* and ^*
-	    if (defined $star) {
-		$leader = substr $star,0,1;
-		$arch = 'STAR';
-	    }
-
-	    # remove keywords
-	    if ($leader eq '^') {
-		if ($arch eq 'all') {
-		    $quoted = '';
-		} else {
-		    $quoted =~ s/[-~]?\Q$arch\E\b//;
-		}
-	    }
-
-	    # add or modify keywords
-	    else {
-		if ($arch eq 'all') {
-		    # modify all non-masked keywords in the list
-		    $quoted =~ s/(^|\s)~?(?=\w)/$1$leader/g;
-		} else {
-		    # modify or add keyword
-		    unless ($quoted =~ s/[-~]?\Q$arch\E(\s|$)/$leader$arch$1/) {
-			# modification failed, need to add
-			if ($arch eq 'STAR') {
-			    $quoted = "$leader$arch $quoted";
-			} else {
-			    $quoted .= " $leader$arch";
-			}
-		    }
-		}
-	    }
+	if ($f =~ /$kw_re/o) {
+		push @kw, $f;
+		next;
 	}
 
-	# replace -STAR with -*
-	$quoted =~ s/-STAR\b/-*/;
+	print "$f\n";
 
-	# sort keywords and fix spacing
-	$quoted = join " ", sort {
-	    (my $sa = $a) =~ s/^\W//;
-	    (my $sb = $b) =~ s/^\W//;
-	    return -1 if $sa eq '*';
-	    return +1 if $sb eq '*';
-	    $sa cmp $sb;
-	} split " ", $quoted;
+	open I, "<$f"       or die "Can't read $f: $!\n";
+	open O, ">$f.new"   or die "Can't create $f.new: $!\n";
+	select O;
 
-	# re-insert quoted to KEYWORDS
-	s/(["']).*?["']/$1$quoted$1/;
+	while (<I>) {
+		/^\s*KEYWORDS=/ or print, next;
 
-	print $_ or die "Can't write $f.new: $!\n";
-    }
+		# extract the quoted section from KEYWORDS
+		(my $quoted = $_) =~ s/^.*?["'](.*?)["'].*/$1/s;
 
-    close I;
-    close O;
-    select STDOUT;
+		# replace -* with -STAR for our convenience below
+		$quoted =~ s/-\*/-STAR/;
 
-    system "diff -U 0 $f $f.new | sed -n '/KEYWORDS=/s:^:  :p'";
-    rename "$f.new", "$f"       or die "Can't rename: $!\n";
+		for my $k (@kw) {
+			my ($leader, $arch, $star) = ($k =~ /$kw_re/o);
+
+			# handle -* and ^*
+			if (defined $star) {
+				$leader = substr $star,0,1;
+				$arch = 'STAR';
+			}
+
+			# remove keywords
+			if ($leader eq '^') {
+				if ($arch eq 'all') {
+					$quoted = '';
+				} else {
+					$quoted =~ s/[-~]?\Q$arch\E\b//;
+				}
+
+			# add or modify keywords
+			} else {
+				if ($arch eq 'all') {
+					# modify all non-masked keywords in the list
+					$quoted =~ s/(^|\s)~?(?=\w)/$1$leader/g;
+				} else {
+					# modify or add keyword
+					unless ($quoted =~ s/[-~]?\Q$arch\E(\s|$)/$leader$arch$1/) {
+						# modification failed, need to add
+						if ($arch eq 'STAR') {
+							$quoted = "$leader$arch $quoted";
+						} else {
+							$quoted .= " $leader$arch";
+						}
+					}
+				}
+			}
+		}
+
+		# replace -STAR with -*
+		$quoted =~ s/-STAR\b/-*/;
+
+		# sort keywords and fix spacing
+		$quoted = join " ", sort {
+			(my $sa = $a) =~ s/^\W//;
+			(my $sb = $b) =~ s/^\W//;
+			return -1 if $sa eq '*';
+			return +1 if $sb eq '*';
+			$sa cmp $sb;
+		} split " ", $quoted;
+
+		# re-insert quoted to KEYWORDS
+		s/(["']).*?["']/$1$quoted$1/;
+
+		print $_ or die "Can't write $f.new: $!\n";
+	}
+
+	close I;
+	close O;
+	select STDOUT;
+
+	system "diff -U 0 $f $f.new | sed -n '/KEYWORDS=/s:^:  :p'";
+	rename "$f.new", "$f" or die "Can't rename: $!\n";
     $files++;
 }
 
@@ -117,4 +116,4 @@ if ($files == 0) {
     die "No ebuilds processed!";
 }
 
-# vim:ts=8 sw=4
+# vim:ts=4 sw=4
