@@ -40,7 +40,7 @@ for my $f (@ARGV) {
     select O;
 
     while (<I>) {
-	/^KEYWORDS/ or print, next;
+	/^\s*KEYWORDS=/ or print, next;
 
 	# extract the quoted section from KEYWORDS
 	(my $quoted = $_) =~ s/^.*?["'](.*?)["'].*/$1/s;

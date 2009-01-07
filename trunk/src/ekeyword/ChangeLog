@@ -1,3 +1,6 @@
+07 Jan 2009 Mike Frysinger <vapier@gentoo.org>
+	* Support intended KEYWORDS
+
 27 Oct 2005 Aron Griffis <agriffis@gentoo.org>
 	* Fix handling of comments
 	* Add support for bare ~ as a synonym for ~all
