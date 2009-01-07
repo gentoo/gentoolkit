@@ -27,6 +27,7 @@ for my $a (@ARGV) {
     die "I don't understand $a\n";
 }
 
+my $files = 0;
 for my $f (@ARGV) {
     if ($f =~ /$kw_re/o) {
 	push @kw, $f;
@@ -109,6 +110,11 @@ for my $f (@ARGV) {
 
     system "diff $f $f.new | grep -v '^[0-1]'";
     rename "$f.new", "$f"       or die "Can't rename: $!\n";
+    $files++;
+}
+
+if ($files == 0) {
+    die "No ebuilds processed!";
 }
 
 # vim:ts=8 sw=4
