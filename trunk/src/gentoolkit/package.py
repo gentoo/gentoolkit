@@ -26,9 +26,7 @@ class Package:
 		self._db = None
 		self._settings = settings
 		self._settingslock = settingslock
-		self._portdir_path = settings["PORTDIR"]
-		if os.path.islink(self._portdir_path):
-			self._portdir_path = os.path.join(os.path.dirname(self._portdir_path), os.readlink(self._portdir_path))
+		self._portdir_path = os.path.realpath(settings["PORTDIR"])
 
 	def get_name(self):
 		"""Returns base name of package, no category nor version"""
