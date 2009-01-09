@@ -1,3 +1,7 @@
+2009-01-08: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix package.py to account for PORTDIR being a symbolic link
+	when checking if a package is in an overlay. (Bug #253968)
+
 2008-11-25: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fixes for non-linux Gentoo systems. Add patch from
 	igli to fix find command to comply with POSIX. Change awk calls to
