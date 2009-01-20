@@ -82,10 +82,10 @@ try:
 	# sanity checking
 	if len(args) <= 0:
 		sys.stderr.write("no option given: what should I do ?\n")
-		mode="help"
+		mode = "HELP"
 	elif len(args) > 1:
 		sys.stderr.write("please use only one command per call\n")
-		mode = "help"
+		mode = "HELP"
 	else:
 		# in what mode are we ?
 		args = args[0]
@@ -96,32 +96,37 @@ try:
 except GetoptError, e:
 	sys.stderr.write("unknown option given: ")
 	sys.stderr.write(str(e)+"\n")
-	mode = "help"
+	mode = "HELP"
 
 # we need a set of glsa for most operation modes
 if len(params) <= 0 and mode in ["fix", "test", "pretend", "dump", "inject", "mail"]:
 	sys.stderr.write("\nno GLSA given, so we'll do nothing for now. \n")
 	sys.stderr.write("If you want to run on all GLSA please tell me so \n")
 	sys.stderr.write("(specify \"all\" as parameter)\n\n")
-	mode = "help"
+	mode = "HELP"
 elif len(params) <= 0 and mode == "list":
 	params.append("new")
 	
 # show help message
-if mode == "help":
-	sys.stderr.write("\nSyntax: glsa-check <option> [glsa-list]\n\n")
+if mode == "help" or mode == "HELP":
+	msg = "Syntax: glsa-check <option> [glsa-list]\n\n"
 	for m in optionmap:
-		sys.stderr.write(m[0] + "\t" + m[1] + "   \t: " + m[-1] + "\n")
+		msg += m[0] + "\t" + m[1] + "   \t: " + m[-1] + "\n"
 		for o in m[2:-1]:
-			sys.stderr.write("\t" + o + "\n")
-	sys.stderr.write("\nglsa-list can contain an arbitrary number of GLSA ids, \n")
-	sys.stderr.write("filenames containing GLSAs or the special identifiers \n")
-	sys.stderr.write("'all', 'new' and 'affected'\n")
-	sys.exit(1)
+			msg += "\t" + o + "\n"
+	msg += "\nglsa-list can contain an arbitrary number of GLSA ids, \n"
+	msg += "filenames containing GLSAs or the special identifiers \n"
+	msg += "'all', 'new' and 'affected'\n"
+	if mode == "help":
+		sys.stdout.write(msg)
+		sys.exit(0)
+	else:
+		sys.stderr.write("\n" + msg)
+		sys.exit(1)
 
 # we need root priviledges for write access
 if mode in ["fix", "inject"] and os.geteuid() != 0:
-	sys.stderr.write("\nThis tool needs root access to "+mode+" this GLSA\n\n")
+	sys.stderr.write(__program__ + ": root access is needed for \""+mode+"\" mode\n")
 	sys.exit(2)
 
 # show version and copyright information
@@ -259,6 +264,8 @@ if mode in ["dump", "fix", "inject", "pretend"]:
 					exitcode >>= 8
 				if exitcode:
 					sys.exit(exitcode)
+			if len(mergelist):
+				sys.stdout.write("\n")
 			myglsa.inject()
 		elif mode == "pretend":
 			sys.stdout.write("Checking GLSA "+myid+"\n")
@@ -276,10 +283,10 @@ if mode in ["dump", "fix", "inject", "pretend"]:
 					sys.stdout.write("     " + pkg + " (" + oldver + ")\n")
 			else:
 				sys.stdout.write("Nothing to do for this GLSA\n")
+			sys.stdout.write("\n")
 		elif mode == "inject":
 			sys.stdout.write("injecting " + myid + "\n")
 			myglsa.inject()
-		sys.stdout.write("\n")
 	sys.exit(0)
 
 # test is a bit different as Glsa.test() produces no output
