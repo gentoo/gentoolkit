@@ -49,6 +49,7 @@ sub usage {
 	Options:
 	    --help      err, this screen ...
 	    --strict    abort on trivial/no changes
+	    --version   show version info
 	EOF
 	print $usage;
 	exit 0;

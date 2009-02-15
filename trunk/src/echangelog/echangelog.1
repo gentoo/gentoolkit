@@ -164,9 +164,15 @@ ChangeLog itself.  These updates are included in the diff displayed by
 echangelog when it finishes its work.
 .SH "OPTIONS"
 .IX Header "OPTIONS"
-Presently echangelog is simple enough that it supplies no options.
-Probably I'll add \fB\-\-help\fR and \fB\-\-version\fR in the future, but for
-now it's enough to track the gentoolkit version.
+.TP
+.BR --help
+Display help output (just like this section ...).
+.TP
+.BR --strict
+Abort execution if only simple changes (like date changes) are found.
+.TP
+.BR --version
+Display version information.
 .SH "EXAMPLES"
 .IX Header "EXAMPLES"
 To create a ChangeLog for a completely new package.  The header is
