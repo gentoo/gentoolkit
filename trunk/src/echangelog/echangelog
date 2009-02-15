@@ -21,7 +21,8 @@ $Text::Wrap::unexpand = 0;
 
 # Global variables
 my (@files, @ebuilds, @conflicts, @trivial, @unknown, @new_versions, %actions);
-my ($input, $editor, $entry, $user, $date, $text, $version, $year, $vcs, $strict);
+my ($input, $editor, $entry, $user, $date, $text, $year, $vcs);
+my ($opt_help, $opt_strict, $opt_version);
 
 my %vcs =     ( cvs => { diff => "cvs -f diff -U0",
 			 status => "cvs -fn up",
@@ -41,9 +42,35 @@ my %vcs =     ( cvs => { diff => "cvs -f diff -U0",
 
 );
 
+sub usage {
+	(my $usage = <<"	EOF") =~ s/^\t//gm;
+	Usage: echangelog [options] <changelog message>
+
+	Options:
+	    --help      err, this screen ...
+	    --strict    abort on trivial/no changes
+	EOF
+	print $usage;
+	exit 0;
+}
+sub version {
+	my $Revision = "Last svn change rev";
+	my $Date = "Last svn change date";
+	my $foo = "";
+	print "echangelog\n$Revision$foo \n$Date$foo\n";
+	exit 0;
+}
 use Getopt::Long;
-$strict = 0;
-GetOptions('strict' => \$strict);
+$opt_help = 0;
+$opt_strict = 0;
+$opt_version = 0;
+GetOptions(
+	'help' => \$opt_help,
+	'strict' => \$opt_strict,
+	'version' => \$opt_version
+);
+usage if $opt_help;
+version if $opt_version;
 
 # Figure out what kind of repo we are in.
 
@@ -358,7 +385,7 @@ unless (@files) {
     print STDERR "** should be run after all affected files have been added and/or\n";
     print STDERR "** modified.  Did you forget to $vcs add?\n";
     print STDERR "**\n";
-	 if ($strict) {
+	 if ($opt_strict) {
 	     print STDERR "** In strict mode, exiting\n";
 		  exit 1;
 	 }
