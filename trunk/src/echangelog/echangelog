@@ -74,13 +74,7 @@ if (-f 'ChangeLog') {
             or die "Can't open $new/skel.ChangeLog for input: $!\n";
         { local $/ = undef; $text = <I>; }
         close I;
-        my ($cwd) = getcwd();
-        $cwd =~ m|.*/(\w+-\w+\|virtual)/([^/]+)| 
-            or die "Can't figure out category/package.. sorry!\n";
-        my ($category, $package_name) = ($1, $2);
         $text =~ s/^\*.*//ms;   # don't need the fake entry
-        $text =~ s/<CATEGORY>/$category/;
-        $text =~ s/<PACKAGE_NAME>/$package_name/;
     } else {
         die "This should be run in a directory with ebuilds...\n";
     }
@@ -448,6 +442,23 @@ if (@new_versions) {
                \s*\n(?=\ \ \d|\*|\z)  # suck up trailing whitespace
     /$1\n\n$entry\n\n/sx
         or die "Failed to insert new entry (3)\n";
+}
+
+sub update_cat_pn {
+    my ($t) = @_;
+    my ($cwd) = getcwd();
+    $cwd =~ m|.*/(\w+-\w+\|virtual)/([^/]+)| 
+        or die "Can't figure out category/package.. sorry!\n";
+    my ($category, $package_name) = ($1, $2);
+    $t =~ s/^(# ChangeLog for).*/$1 $category\/$package_name/;
+    return $t;
+}
+
+# New packages and/or ones that have moved around often have stale data here.
+# But only do that in places where ebuilds are around (as echangelog can be
+# used in profiles/ and such places).
+if (grep(/\.ebuild$/, @files)) {
+    $text = update_cat_pn($text);
 }
 
 sub update_copyright {
