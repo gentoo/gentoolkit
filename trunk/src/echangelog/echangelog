@@ -454,7 +454,7 @@ sub update_copyright {
     my ($t) = @_;
     (my $year = $date) =~ s/.* //;
     $t =~ s/^# Copyright \d+(?= )/$&-$year/m or
-    $t =~ s/^(# Copyright \d+)-(\d+)/$1-$year/m;
+    $t =~ s/^(# Copyright) \d+-(\d+)/$1 1999-$year/m;
     return $t;
 }
 
