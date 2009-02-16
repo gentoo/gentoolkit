@@ -319,8 +319,8 @@ if (@ebuilds) {
 	# git format: diff --git a/app-doc/repodoc/metadata.xml b/app-doc/repodoc/metadata.xml
 	elsif (/$vcs{$vcs}{regex}/) {
 		my $f;
-		if ($vcs eq "git") {
     		($f) = ($1);
+		if ($vcs eq "git") {
     		my $version = ($2);
        		while (<C>) {
                	last if /^deleted file mode|^index/;
@@ -329,8 +329,6 @@ if (@ebuilds) {
                    	last;
        			}
     		}
-		} else { 
-			($f) = ($2);
 		}
 
             # check if more than just copyright date changed.
