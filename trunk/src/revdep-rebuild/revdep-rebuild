@@ -266,7 +266,7 @@ normalize_emerge_opts() {
 	# Normalize some EMERGE_OPTIONS
 	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-p/--pretend})
 	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-f/--fetchonly})
-	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-f/--verbose})
+	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-v/--verbose})
 }
 ##
 # Use the color preference from portage
