@@ -1,3 +1,6 @@
+2009-04-24: Paul Varner <fuzzyray@gentoo.org>
+	* ekeyword: Fix to handle multiline KEYWORDS (Bug #267250)
+
 2009-01-08: Paul Varner <fuzzyray@gentoo.org>
 	* equery: Fix package.py to account for PORTDIR being a symbolic link
 	when checking if a package is in an overlay. (Bug #253968)
