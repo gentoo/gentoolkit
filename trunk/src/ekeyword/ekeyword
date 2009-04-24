@@ -41,66 +41,74 @@ for my $f (@ARGV) {
 	select O;
 
 	while (<I>) {
-		/^\s*KEYWORDS=/ or print, next;
+		if (/^\s*KEYWORDS=/) {
 
-		# extract the quoted section from KEYWORDS
-		(my $quoted = $_) =~ s/^.*?["'](.*?)["'].*/$1/s;
-
-		# replace -* with -STAR for our convenience below
-		$quoted =~ s/-\*/-STAR/;
-
-		for my $k (@kw) {
-			my ($leader, $arch, $star) = ($k =~ /$kw_re/o);
-
-			# handle -* and ^*
-			if (defined $star) {
-				$leader = substr $star,0,1;
-				$arch = 'STAR';
+			# extract the quoted section from KEYWORDS
+			while (not /^KEYWORDS=["'].*?["']/) {
+				chomp;
+				my $next = <I>;
+				$_ = join "", $_, $next;
 			}
+			(my $quoted = $_) =~ s/^.*?["'](.*?)["'].*/$1/s;
 
-			# remove keywords
-			if ($leader eq '^') {
-				if ($arch eq 'all') {
-					$quoted = '';
-				} else {
-					$quoted =~ s/[-~]?\Q$arch\E\b//;
+			# replace -* with -STAR for our convenience below
+			$quoted =~ s/-\*/-STAR/;
+
+			for my $k (@kw) {
+				my ($leader, $arch, $star) = ($k =~ /$kw_re/o);
+
+				# handle -* and ^*
+				if (defined $star) {
+					$leader = substr $star,0,1;
+					$arch = 'STAR';
 				}
 
-			# add or modify keywords
-			} else {
-				if ($arch eq 'all') {
-					# modify all non-masked keywords in the list
-					$quoted =~ s/(^|\s)~?(?=\w)/$1$leader/g;
+				# remove keywords
+				if ($leader eq '^') {
+					if ($arch eq 'all') {
+						$quoted = '';
+					} else {
+						$quoted =~ s/[-~]?\Q$arch\E\b//;
+					}
+
+				# add or modify keywords
 				} else {
-					# modify or add keyword
-					unless ($quoted =~ s/[-~]?\Q$arch\E(\s|$)/$leader$arch$1/) {
-						# modification failed, need to add
-						if ($arch eq 'STAR') {
-							$quoted = "$leader$arch $quoted";
-						} else {
-							$quoted .= " $leader$arch";
+					if ($arch eq 'all') {
+						# modify all non-masked keywords in the list
+						$quoted =~ s/(^|\s)~?(?=\w)/$1$leader/g;
+					} else {
+						# modify or add keyword
+						unless ($quoted =~ s/[-~]?\Q$arch\E(\s|$)/$leader$arch$1/) {
+							# modification failed, need to add
+							if ($arch eq 'STAR') {
+								$quoted = "$leader$arch $quoted";
+							} else {
+								$quoted .= " $leader$arch";
+							}
 						}
 					}
 				}
 			}
+
+			# replace -STAR with -*
+			$quoted =~ s/-STAR\b/-*/;
+
+			# sort keywords and fix spacing
+			$quoted = join " ", sort {
+				(my $sa = $a) =~ s/^\W//;
+				(my $sb = $b) =~ s/^\W//;
+				return -1 if $sa eq '*';
+				return +1 if $sb eq '*';
+				$sa cmp $sb;
+			} split " ", $quoted;
+
+			# re-insert quoted to KEYWORDS
+			s/(["']).*?["']/$1$quoted$1/;
+
+			print $_ or die "Can't write $f.new: $!\n";
+		} else {
+			print, next;
 		}
-
-		# replace -STAR with -*
-		$quoted =~ s/-STAR\b/-*/;
-
-		# sort keywords and fix spacing
-		$quoted = join " ", sort {
-			(my $sa = $a) =~ s/^\W//;
-			(my $sb = $b) =~ s/^\W//;
-			return -1 if $sa eq '*';
-			return +1 if $sb eq '*';
-			$sa cmp $sb;
-		} split " ", $quoted;
-
-		# re-insert quoted to KEYWORDS
-		s/(["']).*?["']/$1$quoted$1/;
-
-		print $_ or die "Can't write $f.new: $!\n";
 	}
 
 	close I;
@@ -109,7 +117,7 @@ for my $f (@ARGV) {
 
 	system "diff -U 0 $f $f.new | sed -n '/KEYWORDS=/s:^:  :p'";
 	rename "$f.new", "$f" or die "Can't rename: $!\n";
-    $files++;
+	$files++;
 }
 
 if ($files == 0) {
