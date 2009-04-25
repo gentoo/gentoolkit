@@ -47,7 +47,7 @@ for my $f (@ARGV) {
 			while (not /^KEYWORDS=["'].*?["']/) {
 				chomp;
 				my $next = <I>;
-				$_ = join "", $_, $next;
+				$_ = join " ", $_, $next;
 			}
 			(my $quoted = $_) =~ s/^.*?["'](.*?)["'].*/$1/s;
 
