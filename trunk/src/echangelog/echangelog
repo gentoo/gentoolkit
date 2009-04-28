@@ -24,22 +24,30 @@ my (@files, @ebuilds, @conflicts, @trivial, @unknown, @new_versions, %actions);
 my ($input, $editor, $entry, $user, $date, $text, $year, $vcs);
 my ($opt_help, $opt_strict, $opt_version);
 
-my %vcs =     ( cvs => { diff => "cvs -f diff -U0",
-			 status => "cvs -fn up",
-			 add => "cvs -f add",
-			 skip => 6,
-			 regex => qr/^Index: (([^\/]*?)\.ebuild)\s*$/ },
-		svn => { diff => "svn diff -N",
-			 status => "svn status",
-			 add => "svn add",
-			 skip => 6,
-			 regex => qr/^Index: (([^\/]*?)\.ebuild)\s*$/ },
-		git => { diff => "git diff",
-			 status => "git diff-index HEAD --name-status",
-			 add => "git add",
-			 skip => 4,
-			 regex => qr/^diff \-\-git \S*\/((\S*)\.ebuild)/ }
-
+my %vcs = (
+    cvs => {
+        diff => "cvs -f diff -U0",
+        status => "cvs -fn up",
+        add => "cvs -f add",
+        skip => 6,
+        regex => qr/^Index: (([^\/]*?)\.ebuild)\s*$/
+    },
+    svn => {
+        diff => "svn diff -N",
+        status => "svn status",
+        add => "svn add",
+        skip => 4,
+        regex => qr/^Index: (([^\/]*?)\.ebuild)\s*$/
+    },
+    git => {
+        diff => "git diff",
+        status => "git diff-index HEAD --name-status",
+        add => "git add",
+        # This value should usually be 3 but on new file mode we need skip+1.
+        # So 4 should be fine anyway.
+        skip => 4,
+        regex => qr/^diff \-\-git \S*\/((\S*)\.ebuild)/
+    },
 );
 
 sub usage {
@@ -144,7 +152,7 @@ while (<C>) {
             my $prefix = <P>;
             $prefix = substr($prefix, 0, -1);
             close P;
-        	
+
             if ($filename =~ /$prefix(\S*)/) {
             	$filename = $1 ;
             }
@@ -296,6 +304,15 @@ sub sortfunc($$) {
 }
 @files = sort sortfunc @files;
 
+# Just to ensure we don't get duplicate entries.
+sub mypush(\@@) {
+    my $aref = shift;
+
+    foreach my $value (@_) {
+        push(@{$aref}, $value) if !grep(/^$value$/, @{$aref});
+    }
+}
+
 # Forget ebuilds that only have changed copyrights, unless that's all
 # the changed files we have
 
@@ -304,53 +321,60 @@ sub sortfunc($$) {
 
 if (@ebuilds) {
     if ($vcs eq "git") {
-    	open C, $vcs{$vcs}{diff}." HEAD -- @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
+        open C, $vcs{$vcs}{diff}." HEAD -- @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
     } else { 
         open C, $vcs{$vcs}{diff}." @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
     }
-    $_ = <C>;
-    while (defined $_) {
-	# only possible with cvs
-	if (/^$vcs diff: (([^\/]*?)\.ebuild) was removed/) { 
-		push @files, $1;
-	}
 
-	# We assume GNU diff output format here.
-	# git format: diff --git a/app-doc/repodoc/metadata.xml b/app-doc/repodoc/metadata.xml
-	elsif (/$vcs{$vcs}{regex}/) {
-		my $f;
-    		($f) = ($1);
-		if ($vcs eq "git") {
-    		my $version = ($2);
-       		while (<C>) {
-               	last if /^deleted file mode|^index/;
-               	if (/^new file mode/) {
-    				push @new_versions, $version;  # new ebuild, will create a new entry
-                   	last;
-       			}
-    		}
-		}
+    $_ = <C>;
+
+    while (defined $_) {
+        # only possible with cvs
+        if (/^$vcs diff: (([^\/]*?)\.ebuild) was removed/) {
+            mypush(@files, $1);
+        }
+
+        # We assume GNU diff output format here.
+        # git format: diff --git a/app-doc/repodoc/metadata.xml b/app-doc/repodoc/metadata.xml
+        elsif (/$vcs{$vcs}{regex}/) {
+            my $f = $1;
+
+            if ($vcs eq "git") {
+                my $version = $2;
+
+                while (<C>) {
+                    last if /^deleted file mode|^index/;
+                    if (/^new file mode/) {
+                        mypush(@files, $f);
+                        mypush(@new_versions, $version);
+                        last;
+                    }
+                }
+            }
 
             # check if more than just copyright date changed.
             # skip some lines (vcs dependent)
-           foreach(1..$vcs{$vcs}{skip}){
-				$_ = <C>;
-           }
-        	while (<C>) {
+            foreach(1..$vcs{$vcs}{skip}) {
+                $_ = <C>;
+            }
+
+            while (<C>) {
                 last if /^[A-Za-z]/;
                 if (/^[-+](?!# Copyright)/) {
-                    push @files, $f;
+                    mypush(@files, $f);
                     last;
                 }
             }
+
             # at this point we've either added $f to @files or not,
             # and we have the next line in $_ for processing
             next;
         }
-        elsif (/^$vcs.*?: (([^\/]*?)\.ebuild) is a new entry/) { 
-            push @files, $1;
-            push @new_versions, $2;  # new ebuild, will create a new entry
+        elsif (/^$vcs.*?: (([^\/]*?)\.ebuild) is a new entry/) {
+            mypush(@files, $1);
+            mypush(@new_versions, $2);
         }
+
         # other cvs output is ignored
         $_ = <C>;
     }
@@ -359,14 +383,16 @@ close C;
 
 # Subversion diff doesn't identify new versions. So use the status command
 if (($vcs eq "svn") and (@ebuilds)) {
-	open C, $vcs{$vcs}{status}." @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{status}."$!\n";
-	$_ = <C>;
-	while (defined $_) {
-		if (/^A\s*(\s{1}[^\s]*)\.ebuild/) {
-			push @new_versions, $1;
-		}
-		$_ = <C>;
-	}
+    open C, $vcs{$vcs}{status}." @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{status}."$!\n";
+    $_ = <C>;
+
+    while (defined $_) {
+        if (/^A\s*(([^\s]*)\.ebuild)/) {
+            mypush(@files, $1);
+            mypush(@new_versions, $2);
+        }
+        $_ = <C>;
+    }
 }
 
 # When a package move occurs, the versions appear to be new even though they are
@@ -391,6 +417,10 @@ unless (@files) {
     @files = sort sortfunc @trivial;
     @files = qw/ChangeLog/ unless @files;  # last resort to put something in the list
 }
+
+# sort
+@files = sort sortfunc @files;
+@new_versions = sort sortfunc @new_versions;
 
 # Get the input from the cmdline, editor or stdin
 if ($ARGV[0]) {
@@ -547,4 +577,4 @@ if ($vcs eq "cvs") {
     system("$vcs{$vcs}{add} ChangeLog 2>&1 >> /dev/null");
 }
 
-# vim:sw=4 ts=8 expandtab
+# vim:sw=4 ts=4 expandtab
