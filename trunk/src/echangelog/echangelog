@@ -387,7 +387,7 @@ if (($vcs eq "svn") and (@ebuilds)) {
     $_ = <C>;
 
     while (defined $_) {
-        if (/^A\s*(([^\s]*)\.ebuild)/) {
+        if (/^A\s+\+?\s*(([^\s]*)\.ebuild)/) {
             mypush(@files, $1);
             mypush(@new_versions, $2);
         }
