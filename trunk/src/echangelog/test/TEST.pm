@@ -1,19 +1,5 @@
-#
-#===============================================================================
-#
-#         FILE:  POSIX.pm
-#
-#  DESCRIPTION:  
-#
-#        FILES:  ---
-#         BUGS:  ---
-#        NOTES:  ---
-#       AUTHOR:  YOUR NAME (), 
-#      COMPANY:  
-#      VERSION:  1.0
-#      CREATED:  04/28/2009 01:24:13 PM
-#     REVISION:  ---
-#===============================================================================
+# We just return a static/predefined date because we're working with
+# static md5 checksums.
 
 package TEST;
 
