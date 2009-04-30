@@ -1,3 +1,12 @@
+24 Apr 2009 Paul Varner <fuzzyray@gentoo.org>
+	* Handle multiline KEYWORDS
+
+07 Jan 2009 Mike Frysinger <vapier@gentoo.org>
+	* Support intended KEYWORDS
+	* Convert every instance of KEYWORDS in the file
+	* Error out on invalid arguments #156827
+	* Tighten up diff output to show KEYWORDS changes
+
 27 Oct 2005 Aron Griffis <agriffis@gentoo.org>
 	* Fix handling of comments
 	* Add support for bare ~ as a synonym for ~all

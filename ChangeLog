@@ -1,3 +1,23 @@
+2009-04-30: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Add patch from loki_val to check -l dependencies in 
+	.la files (Bug #267898)
+
+2009-04-24: Paul Varner <fuzzyray@gentoo.org>
+	* ekeyword: Fix to handle multiline KEYWORDS (Bug #267250)
+
+2009-01-08: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix package.py to account for PORTDIR being a symbolic link
+	when checking if a package is in an overlay. (Bug #253968)
+
+2008-11-25: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fixes for non-linux Gentoo systems. Add patch from
+	igli to fix find command to comply with POSIX. Change awk calls to
+	gawk.
+
+2008-11-11: Paul Varner <fuzzyray@gentoo.org>
+	* echangelog: Add --strict option (Bug 246242).
+	* echangelog: Fix processing of virtual category (Bug 179530)
+
 2008-09-17: Paul Varner <fuzzyray@gentoo.org>
 	* euse: Fix check_sanity function to use get_all_make_defaults
 	function when checking for the make.defaults files in the profile.

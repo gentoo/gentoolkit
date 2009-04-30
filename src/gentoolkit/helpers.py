@@ -130,7 +130,7 @@ def find_all_packages(prefilter=None):
 	for x in t:
 		t2 += porttree.dbapi.cp_list(x)
 		t2 += vartree.dbapi.cp_list(x)
-		t2 = unique_array(t2)
+	t2 = unique_array(t2)
 	return [Package(x) for x in t2]
 
 def split_package_name(name):

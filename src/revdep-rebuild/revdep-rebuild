@@ -123,6 +123,7 @@ rm() {
 	eerror "I was instructed to rm '$@'"
 	die 1 "Refusing to delete anything before changing to temporary directory."
 }
+: <<'EW'
 ##
 # GNU find has -executable, but if our users' finds do not have that flag
 # we emulate it with this function. Also emulates -writable and -readable.
@@ -158,6 +159,7 @@ find() {
 	fi
 	find "$@"
 }
+EW
 
 print_usage() {
 cat << EOF
@@ -222,7 +224,7 @@ countdown() {
 # Replace whitespace with linebreaks, normalize repeated '/' chars, and sort -u
 # (If any libs have whitespace in their filenames, someone needs punishment.)
 clean_var() {
-	awk 'BEGIN         {RS="[[:space:]]"}
+	gawk 'BEGIN         {RS="[[:space:]]"}
 	     /-\*/         {exit}
 	     /[^[:space:]]/ {gsub(/\/\/+/, "/"); print}' | sort -u
 }
@@ -264,7 +266,7 @@ normalize_emerge_opts() {
 	# Normalize some EMERGE_OPTIONS
 	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-p/--pretend})
 	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-f/--fetchonly})
-	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-f/--verbose})
+	EMERGE_OPTIONS=(${EMERGE_OPTIONS[@]/%-v/--verbose})
 }
 ##
 # Use the color preference from portage
@@ -633,8 +635,8 @@ get_files() {
 			findMask="${findMask[@]/#/-o -path }"
 			findMask="( ${findMask#-o } ) -prune -o"
 		fi
-		# TODO: Check this
-		find ${SEARCH_DIRS[@]} $findMask -type f \( -executable -o \
+		# TODO: Check this -- afaict SEARCH_DIRS isn't an array, so this should just be $SEARCH_DIRS?
+		find ${SEARCH_DIRS[@]} $findMask -type f \( -perm -u+x -o -perm -g+x -o -perm -o+x -o \
 			-name '*.so' -o -name '*.so.*' -o -name '*.la' \) -print 2> /dev/null |
 			sort -u > "$FILES_FILE" ||
 			die $? "find failed to list binary files (This is a bug.)"
@@ -735,18 +737,39 @@ main_checks() {
 				fi
 			elif [[ $SEARCH_BROKEN ]]; then
 				# Look for broken .la files
+				la_SEARCH_DIRS="$SEARCH_DIRS"
+				la_search_dir=""
+				la_broken=""
+				la_lib=""
 				for depend in $(
-					awk -F"[=']" '/^dependency_libs/{
-						gsub("^-[^[:space:]]*", "", $3);
-						gsub("[[:space:]]-[^[:space:]]*", "", $3);
+					gawk -F"[=']" '/^dependency_libs/{
 						print $3
 					}' "$target_file"
 				); do
 					if [[ $depend = /* && ! -e $depend ]]; then
 						echo "obj $target_file" >> "$BROKEN_FILE"
 						echo_v "  broken $target_file (requires $depend)"
+					elif [[ $depend = "-L/"* || $depend = "-R/"* ]]; then
+						if ! [[ $'\n'${la_SEARCH_DIRS}$'\n' == *$'\n'${depend#-?}$'\n'* ]]; then
+							la_SEARCH_DIRS+=$'\n'"${depend#-?}"
+						fi
+					elif [[ $depend = "-l"* ]]; then
+						la_lib="lib${depend#-l}"
+						la_broken="yes"
+						IFS=$'\n'
+						for la_search_dir in $la_SEARCH_DIRS; do
+							if [[ -e ${la_search_dir}/${la_lib}.so || -e ${la_search_dir}/${la_lib}.a ]]; then
+								la_broken="no"
+							fi
+						done
+						IFS="$OIFS"
+						if [[ $la_broken = yes ]]; then
+							echo "obj $target_file" >> "$BROKEN_FILE"
+							echo_v "  broken $target_file (requires $depend)"
+						fi
 					fi
 				done
+				unset la_SEARCH_DIRS la_search_dir la_broken la_lib
 			fi
 			[[ $VERBOSE ]] &&
 				progress $((++i)) $numFiles $target_file ||
@@ -760,7 +783,7 @@ main_checks() {
 			done < <(
 				# Regexify LD_LIBRARY_MASK. Exclude it from the search.
 				LD_LIBRARY_MASK="${LD_LIBRARY_MASK//$'\n'/|}"
-				awk -v ldmask="(${LD_LIBRARY_MASK//./\\\.})" '
+				gawk -v ldmask="(${LD_LIBRARY_MASK//./\\\.})" '
 					/no version information available/ && $0 !~ ldmask {
 						gsub(/[()]/, "", $NF)
 						if (seen[$NF]++)  next
@@ -945,7 +968,7 @@ show_unowned_files() {
 		ewarn "The broken files are:"
 		while read filename junk; do
 			[[ $junk = *none* ]] && ewarn "  $filename"
-		done < "$OWNERS_FILE" | awk '!s[$0]++' # (omit dupes)
+		done < "$OWNERS_FILE" | gawk '!s[$0]++' # (omit dupes)
 	fi
 }
 ##
@@ -1080,8 +1103,11 @@ cleanup() {
 		einfo 'Build finished correctly. Removing temporary files...'
 		einfo
 		einfo 'You can re-run revdep-rebuild to verify that all libraries and binaries'
-		einfo 'are fixed. If some inconsistency remains, it can be orphaned file, deep'
-		einfo 'dependency, binary package or specially evaluated library.'
+		einfo 'are fixed. Possible reasons for remaining inconsistencies include:'
+		einfo '  orphaned files'
+		einfo '  deep dependencies'
+		einfo "  packages installed outside of portage's control"
+		einfo '  specially-evaluated libraries'
 		if [[ -r "$OWNERS_FILE" && -s "$OWNERS_FILE" ]]; then
 			show_unowned_files
 		fi

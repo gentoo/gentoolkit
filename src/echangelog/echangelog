@@ -11,6 +11,7 @@
 use strict;
 use POSIX qw(strftime getcwd setlocale);
 use File::Find;
+use Getopt::Long;
 
 # Fix bug 21022 by restricting to C locale
 setlocale(&POSIX::LC_ALL, "C");
@@ -21,121 +22,172 @@ $Text::Wrap::unexpand = 0;
 
 # Global variables
 my (@files, @ebuilds, @conflicts, @trivial, @unknown, @new_versions, %actions);
-my ($input, $editor, $entry, $user, $date, $text, $version, $year, $vcs);
+my ($input, $editor, $entry, $user, $date, $text, $year, $vcs);
+my ($opt_help, $opt_strict, $opt_version);
 
-my %vcs =     ( cvs => { diff => "cvs -f diff -U0",
-			 status => "cvs -fn up",
-			 add => "cvs -f add",
-			 skip => 6,
-			 regex => qr/^Index: ()(([^\/]*?)\.ebuild)\s*$/ },
-		svn => { diff => "svn diff -N",
-			 status => "svn status",
-			 add => "svn add",
-			 skip => 6,
-			 regex => qr/^Index: ()(([^\/]*?)\.ebuild)\s*$/ },
-		git => { diff => "git diff",
-			 status => "git diff-index HEAD --name-status",
-			 add => "git add",
-			 skip => 4,
-			 regex => qr/^diff \-\-git \S*\/((\S*)\.ebuild)/ }
+$opt_help = 0;
+$opt_strict = 0;
+$opt_version = 0;
 
+my %vcs = (
+	cvs => {
+		diff => "cvs -f diff -U0",
+		status => "cvs -fn up",
+		add => "cvs -f add",
+		skip => 6,
+		regex => qr/^Index: (([^\/]*?)\.ebuild)\s*$/
+	},
+	svn => {
+		diff => "svn diff -N",
+		status => "svn status",
+		add => "svn add",
+		skip => 4,
+		regex => qr/^Index: (([^\/]*?)\.ebuild)\s*$/
+	},
+	git => {
+		diff => "git diff",
+		status => "git diff-index HEAD --name-status",
+		add => "git add",
+		# This value should usually be 3 but on new file mode we need skip+1.
+		# So 4 should be fine anyway.
+		skip => 4,
+		regex => qr/^diff \-\-git \S*\/((\S*)\.ebuild)/
+	},
 );
 
-# Figure out what kind of repo we are in.
+sub usage {
+	(my $usage = <<"	EOF") =~ s/^\t//gm;
+	Usage: echangelog [options] <changelog message>
 
+	Options:
+	    --help      err, this screen ...
+	    --strict    abort on trivial/no changes
+	    --version   show version info
+	EOF
+	print $usage;
+	exit 0;
+}
+
+sub version {
+	my $Revision = "Last svn change rev";
+	my $Date = "Last svn change date";
+	my $foo = "";
+	print "echangelog\n$Revision$foo \n$Date$foo\n";
+	exit 0;
+}
+
+GetOptions(
+	'help' => \$opt_help,
+	'strict' => \$opt_strict,
+	'version' => \$opt_version,
+);
+
+usage() if $opt_help;
+version() if $opt_version;
+
+# Figure out what kind of repo we are in.
 if ( -d "CVS" ) {
-   $vcs = "cvs";
+	$vcs = "cvs";
 } elsif ( -d '.svn' ) {
-    $vcs = "svn";
-} elsif ( -f '/usr/bin/git' and open GIT, "git rev-parse --git-dir |" ) {
-    $vcs = "git";
-    close GIT;
+	$vcs = "svn";
 } else {
-    die "No CVS, .git, .svn directories found, what kind of repo is this?";
+	if ( -x '/usr/bin/git' ) {
+		open(GIT, '-|', "git rev-parse --git-dir 2>/dev/null");
+		$vcs = "git" if defined(<GIT>);
+		close(GIT);
+	}
+
+	if ( ! $vcs ) {
+		die "No CVS, .git, .svn directories found, what kind of repo is this?";
+	}
 }
 
 # Read the current ChangeLog
 if (-f 'ChangeLog') {
-    open I, '<ChangeLog' or die "Can't open ChangeLog for input: $!\n";
-    { local $/ = undef; $text = <I>; }
-    close I;
+	open I, '<ChangeLog' or die "Can't open ChangeLog for input: $!\n";
+	{ local $/ = undef; $text = <I>; }
+	close I;
 } else {
-    # No ChangeLog here, maybe we should make one...
-    if (<*.ebuild>) {
-	open C, "portageq envvar PORTDIR |" or die "Can't find PORTDIR";
-	my ($new) = <C>;
-	close C;
-	$new =~ s/\s+$//;
-        open I, "< $new/skel.ChangeLog" 
-            or die "Can't open $new/skel.ChangeLog for input: $!\n";
-        { local $/ = undef; $text = <I>; }
-        close I;
-        my ($cwd) = getcwd();
-        $cwd =~ m|.*/(\w+-\w+)/([^/]+)| 
-            or die "Can't figure out category/package.. sorry!\n";
-        my ($category, $package_name) = ($1, $2);
-        $text =~ s/^\*.*//ms;   # don't need the fake entry
-        $text =~ s/<CATEGORY>/$category/;
-        $text =~ s/<PACKAGE_NAME>/$package_name/;
-    } else {
-        die "This should be run in a directory with ebuilds...\n";
-    }
+	# No ChangeLog here, maybe we should make one...
+	if (<*.ebuild>) {
+		open C, "portageq envvar PORTDIR |" or die "Can't find PORTDIR";
+		my ($new) = <C>;
+		close C;
+
+		$new =~ s/\s+$//;
+		open I, "< $new/skel.ChangeLog" 
+			or die "Can't open $new/skel.ChangeLog for input: $!\n";
+		{ local $/ = undef; $text = <I>; }
+		close I;
+		$text =~ s/^\*.*//ms;   # don't need the fake entry
+	} else {
+		die "This should be run in a directory with ebuilds...\n";
+	}
 }
 
 # Figure out what has changed around here
 open C, $vcs{$vcs}{status}.' 2>&1 |' or die "Can't run ".$vcs{$vcs}{status}.": $!\n";
 while (<C>) {
-    if (/^C\s+(\S+)/) {
-        if($vcs eq "git") {
-            my $filename = $2;
-            $filename =~ /\S*\/(\S*)/;
-	    if( -d $1 ) {
+	if (/^C\s+(\S+)/) {
+		if($vcs eq "git") {
+			my $filename = $2;
+			$filename =~ /\S*\/(\S*)/;
+
+			if( -d $1 ) {
+				next;
+			}
+
+			push @conflicts, $1;
+			next;
+		}
+		
+		push @conflicts, $1;
 		next;
-	    }
-            push @conflicts, $1;
-            next; 
-        }
-        push @conflicts, $1;
-        next;
-    } elsif (/^\?\s+(\S+)/) {
-        if($vcs eq "git") {
-            my $filename = $2;
-            $filename =~ /\S*\/(\S*)/;
-	    if( -d $1 ) {
+	} elsif (/^\?\s+(\S+)/) {
+		if($vcs eq "git") {
+			my $filename = $2;
+			$filename =~ /\S*\/(\S*)/;
+
+			if( -d $1 ) {
+				next;
+			}
+
+			push @unknown, $1;
+			next;
+		} else {
+			push @unknown, $1;
+		}
+		
+		$actions{$1} = '+';
 		next;
-	    }
-            push @unknown, $1;
-            next; 
-        } else {
-            push @unknown, $1;
-        }
-        $actions{$1} = '+';
-        next;
-    } elsif (/^([ARMD])\s+(\S+)/) {        
-        my ($status, $filename) = ($1,$2);
-        if($vcs eq "git") {
-            open P, "git-rev-parse --sq --show-prefix |";
-            my $prefix = <P>;
-            $prefix = substr($prefix, 0, -1);
-            close P;
-        	
-            if ($filename =~ /$prefix(\S*)/) {
-            	$filename = $1 ;
-            }
-            else {
-            	next;
-            }
-        }
-	if( -d $filename ) {
-	    next;
+	} elsif (/^([ARMD])\s+\+?\s*(\S+)/) {
+		my ($status, $filename) = ($1,$2);
+		
+		if($vcs eq "git") {
+			open P, "git rev-parse --sq --show-prefix |";
+			my $prefix = <P>;
+			$prefix = substr($prefix, 0, -1);
+			close P;
+			
+			if ($filename =~ /$prefix(\S*)/) {
+				$filename = $1 ;
+			}
+			else {
+				next;
+			}
+		}
+		
+		if( -d $filename ) {
+			next;
+		}
+		
+		push @files, $filename;
+		($actions{$filename} = $status) =~ tr/DARM/-+-/d;
 	}
-        push @files, $filename;
-        ($actions{$filename} = $status) =~ tr/DARM/-+-/d;
-    }
 }
 
 # git only shows files already added so we need to check for unknown files
-# separately here. 
+# separately here.
 if($vcs eq "git") {
 	find(\&git_unknown_objects, "./");
 }
@@ -145,130 +197,143 @@ sub git_unknown_objects {
 	my ($dev,$ino,$mode,$nlink,$uid,$gid);
 
 	# Ignore empty directories - git doesn't version them and cvs removes them.
-    if ((($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_)) && ! -d _) { 
+	if ( (($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_)) && ! -d _ ) {
 		open C, $vcs." status $_ 2>&1 1>/dev/null |";
-
-    	while (<C>) {
+		
+		while (<C>) {
 			$_ = <C>;
 			push @unknown, $object;
-    	};
-    	close C;
+		};
+	
+		close C;
 	};
 }
 
 # Separate out the trivial files for now
-@files = grep { 
-    !/files.digest|Manifest|ChangeLog/ or do { push @trivial, $_; 0; }
+@files = grep {
+	!/files.digest|Manifest|ChangeLog/ or do { push @trivial, $_; 0; }
 } @files;
 
-@unknown = grep { 
-    !/files.digest|Manifest|ChangeLog/ or do { push @trivial, $_; 0; }
+@unknown = grep {
+	!/files.digest|Manifest|ChangeLog/ or do { push @trivial, $_; 0; }
 } @unknown;
 
 # Don't allow any conflicts
 if (@conflicts) {
-    print STDERR <<EOT;
+	print STDERR <<EOT;
 $vcs reports the following conflicts.  Please resolve them before
 running echangelog.
 EOT
-    print STDERR map "C $_\n", @conflicts;
-    exit 1;
+	print STDERR map "C $_\n", @conflicts;
+	exit 1;
 }
 
 # Don't allow unknown files (other than the trivial files that were separated
 # out above)
 if (@unknown) {
-    print STDERR <<EOT;
+	print STDERR <<EOT;
 $vcs reports the following unknown files.  Please use "$vcs add" before
 running echangelog, or remove the files in question.
 EOT
-    print STDERR map "? $_\n", @unknown;
-    exit 1;
+	print STDERR map "? $_\n", @unknown;
+	exit 1;
 }
 
 # Sort the list of files as portage does.  None of the operations through
 # the rest of the script should break this sort.
 sub sortfunc($$) {
-    my ($a, $b) = @_;
-    (my $va = $a) =~ s/.*?-(\d.*?)(?:\.ebuild)?$/$1/;
-    (my $vb = $b) =~ s/.*?-(\d.*?)(?:\.ebuild)?$/$1/;
-    my ($na, $sa, $sna, $ra) = ($va =~ /^(.*?)(?:_(alpha|beta||pre|rc|p)(\d*))?(?:-r(\d+))?$/);
-    my ($nb, $sb, $snb, $rb) = ($vb =~ /^(.*?)(?:_(alpha|beta||pre|rc|p)(\d*))?(?:-r(\d+))?$/);
-    my (@na) = split /\.|(?<=\d)(?=[^\d\.])/, $na;
-    my (@nb) = split /\.|(?<=\d)(?=[^\d\.])/, $nb;
-    my $retval;
+	my ($a, $b) = @_;
+	(my $va = $a) =~ s/.*?-(\d.*?)(?:\.ebuild)?$/$1/;
+	(my $vb = $b) =~ s/.*?-(\d.*?)(?:\.ebuild)?$/$1/;
+	my ($na, $sa, $sna, $ra) = ($va =~ /^(.*?)(?:_(alpha|beta||pre|rc|p)(\d*))?(?:-r(\d+))?$/);
+	my ($nb, $sb, $snb, $rb) = ($vb =~ /^(.*?)(?:_(alpha|beta||pre|rc|p)(\d*))?(?:-r(\d+))?$/);
+	my (@na) = split /\.|(?<=\d)(?=[^\d\.])/, $na;
+	my (@nb) = split /\.|(?<=\d)(?=[^\d\.])/, $nb;
+	my $retval;
 
-    #
-    # compare version numbers first
-    #
-    for (my $i = 0; defined $na[$i] or defined $nb[$i]; $i++) {
-        # def vs. undef
-        return +1 if defined $na[$i] and !defined $nb[$i];
-        return -1 if defined $nb[$i] and !defined $na[$i];
+	#
+	# compare version numbers first
+	#
+	for (my $i = 0; defined $na[$i] or defined $nb[$i]; $i++) {
+		# def vs. undef
+		return +1 if defined $na[$i] and !defined $nb[$i];
+		return -1 if defined $nb[$i] and !defined $na[$i];
 
-        # num vs. num
-        if ($na[$i] =~ /^\d/ and $nb[$i] =~ /^\d/) {
-            $retval = ($na[$i] <=> $nb[$i]);
-            return $retval if $retval;
-            next;
-        }
+		# num vs. num
+		if ($na[$i] =~ /^\d/ and $nb[$i] =~ /^\d/) {
+			$retval = ($na[$i] <=> $nb[$i]);
+			return $retval if $retval;
+			next;
+		}
 
-        # char vs. char
-        if ($na[$i] =~ /^\D/ and $nb[$i] =~ /^\D/) {
-            $retval = ($na[$i] cmp $nb[$i]);
-            return $retval if $retval;
-            next;
-        }
+		# char vs. char
+		if ($na[$i] =~ /^\D/ and $nb[$i] =~ /^\D/) {
+			$retval = ($na[$i] cmp $nb[$i]);
+			return $retval if $retval;
+			next;
+		}
 
-        # num vs. char
-        $retval = ($na[$i] =~ /\d/ and -1 or +1);
-        return $retval;
-    }
+		# num vs. char
+		$retval = ($na[$i] =~ /\d/ and -1 or +1);
+		return $retval;
+	}
 
-    #
-    # compare suffix second
-    #
-    if (defined $sa and !defined $sb) {
-        return +2 if $sa eq "p";
-        return -2;
-    }
-    if (defined $sb and !defined $sa) {
-        return -3 if $sb eq "p";
-        return +3;
-    }
+	#
+	# compare suffix second
+	#
+	if (defined $sa and !defined $sb) {
+		return +2 if $sa eq "p";
+		return -2;
+	}
+	if (defined $sb and !defined $sa) {
+		return -3 if $sb eq "p";
+		return +3;
+	}
 
-    if (defined $sa) {  # and defined $sb
-        $retval = ($sa cmp $sb);
-        if ($retval) {
-            return +4 if $sa eq "p";
-            return -4 if $sb eq "p";
-            return $retval; # suffixes happen to be alphabetical order, mostly
-        }
+	if (defined $sa) { # and defined $sb
+		$retval = ($sa cmp $sb);
+		if ($retval) {
+			return +4 if $sa eq "p";
+			return -4 if $sb eq "p";
+			return $retval; # suffixes happen to be alphabetical order, mostly
+		}
 
-        # compare suffix number
-        return +5 if defined $sna and !defined $snb;
-        return -5 if defined $snb and !defined $sna;
-        if (defined $sna) {  # and defined $snb
-            $retval = ($sna <=> $snb);
-            return $retval if $retval;
-        }
-    }
+		# compare suffix number
+		return +5 if defined $sna and !defined $snb;
+		return -5 if defined $snb and !defined $sna;
+		
+		if (defined $sna) {  # and defined $snb
+			$retval = ($sna <=> $snb);
+			return $retval if $retval;
+		}
+	}
 
-    #
-    # compare rev third
-    #
-    return +6 if defined $ra and !defined $rb;
-    return -6 if defined $rb and !defined $ra;
-    if (defined $ra) {  # and defined $rb
-        return ($ra <=> $rb);
-    }
+	#
+	# compare rev third
+	#
+	return +6 if defined $ra and !defined $rb;
+	return -6 if defined $rb and !defined $ra;
+	
+	if (defined $ra) { # and defined $rb
+		return ($ra <=> $rb);
+	}
 
-    #
-    # nothing left to compare
-    #
-    return 0;
+	#
+	# nothing left to compare
+	#
+	return 0;
 }
+
 @files = sort sortfunc @files;
+
+# Just to ensure we don't get duplicate entries.
+sub mypush(\@@) {
+	my $aref = shift;
+
+	foreach my $value (@_) {
+		push(@{$aref}, $value) if !grep(/^$value$/, @{$aref});
+	}
+}
 
 # Forget ebuilds that only have changed copyrights, unless that's all
 # the changed files we have
@@ -277,61 +342,80 @@ sub sortfunc($$) {
 @files = grep !/\.ebuild$/, @files;
 
 if (@ebuilds) {
-    if ($vcs eq "git") {
-    	open C, $vcs{$vcs}{diff}." HEAD -- @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
-    } else { 
-        open C, $vcs{$vcs}{diff}." @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
-    }
-    $_ = <C>;
-    while (defined $_) {
-	# only possible with cvs
-	if (/^$vcs diff: (([^\/]*?)\.ebuild) was removed/) { 
-		push @files, $1;
+	if ($vcs eq "git") {
+		open C, $vcs{$vcs}{diff}." HEAD -- @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
+	} else {
+		open C, $vcs{$vcs}{diff}." @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
 	}
 
-	# We assume GNU diff output format here.
-	# git format: diff --git a/app-doc/repodoc/metadata.xml b/app-doc/repodoc/metadata.xml
-	elsif (/$vcs{$vcs}{regex}/) {
-		my $f;
-		if ($vcs eq "git") {
-    		($f) = ($1);
-    		my $version = ($2);
-       		while (<C>) {
-               	last if /^deleted file mode|^index/;
-               	if (/^new file mode/) {
-    				push @new_versions, $version;  # new ebuild, will create a new entry
-                   	last;
-       			}
-    		}
-		} else { 
-			($f) = ($2);
+	$_ = <C>;
+
+	while (defined $_) {
+		# only possible with cvs
+		if (/^$vcs diff: (([^\/]*?)\.ebuild) was removed/) {
+			mypush(@files, $1);
+		}
+		# We assume GNU diff output format here.
+		# git format: diff --git a/app-doc/repodoc/metadata.xml b/app-doc/repodoc/metadata.xml
+		elsif (/$vcs{$vcs}{regex}/) {
+			my $f = $1;
+
+			if ($vcs eq "git") {
+				my $version = $2;
+				
+				while (<C>) {
+					last if /^deleted file mode|^index/;
+					if (/^new file mode/) {
+						mypush(@files, $f);
+						mypush(@new_versions, $version);
+						last;
+					}
+				}
+			}
+
+			# check if more than just copyright date changed.
+			# skip some lines (vcs dependent)
+			foreach(1..$vcs{$vcs}{skip}) {
+				$_ = <C>;
+			}
+
+			while (<C>) {
+				last if /^[A-Za-z]/;
+				if (/^[-+](?!# Copyright)/) {
+					mypush(@files, $f);
+					last;
+				}
+			}
+
+			# at this point we've either added $f to @files or not,
+			# and we have the next line in $_ for processing
+			next;
+		}
+		elsif (/^$vcs.*?: (([^\/]*?)\.ebuild) is a new entry/) {
+			mypush(@files, $1);
+			mypush(@new_versions, $2);
 		}
 
-            # check if more than just copyright date changed.
-            # skip some lines (vcs dependent)
-           foreach(1..$vcs{$vcs}{skip}){
-				$_ = <C>;
-           }
-        	while (<C>) {
-                last if /^[A-Za-z]/;
-                if (/^[-+](?!# Copyright)/) {
-                    push @files, $f;
-                    last;
-                }
-            }
-            # at this point we've either added $f to @files or not,
-            # and we have the next line in $_ for processing
-            next;
-        }
-        elsif (/^$vcs.*?: (([^\/]*?)\.ebuild) is a new entry/) { 
-            push @files, $1;
-            push @new_versions, $2;  # new ebuild, will create a new entry
-        }
-        # other cvs output is ignored
-        $_ = <C>;
-    }
+		# other cvs output is ignored
+		$_ = <C>;
+	}
 }
 close C;
+
+# Subversion diff doesn't identify new versions. So use the status command
+if (($vcs eq "svn") and (@ebuilds)) {
+	open C, $vcs{$vcs}{status}." @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{status}."$!\n";
+	$_ = <C>;
+
+	while (defined $_) {
+		if (/^A\s+\+?\s*(([^\s]*)\.ebuild)/) {
+			mypush(@files, $1);
+			mypush(@new_versions, $2);
+		}
+		
+		$_ = <C>;
+	}
+}
 
 # When a package move occurs, the versions appear to be new even though they are
 # not.  Trim them from @new_versions in that case.
@@ -343,48 +427,62 @@ close C;
 
 # Allow ChangeLog entries with no changed files, but give a fat warning
 unless (@files) {
-    print STDERR "**\n";
-    print STDERR "** NOTE: No non-trivial changed files found.  Normally echangelog\n";
-    print STDERR "** should be run after all affected files have been added and/or\n";
-    print STDERR "** modified.  Did you forget to $vcs add?\n";
-    print STDERR "**\n";
-    @files = sort sortfunc @trivial;
-    @files = qw/ChangeLog/ unless @files;  # last resort to put something in the list
+	print STDERR "**\n";
+	print STDERR "** NOTE: No non-trivial changed files found.  Normally echangelog\n";
+	print STDERR "** should be run after all affected files have been added and/or\n";
+	print STDERR "** modified.  Did you forget to $vcs add?\n";
+	print STDERR "**\n";
+
+	if ($opt_strict) {
+		print STDERR "** In strict mode, exiting\n";
+		exit 1;
+	}
+
+	@files = sort sortfunc @trivial;
+	@files = qw/ChangeLog/ unless @files;  # last resort to put something in the list
 }
+
+# sort
+@files = sort sortfunc @files;
+@new_versions = sort sortfunc @new_versions;
 
 # Get the input from the cmdline, editor or stdin
 if ($ARGV[0]) {
-    $input = "@ARGV";
+	$input = "@ARGV";
 } else {
-    # Testing for defined() allows ECHANGELOG_EDITOR='' to cancel EDITOR
-    $editor = defined($ENV{'ECHANGELOG_EDITOR'}) ? $ENV{'ECHANGELOG_EDITOR'} :
-        $ENV{'EDITOR'} || undef;
-    if ($editor) {
-        system("$editor ChangeLog.new");
-        if ($? != 0) {
-            # This usually happens when the editor got forcefully killed; and
-            # the terminal is probably messed up: so we reset things.
-            system('/usr/bin/stty sane');
-            print STDERR "Editor died!  Reverting to stdin method.\n";
-            undef $editor;
-        } else {
-            if (open I, "<ChangeLog.new") {
-                local $/ = undef;
-                $input = <I>;
-                close I;
-            } else {
-                print STDERR "Error opening ChangeLog.new: $!\n";
-                print STDERR "Reverting to stdin method.\n";
-                undef $editor;
-            }
-            unlink 'ChangeLog.new';
-        }
-    }
-    unless ($editor) {
-        print "Please type the log entry: use Ctrl-d to finish, Ctrl-c to abort...\n";
-        local $/ = undef;
-        $input = <>;
-    }
+	# Testing for defined() allows ECHANGELOG_EDITOR='' to cancel EDITOR
+	$editor = defined($ENV{'ECHANGELOG_EDITOR'}) ? $ENV{'ECHANGELOG_EDITOR'} :
+	$ENV{'EDITOR'} || undef;
+	
+	if ($editor) {
+		system("$editor ChangeLog.new");
+
+		if ($? != 0) {
+			# This usually happens when the editor got forcefully killed; and
+			# the terminal is probably messed up: so we reset things.
+			system('/usr/bin/stty sane');
+			print STDERR "Editor died!  Reverting to stdin method.\n";
+			undef $editor;
+		} else {
+			if (open I, "<ChangeLog.new") {
+				local $/ = undef;
+				$input = <I>;
+				close I;
+			} else {
+				print STDERR "Error opening ChangeLog.new: $!\n";
+				print STDERR "Reverting to stdin method.\n";
+				undef $editor;
+			}
+
+			unlink 'ChangeLog.new';
+		}
+	}
+	
+	unless ($editor) {
+		print "Please type the log entry: use Ctrl-d to finish, Ctrl-c to abort...\n";
+		local $/ = undef;
+		$input = <>;
+	}
 }
 die "Empty entry; aborting\n" unless $input =~ /\S/;
 
@@ -395,18 +493,20 @@ $input = Text::Wrap::fill('  ', '  ', $input);
 
 # Prepend the user info to the input
 unless ($user = $ENV{'ECHANGELOG_USER'}) {
-    my ($fullname, $username) = (getpwuid($<))[6,0];
-    $fullname =~ s/,.*//;       # remove GECOS, bug 80011
-    $user = sprintf "%s <%s\@gentoo.org>", $fullname, $username;
+	my ($fullname, $username) = (getpwuid($<))[6,0];
+	$fullname =~ s/,.*//;       # remove GECOS, bug 80011
+	$user = sprintf "%s <%s\@gentoo.org>", $fullname, $username;
 }
+
 # Make sure that we didn't get "root"
 die "Please set ECHANGELOG_USER or run as non-root\n" if $user =~ /<root@/;
+
 $date = strftime("%d %b %Y", gmtime);
 $entry = "$date; $user ";
 $entry .= join ', ', map "$actions{$_}$_", @files;
 $entry .= ':';
-$entry = Text::Wrap::fill('  ', '  ', $entry);  # does not append a \n
-$entry .= "\n$input";                           # append user input
+$entry = Text::Wrap::fill('  ', '  ', $entry); # does not append a \n
+$entry .= "\n$input";                          # append user input
 
 # Each one of these regular expressions will eat the whitespace
 # leading up to the next entry (except the two-space leader on the
@@ -414,28 +514,49 @@ $entry .= "\n$input";                           # append user input
 # double carriage-return.  This helps to normalize the spacing in
 # the ChangeLogs.
 if (@new_versions) {
-    # Insert at the top with a new version marker
-    $text =~ s/^( .*? )               # grab header
-               \s*\n(?=\ \ \d|\*|\z)  # suck up trailing whitespace
-    /"$1\n\n" .
-     join("\n", map "*$_ ($date)", reverse @new_versions) .
-     "\n\n$entry\n\n"/sxe
-        or die "Failed to insert new entry (4)\n";
+	# Insert at the top with a new version marker
+	$text =~ s/^( .*? )               # grab header
+    	\s*\n(?=\ \ \d|\*|\z)  # suck up trailing whitespace
+		/"$1\n\n" .
+		join("\n", map "*$_ ($date)", reverse @new_versions) .
+		"\n\n$entry\n\n"/sxe
+			or die "Failed to insert new entry (4)\n";
 } else {
-    # Changing an existing patch or ebuild, no new version marker
-    # required
-    $text =~ s/^( .*? )               # grab header
-               \s*\n(?=\ \ \d|\*|\z)  # suck up trailing whitespace
-    /$1\n\n$entry\n\n/sx
-        or die "Failed to insert new entry (3)\n";
+	# Changing an existing patch or ebuild, no new version marker
+	# required
+	$text =~ s/^( .*? )               # grab header
+		\s*\n(?=\ \ \d|\*|\z)  # suck up trailing whitespace
+		/$1\n\n$entry\n\n/sx
+			or die "Failed to insert new entry (3)\n";
+}
+
+sub update_cat_pn {
+	my ($t) = @_;
+	my ($cwd) = getcwd();
+
+	$cwd =~ m|.*/(\w+-\w+\|virtual)/([^/]+)|
+		or die "Can't figure out category/package.. sorry!\n";
+	my ($category, $package_name) = ($1, $2);
+	$t =~ s/^(# ChangeLog for).*/$1 $category\/$package_name/;
+
+	return $t;
+}
+
+# New packages and/or ones that have moved around often have stale data here.
+# But only do that in places where ebuilds are around (as echangelog can be
+# used in profiles/ and such places).
+if (grep(/\.ebuild$/, @files)) {
+	$text = update_cat_pn($text);
 }
 
 sub update_copyright {
-    my ($t) = @_;
-    (my $year = $date) =~ s/.* //;
-    $t =~ s/^# Copyright \d+(?= )/$&-$year/m or
-    $t =~ s/^(# Copyright \d+)-(\d+)/$1-$year/m;
-    return $t;
+	my ($t) = @_;
+	(my $year = $date) =~ s/.* //;
+
+	$t =~ s/^# Copyright \d+(?= )/$&-$year/m or
+	$t =~ s/^(# Copyright) \d+-(\d+)/$1 1999-$year/m;
+
+	return $t;
 }
 
 # Update the copyright year in the ChangeLog
@@ -450,25 +571,26 @@ close O                  or die "Can't close ChangeLog.new: $!\n";
 # copyright lines on ebuilds that haven't changed.  I verified this with an IP
 # lawyer.
 for my $e (grep /\.ebuild$/, @files) {
-  if (-s $e) {
-    my ($etext, $netext);
-    open E, "<$e" or warn("Can't read $e to update copyright year\n"), next;
-    { local $/ = undef; $etext = <E>; }
-    close E;
+	if (-s $e) {
+		my ($etext, $netext);
 
-    # Attempt the substitution and compare
-    $netext = update_copyright($etext);
-    next if $netext eq $etext; # skip this file if no change.
+		open E, "<$e" or warn("Can't read $e to update copyright year\n"), next;
+		{ local $/ = undef; $etext = <E>; }
+		close E;
 
-    # Write the new ebuild
-    open E, ">$e.new" or warn("Can't open $e.new\n"), next;
-    print E $netext and
-    close E or warn("Can't write $e.new\n"), next;
+		# Attempt the substitution and compare
+		$netext = update_copyright($etext);
+		next if $netext eq $etext; # skip this file if no change.
 
-    # Move things around and show the diff
-    system "diff -U 0 $e $e.new";
-    rename "$e.new", $e or warn("Can't rename $e.new: $!\n");
-  }
+		# Write the new ebuild
+		open E, ">$e.new" or warn("Can't open $e.new\n"), next;
+		print E $netext and
+		close E or warn("Can't write $e.new\n"), next;
+
+		# Move things around and show the diff
+		system "diff -U 0 $e $e.new";
+		rename "$e.new", $e or warn("Can't rename $e.new: $!\n");
+	}
 }
 
 # Move things around and show the ChangeLog diff
@@ -476,18 +598,18 @@ system 'diff -Nu ChangeLog ChangeLog.new';
 rename 'ChangeLog.new', 'ChangeLog' or die "Can't rename ChangeLog.new: $!\n";
 
 # Okay, now we have a starter ChangeLog to work with.
-# The text will be added just like with any other ChangeLog below.  
+# The text will be added just like with any other ChangeLog below.
 # Add the new ChangeLog to vcs before continuing.
 if ($vcs eq "cvs") {
-    if (open F, "CVS/Entries") {
-        system("cvs -f add ChangeLog") unless (scalar grep /^\/ChangeLog\//, <F>);
-    }
+	if (open F, "CVS/Entries") {
+		system("cvs -f add ChangeLog") unless (scalar grep /^\/ChangeLog\//, <F>);
+	}
 } elsif ($vcs eq "svn") {
-    if (open F, ".svn/entries") {
-        system("svn add ChangeLog") unless (scalar grep /ChangeLog/, <F>);
-    }
+	if (open F, ".svn/entries") {
+		system("svn add ChangeLog") unless (scalar grep /ChangeLog/, <F>);
+	}
 } else {
-    system("$vcs{$vcs}{add} ChangeLog 2>&1 >> /dev/null");
+	system("$vcs{$vcs}{add} ChangeLog 2>&1 >> /dev/null");
 }
 
-# vim:sw=4 ts=8 expandtab
+# vim: set ts=4 sw=4 tw=0:

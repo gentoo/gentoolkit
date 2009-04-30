@@ -7,6 +7,7 @@
 #
 # $Header$
 
+import os
 from errors import FatalError
 import portage
 from gentoolkit import *
@@ -25,6 +26,7 @@ class Package:
 		self._db = None
 		self._settings = settings
 		self._settingslock = settingslock
+		self._portdir_path = os.path.realpath(settings["PORTDIR"])
 
 	def get_name(self):
 		"""Returns base name of package, no category nor version"""
@@ -151,7 +153,7 @@ class Package:
 	def is_overlay(self):
 		"""Returns true if the package is in an overlay."""
 		dir,ovl = portage.portdb.findname2(self._cpv)
-		return ovl != settings["PORTDIR"]
+		return ovl != self._portdir_path
 
 	def is_masked(self):
 		"""Returns true if this package is masked against installation. Note: We blindly assume that
