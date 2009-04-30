@@ -1,3 +1,7 @@
+2009-04-30: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Add patch from loki_val to check -l dependencies in 
+	.la files (Bug #267898)
+
 2009-04-24: Paul Varner <fuzzyray@gentoo.org>
 	* ekeyword: Fix to handle multiline KEYWORDS (Bug #267250)
 
