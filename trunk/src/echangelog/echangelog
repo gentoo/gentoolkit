@@ -90,11 +90,16 @@ if ( -d "CVS" ) {
 	$vcs = "cvs";
 } elsif ( -d '.svn' ) {
 	$vcs = "svn";
-} elsif ( -f '/usr/bin/git' and open GIT, "git rev-parse --git-dir |" ) {
-	$vcs = "git";
-	close GIT;
 } else {
-	die "No CVS, .git, .svn directories found, what kind of repo is this?";
+	if ( -x '/usr/bin/git' ) {
+		open(GIT, '-|', "git rev-parse --git-dir 2>/dev/null");
+		$vcs = "git" if defined(<GIT>);
+		close(GIT);
+	}
+
+	if ( ! $vcs ) {
+		die "No CVS, .git, .svn directories found, what kind of repo is this?";
+	}
 }
 
 # Read the current ChangeLog
