@@ -76,6 +76,19 @@ sub version {
 	exit 0;
 }
 
+sub getenv($) {
+    my $key = shift;
+
+    # Ensure our variable exist
+    if ( defined($ENV{$key}) ) { 
+        # Ensure we don't get empty variables
+        if ( length($ENV{$key}) > 0 ) { 
+            return $ENV{$key};
+        }   
+    }   
+    return undef;
+}
+
 GetOptions(
 	'help' => \$opt_help,
 	'strict' => \$opt_strict,
@@ -450,10 +463,8 @@ unless (@files) {
 if ($ARGV[0]) {
 	$input = "@ARGV";
 } else {
-	# Testing for defined() allows ECHANGELOG_EDITOR='' to cancel EDITOR
-	$editor = defined($ENV{'ECHANGELOG_EDITOR'}) ? $ENV{'ECHANGELOG_EDITOR'} :
-	$ENV{'EDITOR'} || undef;
-	
+	$editor = getenv('ECHANGELOG_EDITOR') ? getenv('ECHANGELOG_EDITOR') : getenv('EDITOR') || undef;
+
 	if ($editor) {
 		system("$editor ChangeLog.new");
 
@@ -474,7 +485,7 @@ if ($ARGV[0]) {
 				undef $editor;
 			}
 
-			unlink 'ChangeLog.new';
+			unlink('ChangeLog.new') if -f 'ChangeLog.new';
 		}
 	}
 	
@@ -492,10 +503,25 @@ $input =~ s/^\s*(.*?)\s*\z/$1/s;  # trim whitespace
 $input = Text::Wrap::fill('  ', '  ', $input);
 
 # Prepend the user info to the input
-unless ($user = $ENV{'ECHANGELOG_USER'}) {
+# Changes related to bug 213374;
+# This sequence should be right:
+# 1. GENTOO_COMMITTER_NAME && GENTOO_COMMITTER_EMAIL
+# 2. GENTOO_AUTHOR_NAME && GENTOO_AUTHOR_EMAIL
+# 3. ECHANGELOG_USER (fallback/obsolete?)
+# 4. getpwuid()..
+if ( getenv("GENTOO_COMMITTER_NAME") && getenv("GENTOO_COMMITTER_EMAIL") ) {
+	$user = sprintf("%s <%s>", getenv("GENTOO_COMMITTER_NAME"), getenv("GENTOO_COMMITTER_EMAIL"));
+}
+elsif ( getenv("GENTOO_AUTHOR_NAME") && getenv("GENTOO_AUTHOR_EMAIL") ) {
+	$user = sprintf("%s <%s>", getenv("GENTOO_AUTHOR_NAME"), getenv("GENTOO_AUTHOR_EMAIL"));
+}
+elsif ( getenv("ECHANGELOG_USER") ) {
+	$user = getenv("ECHANGELOG_USER");
+}
+else {
 	my ($fullname, $username) = (getpwuid($<))[6,0];
-	$fullname =~ s/,.*//;       # remove GECOS, bug 80011
-	$user = sprintf "%s <%s\@gentoo.org>", $fullname, $username;
+	$fullname =~ s/,.*//; # remove GECOS, bug 80011
+	$user = sprintf('%s <%s@gentoo.org>', $fullname, $username);
 }
 
 # Make sure that we didn't get "root"
