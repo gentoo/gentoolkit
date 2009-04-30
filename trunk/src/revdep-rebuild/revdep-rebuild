@@ -737,18 +737,39 @@ main_checks() {
 				fi
 			elif [[ $SEARCH_BROKEN ]]; then
 				# Look for broken .la files
+				la_SEARCH_DIRS="$SEARCH_DIRS"
+				la_search_dir=""
+				la_broken=""
+				la_lib=""
 				for depend in $(
 					gawk -F"[=']" '/^dependency_libs/{
-						gsub("^-[^[:space:]]*", "", $3);
-						gsub("[[:space:]]-[^[:space:]]*", "", $3);
 						print $3
 					}' "$target_file"
 				); do
 					if [[ $depend = /* && ! -e $depend ]]; then
 						echo "obj $target_file" >> "$BROKEN_FILE"
 						echo_v "  broken $target_file (requires $depend)"
+					elif [[ $depend = "-L/"* || $depend = "-R/"* ]]; then
+						if ! [[ $'\n'${la_SEARCH_DIRS}$'\n' == *$'\n'${depend#-?}$'\n'* ]]; then
+							la_SEARCH_DIRS+=$'\n'"${depend#-?}"
+						fi
+					elif [[ $depend = "-l"* ]]; then
+						la_lib="lib${depend#-l}"
+						la_broken="yes"
+						IFS=$'\n'
+						for la_search_dir in $la_SEARCH_DIRS; do
+							if [[ -e ${la_search_dir}/${la_lib}.so || -e ${la_search_dir}/${la_lib}.a ]]; then
+								la_broken="no"
+							fi
+						done
+						IFS="$OIFS"
+						if [[ $la_broken = yes ]]; then
+							echo "obj $target_file" >> "$BROKEN_FILE"
+							echo_v "  broken $target_file (requires $depend)"
+						fi
 					fi
 				done
+				unset la_SEARCH_DIRS la_search_dir la_broken la_lib
 			fi
 			[[ $VERBOSE ]] &&
 				progress $((++i)) $numFiles $target_file ||
