@@ -51,7 +51,7 @@ dist-gentoolkit:
 	( cd release ; tar zcf gentoolkit-$(VERSION)$(RELEASE_TAG).tar.gz gentoolkit-$(VERSION)$(RELEASE_TAG)/ )
 
 install:
-	echo "Err0r: Must use either install-gentoolkit or install-gentoolkit-dev"
+	echo "Error: Must use either install-gentoolkit or install-gentoolkit-dev"
 	exit 1
 
 install-gentoolkit:

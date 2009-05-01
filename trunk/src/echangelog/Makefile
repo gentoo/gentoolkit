@@ -6,13 +6,16 @@
 
 include ../../makedefs.mak
 
-%.1 : %.pod
-	pod2man $< > $@
+#%.1 : %.pod
+#	pod2man $< > $@
 
 .PHONY: all
-all: echangelog.1
 
-dist: echangelog.1
+#all: echangelog.1
+all:
+
+#dist: echangelog.1
+dist:
 	mkdir -p ../../$(distdir)/src/echangelog/
 	cp Makefile AUTHORS README TODO ChangeLog echangelog echangelog.pod echangelog.1 ../../$(distdir)/src/echangelog/
 
