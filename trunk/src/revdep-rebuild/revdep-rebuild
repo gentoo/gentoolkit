@@ -749,7 +749,7 @@ main_checks() {
 					if [[ $depend = /* && ! -e $depend ]]; then
 						echo "obj $target_file" >> "$BROKEN_FILE"
 						echo_v "  broken $target_file (requires $depend)"
-					elif [[ $depend = "-L/"* || $depend = "-R/"* ]]; then
+					elif [[ $depend = -[LR]/* ]]; then
 						if ! [[ $'\n'${la_SEARCH_DIRS}$'\n' == *$'\n'${depend#-?}$'\n'* ]]; then
 							la_SEARCH_DIRS+=$'\n'"${depend#-?}"
 						fi
