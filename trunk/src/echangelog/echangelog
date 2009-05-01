@@ -477,7 +477,7 @@ if ($ARGV[0]) {
 		if ($? != 0) {
 			# This usually happens when the editor got forcefully killed; and
 			# the terminal is probably messed up: so we reset things.
-			system('/usr/bin/stty sane');
+			system('stty sane');
 			print STDERR "Editor died!  Reverting to stdin method.\n";
 			undef $editor;
 		} else {
