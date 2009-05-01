@@ -343,8 +343,6 @@ sub sortfunc($$) {
 	return 0;
 }
 
-@files = sort sortfunc @files;
-
 # Just to ensure we don't get duplicate entries.
 sub mypush(\@@) {
 	my $aref = shift;
