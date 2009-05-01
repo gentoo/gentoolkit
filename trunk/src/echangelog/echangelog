@@ -104,10 +104,16 @@ if ( -d "CVS" ) {
 } elsif ( -d '.svn' ) {
 	$vcs = "svn";
 } else {
-	if ( -x '/usr/bin/git' ) {
-		open(GIT, '-|', "git rev-parse --git-dir 2>/dev/null");
-		$vcs = "git" if defined(<GIT>);
-		close(GIT);
+	# Respect $PATH while looking for git
+	if (getenv("PATH")) {
+		foreach my $path ( split(":", getenv("PATH")) ) {
+			if ( -X "$path/git" ) {
+				open(GIT, '-|', "git rev-parse --git-dir 2>/dev/null");
+				$vcs = "git" if defined(<GIT>);
+				close(GIT);
+				last;
+			}
+		}
 	}
 
 	if ( ! $vcs ) {
