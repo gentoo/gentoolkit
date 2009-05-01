@@ -89,6 +89,29 @@ sub getenv($) {
     return undef;
 }
 
+# Bug 264146.
+# Copied from Text::Wrap.
+# The only modified thing is:
+# We trim _just_ tab/space etc. but not \n/\r.
+# So \h should cover \x09, \x0B, \x0C and \x20.
+# \s treats even \n/\r as whitespace.
+sub text_fill {
+	my ($ip, $xp, @raw) = @_;
+	my @para;
+	my $pp;
+
+	for $pp ( split(/\n\s+/, join("\n", @raw)) ) {
+		$pp =~ s/\h+/ /g;
+		my $x = Text::Wrap::wrap($ip, $xp, $pp);
+		push(@para, $x);
+	}
+
+	# if paragraph_indent is the same as line_indent,
+	# separate paragraphs with blank lines
+	my $ps = ($ip eq $xp) ? "\n\n" : "\n";
+	return join ($ps, @para);
+}
+
 GetOptions(
 	'help' => \$opt_help,
 	'strict' => \$opt_strict,
@@ -508,8 +531,7 @@ die "Empty entry; aborting\n" unless $input =~ /\S/;
 
 # If there are any long lines, then wrap the input at $columns chars
 # (leaving 2 chars on left, one char on right, after adding indentation below).
-$input =~ s/^\s*(.*?)\s*\z/$1/s;  # trim whitespace
-$input = Text::Wrap::fill('  ', '  ', $input);
+$input = text_fill('  ', '  ', $input);
 
 # Prepend the user info to the input
 # Changes related to bug 213374;
