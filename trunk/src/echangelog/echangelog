@@ -458,7 +458,12 @@ unless (@files) {
 	}
 
 	@files = sort sortfunc @trivial;
-	@files = qw/ChangeLog/ unless @files;  # last resort to put something in the list
+
+	# last resort to put something in the list
+	unless (@files) {
+		@files = qw/ChangeLog/;
+		$actions{'ChangeLog'} = "";
+	}
 }
 
 # sort
