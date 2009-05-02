@@ -93,7 +93,6 @@ sub getenv($) {
 # Copied from Text::Wrap.
 # The only modified thing is:
 # We trim _just_ tab/space etc. but not \n/\r.
-# So \h should cover \x09, \x0B, \x0C and \x20.
 # \s treats even \n/\r as whitespace.
 sub text_fill {
 	my ($ip, $xp, @raw) = @_;
@@ -101,7 +100,7 @@ sub text_fill {
 	my $pp;
 
 	for $pp ( split(/\n\s+/, join("\n", @raw)) ) {
-		$pp =~ s/\h+/ /g;
+		$pp =~ s/[\x09|\x0B|\x0C|\x20]+/ /g;
 		my $x = Text::Wrap::wrap($ip, $xp, $pp);
 		push(@para, $x);
 	}
