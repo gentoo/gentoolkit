@@ -10,9 +10,11 @@ from __future__ import with_statement
 from sys import argv
 from fnmatch import fnmatch
 from shutil import copyfile
-from portage import settings
 
 import re
+import string
+
+from portage import settings
 
 STABLE_KEYWORDS = frozenset(settings["PORTAGE_ARCHLIST"].split())
 TEST_KEYWORDS = frozenset(['~'+k for k in STABLE_KEYWORDS])
@@ -59,7 +61,9 @@ for e in ebuilds:
 			curkw -= set(('~'+k,))
 			curkw |= set((k,))
 
-	result = 'KEYWORDS="%s"' % ' '.join(sorted(curkw))
+	result = 'KEYWORDS="%s"' % ' '.join(sorted(curkw,
+		key=lambda x: x.strip(string.punctuation).lower()))
+
 	if not pretend:
 		try:
 			with open(e, 'w') as rebuild:
