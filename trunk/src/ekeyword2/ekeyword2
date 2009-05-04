@@ -10,28 +10,11 @@ from __future__ import with_statement
 from sys import argv
 from fnmatch import fnmatch
 from shutil import copyfile
+from portage import settings
 
 import re
 
-STABLE_KEYWORDS = frozenset((
-	'alpha',
-	'amd64',
-	'amd64-fbsd',
-	'arm',
-	'hppa',
-	'ia64',
-	'mips',
-	'm68k',
-	'ppc',
-	'ppc-macos',
-	'ppc64',
-	's390',
-	'sparc',
-	'sparc-fbsd',
-	'sh',
-	'x86',
-	'x86-fbsd',
-))
+STABLE_KEYWORDS = frozenset(settings["PORTAGE_ARCHLIST"].split())
 TEST_KEYWORDS = frozenset(['~'+k for k in STABLE_KEYWORDS])
 KNOWN_KEYWORDS = STABLE_KEYWORDS | TEST_KEYWORDS
 
