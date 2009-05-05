@@ -1,3 +1,0 @@
-Check package's files against recorded MD5 sums and timestamps
-Syntax:
-  size pkgspec

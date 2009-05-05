@@ -1,6 +1,0 @@
---- test.patch	2009-04-28 14:13:26.171225175 +0200
-+++ test.patch	2009-04-28 14:12:26.246497830 +0200
-@@ -0,0 +1,3 @@
-+This is just an example.
-+Its used for several echangelog tests.
-+
