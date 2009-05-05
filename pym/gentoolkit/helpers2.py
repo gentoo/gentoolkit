@@ -132,6 +132,8 @@ def uses_globbing(query):
 def _do_complex_lookup(query, query_opts):
 	"""Find matches for a query which is a regex or includes globbing."""
 
+	# pylint: Too many branches (18/12)
+	# pylint: disable-message=R0912
 	result = []
 
 	if query_opts["includeInstalled"]:
@@ -239,8 +241,6 @@ def _do_simple_lookup(query, query_opts):
 
 def do_lookup(query, query_opts):
 	"""A high-level wrapper around gentoolkit package-finder functions.
-
-	@todo: equery modules to move to do_lookup: c,m,u,w
 
 	@type query: str
 	@param query: pkg, cat/pkg, pkg-ver, cat/pkg-ver, atom or regex
@@ -401,9 +401,9 @@ def prepare_categories(category_filter):
 
 
 def split_query(query):
-	"""Split a query, using either.
+	"""Split a query into category, name, version and revision.
 
-	@see: split_atom, gentoolkit.split_package_name
+	@type query: str
 	@param query: pkg, cat/pkg, pkg-ver, cat/pkg-ver, atom or regex
 	@rtype: tuple
 	@return: (category, pkg_name, version, revision)
