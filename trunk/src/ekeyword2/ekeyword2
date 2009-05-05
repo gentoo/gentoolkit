@@ -10,6 +10,7 @@ from __future__ import with_statement
 from sys import argv
 from fnmatch import fnmatch
 from shutil import copyfile
+from os import environ as env
 
 import re
 import string
@@ -17,16 +18,18 @@ import string
 from portage import settings
 
 STABLE_KEYWORDS = frozenset(settings["PORTAGE_ARCHLIST"].split())
-TEST_KEYWORDS = frozenset(['~'+k for k in STABLE_KEYWORDS])
-KNOWN_KEYWORDS = STABLE_KEYWORDS | TEST_KEYWORDS
+BROKEN_KEYWORDS = frozenset(['-*'] + ['-'+k for k in STABLE_KEYWORDS])
+TEST_KEYWORDS   = frozenset(['~'+k for k in STABLE_KEYWORDS])
+KNOWN_KEYWORDS  = STABLE_KEYWORDS | TEST_KEYWORDS | BROKEN_KEYWORDS
 
+argv = set(argv[1:])
 kw_re = re.compile(r'KEYWORDS="([^"]*)"')
-ebuilds = set([x for x in argv[1:] if fnmatch(x, '*.ebuild')])
-pretend = not bool(set(('-p', '--pretend',)) - set(argv))
-keywords = frozenset(argv[1:]) - ebuilds - set(('-p', '--pretend'))
+ebuilds = frozenset([x for x in argv if fnmatch(x, '*.ebuild')])
+pretend = bool(argv.intersection(('-p', '--pretend',)))
+keywords = argv.difference(('-p', '--pretend',)) - ebuilds
 
 if not ebuilds:
-	print 'usage: ekeyword [-p|--pretend] [~] [[~|-]arch [[~|-]arch]...] ebuild [ebuild...]'
+	print 'usage: ekeyword [-p|--pretend] [^|~|-][all] [[^|~|-]arch [[^|~|-]arch]...] ebuild [ebuild...]'
 
 for e in ebuilds:
 	# TODO: error handling for file I/O
@@ -47,20 +50,33 @@ for e in ebuilds:
 	orig = kw_re.search(ebuild)
 	curkw = set(orig.groups()[0].split())
 
-	if '~' in kw:
-		kw.remove('~')
+	# ^ or ^all by itself means remove all keywords
+	# (however, other keywords established in the same args still get set.)
+	if kw.intersection(('^', '^all',)):
+		kw -= set(('^', '^all',))
+		curkw = set()
+
+	# ~ or ~all by itself means set ~keyword for all keywords
+	# since ~ expands to "$HOME" in the shell, assume the user meant ~ if we see
+	# the expansion of "$HOME". (Hope there's no user named 'all'.)
+	if kw.intersection(('~', '~all', env['HOME'],)):
+		kw -= set(('~', '~all', env['HOME'],))
 		curkw = set(['~'+k if k in STABLE_KEYWORDS else k for k in curkw])
 
 	for k in kw:
-		if k[0] == '-':
-			curkw -= set(('~'+k[1:], k[1:],))
-		elif k[0] == '~':
-			curkw -= set((k[1:],))
+		# Remove keywords starting with ^
+		if k[0] == '^':
+			curkw -= set((k[1:], '-'+k[1:], '~'+k[1:], ))
+		# Set ~ and - keywords to TEST and BROKEN, respectively
+		elif k[0] == '~' or k[0] == '-':
+			curkw -= set((k[1:], '-'+k[1:], '~'+k[1:], ))
 			curkw |= set((k,))
+		# Set remaining keywords to STABLE
 		else:
 			curkw -= set(('~'+k,))
 			curkw |= set((k,))
 
+	# Sort by arch, then OS (Luckily, this makes -* show up first if it's there)
 	result = 'KEYWORDS="%s"' % ' '.join(sorted(curkw,
 		key=lambda x: x.strip(string.punctuation).lower()))
 
