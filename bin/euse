@@ -346,7 +346,7 @@ showinstdesc() {
 	local current_desc
 	local args
 	local -i foundone=0
-	local IFS
+	local OIFS="$IFS"
 
 	args=("${@:-*}")
 
@@ -376,7 +376,7 @@ showinstdesc() {
 					echo "$desc"
 					# get list of installed packages matching this USE flag.
 					IFS=$'\n'
-					packages=($(equery -q -C hasuse -i "${1}" | awk '{ print $(NF-1) }'))
+					packages=($(equery -q -C hasuse -i "${1}" | awk '{ print $(NF-1) }' | sort))
 					foundone+=${#packages[@]}
 					printf "\nInstalled packages matching this USE flag: "
 					if [ ${foundone} -gt 0 ]; then
@@ -396,7 +396,9 @@ showinstdesc() {
 					#       exit status of equery instead of a subshell and pipe to wc -l
 					if [ $(equery -q -C list -i -e "${pkg}" | wc -l) -gt 0 ]; then
 						foundone=1
+						IFS="$OIFS"
 						get_flagstatus "${flag}"
+						IFS=': '
 						printf "%s (%s):\n%s\n\n" "${flag}" "${pkg}" "${desc#- }"
 					fi
 				done < <(grep ":${1}  *-" "${descdir}/use.local.desc")
@@ -408,6 +410,7 @@ showinstdesc() {
 	if [ ${foundone} -lt 1 ]; then
 		echo "no matching entries found"
 	fi
+	IFS="$OIFS"
 }
 
 # show a list of all currently active flags and where they are activated

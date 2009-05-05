@@ -465,7 +465,7 @@ class Package(object):
 		"""
 		if not self._db:
 			self._db = portage.dblink(
-				category,
+				self.category,
 				"%s-%s" % (self.name, self.fullversion),
 				settings["ROOT"],
 				settings
