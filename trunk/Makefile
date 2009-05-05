@@ -16,6 +16,9 @@ all:
 	echo $(sbindir)
 	echo $(mandir)
 
+test:
+	make -C src/echangelog test
+
 clean:
 	rm -rf release/*
 
