@@ -76,6 +76,74 @@ sub version {
 	exit 0;
 }
 
+sub getenv($) {
+    my $key = shift;
+
+    # Ensure our variable exist
+    if ( defined($ENV{$key}) ) {
+        # Ensure we don't get empty variables
+        if ( length($ENV{$key}) > 0 ) {
+            return $ENV{$key};
+        }
+    }
+    return undef;
+}
+
+# Bug 264146.
+# Copied from Text::Wrap.
+# The only modified thing is:
+# We trim _just_ tab/space etc. but not \n/\r.
+# \s treats even \n/\r as whitespace.
+# BUGS:
+# ' test'
+# ' test'
+# Will end up in:
+# ' test'
+# ''
+# 'test'
+# See 'my $ps = ($ip eq $xp) ? "\n\n" : "\n";'
+sub text_fill {
+	my ($ip, $xp, @raw) = @_;
+	my @para;
+	my $pp;
+
+	for $pp ( split(/\n\s+/, join("\n", @raw)) ) {
+		$pp =~ s/[\x09|\x0B|\x0C|\x20]+/ /g;
+		my $x = Text::Wrap::wrap($ip, $xp, $pp);
+		push(@para, $x);
+	}
+
+	# if paragraph_indent is the same as line_indent,
+	# separate paragraphs with blank lines
+	my $ps = ($ip eq $xp) ? "\n\n" : "\n";
+	return join ($ps, @para);
+}
+
+sub changelog_info(%) {
+	my %changed = @_;
+
+	open(INFO, '>', 'ChangeLog.new');
+
+	print(INFO "\n");
+	print(INFO "# Please enter the ChangeLog message for your changes. Lines starting\n");
+	print(INFO "# with '#' will be ignored, and an empty message aborts the ChangeLog.\n");
+	print(INFO "#\n# Changes:\n");
+
+	foreach my $key (keys(%changed)) {
+		if ($changed{$key} eq "+") {
+			printf(INFO "# new file:\t%s\n", $key);
+		}
+		elsif ($changed{$key} eq "-") {
+			printf(INFO "# deleted:\t%s\n", $key);
+		}
+		else {
+			printf(INFO "# modified:\t%s\n", $key);
+		}
+	}
+
+	close(INFO);
+}
+
 GetOptions(
 	'help' => \$opt_help,
 	'strict' => \$opt_strict,
@@ -91,10 +159,16 @@ if ( -d "CVS" ) {
 } elsif ( -d '.svn' ) {
 	$vcs = "svn";
 } else {
-	if ( -x '/usr/bin/git' ) {
-		open(GIT, '-|', "git rev-parse --git-dir 2>/dev/null");
-		$vcs = "git" if defined(<GIT>);
-		close(GIT);
+	# Respect $PATH while looking for git
+	if (getenv("PATH")) {
+		foreach my $path ( split(":", getenv("PATH")) ) {
+			if ( -X "$path/git" ) {
+				open(GIT, '-|', "git rev-parse --git-dir 2>/dev/null");
+				$vcs = "git" if defined(<GIT>);
+				close(GIT);
+				last;
+			}
+		}
 	}
 
 	if ( ! $vcs ) {
@@ -115,7 +189,7 @@ if (-f 'ChangeLog') {
 		close C;
 
 		$new =~ s/\s+$//;
-		open I, "< $new/skel.ChangeLog" 
+		open I, "< $new/skel.ChangeLog"
 			or die "Can't open $new/skel.ChangeLog for input: $!\n";
 		{ local $/ = undef; $text = <I>; }
 		close I;
@@ -140,7 +214,7 @@ while (<C>) {
 			push @conflicts, $1;
 			next;
 		}
-		
+
 		push @conflicts, $1;
 		next;
 	} elsif (/^\?\s+(\S+)/) {
@@ -157,18 +231,18 @@ while (<C>) {
 		} else {
 			push @unknown, $1;
 		}
-		
+
 		$actions{$1} = '+';
 		next;
 	} elsif (/^([ARMD])\s+\+?\s*(\S+)/) {
 		my ($status, $filename) = ($1,$2);
-		
+
 		if($vcs eq "git") {
 			open P, "git rev-parse --sq --show-prefix |";
 			my $prefix = <P>;
 			$prefix = substr($prefix, 0, -1);
 			close P;
-			
+
 			if ($filename =~ /$prefix(\S*)/) {
 				$filename = $1 ;
 			}
@@ -176,11 +250,11 @@ while (<C>) {
 				next;
 			}
 		}
-		
+
 		if( -d $filename ) {
 			next;
 		}
-		
+
 		push @files, $filename;
 		($actions{$filename} = $status) =~ tr/DARM/-+-/d;
 	}
@@ -199,12 +273,12 @@ sub git_unknown_objects {
 	# Ignore empty directories - git doesn't version them and cvs removes them.
 	if ( (($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_)) && ! -d _ ) {
 		open C, $vcs." status $_ 2>&1 1>/dev/null |";
-		
+
 		while (<C>) {
 			$_ = <C>;
 			push @unknown, $object;
 		};
-	
+
 		close C;
 	};
 }
@@ -301,7 +375,7 @@ sub sortfunc($$) {
 		# compare suffix number
 		return +5 if defined $sna and !defined $snb;
 		return -5 if defined $snb and !defined $sna;
-		
+
 		if (defined $sna) {  # and defined $snb
 			$retval = ($sna <=> $snb);
 			return $retval if $retval;
@@ -313,7 +387,7 @@ sub sortfunc($$) {
 	#
 	return +6 if defined $ra and !defined $rb;
 	return -6 if defined $rb and !defined $ra;
-	
+
 	if (defined $ra) { # and defined $rb
 		return ($ra <=> $rb);
 	}
@@ -323,8 +397,6 @@ sub sortfunc($$) {
 	#
 	return 0;
 }
-
-@files = sort sortfunc @files;
 
 # Just to ensure we don't get duplicate entries.
 sub mypush(\@@) {
@@ -362,7 +434,7 @@ if (@ebuilds) {
 
 			if ($vcs eq "git") {
 				my $version = $2;
-				
+
 				while (<C>) {
 					last if /^deleted file mode|^index/;
 					if (/^new file mode/) {
@@ -412,7 +484,7 @@ if (($vcs eq "svn") and (@ebuilds)) {
 			mypush(@files, $1);
 			mypush(@new_versions, $2);
 		}
-		
+
 		$_ = <C>;
 	}
 }
@@ -439,7 +511,12 @@ unless (@files) {
 	}
 
 	@files = sort sortfunc @trivial;
-	@files = qw/ChangeLog/ unless @files;  # last resort to put something in the list
+
+	# last resort to put something in the list
+	unless (@files) {
+		@files = qw/ChangeLog/;
+		$actions{'ChangeLog'} = "";
+	}
 }
 
 # sort
@@ -450,34 +527,39 @@ unless (@files) {
 if ($ARGV[0]) {
 	$input = "@ARGV";
 } else {
-	# Testing for defined() allows ECHANGELOG_EDITOR='' to cancel EDITOR
-	$editor = defined($ENV{'ECHANGELOG_EDITOR'}) ? $ENV{'ECHANGELOG_EDITOR'} :
-	$ENV{'EDITOR'} || undef;
-	
+	$editor = getenv('ECHANGELOG_EDITOR') ? getenv('ECHANGELOG_EDITOR') : getenv('EDITOR') || undef;
+
 	if ($editor) {
+		# Append some informations.
+		changelog_info(%actions);
+
 		system("$editor ChangeLog.new");
 
 		if ($? != 0) {
 			# This usually happens when the editor got forcefully killed; and
 			# the terminal is probably messed up: so we reset things.
-			system('/usr/bin/stty sane');
+			system('stty sane');
 			print STDERR "Editor died!  Reverting to stdin method.\n";
 			undef $editor;
 		} else {
 			if (open I, "<ChangeLog.new") {
 				local $/ = undef;
 				$input = <I>;
-				close I;
+				close(I);
+
+				# Remove comments from changelog_info().
+				local $/ = "\n";
+				$input =~ s/^#.*//mg;
+				local $/ = undef;
 			} else {
 				print STDERR "Error opening ChangeLog.new: $!\n";
 				print STDERR "Reverting to stdin method.\n";
 				undef $editor;
 			}
-
-			unlink 'ChangeLog.new';
 		}
+		unlink('ChangeLog.new') if -f 'ChangeLog.new';
 	}
-	
+
 	unless ($editor) {
 		print "Please type the log entry: use Ctrl-d to finish, Ctrl-c to abort...\n";
 		local $/ = undef;
@@ -488,14 +570,28 @@ die "Empty entry; aborting\n" unless $input =~ /\S/;
 
 # If there are any long lines, then wrap the input at $columns chars
 # (leaving 2 chars on left, one char on right, after adding indentation below).
-$input =~ s/^\s*(.*?)\s*\z/$1/s;  # trim whitespace
-$input = Text::Wrap::fill('  ', '  ', $input);
+$input = text_fill('  ', '  ', $input);
 
 # Prepend the user info to the input
-unless ($user = $ENV{'ECHANGELOG_USER'}) {
+# Changes related to bug 213374;
+# This sequence should be right:
+# 1. GENTOO_COMMITTER_NAME && GENTOO_COMMITTER_EMAIL
+# 2. GENTOO_AUTHOR_NAME && GENTOO_AUTHOR_EMAIL
+# 3. ECHANGELOG_USER (fallback/obsolete?)
+# 4. getpwuid()..
+if ( getenv("GENTOO_COMMITTER_NAME") && getenv("GENTOO_COMMITTER_EMAIL") ) {
+	$user = sprintf("%s <%s>", getenv("GENTOO_COMMITTER_NAME"), getenv("GENTOO_COMMITTER_EMAIL"));
+}
+elsif ( getenv("GENTOO_AUTHOR_NAME") && getenv("GENTOO_AUTHOR_EMAIL") ) {
+	$user = sprintf("%s <%s>", getenv("GENTOO_AUTHOR_NAME"), getenv("GENTOO_AUTHOR_EMAIL"));
+}
+elsif ( getenv("ECHANGELOG_USER") ) {
+	$user = getenv("ECHANGELOG_USER");
+}
+else {
 	my ($fullname, $username) = (getpwuid($<))[6,0];
-	$fullname =~ s/,.*//;       # remove GECOS, bug 80011
-	$user = sprintf "%s <%s\@gentoo.org>", $fullname, $username;
+	$fullname =~ s/,.*//; # remove GECOS, bug 80011
+	$user = sprintf('%s <%s@gentoo.org>', $fullname, $username);
 }
 
 # Make sure that we didn't get "root"
@@ -516,7 +612,7 @@ $entry .= "\n$input";                          # append user input
 if (@new_versions) {
 	# Insert at the top with a new version marker
 	$text =~ s/^( .*? )               # grab header
-    	\s*\n(?=\ \ \d|\*|\z)  # suck up trailing whitespace
+		\s*\n(?=\ \ \d|\*|\z)  # suck up trailing whitespace
 		/"$1\n\n" .
 		join("\n", map "*$_ ($date)", reverse @new_versions) .
 		"\n\n$entry\n\n"/sxe

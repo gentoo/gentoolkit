@@ -17,7 +17,7 @@ try:
 except ImportError:
 	from output import *
 
-from getopt import getopt,GetoptError
+from getopt import getopt, GetoptError
 
 __program__ = "glsa-check"
 __author__ = "Marius Mauch <genone@gentoo.org>"
@@ -230,7 +230,7 @@ def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr):
 		fd1.write(")")
 		if list_cve:
 			fd1.write(" "+(",".join([r[:13] for r in myglsa.references if r[:4] in ["CAN-", "CVE-"]])))
-		fd1.write("\n")		
+		fd1.write("\n")
 	return 0
 
 if mode == "list":
@@ -328,12 +328,12 @@ if mode == "mail":
 	# color doesn't make any sense for mail
 	nocolor()
 
-	if glsaconfig.has_key("PORTAGE_ELOG_MAILURI"):
+	if "PORTAGE_ELOG_MAILURI" in glsaconfig:
 		myrecipient = glsaconfig["PORTAGE_ELOG_MAILURI"].split()[0]
 	else:
 		myrecipient = "root@localhost"
 	
-	if glsaconfig.has_key("PORTAGE_ELOG_MAILFROM"):
+	if "PORTAGE_ELOG_MAILFROM" in glsaconfig:
 		myfrom = glsaconfig["PORTAGE_ELOG_MAILFROM"]
 	else:
 		myfrom = "glsa-check"
