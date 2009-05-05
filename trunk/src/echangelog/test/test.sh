@@ -2,22 +2,17 @@
 
 source /etc/init.d/functions.sh
 
+SUPPORTED_VCS=( "cvs" "svn" "git" )
 VCSTEST="echangelog-test/vcstest"
 _ROOT=$(pwd)
 
 export ECHANGELOG_USER="Just a test <echangelogtest@gentoo.org>"
 
-#MD5_INIT="34d54bc2ab1a2154b0c7bd5cdd7f6119"
 MD5_INIT="34d54bc2ab1a2154b0c7bd5cdd7f6119"
-#MD5_PATCH="d910ab6b76cfb48b68e11ae1f06612bb"
 MD5_PATCH="db1ab89bb7374824d0f198078f79a83f"
-#MD5_REVBUMP="8e36650a644ba49cc13bcbe93fdb2d2d"
 MD5_REVBUMP="31ddfa60d2ae4dd1fccd7e3d2bd2c06c"
-#MD5_COPYRIGHT="55a6097d8e3913a9feb0dff250649c00"
 MD5_COPYRIGHT="6f39fa409ea14bb6506347c53f6dee50"
-#MD5_OBSOLETE="6c30d84f603f5f0e4b09a88d9cfdaaa8"
 MD5_OBSOLETE="0aedadf159c6f3add97a3f79fb867221"
-#MD5_FINAL="cdd58fea5cfcef5820013d82ccbe0e89"
 MD5_FINAL="17eb0df69f501cc6fdaffebd118b7764"
 
 function md5() {
@@ -168,25 +163,16 @@ else
 	exit 1
 fi
 
-if [[ -x $(which git) ]];
-then
-	ebegin "Starting test with git"
-	make_test $_ROOT "git" || set $?
-	eend ${1:-0} 
-fi
-
-if [[ -x $(which cvs) ]];
-then
-	ebegin "Starting test with cvs"
-	make_test $_ROOT "cvs" || set $?
-	eend ${1:-0}
-fi
-
-if [[ -x $(which svn) ]];
-then
-	ebegin "Starting test with svn"
-	make_test $_ROOT "svn" || set $?
-	eend ${1:-0}
-fi
+for vcs in ${SUPPORTED_VCS[*]};
+do
+	if [[ -x "$(which ${vcs} 2>/dev/null)" ]];
+	then
+		ebegin "Starting test with ${vcs}"
+		make_test $_ROOT "${vcs}" || set $?
+		eend ${1:-0}
+	else
+		ewarn "No ${vcs} executable found, skipping test..."
+	fi
+done
 
 rm -rf "${_ROOT}/tmp"
