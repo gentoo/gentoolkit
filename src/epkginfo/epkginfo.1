@@ -1,0 +1,34 @@
+.TH "epkginfo" "1" "0.4.1" "Ned Ludd" "gentoolkit"
+.SH "NAME"
+.LP 
+epkginfo \- Displays metadata information from packages in portage
+.SH "SYNTAX"
+.LP 
+epkginfo [\fIpackage\-cat/\fP]package
+.SH "EXAMPLES"
+$ epkginfo app\-portage/gentoolkit
+.br 
+\fBPackage:\fR app\-portage/gentoolkit
+.br 
+\fBHerd:\fR tools\-portage
+.br 
+\fBMaintainer:\fR tools\-portage
+.br 
+\fBLocation:\fR /usr/portage/app\-portage/gentoolkit
+.br 
+\fBKeywords:\fR gentoolkit\-0.2.2:
+.br 
+\fBKeywords:\fR gentoolkit\-0.2.3:  mips
+.br 
+\fBKeywords:\fR gentoolkit\-0.2.3\-r1:  ppc ppc64 alpha arm s390 amd64 hppa x86 sparc ia64 m68k sh
+.br 
+\fBKeywords:\fR gentoolkit\-0.2.4_pre3:
+.br 
+\fBKeywords:\fR gentoolkit\-0.2.4_pre4:
+.br 
+\fBKeywords:\fR gentoolkit\-0.2.4_pre5:  ~arm ~hppa ~x86 ~m68k ~amd64 ~ppc ~sh ~x86\-fbsd ~ia64 ~alpha ~sparc ~ppc64 ~sparc\-fbsd ~mips ~s390
+.SH "AUTHORS"
+.LP 
+Ned Ludd <solar@gentoo.org>
+.SH "BUGS"
+Please report any bugs to http://bugs.gentoo.org

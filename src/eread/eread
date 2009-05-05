@@ -1,0 +1,94 @@
+#!/bin/bash
+
+# This is a script to read portage log items from einfo, ewarn etc, new in the
+# portage-2.1 series.
+#
+# Author: Donnie Berkholz <spyderous@gentoo.org>
+# Updated by: Uwe Klosa <uwe.klosa@gmail.com>
+
+# set decent PATH for bug 172969
+
+PATH=/usr/bin:/bin:${PATH}
+
+# Set ELOGDIR
+PORT_LOGDIR="$(portageq envvar PORT_LOGDIR)"
+[ "$PORT_LOGDIR" = "" ] && PORT_LOGDIR="/var/log/portage"
+ELOGDIR="$PORT_LOGDIR/elog"
+
+# Verify that ELOGDIR exists
+if [ ! -d "$ELOGDIR" ]; then
+	echo "ELOG directory: $ELOGDIR does not exist!"
+	exit 1
+fi
+
+# Use the pager from the users environment
+[ -z "$PAGER" ] && PAGER="less"
+
+# Set up select prompt
+PS3="Choice? "
+
+select_loop() {
+	ANY_FILES=$(find . -type f)
+	ANY_FILES=$(echo ${ANY_FILES} | sed -e "s:\./::g")
+
+	if [[ -z ${ANY_FILES} ]]; then
+		echo "No log items to read"
+		break
+	fi
+
+	echo
+	echo "This is a list of portage log items. Choose a number to view that file or type q to quit."
+	echo
+
+	# Pick which file to read
+	select FILE in ${ANY_FILES}; do
+		case ${REPLY} in
+			q)
+				echo "Quitting"
+				QUIT="yes"
+				break
+				;;
+			*)
+				if [ -f "$FILE" ]; then
+					${PAGER} ${FILE}
+					read -p "Delete file? [y/N] " DELETE
+					case ${DELETE} in
+						q)
+							echo "Quitting"
+							QUIT="yes"
+							break
+							;;
+						y|Y)
+							rm -f ${FILE}
+							SUCCESS=$?
+							if [[ ${SUCCESS} = 0 ]]; then
+								echo "Deleted ${FILE}"
+							else
+								echo "Unable to delete ${FILE}"
+							fi
+							;;
+						# Empty string defaults to N (save file)
+						n|N|"")
+							echo "Saving ${FILE}"
+							;;
+						*)
+							echo "Invalid response. Saving ${FILE}"
+							;;
+					esac
+				else
+					echo
+					echo "Invalid response."
+				fi
+				;;
+		esac
+		break
+	done
+}
+
+pushd ${ELOGDIR} > /dev/null
+
+until [[ -n ${QUIT} ]]; do
+	select_loop
+done
+
+popd > /dev/null

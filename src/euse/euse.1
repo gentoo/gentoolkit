@@ -1,0 +1,102 @@
+.TH "EUSE" "1" "2004-10-17" "Gentoo Linux" "Gentoo Toolkit"
+.SH "NAME"
+euse \- Gentoo: command line USE flag editor
+.SH "SYNOPSIS"
+.B euse
+\fI<option> [suboption] [useflaglist]\fB
+.SH "DESCRIPTION"
+.PP 
+.I euse
+is used to set(disable/enable) USE flags in /etc/make.conf without having to edit
+the file directly. It is also used to get detail information about use flags
+like description, status of flags(enabled/disabled), type of flag(global/local)
+etc.
+.SH "OPTIONS "
+.TP 
+\fB\-E, \-\-enable\fI
+Enables USE flag(s) in make.conf. It accepts one or more space seperated 
+USE flags as parameters.
+.TP 
+\fB\-D, \-\-disable\fI
+Disables USE flag(s) in make.conf. Puts a '\-' sign in front of the USE flag
+and appends it to the USE setting in make.conf. It accepts one or more 
+space seperated USE flags as parameters.
+.TP 
+\fB\-P, \-\-prune\fI
+Removes USE flag(s) in make.conf. Removes all positive and negative references to
+the given USE flags from make.conf.
+.TP 
+\fB\-i, \-\-info\fI
+Prints detail information about the USE flag(s). If no arguments are given then
+it assumes you want information for all USE flags. If one or more
+arguments are given (space separated) then only information for those flags is
+printed.
+.TP 
+\fB\-I, \-\-info\-installed\fI
+Same as \-\-info, except that it will also list the currently installed packages that are utilizing the flag.
+.sp
+.RS
+The output is in the following format:
+.br 
+\fB[\- cD ]\fI alpha \- indicates that architecture ...
+.br 
+\fB[\-   ]\fI moznocompose (net\-www/mozilla):
+.br 
+Disable building of mozilla's web page composer 
+.br 
+The indicators in the first column are:
+.IP is_active
++ if the flag is seen as active by portage, \- if not
+.IP is_in_env
+E if the flag is enabled in the environment, e if it is
+disabled in the environment, nothing if it's not affected
+by the environment
+.IP is_in_make_conf
+C if the flag is enabled in make.conf, c if it is
+disabled in make.conf, nothing if it's not affected
+by make.conf
+.IP is_in_make_defaults
+D if the flag is enabled in make.defaults, d if it is
+disabled in make.defaults, nothing if it's not affected
+by make.defaults
+.IP is_in_make_globals
+G if the flag is enabled in make.globals, g if it is
+disabled in make.globals, nothing if it's not affected
+by make.globals
+.br 
+Then follows the name of the flag, for local flags the
+package name and then the description (on a new line for
+local flags).
+.TP 
+\fB\-a, \-\-active\fI
+Shows all currently active USE flags and where they are activated (see 
+description for \fB\-\-info\fI).
+.TP 
+\fB\-h, \-\-help\fI
+Show the help message listing all the available flags and a short description
+.TP 
+\fB\-v, \-\-version\fI
+Show the version information
+.SH "FILES"
+/etc/make.conf
+.br 
+/etc/make.profile/make.defaults
+.br 
+/etc/make.globals
+.br 
+$PORTDIR/profiles/use.desc
+.br 
+$PORTDIR/profiles/use.local.desc
+.br 
+
+.SH "AUTHOR"
+Original version by Arun Bhanu <codebear@gentoo.org>
+.br 
+Updated for rewritten euse by Marius Mauch <genone@gentoo.org>
+.SH "BUGS"
+euse doesn't handle USE flags enabled or disabled by use.defaults, use.mask
+or package.use yet. It also doesn't completely understand the \-* flag.
+.SH "SEE ALSO"
+.BR ufed(8), 
+.TP 
+The \fI/usr/bin/euse\fR script. 

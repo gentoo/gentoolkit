@@ -1,0 +1,8 @@
+* eclean
+  The starting point ideas were found here:
+  http://forums.gentoo.org/viewtopic.php?t=3011
+  
+  Thanks to eswanson and far for their contributions, and to wolf31o2 for his
+  support.  Thanks also to karltk, some of this code was at some point inspired
+  by his "equery" tool.  And thanks to people who had a look on bug #33877: 
+  Benjamin Braatz, fuzzyray, genone, etc.
