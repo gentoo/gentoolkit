@@ -1,8 +1,0 @@
-List all direct dependencies matching a query pattern
-Syntax:
-  depends <local-opts> pkgspec
-<local-opts> is either of: 
-  -d, --direct             - search direct dependencies only (default)
-  -D, --indirect           - search indirect dependencies (VERY slow)
-  -i, --only-installed     - search installed in installed packages only
-

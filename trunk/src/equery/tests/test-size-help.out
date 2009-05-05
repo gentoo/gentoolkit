@@ -1,6 +1,0 @@
-Print size total size of files contained in a given package
-Syntax:
-  size <local-opts> pkgspec
-<local-opts> is either of: 
-  -b, --bytes - report size in bytes
-

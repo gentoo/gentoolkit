@@ -1,4 +1,0 @@
-See man dep-clean or just run dep-clean --help.
-
-QuickStart:
-dep-clean displays missing, extra, and removed packages on your system.

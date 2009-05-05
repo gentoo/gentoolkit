@@ -1,3 +1,0 @@
-Print full path to ebuild for a given package
-Syntax:
-  size pkgspec

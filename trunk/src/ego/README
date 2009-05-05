@@ -1,2 +1,0 @@
-[ -f ${HOME}/scripts/ego.bash ] && 
-alias ego="unalias ego ; source ${HOME}/scripts/ego.bash ; ego "
