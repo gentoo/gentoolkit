@@ -1,0 +1,278 @@
+.TH "equery" "1" "Oct 2005" "gentoolkit" ""
+.SH "NAME"
+equery \- Gentoo: Package Query Tool
+.SH "SYNOPSIS"
+.B equery  
+.I [global\-opts] command [local\-opts]
+.PP 
+
+.SH "DESCRIPTION"
+equery is a flexible utility which may display various information about 
+packages, such as the files they own, their USE flags, the md5sum 
+of each file owned by a given package, and many other things.
+
+.SH "OPTIONS"
+The 'command' is the only mandatory option to equery.  Most commands require
+a 'pkgspec' option, which is described by <cat/>packagename<\-version>;
+namely, the package name is mandatory, while the category and version are 
+optional.
+
+[global\-opts] may be one of:
+
+.B \-q, \-\-quiet   
+causes minimal output to be emitted
+.PP 
+.B \-C, \-\-nocolor 
+turns off colours
+.PP 
+.B \-h, \-\-help
+displays a help summary
+.PP 
+.B \-V, \-\-version
+displays the equery version
+.PP 
+.B \-N, \-\-no\-pipe
+turns off pipe detection
+.PP 
+
+Only one command will actually be run, at most.  The possible commands are: 
+.TP 
+.B belongs <local\-opts> file
+This command lists all packages owning the specified file.
+.br 
+Note: Normally, only one package will own a file. If multiple packages own the
+same file, it usually consitutes a problem, and should be reported (http://bugs.gentoo.org).
+.br 
+.IP 
+<local\-opts> is either or both of:
+.br 
+.B \-c, \-\-category cat 
+only search in category cat
+.br 
+.B \-f, \-\-full\-regex
+supplied query is a regex
+.br 
+.B \-e, \-\-earlyout 
+stop when first match found
+
+.PP 
+.B check pkgspec
+This command checks the files of the specified package against recorded MD5 
+sums and timestamps.
+.PP 
+.TP 
+.B depends <local\-opts> pkgspec
+This command displays all dependencies matching pkgspec.
+.br 
+<local\-opts> is either or both of:
+.br 
+.B \-a, \-\-all\-packages
+search in all available packages (slow)
+.br 
+.B \-d, \-\-direct
+search direct dependencies only (default)
+.br 
+.B \-D, \-\-indirect
+search indirect dependencies (very slow)
+.br 
+.B \-\-depth=n
+Limit depth of indirect dependency tree to n levels. Setting \-\-depth=0 is the same as not specifing \-\-indirect.
+.PP 
+.TP 
+.B depgraph <local\-opts> pkgspec
+This command display a dependency tree for pkgspec, by default indented to reflect
+how dependancies relate to each other.
+.br 
+.IP 
+<local\-opts> is either or both of:
+.br 
+.B \-U, \-\-no\-useflags 
+do not show USE flags.
+.br 
+.B \-l, \-\-linear    
+do not use fancy formatting 
+.br 
+.B \-\-depth=n
+Limit depth of dependency graph to n levels.
+.PP 
+.TP 
+.B files <local\-opts> pkgspec
+This lists files owned by a particular package, optionally with extra
+information specified by <local\-opts>
+.br 
+
+<local\-opts> is any combination of:
+.br 
+.B \-\-timestamp
+output the timestamp of each file
+.br 
+.B \-\-md5sum
+output the md5sum of each file
+.br 
+.B \-\-type
+output the type of each file
+.br 
+.B \-\-tree
+display results in a tree (turns off all other options)
+.br 
+.B \-\-filter=<rules>
+filter output based on files type or path
+.br 
+.B \t<rules>
+is a comma separated list of filtering rules. Available rules are:
+.br 
+.B \t\tdir\ 
+regular directories
+.br 
+.B \t\tobj\ 
+regular files
+.br 
+.B \t\tsym\ 
+symbolic links
+.br 
+.B \t\tdev\ 
+device nodes
+.br 
+.B \t\tfifo
+named pipes
+.br 
+.B \t\tpath
+shortest paths where some files where installed
+.br 
+.B \t\tconf
+configuration files (based on $CONFIG_PROTECT)
+.br 
+.B \t\tcmd\ 
+user commands (based on $PATH)
+.br 
+.B \t\tdoc\ 
+documentation files (from /usr/share/doc)
+.br 
+.B \t\tman\ 
+manpages (from /usr/share/man)
+.br 
+.B \t\tinfo
+info pages (from /usr/share/info)
+.PP 
+.TP 
+.B hasuse <local\-opts> useflag
+This command lists packages matching a particular USE flag in a user\-specified combination
+of installed packages, packages which are not installed, the portage tree, and
+the portage overlay tree.
+
+<local\-opts> must not include only \-I;
+if \-I is used, \-p and/or \-o must be also be present.  By default, only installed
+packages are searched.  \-o searches only the overlay tree [and possibly
+installed packages],
+.I not
+the main portage tree.
+
+.B \-i, \-\-installed
+search installed packages (default)
+.br 
+.B \-I, \-\-exclude\-installed
+do not search installed packages
+.br 
+.B \-p, \-\-portage\-tree
+also search in portage tree (/usr/portage)
+.br 
+.B \-o, \-\-overlay\-tree
+also search in overlay tree (/usr/local/portage)
+.PP 
+.TP 
+.B list <local\-opts> pkgspec
+This command lists packages matching pkgspec in a user\-specified combination
+of installed packages, packages which are not installed, the portage tree, and
+the portage overlay tree. By default the list command searches for partial name matches.
+
+<local\-opts> \-I cannot be used by itself;
+if \-I is used, \-p and/or \-o must be also be present.  By default, only installed
+packages are searched.  \-o searches only the overlay tree [and possibly
+installed packages],
+\fInot\fR the main portage tree.
+
+.B \-i, \-\-installed
+search installed packages (default)
+.br 
+.B \-I, \-\-exclude\-installed
+do not search installed packages
+.br 
+.B \-p, \-\-portage\-tree
+also search in portage tree (/usr/portage)
+.br 
+.B \-o, \-\-overlay\-tree
+also search in overlay tree (/usr/local/portage)
+.br 
+.B \-f, \-\-full\-regex
+query is a regular expression
+.br 
+.B \-e, \-\-exact\-name
+list only those packages that exactly match
+.br 
+.B \-d, \-\-duplicates
+only list installed duplicate packages
+.br 
+
+\fBOutput:\fR
+
+.br
+The list command searches packages for the name given. If found, the following info will be displayed: the package location between the first square brackets (I for Installed packages, P for Portage, O for Overlay), the possible masks between the second (~ by keyword, - by arch or M hard masked), then the category and complete name and last of all, the slot in which the package is stored.
+
+\fBExamples:\fR
+
+equery list zilla \- list all installed versions of packages containing the string 'zilla'
+
+equery list \-\-exact\-name x11\-libs/gtk+  \- list all installed versions of x11\-libs/gtk+
+
+equery list \-\-full\-regex '(mozilla\-firefox|mozilla\-thunderbird)' \- list all installed versions of mozilla\-firefox and mozilla\-thunderbird 
+
+equery list \-\-duplicates \- list all installed slotted packages
+.PP 
+.TP 
+.B size <local\-opts> pkgspec
+This command outputs the number of files in the specified package, as well as
+their total size in an appropriate unit.
+
+The possible values for <local\-opts>, if specified, are:
+.br 
+.B \-b, \-\-bytes 
+report size in bytes
+.br 
+.B \-f, \-\-full\-regex
+query is a regular expression
+.br 
+.B \-e, \-\-exact\-name
+list only those packages that exactly match
+.PP 
+.TP 
+.B uses <local\-opts> pkgspec 
+display USE flags for pkgspec.
+
+The only possible value for <local\-opts>, if specified, is:
+.br 
+.B \-a, \-\-all
+include all package versions
+.PP 
+.B which pkgspec 
+print full path to ebuild for package pkgspec
+.PP 
+
+.SH "Unimplemented Options"
+.PP 
+.B changes
+.PP 
+.B glsa \fR \- use glsa\-check for the time being.
+.PP 
+.B stats
+
+
+
+.SH "BUGS"
+Many options aren't implemented.  Command\-line parsing could use some work. 
+.br 
+Submit bug reports to http://bugs.gentoo.org
+.SH "AUTHORS"
+equery, original man page: Karl Trygve Kalleberg <karltk@gentoo.org>, 2003.
+.br 
+Massive man page updates: Katerina Barone\-Adesi <katerinab@gmail.com>, 2004.
+

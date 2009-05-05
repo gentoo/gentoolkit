@@ -1,0 +1,57 @@
+.TH "glsa-check" "1" "0.6" "Marius Mauch" "gentoolkit"
+.SH "NAME"
+.LP 
+glsa\-check \- Gentoo: Tool to locally monitor and manage GLSA's
+.SH "SYNTAX"
+.LP 
+glsa\-check <\fIoption\fP> [\fIglsa\-list\fP]
+
+[\fIglsa\-list\fR] can contain an arbitrary number of GLSA ids, filenames containing GLSAs or the special identifiers 'all', 'new' and 'affected'
+.SH "DESCRIPTION"
+.LP 
+This tool is used to locally monitor and manage Gentoo Linux Security Advisories.
+Please read:
+.br 
+http://www.gentoo.org/proj/en/portage/glsa\-integration.xml
+.br 
+before reporting a bug.
+.LP
+Note: In order for this tool to be effective, you must regularly sync your local portage tree.
+.SH "OPTIONS"
+.LP 
+.TP 
+.B \-l, \-\-list
+list all unapplied GLSA
+.TP 
+.B \-d, \-\-dump, \-\-print
+show all information about the given GLSA
+.TP 
+.B \-t, \-\-test
+test if this system is affected by the given GLSA
+.TP 
+.B \-p, \-\-pretend
+show the necessary commands to apply this GLSA
+.TP 
+.B \-f, \-\-fix
+try to auto\-apply this GLSA (experimental)
+.TP 
+.B \-i, \-\-inject
+inject the given GLSA into the checkfile
+.TP 
+.B \-n, \-\-nocolor
+disable colors (option)
+.TP 
+.B \-h, \-\-help
+show this help message
+.TP 
+.B \-V, \-\-version
+some information about this tool
+.TP 
+.B \-v, \-\-verbose
+print more messages (option)
+.TP
+.B \-c, \-\-cve
+show CAN ids in listing mode (option)
+.TP 
+.B \-m, \-\-mail
+send a mail with the given GLSAs to the administrator

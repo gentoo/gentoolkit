@@ -1,0 +1,21 @@
+# Default revdep-rebuild configuration file
+#
+# revdep-rebuild no longer uses hardcoded paths. To change the default 
+# behavior the following variables can be changed:
+#
+# LD_LIBRARY_MASK - Mask of specially evaluated libraries
+#
+# SEARCH_DIRS - List of directories to search for executables and libraries
+#	Use this for directories that are not included in PATH or ld.so.conf.
+#	An application should normally not have to set this variable
+#
+# SEARCH_DIRS_MASK - List of directories to not search
+#	Use this for directories that should not be searched by revdep-rebuild
+#	This is normally used by binary packages such as openoffice-bin
+#
+# Note: This file is sourced using bash by the revdep-rebuild script
+
+LD_LIBRARY_MASK="libodbcinst.so libodbc.so libjava.so libjvm.so"
+SEARCH_DIRS="/bin /sbin /usr/bin /usr/sbin /lib* /usr/lib*"
+SEARCH_DIRS_MASK="/lib*/modules"
+
