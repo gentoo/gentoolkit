@@ -6,9 +6,12 @@
 
 include ../../makedefs.mak
 
-.PHONY: all
+.PHONY: all test
 
 all:
+
+test:
+	cd test; sh test.sh
 
 dist:
 	mkdir -p ../../$(distdir)/src/echangelog/test/templates
