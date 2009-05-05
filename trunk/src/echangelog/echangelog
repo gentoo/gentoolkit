@@ -94,6 +94,14 @@ sub getenv($) {
 # The only modified thing is:
 # We trim _just_ tab/space etc. but not \n/\r.
 # \s treats even \n/\r as whitespace.
+# BUGS:
+# ' test'
+# ' test'
+# Will end up in:
+# ' test'
+# ''
+# 'test'
+# See 'my $ps = ($ip eq $xp) ? "\n\n" : "\n";'
 sub text_fill {
 	my ($ip, $xp, @raw) = @_;
 	my @para;
@@ -109,6 +117,31 @@ sub text_fill {
 	# separate paragraphs with blank lines
 	my $ps = ($ip eq $xp) ? "\n\n" : "\n";
 	return join ($ps, @para);
+}
+
+sub changelog_info(%) {
+	my %changed = @_;
+
+	open(INFO, '>', 'ChangeLog.new');
+
+	print(INFO "\n");
+	print(INFO "# Please enter the ChangeLog message for your changes. Lines starting\n");
+	print(INFO "# with '#' will be ignored, and an empty message aborts the ChangeLog.\n");
+	print(INFO "#\n# Changes:\n");
+
+	foreach my $key (keys(%changed)) {
+		if ($changed{$key} eq "+") {
+			printf(INFO "# new file:\t%s\n", $key);
+		}
+		elsif ($changed{$key} eq "-") {
+			printf(INFO "# deleted:\t%s\n", $key);
+		}
+		else {
+			printf(INFO "# modified:\t%s\n", $key);
+		}
+	}
+
+	close(INFO);
 }
 
 GetOptions(
@@ -497,6 +530,9 @@ if ($ARGV[0]) {
 	$editor = getenv('ECHANGELOG_EDITOR') ? getenv('ECHANGELOG_EDITOR') : getenv('EDITOR') || undef;
 
 	if ($editor) {
+		# Append some informations.
+		changelog_info(%actions);
+
 		system("$editor ChangeLog.new");
 
 		if ($? != 0) {
@@ -509,15 +545,19 @@ if ($ARGV[0]) {
 			if (open I, "<ChangeLog.new") {
 				local $/ = undef;
 				$input = <I>;
-				close I;
+				close(I);
+
+				# Remove comments from changelog_info().
+				local $/ = "\n";
+				$input =~ s/^#.*//mg;
+				local $/ = undef;
 			} else {
 				print STDERR "Error opening ChangeLog.new: $!\n";
 				print STDERR "Reverting to stdin method.\n";
 				undef $editor;
 			}
-
-			unlink('ChangeLog.new') if -f 'ChangeLog.new';
 		}
+		unlink('ChangeLog.new') if -f 'ChangeLog.new';
 	}
 
 	unless ($editor) {
