@@ -1,0 +1,40 @@
+- equery:
+ - add --overlay, --portdir to uses
+ - add glsa pkgspec
+  - query for current GLSAs on installed package(s)
+ - add changelog <from> <to> [--last] [--lastentry] [--current]
+  - displays changelog entries
+ - add check <pkg-spec> [--full] [--display=pkgnames,full]
+  - check md5 and timestamps (optionally also in CONFIG_PROTECT dirs)
+ - add which
+  - as ewhich
+- fully deprecate dep-clean and pkg-clean
+- rewrite ekeywords and echangelog to use gentoolkit
+- add deep depends to equery
+- fully deprecate qpkg 
+- fully deprecate pkg-size
+- merge change and echangelog
+- merge useflag and euse, have _one_ command line tool
+  - update ufed to rely on the CLI tool
+  - update ufed to rely on generate-use
+  - merge generate-use and ufed?
+- rewrite revdep-rebuild to use gentoolkit
+ - drop qpkg dependency; use equery instead
+- rewrite distfiles-clean to use gentoolkit
+- look through forums.gentoo.org for additional scripts
+- write a Gentoolkit Guide
+- write efeatures for turning on/off FEATURES in make.conf
+- look at ekeys, ewatch
+- revision bump tool
+ - bump versioned files in filesdir
+ - -m for changelog entry
+ - use ~/.gentoo/gentoolkit/ebump.conf
+ - use /etc/gentoolkit/ebump.conf
+- should be removed:
+ - etc-update
+ - epm
+ - useflag
+- add 'clean' target
+
++ check esearch, eupdatedb: separate package for now
+ 

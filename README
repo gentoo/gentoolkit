@@ -1,0 +1,46 @@
+Package: gentoolkit/gentoolkit-dev
+Authors: Aron Griffis <agriffis@gentoo.org>
+         Brandon Low <lostlogic@gentoo.org>
+         Ian Leitch <port001@gentoo.org>
+         Karl Trygve Kalleberg <karltk@gentoo.org>
+         Marius Mauch <genone@gentoo.org>
+         Paul Varner <fuzzyray@gentoo.org>
+         See src/<tool>/AUTHORS for tool-specific authors
+
+MOTIVATION
+
+The gentoolkit and gentoolkit-dev packages contain a collection of useful
+administration scripts particular to the Gentoo Linux distribution. It contains
+rough drafts and implementations of features that may in time make it into
+Portage, or into full-fledged tools in their own right.
+
+The gentoolkit-dev package is intended primarily for Gentoo developers.
+
+CONTENTS
+
+gentoolkit
+==========
+eclean         - tool to clean up outdated distfiles and packages
+equery         - replacement for etcat and qpkg
+etcat          - extracts auxillary information from portage (deprecated)
+euse           - tool to manage USE flags
+glsa-check     - tool to manage GLSA's (Gentoo Linux Security Advisory)
+qpkg           - convient package query tool (deprecated)
+revdep-rebuild - scans/fixes broken shared libs and binaries
+
+gentoolkit-dev
+==============
+ebump          - Ebuild revision bumper
+echangelog     - update portage ChangeLogs
+ego            - 
+ekeyword       - modify package KEYWORDS
+epkgmove       - tool for moving and renaming packages in CVS
+eviewcvs       - generate viewcvs URLs
+gensync        - Overlay Sync Tool
+
+IMPROVEMENTS
+
+Any suggestions for improvements should be sent to tools-portage@gentoo.org, or
+added as a bug assigned to us.
+
+We only accept new contributions if they are written in bash or python.
