@@ -1,3 +1,8 @@
+2009-05-09: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Added modular rewrite from djanderson
+	* gentoolkit: Added modular rewrite from djanderson
+	* All: converted to setup.py build system
+
 2009-04-30: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Add patch from loki_val to check -l dependencies in 
 	.la files (Bug #267898)

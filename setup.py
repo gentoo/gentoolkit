@@ -2,7 +2,7 @@
 
 from distutils.core import setup
 
-VER = '0.3.0_rc4'
+VER = '9.9.9.9'
 
 setup(
 	name='gentoolkit',
