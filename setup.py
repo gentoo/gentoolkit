@@ -13,7 +13,7 @@ setup(
 	maintainer='Gentoo Portage Tools Team',
 	maintainer_email='tools-portage@gentoo.org',
 	url='http://www.gentoo.org/proj/en/portage/tools/index.xml',
-	download_url='http://genscripts.googlecode.com/files/gentoolkit-%s.tar.gz'\
+	download_url='http://distfiles.gentoo.org/distfiles/gentoolkit-%s.tar.gz'\
 		% VER,
 	package_dir={'': 'pym'},
 	packages=(
