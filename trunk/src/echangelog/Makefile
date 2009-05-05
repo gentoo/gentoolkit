@@ -6,18 +6,15 @@
 
 include ../../makedefs.mak
 
-#%.1 : %.pod
-#	pod2man $< > $@
-
 .PHONY: all
 
-#all: echangelog.1
 all:
 
-#dist: echangelog.1
 dist:
-	mkdir -p ../../$(distdir)/src/echangelog/
-	cp Makefile AUTHORS README TODO ChangeLog echangelog echangelog.pod echangelog.1 ../../$(distdir)/src/echangelog/
+	mkdir -p ../../$(distdir)/src/echangelog/test/templates
+	cp Makefile AUTHORS README TODO ChangeLog echangelog echangelog.1 ../../$(distdir)/src/echangelog/
+	cp test/TEST.pm test/test.sh ../../$(distdir)/src/echangelog/test/
+	cp test/templates/test.patch test/templates/vcstest-0.0.1.ebuild ../../$(distdir)/src/echangelog/test/templates
 
 install: all
 	install -m 0755 echangelog $(bindir)/
