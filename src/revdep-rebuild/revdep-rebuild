@@ -507,16 +507,9 @@ setup_rm() {
 # $1 - directory name
 # $2 - user name
 verify_tmpdir() {
-	umask 007 || die $? "Unable to set umask 007"
 	if [[ ! $1 ]]; then
 		die 1 'Temporary file path is unset! (This is a bug.)'
 	elif [[ -d $1 ]]; then
-		# HACK: I hate using find this way
-		if [[ $(find "$1" -type d ! \( -user $2 -perm -0700 \) ) ]]; then
-			eerror "Incorrect permissions on $1"
-			eerror "or at least one file in $1."
-			die 1  "Please make sure it's not a symlink and then remove it."
-		fi
 		cd "$1"
 	else
 		die 1 "Unable to find a satisfactory location for temporary files ($1)"
@@ -536,7 +529,7 @@ get_search_env() {
 	fi
 
 	# From here on all work is done inside the temporary directory
-	verify_tmpdir "$tmp_target" "$uid"
+	verify_tmpdir "$tmp_target"
 	WORKING_DIR="$tmp_target"
 
 	if [[ $SEARCH_BROKEN ]]; then
