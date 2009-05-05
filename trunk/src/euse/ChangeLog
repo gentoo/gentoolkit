@@ -1,9 +1,0 @@
-
-2004-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
-	* Added Makefile
-	* Updated from app-portage/gentoolkit
-	* Reformatted ChangeLog
-	
-2003-05-09 Arun Bhanu <codebear@gentoo.org>
-	* Initial commit to gentoolkit.	
-   

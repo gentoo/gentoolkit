@@ -1,4 +1,0 @@
-- Add using cvs to sync
-- Update portage cache after sync
-- Add overlay dirs defined in /etc/conf.d/gensync to /etc/make.conf
-- Sync up with Marius on the multiple overlay code
