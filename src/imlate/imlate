@@ -292,7 +292,7 @@ def main():
 
 	parser.add_option( "-C", "--category", "--categories", dest = "categories", action = "store", default = None,
 					metavar = "CATEGORIES",
-					help = "just check in the specified category/categories (comma seperated) [default: %default]")
+					help = "just check in the specified category/categories (comma separated) [default: %default]")
 
 	( options, args ) = parser.parse_args()
 
