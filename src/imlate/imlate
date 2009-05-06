@@ -1,0 +1,348 @@
+#!/usr/bin/python
+
+# Copyright 1999-2009 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+
+# author: Christian Ruppert <idl0r@gentoo.org>
+
+VERSION = "0.0.3"
+
+# works just with stable keywords!
+MAIN_ARCH = "amd64" # can be overridden by -m ARCH
+TARGET_ARCH = "x86" # can be overridden by -t ARCH
+
+################################
+# do not change anything below #
+################################
+
+from os.path import join, basename
+from sys import stderr, stdout
+from os import stat
+from time import time
+# TODO: just import needed stuff to safe memory and maybe use "as foo"
+import portage
+
+if __name__ == "__main__":
+	from optparse import OptionParser
+	from time import gmtime, strftime
+
+# portage < 2.1.6 needs portage_const instead of portage.const,
+# which is not the problem...
+# the problem is the keyword handling (ACCEPT_KEYWORDS)
+# portage < 2.1.6 does not support -*
+# but -* is needed to ensure that we just check for arch
+if portage.vercmp(portage.VERSION, "2.1.6") < 0:
+	raise StandardError, "imlate requires portage >=2.1.6"
+
+# override/change portage module settings
+def _portage_settings( var, value, settings = None ):
+	if not settings:
+		settings = portage.settings
+
+	settings.unlock()
+	settings[var] = value
+	# backup_changes is very important since it can cause trouble,
+	# if we do not backup our changes!
+	settings.backup_changes( var )
+	settings.lock()
+
+# add stuff to our imlate dict
+def _add_ent( imlate, cat, pkg, ver, our_ver ):
+	if not cat in imlate.keys():
+		imlate[cat] = {}
+	if not pkg in imlate[cat].keys():
+		imlate[cat][pkg] = []
+
+	imlate[cat][pkg].append( ver )
+	imlate[cat][pkg].append( our_ver )
+
+	return imlate
+
+def _fill( width, line, fill = " " ):
+	while len( line ) < width:
+		line = "%s%s" % ( str( line ), str( fill ) )
+	return line
+
+# create a hopefully pretty result
+def show_result( conf, pkgs ):
+	# X - len(colX) = space to fill
+	col1 = 40
+	col2 = 20
+
+	_header = "%s candidates for 'gentoo' on '%s'"
+	_helper = "category/package                        our version         best version"
+	_cand = ""
+	header = ""
+
+	if conf["FILE"] == "stdout":
+		out = stdout
+	elif conf["FILE"] == "stderr":
+		out = stderr
+	else:
+		out = open( conf["FILE"], "w" )
+
+	if conf["STABLE"] and conf["KEYWORD"]:
+		_cand = "%i Stable and %i Keyword(~)" % ( conf["STABLE_SUM"],
+												conf["KEYWORD_SUM"] )
+	elif conf["STABLE"]:
+		_cand = "%i Stable" % conf["STABLE_SUM"]
+	elif conf["KEYWORD"]:
+		_cand = "%i Keyword(~)" % conf["KEYWORD_SUM"]
+
+	header = _header % ( _cand, conf["MAIN_ARCH"] )
+
+	print >> out, "Generated on: %s" % conf["TIME"]
+	print >> out, _fill( len( header ), "", "=" )
+	print >> out, header
+	print >> out, _fill( len( header ), "", "=" )
+	print >> out
+
+	print >> out, _helper
+	print >> out, _fill( len( _helper ), "", "-" )
+
+	for cat in sorted( pkgs.keys() ):
+		print >> out, "%s/" % cat
+		for pkg in sorted( pkgs[cat].keys() ):
+			print >> out, "%s%s%s" % ( _fill( col1, ( "  %s" % pkg ) ),
+									_fill( col2, pkgs[cat][pkg][1] ),
+									pkgs[cat][pkg][0] )
+
+	if conf["FILE"] != "stdout":
+		out.close()
+
+# fetch a list of arch (just stable) packages
+# -* is important to be sure that just arch is used
+def get_packages( conf ):
+	_pkgs = {}
+
+	_portage_settings( "ACCEPT_KEYWORDS", ( "-* %s" % str( conf["TARGET_ARCH"] ) ),
+					conf["portdb"].settings )
+
+	for cp in conf["portdb"].dbapi.cp_all():
+		cpvr = portage.best( conf["portdb"].dbapi.match( cp ) )
+		if cpvr:
+			( cat, pkg, ver, rev ) = portage.catpkgsplit( cpvr )
+
+			if not cat in _pkgs.keys():
+				_pkgs[cat] = {}
+			if not pkg in _pkgs[cat].keys():
+				_pkgs[cat][pkg] = []
+
+			if rev != "r0":
+				ver = "%s-%s" % ( ver, rev )
+
+			_pkgs[cat][pkg].append( ver )
+
+	return _pkgs
+
+# compare get_packages() against MAIN_ARCH
+def get_imlate( conf, pkgs ):
+	_portage_settings( "ACCEPT_KEYWORDS", ( "-* %s" % str( conf["MAIN_ARCH"] ) ),
+					conf["portdb"].settings )
+
+	stable = str( conf["MAIN_ARCH"].lstrip("~") )
+	testing = "~%s" % stable
+	exclude = "-%s" % stable
+	exclude_all = "-*"
+
+	imlate = {}
+
+	for cat in sorted( pkgs.keys() ):
+		for pkg in sorted( pkgs[cat].keys() ):
+			cpvr = ""
+			abs_pkg = ""
+			kwds = ""
+			our = ""
+			our_ver = ""
+			mtime = 0
+
+			# 0 = none(default), 1 = testing(~arch), 2 = stable(arch),
+			# 3 = exclude(-arch), 4 = exclude_all(-*)
+			# -* would be overridden by ~arch or arch
+			kwd_type = 0
+
+			cpvr = "%s/%s-%s" % ( cat, pkg, pkgs[cat][pkg][0] )
+
+			# absolute ebuild path for mtime check
+			abs_pkg = join( conf["PORTDIR"], cat, pkg, basename( cpvr ) )
+			abs_pkg = "%s.ebuild" % str( abs_pkg )
+
+			kwds = conf["portdb"].dbapi.aux_get( cpvr, ["KEYWORDS"] )[0]
+
+			# sorted() to keep the right order
+			# e.g. -* first, -arch second, arch third and ~arch fourth
+			# -* -foo ~arch
+			# example: -* would be overridden by ~arch
+			for kwd in sorted( kwds.split() ):
+				if kwd == stable:
+					kwd_type = 2
+					break
+				elif kwd == exclude:
+					kwd_type = 3
+					break
+				# EXPERIMENTAL
+				elif kwd == exclude_all and conf["EXPERIMENTAL"]:
+					kwd_type = 4
+				elif kwd == testing:
+					kwd_type = 1
+					break
+
+			# ignore -arch and already stabilized packages
+			if kwd_type == 3 or kwd_type == 2:
+				continue
+			# EXPERIMENTAL
+			# drop packages without ~arch or arch but -*
+			# even if there is another version which includes arch or ~arch
+			if kwd_type == 4 and conf["EXPERIMENTAL"]:
+				continue
+			# drop "stable candidates" with mtime < 30 days
+			# Shall we use gmtime/UTC here?
+			if kwd_type == 1:
+				mtime = int( ( time() - stat( abs_pkg ).st_mtime ) / 60 / 60 / 24 )
+				if mtime < 30:
+					continue
+
+			# look for an existing stable version
+			our = portage.best( conf["portdb"].dbapi.match( "%s/%s" % ( cat, pkg ) ) )
+			if our:
+				_foo = portage.pkgsplit( our )
+				our_ver = _foo[1]
+				if _foo[2] != "r0":
+					our_ver = "%s-%s" % ( our_ver, _foo[2] )
+			else:
+				our_ver = ""
+
+			# we just need the version if > our_ver
+			if our_ver:
+				if portage.vercmp( our_ver, pkgs[cat][pkg][0] ) >= 0:
+					continue
+
+			if kwd_type == 1 and conf["STABLE"]:
+				imlate = _add_ent( imlate, cat, pkg, pkgs[cat][pkg][0], our_ver )
+				conf["STABLE_SUM"] += 1
+			elif kwd_type == 0 and conf["KEYWORD"]:
+				conf["KEYWORD_SUM"] += 1
+				imlate = _add_ent( imlate, cat, ( "~%s" % str( pkg ) ),
+								pkgs[cat][pkg][0], our_ver )
+
+	return imlate
+
+# fetch portage related settings
+def get_settings( conf = None ):
+	if not isinstance( conf, dict ) and conf:
+		raise TypeError, "conf must be dict() or None"
+	if not conf:
+		conf = {}
+
+	# TODO: maybe we should improve it a bit ;)
+	mysettings = portage.config( config_incrementals = portage.const.INCREMENTALS, local_config = False )
+
+	# TODO: exclude overlay categories from check
+	if conf["CATEGORIES"]:
+		_mycats = []
+		for _cat in conf["CATEGORIES"].split(","):
+			_cat = _cat.strip()
+			_mycats.append(_cat )
+			if _cat not in mysettings.categories:
+				raise ValueError, "invalid categorie for -C switch '%s'" % _cat
+		mysettings.categories = _mycats
+
+	# maybe thats not necessary because we override porttrees below..
+	_portage_settings( "PORTDIR_OVERLAY", "", mysettings )
+	trees = portage.create_trees()
+	trees["/"]["porttree"].settings = mysettings
+	portdb = trees["/"]["porttree"]
+	portdb.dbapi.mysettings = mysettings
+	portdb.dbapi.porttrees = [portage.portdb.porttree_root]
+	# does it make sense to remove _all_ useless stuff or just leave it as it is?
+	#portdb.dbapi._aux_cache_keys.clear()
+	#portdb.dbapi._aux_cache_keys.update(["EAPI", "KEYWORDS", "SLOT"])
+
+	conf["PORTDIR"] = portage.settings["PORTDIR"]
+	conf["portdb"] = portdb
+
+	return conf
+
+
+# just for standalone
+def main():
+	conf = {}
+	pkgs = {}
+
+	parser = OptionParser( version = "%prog " + VERSION )
+	parser.disable_interspersed_args()
+
+	parser.add_option( "-f", "--file", dest = "filename", action = "store", type = "string",
+					help = "write result into FILE [default: %default]", metavar = "FILE", default = "stdout" )
+	parser.add_option( "-m", "--main", dest = "main_arch", action = "store", type = "string",
+					help = "set main ARCH (e.g. your arch) [default: %default]", metavar = "ARCH", default = MAIN_ARCH )
+	parser.add_option( "-t", "--target", dest = "target_arch", action = "store", type = "string",
+					help = "set target ARCH (e.g. x86) [default: %default]", metavar = "ARCH", default = TARGET_ARCH )
+
+	# TODO: leave a good comment here (about True/False) :)
+	parser.add_option( "-s", "--stable", dest = "stable", action = "store_true", default = False,
+					help = "just show stable candidates (e.g. -s and -k is the default result) [default: True]" )
+	parser.add_option( "-k", "--keyword", dest = "keyword", action = "store_true", default = False,
+					help = "just show keyword candidates (e.g. -s and -k is the default result) [default: True]" )
+
+	# EXPERIMENTAL
+	parser.add_option( "-e", "--experimental", dest = "experimental", action = "store_true", default = False,
+					help = "enables experimental functions/features (have a look for # EXPERIMENTAL comments in the source) [default: %default]" )
+
+	parser.add_option( "-C", "--category", "--categories", dest = "categories", action = "store", default = None,
+					metavar = "CATEGORIES",
+					help = "just check in the specified category/categories (comma seperated) [default: %default]")
+
+	( options, args ) = parser.parse_args()
+
+	if len( args ) > 0:
+		parser.print_help()
+		parser.error( "unknown arg(s)" )
+
+	# cleanup optparse
+	try:
+		parser.destroy()
+	except AttributeError:
+		# to be at least python 2.4 compatible
+		del parser._short_opt
+		del parser._long_opt
+		del parser.defaults
+
+	# generated timestamp (UTC)
+	conf["TIME"] = strftime( "%a %b %d %H:%M:%S %Z %Y", gmtime() )
+
+	# package counter
+	conf["KEYWORD_SUM"] = 0
+	conf["STABLE_SUM"] = 0
+
+	if not options.main_arch in portage.archlist:
+		raise ValueError, "invalid MAIN ARCH defined!"
+	if not options.target_arch in portage.archlist:
+		raise ValueError, "invalid TARGET ARCH defined!"
+
+	conf["MAIN_ARCH"] = options.main_arch
+	conf["TARGET_ARCH"] = options.target_arch
+
+	conf["FILE"] = options.filename
+
+	if not options.stable and not options.keyword:
+		conf["STABLE"] = True
+		conf["KEYWORD"] = True
+	else:
+		conf["STABLE"] = options.stable
+		conf["KEYWORD"] = options.keyword
+
+	conf["EXPERIMENTAL"] = options.experimental
+	conf["CATEGORIES"] = options.categories
+
+	# append to our existing
+	conf = get_settings( conf )
+	pkgs = get_packages( conf )
+	pkgs = get_imlate( conf, pkgs )
+
+	show_result( conf, pkgs )
+
+if __name__ == "__main__":
+	main()
+
