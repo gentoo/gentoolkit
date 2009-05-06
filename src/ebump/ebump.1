@@ -13,8 +13,7 @@ ebump [\fIoption\fP] <\fIpackage-name[-version]\fP>
 files in the files/ directory that have a matching version suffix.
 
 .LP
-By default, the all new revision files will be added to CVS, and a
-dummy ChangeLog entry will be made.
+By default, the all new revision files will be added to the VCS.
 
 .LP 
 You must stand in the directory of the ebuild to be bumped.
@@ -23,9 +22,9 @@ You must stand in the directory of the ebuild to be bumped.
 .LP 
 \fB\-C\fR
 .br
-\fB--no-cvs\fB
+\fB--no-vcs\fB
 .IP 
-Do not add new files to CVS.
+Do not add new files to VCS.
 
 .LP 
 \fB\-V\fR
@@ -61,7 +60,7 @@ placeholder.
 .br
 \fB\--delete-old\fR
 .IP 
-Delete old revision and old auxiliary files from CVS. This is
+Delete old revision and old auxiliary files from VCS. This is
 \fIdangerous\fR and should only be used if you know exactly what you are
 doing, because
 .br
@@ -85,7 +84,7 @@ From these files, \fIebump\fR will load the settings
 .br
 \fBopt_add_changelog\fR (default \fIy\fR) - add entry in ChangeLog
 .br
-\fBopt_add_cvs\fR (default \fIy\fR) - add new files to CVS
+\fBopt_add_vcs\fR (default \fIy\fR) - add new files to VCS
 .br
 \fBopt_bump_auxfiles\fR (default \fIy\fR) - bump auxiliary files in files/
 .br
@@ -94,6 +93,8 @@ From these files, \fIebump\fR will load the settings
 \fBopt_commitmessage\fR (default \fI""\fR) - default ChangeLog message
 
 .LP
+\fB(DEPRECATED)\fR
+.br
 \fB~/.gentoo/gentool-env\fR
 .IR
 From this file, \fIebump\fR will load the env vars \fBAUTHORNAME\fR and 
@@ -102,9 +103,8 @@ From this file, \fIebump\fR will load the env vars \fBAUTHORNAME\fR and
 .SH "SEE ALSO"
 .LP 
 The rest of the utilities in \fIapp-portage/gentoolkit-dev\fR, such as
-\fIechangelog\fR and \fIego\fR.
+\fIechangelog(1)\fR and \fIekeyword(1)\fR.
 
 .SH "AUTHORS"
 .LP 
 Karl Trygve Kalleberg <karltk@gentoo.org>
-

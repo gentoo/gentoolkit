@@ -19,7 +19,7 @@ die() {
 }
 
 einfo() {
-    if [ ${opt_verbosity} -gt 2 ] ; then
+    if [ ${opt_verbosity} -gt 1 ] ; then
 	echo $*
     fi
 }
@@ -37,9 +37,9 @@ print_usage() {
     echo "  -V|--version           show version info"
     echo "  -v|--verbose           increase verbosity"
     echo "  -q|--quiet             turn off output"
-    echo "  -C|--no-cvs            do not add to CVS"
+    echo "  -C|--no-vcs            do not add to VCS"
     echo "  -m|--message           append message to ChangeLog"
-    echo "  -d|--delete-old        delete previous revision from CVS (DANGEROUS!)"
+    echo "  -d|--delete-old        delete previous revision from VCS (DANGEROUS!)"
 }
 
 #
@@ -60,6 +60,12 @@ load_options() {
     if [ -f ${HOME}/.gentoo/ebump.conf ] ; then
 	. ${HOME}/.gentoo/ebump.conf
     fi
+
+	# FIXME: remove this warning in 2-3 releases.
+	if [[ -n ${opt_add_cvs} ]];
+	then
+		echo "Warning: opt_add_cvs is deprecated, please use opt_add_vcs from now on!" >/dev/stderr
+	fi
 }
 
 #
@@ -120,11 +126,13 @@ splitname() {
 }
 
 process_ebuild() {
-    ebuild_arg=${1}
+	vcs=$1
+    ebuild_arg=$2
+	shift $#
 
-    # Files to add to CVS
+    # Files to add to VCS
     addfiles=""
-    # Files to remove from CVS
+    # Files to remove from VCS
     delfiles=""
 
     if [ -z ${ebuild_arg} ] ; then
@@ -158,6 +166,10 @@ process_ebuild() {
     einfo "Bumped ${PF}.ebuild to ${newPF}.ebuild"
 
     cp ${PF}.ebuild ${newPF}.ebuild
+
+	einfo "Reset keywords to ~arch"
+
+	ekeyword '~all' "${newPF}.ebuild"
 
     addfiles="${addfiles} ${newPF}.ebuild"
     delfiles="${delfiles} ${PF}.ebuild"
@@ -205,7 +217,8 @@ process_ebuild() {
 		    echo "Directory ${dn}/${newbn} exists, not copying" > /dev/stderr
 		else
 		    cp -a ${dn}/${bn} ${dn}/${newbn}
-		    find ${dn}/${newbn} -name CVS | xargs rm -rf
+			# uhm, is that necessary?
+#		    find ${dn}/${newbn} -name CVS | xargs rm -rf
 		fi
 	    else
 		cp ${dn}/${bn} ${dn}/${newbn}
@@ -222,78 +235,82 @@ process_ebuild() {
 #    echo "delfiles ${delfiles}"
 
 	filelist="${addfiles}"
-    #
-    # (Optional) Add ChangeLog entry
-    #
-
-    if [ "${opt_add_changelog}" == "y" ] &&
-	[ -f ChangeLog ] ; then
-
-        # Add ChangeLog entry
-
-	curdate=$(LC_TIME="us" date +"%02d %b %Y")
-	cp ChangeLog ChangeLog.old
-	(
-	    # Use header (four first lines) of the old ChangeLog
-	    head -n 4 ChangeLog.old
-
-	    # Write new entry
-
-	    echo "*${newPF} (${curdate})"
-	    echo
-	    echo "  ${curdate}; ${AUTHORNAME} <${AUTHOREMAIL}> ${filelist}"
-
-	    # If we don't have a commit message, add comment
-	    if [ -z "${opt_commitmessage}" ] ; then
-		echo "  # INSERT ENTRY HERE"
-		if [ "${opt_delete_old}" == "y" ] && [ ! -z "${delfiles}" ] ; then
-			echo "  Removed ${delfiles}."
-		fi
-		echo
-	    else
-		echo "  ${opt_commitmessage}"
-		echo
-	    fi
-
-	    # Write tail of old ChangeLog
-	    nl=$(wc -l ChangeLog.old | sed -r "s/^([0-9]+).*/\1/")
-	    tail -n $[nl - 4] ChangeLog.old
-	) > ChangeLog
-	rm ChangeLog.old
-
-	einfo "Added ChangeLog entry"
-    fi
 
     #
-    # (Optional) Add CVS entry for all new files
+    # (Optional) Add VCS entry for all new files
     #
-
-    if [ "${opt_add_cvs}" == "y" ] ; then
-
-	# Add all new files to CVS
-	for x in ${addfiles} ; do
-	    if [ -d ${x} ] ; then
-		find ${x} | xargs echo cvs add
-	    else
-		cvs add ${x}
-	    fi
-	done
-	einfo "Added ${addfiles} to CVS"
+    if [ "${opt_add_vcs}" == "y" ] ; then
+		for x in ${addfiles} ; do
+		    if [ -d ${x} ] ; then
+				find ${x} -exec ${vcs} add {} ';'
+		    else
+				${vcs} add ${x}
+		    fi
+		done
+		einfo "Added ${addfiles} to VCS"
     fi
 
 
     #
     # (Optional) Delete previous entry
     #
-
     if [ "${opt_delete_old}" == "y" ] ; then
-
-	for x in ${delfiles} ; do
-	    cvs remove -f ${x}
-	done
-	einfo "Removed ${delfiles} from CVS"
+		for x in ${delfiles} ; do
+			if [[ "${vcs}" == "cvs" ]];
+			then
+			    ${vcs} remove -f ${x}
+			else
+				${vcs} remove ${x}
+			fi
+		done
+		einfo "Removed ${delfiles} from VCS"
     fi
 
+    #
+    # (Optional) Add ChangeLog entry
+    #
+	if [[ "${opt_add_changelog}" == "y" ]] && [[ "${opt_add_vcs}" == "y" ]];
+	then
+		# FIXME: remove this warning in 2-3 releases
+		if [[ -n ${AUTHORNAME} ]] || [[ -n ${AUTHOREMAIL} ]];
+		then
+			echo "Warning: AUTHORNAME and AUTHOREMAIL is deprecated!" >/dev/stderr
+			echo "Please take a look at echangelog(1)." >/dev/stderr
+			echo "To avoid this warning unset AUTHORNAME and AUTHOREMAIL." >/dev/stderr
+		fi
+
+		echangelog "${opt_commitmessage}" || set $?
+
+		if [[ ${1:-0} -ne 0 ]];
+		then
+			einfo "Modifying ChangeLog failed!"
+		else
+			einfo "Added ChangeLog entry"
+		fi
+    fi
+}
+
+function get_vcs() {
+	if [[ -d "CVS" ]];
+	then
+		echo "cvs"
+		return 0
+	elif [[ -d ".svn" ]];
+	then
+		echo "svn"
+		return 0
+	else
+		if [[ -x "$(which git)" ]];
+		then
+			if [[ -n "$(git rev-parse --git-dir 2>/dev/null)" ]];
+			then
+				echo "git"
+				return 0
+			fi
+		fi
+		echo
+		return 1
+	fi
 }
 
 original_params=${#}
@@ -304,7 +321,7 @@ original_params=${#}
 opt_verbosity=1
 opt_warn_on_delete=y
 opt_add_changelog=y
-opt_add_cvs=y
+opt_add_vcs=y
 opt_bump_auxfiles=y
 opt_delete_old=n
 opt_commitmessage=""
@@ -327,8 +344,8 @@ while [ ${#} -gt 0 ] ; do
 		opt_commitmessage="${1}"
 		skip=1
 		;;
-	    -C|--no-cvs)
-		opt_add_cvs=n
+	    -C|--no-vcs)
+		opt_add_vcs=n
 		;;
 	    -V|--version)
 		print_version
@@ -350,7 +367,15 @@ while [ ${#} -gt 0 ] ; do
     fi
 done
 
-process_ebuild ${ebuild_arg}
+_vcs=$(get_vcs)
+if [[ -z "${_vcs}" ]];
+then
+	echo "Warning: no cvs, git or svn repository found!" >/dev/stderr
+	echo "Changes can't be added to the VCS" >/dev/stderr
+	opt_add_vcs=n
+	opt_delete_old=n
+fi
+process_ebuild "${_vcs}" ${ebuild_arg}
 
 # TODO:
 # - put cli parser into separate functions
