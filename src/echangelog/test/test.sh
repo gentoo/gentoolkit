@@ -174,5 +174,3 @@ do
 		ewarn "No ${vcs} executable found, skipping test..."
 	fi
 done
-
-rm -rf "${_ROOT}/tmp"
