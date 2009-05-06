@@ -1,8 +1,4 @@
-2009-05-06: Paul Varner <fuzzyray@gentoo.org>
-	* eclean: Add patch from MATSUI Tetsushi to have eclean take EPREFIX
-	into account for distfiles.exclude. (Bug 241600)
-
-2009-05-05: Paul Varner <fuzzyray@gentoo.org>
+2009-05-09: Paul Varner <fuzzyray@gentoo.org>
 	* equery: Added modular rewrite from djanderson
 	* gentoolkit: Added modular rewrite from djanderson
 	* All: converted to setup.py build system
