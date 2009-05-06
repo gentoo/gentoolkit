@@ -10,7 +10,7 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/imlate/
-	cp Makefile imlate ../../$(distdir)/src/imlate/
+	cp Makefile imlate imlate.1 ../../$(distdir)/src/imlate/
 
 install: all
 	install -m 0755 imlate $(bindir)/
