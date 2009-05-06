@@ -14,4 +14,5 @@ dist:
 
 install: all
 	install -m 0755 imlate $(bindir)/
+	nstall -m 0644 imlate.1 $(mandir)/
 

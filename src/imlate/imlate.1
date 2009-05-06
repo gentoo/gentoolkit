@@ -1,0 +1,42 @@
+.TH "imlate" "1" "0.0.3" "Christian Ruppert" "gentoolkit-dev"
+.SH "NAME"
+.LP 
+imlate \- Displays candidates for keywords for an architecture based upon a target architecture.
+.SH "SYNTAX"
+.LP 
+imlate [options]
+
+
+.SH "OPTIONS"
+.TP 
+.B \-\-version
+show program's version number and exit
+.TP 
+.B \-h, \-\-help
+show this help message and exit
+.TP 
+.B \-f FILE, \-\-file=FILE
+write result into FILE [default: stdout]
+.TP 
+.B \-m ARCH, \-\-main=ARCH  
+set main ARCH (e.g. your arch) [default: amd64]
+.TP 
+.B \-t ARCH, \-\-target=ARCH
+set target ARCH (e.g. x86) [default: x86]
+.TP 
+.B \-s, \-\-stable
+just show stable candidates (e.g. \-s and \-k is the default result) [default: True]
+.TP 
+.B \-k, \-\-keyword
+just show keyword candidates (e.g. \-s and \-k is the default result) [default: True]
+.TP 
+.B \-e, \-\-experimental
+enables experimental functions/features (have a look for # EXPERIMENTAL comments in the source) [default: False]
+.TP 
+.B \-C CATEGORIES, \-\-category=CATEGORIES, \-\-categories=CATEGORIES
+just check in the specified category/categories (comma seperated) [default: none]
+.SH "AUTHORS"
+.LP 
+Christian Ruppert <idl0r@gentoo.org>
+.SH "BUGS"
+Please report any bugs to http://bugs.gentoo.org
