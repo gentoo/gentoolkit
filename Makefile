@@ -22,13 +22,11 @@ test:
 clean:
 	rm -rf release/*
 
-dist:
-	echo "Error: Must use either dist-gentoolkit or dist-gentoolkit-dev"
-	exit 1
+dist: dist-gentoolkit-dev
 
 dist-gentoolkit-dev:
 	mkdir -p release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)
-	for x in ekeyword echangelog ego ebump eviewcvs ; do \
+	for x in ekeyword echangelog ego ebump eviewcvs imlate; do \
 		( cd src/$$x ; $(MAKE) distdir=release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG) dist ) \
 	done
 	cp Makefile AUTHORS README README.Developer TODO COPYING NEWS ChangeLog release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/
@@ -39,9 +37,7 @@ dist-gentoolkit-dev:
 		> release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/makedefs.mak
 	( cd release ; tar zcf gentoolkit-dev-$(VERSION)$(RELEASE_TAG).tar.gz gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/ )
 
-install:
-	echo "Error: Must use either install-gentoolkit or install-gentoolkit-dev"
-	exit 1
+install: install-gentoolkit-dev
 
 # FIXME: If run from the CVS tree, the documentation will be installed in
 #        $(DESTDIR)/usr/share/doc/gentoolkit-$(VERSION), not gentoolkit-dev-$(VERSION)
@@ -53,6 +49,6 @@ install-gentoolkit-dev:
 
 	install -m 0644 AUTHORS ChangeLog COPYING NEWS README README.Developer TODO $(docdir)/
 
-	for x in ekeyword echangelog ego ebump eviewcvs ; do \
+	for x in ekeyword echangelog ego ebump eviewcvs imlate; do \
 		( cd src/$$x ; $(MAKE) DESTDIR=$(DESTDIR) install ) \
 	done
