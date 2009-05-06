@@ -1,3 +1,17 @@
+2009-05-06: Christian Ruppert <idl0r@gentoo.org>
+	* ekeyword: Improved die message, bug 257853.
+	* echangelog: Fixed git detection. Add support for project-wide variables
+	as suggested in bug 213374. Improved environment handling. Respect $PATH
+	while looking for git. Fixed stty call. Fix 'Use of uninitialized value in
+	concatenation' when calling echangelog on untouched ebuild directories
+	(Add an action for ChangeLog). Removed duplicate sort call. Don't eat
+	newlines, bug 264146, added new function text_fill 	(modified 
+	Text::Wrap::fill). Add some useful information when using $EDITOR.
+	* ebump: Add support for git/svn, bug 256398. Use echangelog instead of
+	creating own ChangeLog entries. ebump calls ekeyword from now on (default).
+	Old option opt_add_cvs (now opt_add_vcs) and variables
+	AUTHORNAME/AUTHOREMAIL are deprecated, see bug 213374 and/or echangelog(1).
+
 2009-04-30: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Add patch from loki_val to check -l dependencies in 
 	.la files (Bug #267898)
