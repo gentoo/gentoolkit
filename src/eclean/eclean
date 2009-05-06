@@ -806,6 +806,8 @@ def main():
 	# parse the exclusion file
 	if not 'exclude-file' in myoptions:
 		my_exclude_file = "/etc/%s/%s.exclude" % (__productname__ , myaction)
+		if 'EPREFIX' in os.environ:
+			my_exclude_file = os.environ['EPREFIX'] + my_exclude_file
 		if os.path.isfile(my_exclude_file):
 			myoptions['exclude-file'] = my_exclude_file
 	if 'exclude-file' in myoptions:
