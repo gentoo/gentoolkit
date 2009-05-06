@@ -18,7 +18,10 @@ my (@kw);
 
 # make sure the cmdline consists of keywords and ebuilds
 unless (@ARGV > 0) {
-	die "syntax: ekeyword { arch | ~[arch] | -[arch] } ebuild...\n" 
+	# NOTE: ~all will ignore all -arch keywords
+	print STDERR "syntax: ekeyword { arch | ~[arch] | -[arch] } ebuild...\n";
+	print STDERR "instead of 'arch' you can also use 'all' which covers all existing keywords...\n";
+	exit(1);
 }
 for my $a (@ARGV) {
 	$a = '~all' if $a eq '~' or $a eq $ENV{'HOME'};	# for vapier
