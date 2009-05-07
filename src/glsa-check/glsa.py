@@ -273,6 +273,13 @@ def makeAtom(pkgname, versionNode):
 	rValue = opMapping[versionNode.getAttribute("range")] \
 				+ pkgname \
 				+ "-" + getText(versionNode, format="strip")
+	try:
+		slot = versionNode.getAttribute("slot").strip()
+	except KeyError:
+		pass
+	else:
+		if slot and slot != "*":
+			rValue += ":" + slot
 	return str(rValue)
 
 def makeVersion(versionNode):
@@ -286,8 +293,16 @@ def makeVersion(versionNode):
 	@rtype:		String
 	@return:	the version string
 	"""
-	return opMapping[versionNode.getAttribute("range")] \
+	rValue = opMapping[versionNode.getAttribute("range")] \
 			+getText(versionNode, format="strip")
+	try:
+		slot = versionNode.getAttribute("slot").strip()
+	except KeyError:
+		pass
+	else:
+		if slot and slot != "*":
+			rValue += ":" + slot
+	return rValue
 
 def match(atom, portdbname, match_type="default"):
 	"""
@@ -331,9 +346,15 @@ def revisionMatch(revisionAtom, portdb, match_type="default"):
 	@return:	a list with the matching versions
 	"""
 	if match_type == "default" or not hasattr(portdb, "xmatch"):
-		mylist = portdb.match(re.sub("-r[0-9]+$", "", revisionAtom[2:]))
+		if ":" in revisionAtom:
+			mylist = portdb.match(re.sub(r'-r[0-9]+(:[^ ]+)?$', r'\1', revisionAtom[2:]))
+		else:
+			mylist = portdb.match(re.sub("-r[0-9]+$", "", revisionAtom[2:]))
 	else:
-		mylist = portdb.xmatch(match_type, re.sub("-r[0-9]+$", "", revisionAtom[2:]))
+		if ":" in revisionAtom:
+			mylist = portdb.xmatch(match_type, re.sub(r'-r[0-9]+(:[^ ]+)?$', r'\1', revisionAtom[2:]))
+		else:
+			mylist = portdb.xmatch(match_type, re.sub("-r[0-9]+$", "", revisionAtom[2:]))
 	rValue = []
 	for v in mylist:
 		r1 = portage.pkgsplit(v)[-1][1:]
