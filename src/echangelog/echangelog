@@ -53,6 +53,15 @@ my %vcs = (
 		skip => 4,
 		regex => qr/^diff \-\-git \S*\/((\S*)\.ebuild)/
 	},
+	hg => {
+		diff => "hg diff",
+		status => "hg status .",
+		add => "hg add",
+		skip => 3,
+		# hg diff is relative to the root.
+		# TODO: Write a proper regex :)
+		regex => qr/diff \-r \S+ \S+\/\S+\/((\S+)\.ebuild)/
+	},
 );
 
 sub usage {
@@ -166,7 +175,13 @@ if ( -d "CVS" ) {
 				open(GIT, '-|', "git rev-parse --git-dir 2>/dev/null");
 				$vcs = "git" if defined(<GIT>);
 				close(GIT);
-				last;
+				last if $vcs;
+			}
+			if ( -X "$path/hg" ) {
+				open(HG, '-|', "hg root 2>/dev/null");
+				$vcs = "hg" if defined(<HG>);
+				close(HG);
+				last if $vcs;
 			}
 		}
 	}
