@@ -88,8 +88,25 @@ def print_help(with_description=True):
 	))
 
 
-def call_get_functions(xml_tree, meta, got_opts):
-	"""Call information gathering funtions and display the results."""
+def call_get_functions(metadata_path, package_dir, QUERY_OPTS):
+	"""Call information gathering functions and display the results."""
+	
+	if VERBOSE:
+		print get_overlay_name(package_dir)
+
+	try:
+		xml_tree = ET.parse(metadata_path)
+	except IOError:
+		pp.print_error("No metadata available")
+		first_run = False
+		return
+
+	got_opts = False
+	if (QUERY_OPTS["herd"] or QUERY_OPTS["description"] or
+		QUERY_OPTS["useflags"] or QUERY_OPTS["maintainer"] or
+		QUERY_OPTS["upstream"] or QUERY_OPTS["xml"]):
+		# Specific information requested, less formatting
+		got_opts = True
 
 	if QUERY_OPTS["herd"] or not got_opts:
 		herd = get_herd(xml_tree)
@@ -275,32 +292,19 @@ def get_overlay_name(p_dir):
 	return ' '.join(result)
 
 
-def get_package_directory(queries):
+def get_package_directory(query):
 	"""Find a package's portage directory."""
 
-	# Find queries' Portage directory and throw error if invalid
-	if not QUERY_OPTS["current"]:
-		# We need at least one program name to run
-		if not queries:
-			print_help()
-			sys.exit(2)
-		else:
-			package_dir = []
-			for query in queries:
-				matches = find_packages(query, include_masked=True)
-				# Prefer a package that's in the Portage tree over one in an
-				# overlay. Start with oldest first.
-				pkg = None
-				while reversed(matches):
-					pkg = matches.pop()
-					if not pkg.is_overlay():
-						break
-				if pkg:
-					package_dir.append(pkg.get_package_path())
-	else:
-		package_dir = [os.getcwd()]
+	matches = find_packages(query, include_masked=True)
+	# Prefer a package that's in the Portage tree over one in an
+	# overlay. Start with oldest first.
+	pkg = None
+	while list(reversed(matches)):
+		pkg = matches.pop()
+		if not pkg.is_overlay():
+			break
 	
-	return package_dir
+	return pkg.get_package_path() if pkg else None
 	
 
 def get_useflags(xml_tree):
@@ -334,7 +338,7 @@ def get_useflags(xml_tree):
 
 
 def _get_upstream_bugtracker(node):
-	"""WRITE IT"""
+	"""Extract and format upstream bugtracker information."""
 
 	bt_loc = [e.text for e in node.findall("bugs-to")]
 
@@ -342,7 +346,7 @@ def _get_upstream_bugtracker(node):
 
 
 def _get_upstream_changelog(node):
-	"""WRITE IT"""
+	"""Extract and format upstream changelog information."""
 
 	cl_paths = [e.text for e in node.findall("changelog")]
 
@@ -350,7 +354,7 @@ def _get_upstream_changelog(node):
 
 
 def _get_upstream_documentation(node):
-	"""WRITE IT"""
+	"""Extract and format upstream documentation information."""
 
 	doc = []
 	for elem in node.findall("doc"):
@@ -365,7 +369,7 @@ def _get_upstream_documentation(node):
 
 
 def _get_upstream_maintainer(node):
-	"""WRITE IT"""
+	"""Extract and format upstream maintainer information."""
 
 	maintainer = node.findall("maintainer")
 	maint = []
@@ -386,7 +390,7 @@ def _get_upstream_maintainer(node):
 
 
 def _get_upstream_remoteid(node):
-	"""WRITE IT"""
+	"""Extract and format upstream remote ID."""
 
 	r_id = [e.get("type") + ": " + e.text for e in node.findall("remote-id")]
 
@@ -496,38 +500,30 @@ def main(input_args):
 
 	parse_module_options(module_opts)
 	
-	package_dir = get_package_directory(queries)
-	if not package_dir:
-		raise errors.GentoolkitNoMatches(queries)
-
-	metadata_path = [os.path.join(d, "metadata.xml") for d in package_dir]
-
-	# --------------------------------
-	# Check options and call functions
-	# --------------------------------
-
-	first_run = True
-	for p_dir, meta in zip(package_dir, metadata_path):
-		if not first_run:
-			print
-
-		if VERBOSE:
-			print get_overlay_name(p_dir)
-
-		try:
-			xml_tree = ET.parse(meta)
-		except IOError:
-			pp.print_error("No metadata available")
+	# Find queries' Portage directory and throw error if invalid
+	if not queries and not QUERY_OPTS["current"]:
+		print_help()
+		sys.exit(2)
+	
+	if QUERY_OPTS["current"]:
+		package_dir = os.getcwd()
+		metadata_path = os.path.join(package_dir, "metadata.xml")
+		call_get_functions(metadata_path, package_dir, QUERY_OPTS)
+	else:
+		first_run = True
+		for query in queries:
+			package_dir = get_package_directory(query)
+			if not package_dir:
+				raise errors.GentoolkitNoMatches(query)
+			metadata_path = os.path.join(package_dir, "metadata.xml")
+	
+			# --------------------------------
+			# Check options and call functions
+			# --------------------------------
+		
+			if not first_run:
+				print
+				
+			call_get_functions(metadata_path, package_dir, QUERY_OPTS)
+	
 			first_run = False
-			continue
-
-		got_opts = False
-		if (QUERY_OPTS["herd"] or QUERY_OPTS["description"] or
-			QUERY_OPTS["useflags"] or QUERY_OPTS["maintainer"] or
-			QUERY_OPTS["upstream"] or QUERY_OPTS["xml"]):
-			# Specific information requested, less formatting
-			got_opts = True
-			
-		call_get_functions(xml_tree, meta, got_opts)
-
-		first_run = False

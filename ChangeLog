@@ -1,4 +1,9 @@
-2009-05-09: Paul Varner <fuzzyray@gentoo.org>
+2009-05-07: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Add patch from djanderson to make meta get and check package
+	dirs in a manner similar to other gentoolkit scripts and fix
+	some docstrings. (Bug 268895)
+
+2009-05-05: Paul Varner <fuzzyray@gentoo.org>
 	* equery: Added modular rewrite from djanderson
 	* gentoolkit: Added modular rewrite from djanderson
 	* All: converted to setup.py build system
