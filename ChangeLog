@@ -1,3 +1,7 @@
+2009-05-07: Christian Ruppert <idl0r@gentoo.org>
+	* echangelog: Re-add files (git) if the copyright has been updated, thanks
+	to Justin Lecher (jlec) <jlec@j-schmitz.net>.
+
 2009-05-06: Christian Ruppert <idl0r@gentoo.org>
 	* ekeyword: Improved die message, bug 257853.
 	* echangelog: Fixed git detection. Add support for project-wide variables
