@@ -1,7 +1,7 @@
 .TH "glsa-check" "1" "0.6" "Marius Mauch" "gentoolkit"
 .SH "NAME"
 .LP 
-glsa\-check \- Gentoo: Tool to locally monitor and manage GLSA's
+glsa\-check \- Gentoo: Tool to locally monitor and manage GLSAs
 .SH "SYNTAX"
 .LP 
 glsa\-check <\fIoption\fP> [\fIglsa\-list\fP]
@@ -52,6 +52,9 @@ print more messages (option)
 .TP
 .B \-c, \-\-cve
 show CVE ids in listing mode (option)
+.TP
+.B \-q, \-\-quiet
+be less verbose and do not send empty mail (option)
 .TP 
 .B \-m, \-\-mail
 send a mail with the given GLSAs to the administrator
