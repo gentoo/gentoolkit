@@ -35,7 +35,8 @@ optionmap = [
 ["-V", "--version", "some information about this tool"],
 ["-v", "--verbose", "print more information (option)"],
 ["-c", "--cve", "show CVE ids in listing mode (option)"],
-["-m", "--mail", "send a mail with the given GLSAs to the administrator"]
+["-q", "--quiet", "be less verbose and do not send empty mail (option)"],
+["-m", "--mail", "send a mail with the given GLSAs to the administrator"],
 ]
 
 # print a warning as this is beta code (but proven by now, so no more warning)
@@ -52,7 +53,6 @@ params = []
 try:
 	args, params = getopt(sys.argv[1:], "".join([o[0][1] for o in optionmap]), \
 		[x[2:] for x in reduce(lambda x,y: x+y, [z[1:-1] for z in optionmap])])
-#		["dump", "print", "list", "pretend", "fix", "inject", "help", "verbose", "version", "test", "nocolor", "cve", "mail"])
 	args = [a for a,b in args]
 	
 	for option in ["--nocolor", "-n"]:
@@ -77,6 +77,13 @@ try:
 		if option in args:
 			least_change = False
 			args.remove(option)
+
+	quiet = False
+	for option in ["--quiet", "-q"]:
+		if option in args:
+			quiet = True
+			args.remove(option)
+
 
 	# sanity checking
 	if len(args) <= 0:
@@ -143,6 +150,9 @@ from gentoolkit.glsa import *
 
 glsaconfig = checkconfig(portage.config(clone=portage.settings))
 
+if quiet:
+    glsaconfig["EMERGE_OPTS"] += " --quiet"
+
 vardb = portage.db["/"]["vartree"].dbapi
 portdb = portage.db["/"]["porttree"].dbapi
 
@@ -190,9 +200,10 @@ for p in params[:]:
 glsalist.extend([g for g in params if g not in glsalist])
 
 def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr):
-	fd2.write(white("[A]")+" means this GLSA was already applied,\n")
-	fd2.write(green("[U]")+" means the system is not affected and\n")
-	fd2.write(red("[N]")+" indicates that the system might be affected.\n\n")
+	if not quiet:
+		fd2.write(white("[A]")+" means this GLSA was already applied,\n")
+		fd2.write(green("[U]")+" means the system is not affected and\n")
+		fd2.write(red("[N]")+" indicates that the system might be affected.\n\n")
 
 	myglsalist.sort()
 	for myid in myglsalist:
@@ -363,9 +374,10 @@ if mode == "mail":
 		myglsa.dump(outstream=myfd)
 		myattachments.append(MIMEText(str(myfd.getvalue()), _charset="utf8"))
 		myfd.close()
-		
-	mymessage = portage_mail.create_message(myfrom, myrecipient, mysubject, summary, myattachments)
-	portage_mail.send_mail(glsaconfig, mymessage)
+
+        if glsalist or not quiet:
+		mymessage = portage_mail.create_message(myfrom, myrecipient, mysubject, summary, myattachments)
+		portage_mail.send_mail(glsaconfig, mymessage)
 		
 	sys.exit(0)
 	
