@@ -34,7 +34,7 @@ optionmap = [
 ["-h", "--help", "show this help message"],
 ["-V", "--version", "some information about this tool"],
 ["-v", "--verbose", "print more information (option)"],
-["-c", "--cve", "show CAN ids in listing mode (option)"],
+["-c", "--cve", "show CVE ids in listing mode (option)"],
 ["-m", "--mail", "send a mail with the given GLSAs to the administrator"]
 ]
 
