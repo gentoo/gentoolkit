@@ -16,8 +16,6 @@ __author__ = "Marius Mauch <genone@gentoo.org>"
 import os
 import sys
 import urllib
-import time
-import codecs
 import re
 import xml.dom.minidom
 
@@ -585,7 +583,6 @@ class Glsa:
 		@rtype:		Boolean
 		@returns:	True if the system is affected, False if not
 		"""
-		vList = []
 		rValue = False
 		for k in self.packages.keys():
 			pkg = self.packages[k]
