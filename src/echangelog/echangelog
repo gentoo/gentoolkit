@@ -271,49 +271,44 @@ while (<C>) {
 		my ($status, $filename) = ($1,$2);
 
 		if($vcs eq "git") {
-			open P, "git rev-parse --sq --show-prefix |";
+			open(P, '-|', "git rev-parse --sq --show-prefix");
 			my $prefix = <P>;
-			$prefix = substr($prefix, 0, -1);
-			close P;
+			close(P);
 
-			if ($filename =~ /$prefix(\S*)/) {
-				$filename = $1 ;
-			}
-			else {
-				next;
+			if (defined($prefix)) {
+				chomp($prefix);
+
+				if ($filename =~ /$prefix(\S*)/) {
+					$filename = $1 ;
+				}
+				else {
+					next;
+				}
 			}
 		}
 
-		if( -d $filename ) {
-			next;
-		}
+		next if -d $filename;
 
-		push @files, $filename;
+		push(@files, $filename);
 		($actions{$filename} = $status) =~ tr/DARM/-+-/d;
 	}
+}
+
+sub git_unknown_objects {
+	my $object = $_;
+
+	return if -d $object;
+	return if $File::Find::dir =~ m/^\.\/\.git\/?/;
+
+	open(C, '-|', "${vcs} status ${object} 2>&1 1>/dev/null");
+	push(@unknown, $object) if defined(<C>);
+	close(C);
 }
 
 # git only shows files already added so we need to check for unknown files
 # separately here.
 if($vcs eq "git") {
 	find(\&git_unknown_objects, "./");
-}
-
-sub git_unknown_objects {
-	my $object = $_;
-	my ($dev,$ino,$mode,$nlink,$uid,$gid);
-
-	# Ignore empty directories - git doesn't version them and cvs removes them.
-	if ( (($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_)) && ! -d _ ) {
-		open C, $vcs." status $_ 2>&1 1>/dev/null |";
-
-		while (<C>) {
-			$_ = <C>;
-			push @unknown, $object;
-		};
-
-		close C;
-	};
 }
 
 # Separate out the trivial files for now
