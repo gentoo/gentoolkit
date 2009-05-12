@@ -166,6 +166,15 @@ sub update_cat_pn {
 	return $t;
 }
 
+# Just to ensure we don't get duplicate entries.
+sub mypush(\@@) {
+	my $aref = shift;
+
+	foreach my $value (@_) {
+		push(@{$aref}, $value) if !grep(/^\Q$value\E$/, @{$aref});
+	}
+}
+
 GetOptions(
 	'help' => \$opt_help,
 	'strict' => \$opt_strict,
@@ -424,15 +433,6 @@ sub sortfunc($$) {
 	# nothing left to compare
 	#
 	return 0;
-}
-
-# Just to ensure we don't get duplicate entries.
-sub mypush(\@@) {
-	my $aref = shift;
-
-	foreach my $value (@_) {
-		push(@{$aref}, $value) if !grep(/^$value$/, @{$aref});
-	}
 }
 
 # Forget ebuilds that only have changed copyrights, unless that's all
