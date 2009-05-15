@@ -47,7 +47,7 @@ for my $f (@ARGV) {
 		if (/^\s*KEYWORDS=/) {
 
 			# extract the quoted section from KEYWORDS
-			while (not /^KEYWORDS=["'].*?["']/) {
+			while (not /^\s*KEYWORDS=["'].*?["']/) {
 				chomp;
 				my $next = <I>;
 				$_ = join " ", $_, $next;
