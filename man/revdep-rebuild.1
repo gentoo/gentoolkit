@@ -91,11 +91,48 @@ To rebuild packages that depend upon libImlib.so and libImlib2.so:
 .br 
 \fBrevdep\-rebuild \-\-library libImlib[2]*.so.*\fR
 
+.SH "FILES"
+.P
+revdep\-rebuild keeps several pseudo-temporary files in /var/cache/revdep\-rebuild/. Deleting these files can improve accuracy at the cost of speed:
+.TP 15
+.I 0_env.rr
+Contains environment variables
+.TP
+.I 1_files.rr
+Contains a list of files to search
+.TP
+.I 2_ldpath.rr
+Contains the LDPATH
+.TP
+.I 3_broken.rr
+Contains the list of broken files
+.TP
+.I 3_errors.rr
+Contains the ldd error output
+.TP
+.I 4_raw.rr
+Contains the raw list of packages
+.TP
+.I 4_owners.rr
+Contains the file owners
+.TP
+.I 4_pkgs.rr
+Contains the unsorted bare package names
+.TP
+.I 4_ebuilds.rr
+Contains the unsorted atoms
+.TP
+.I 5_order.rr
+Contains the sorted atoms
+.TP
+.I 6_status.rr
+Contains the ldd error output
+
 .SH "EXIT STATUS"
 revdep\-rebuild returns a zero exit status if it \fBand emerge\fR succeeds, and a nonzero exit status otherwise.
 .SH "BUGS"
 .LP 
-Report bugs to <http://bugs.gentoo.org>. Please do not report emerge failures caused by \-o or \-e. Please include your .revdep\-rebuild* files, your emerge \-\-info, and patches. ;)
+Report bugs to <http://bugs.gentoo.org>. Please do not report emerge failures caused by \-o or \-e. Please include your files from /var/cache/revdep\-rebuild/, your emerge \-\-info, and patches. ;)
 
 .SH "SEE ALSO"
 emerge(1), portage(5), regex(7)
