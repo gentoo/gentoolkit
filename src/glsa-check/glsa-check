@@ -5,6 +5,7 @@
 
 import os
 import sys
+import codecs
 sys.path.insert(0, "/usr/lib/gentoolkit/pym")
 try:
 	import portage
@@ -197,7 +198,9 @@ for p in params[:]:
 
 glsalist.extend([g for g in params if g not in glsalist])
 
-def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr):
+def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr, encoding="utf-8"):
+	fd1 = codecs.getwriter(encoding)(fd1)
+	fd2 = codecs.getwriter(encoding)(fd2)
 	if not quiet:
 		fd2.write(white("[A]")+" means this GLSA was already applied,\n")
 		fd2.write(green("[U]")+" means the system is not affected and\n")
