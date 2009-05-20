@@ -4,6 +4,10 @@
 #
 # $Header$
 
+ifeq ($(origin VERSION), undefined)
+	VERSION = 9999
+endif
+
 all:
 	echo "YARMOUTH (vb.) To shout at foreigners in the belief that the louder you speak, the better they'll understand you." 
 	echo $(VERSION)
@@ -15,7 +19,7 @@ dist: dist-gentoolkit
 
 dist-gentoolkit:
 	mkdir -p release
-	sed -i "s/^VER =.*/VER = '$(VERSION)'/" setup.py
+	echo "$(VERSION)" > VERSION
 	python setup.py sdist --dist-dir release
-	svn revert setup.py
+	svn revert VERSION
 	rm -f MANIFEST

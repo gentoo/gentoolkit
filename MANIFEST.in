@@ -1,3 +1,3 @@
-include AUTHORS ChangeLog COPYING NEWS README README.Developer THANKS TODO
+include AUTHORS ChangeLog COPYING NEWS README README.Developer THANKS TODO VERSION
 recursive-include data *
 recursive-include man *
