@@ -1,3 +1,9 @@
+2009-05-20: Paul Varner <fuzzyray@gentoo.org>
+	* glsa-check: Add patches from Robert Buchholz to do the following:
+	Handle unicode encoding better, python tweaks to speedup execution,
+	change behavior of getMinUpgrade, restructure system affection
+	detection, and do not inject GLSAs into the checkfile when fixing.
+
 2009-05-07: Paul Varner <fuzzyray@gentoo.org>
 	* equery: Add patch from djanderson to make meta get and check package
 	dirs in a manner similar to other gentoolkit scripts and fix
