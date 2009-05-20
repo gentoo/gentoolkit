@@ -378,8 +378,9 @@ def getMinUpgrade(vulnerableList, unaffectedList, minimize=True):
 	I{vulnerableList} and returns string describing
 	the lowest version for the package that matches an atom in 
 	I{unaffectedList} and is greater than the currently installed
-	version or None if the system is not affected. Both
-	I{vulnerableList} and I{unaffectedList} should have the
+	version. It will return an empty list if the system is affected,
+	and no upgrade is possible or None if the system is not affected.
+	Both I{vulnerableList} and I{unaffectedList} should have the
 	same base package.
 	
 	@type	vulnerableList: List of Strings
@@ -393,7 +394,7 @@ def getMinUpgrade(vulnerableList, unaffectedList, minimize=True):
 	@return:	the lowest unaffected version that is greater than
 				the installed version.
 	"""
-	rValue = None
+	rValue = ""
 	v_installed = reduce(operator.add, [match(v, "vartree") for v in vulnerableList], [])
 	u_installed = reduce(operator.add, [match(u, "vartree") for u in unaffectedList], [])
 	
@@ -403,15 +404,15 @@ def getMinUpgrade(vulnerableList, unaffectedList, minimize=True):
 			install_unaffected = False
 
 	if install_unaffected:
-		return rValue
-	
+		return None
+
 	for u in unaffectedList:
 		mylist = match(u, "porttree", match_type="match-all")
 		for c in mylist:
 			c_pv = portage.catpkgsplit(c)
 			i_pv = portage.catpkgsplit(portage.best(v_installed))
 			if portage.pkgcmp(c_pv[1:], i_pv[1:]) > 0 \
-					and (rValue == None \
+					and (rValue == "" \
 						or not match("="+rValue, "porttree") \
 						or (minimize ^ (portage.pkgcmp(c_pv[1:], portage.catpkgsplit(rValue)[1:]) > 0)) \
 							and match("="+c, "porttree")) \
@@ -658,7 +659,7 @@ class Glsa:
 					for v in path["vul_atoms"]:
 						rValue = rValue \
 							or (len(match(v, "vartree")) > 0 \
-								and getMinUpgrade(path["vul_atoms"], path["unaff_atoms"]))
+								and None != getMinUpgrade(path["vul_atoms"], path["unaff_atoms"]))
 		return rValue
 	
 	def isApplied(self):
