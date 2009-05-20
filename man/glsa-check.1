@@ -36,7 +36,7 @@ show the necessary commands to apply this GLSA
 try to auto\-apply this GLSA (experimental)
 .TP 
 .B \-i, \-\-inject
-inject the given GLSA into the checkfile
+inject the given GLSA into the glsa_injected file
 .TP 
 .B \-n, \-\-nocolor
 disable colors (option)
@@ -58,3 +58,9 @@ be less verbose and do not send empty mail (option)
 .TP 
 .B \-m, \-\-mail
 send a mail with the given GLSAs to the administrator
+.SH "FILES"
+.LP 
+.TP 
+.B /var/lib/portage/glsa_injected
+List of GLSA ids that have been injected and will never show up as 'affected' on this system.
+The file must contain one GLSA id (e.g. '200804-02') per line.

@@ -117,7 +117,7 @@ def checkconfig(myconfig):
 		"GLSA_DIR": portage.settings["PORTDIR"]+"/metadata/glsa/",
 		"GLSA_PREFIX": "glsa-",
 		"GLSA_SUFFIX": ".xml",
-		"CHECKFILE": "/var/cache/edb/glsa",
+		"CHECKFILE": "/var/lib/portage/glsa_injected",
 		"GLSA_SERVER": "www.gentoo.org/security/en/glsa/",	# not completely implemented yet
 		"CHECKMODE": "local",								# not completely implemented yet
 		"PRINTWIDTH": "76"
@@ -669,14 +669,16 @@ class Glsa:
 							or (None != getMinUpgrade([v,], path["unaff_atoms"]))
 		return rValue
 	
-	def isApplied(self):
+	def isInjected(self):
 		"""
-		Looks if the GLSA IDis in the GLSA checkfile to check if this
-		GLSA was already applied.
+		Looks if the GLSA ID is in the GLSA checkfile to check if this
+		GLSA should be marked as applied.
 		
 		@rtype:		Boolean
-		@returns:	True if the GLSA was applied, False if not
+		@returns:	True if the GLSA is in the inject file, False if not
 		"""
+		if not os.access(self.config["CHECKFILE"], os.R_OK):
+			return False
 		aList = portage.grabfile(self.config["CHECKFILE"])
 		return (self.nr in aList)
 
@@ -689,7 +691,7 @@ class Glsa:
 		@rtype:		None
 		@returns:	None
 		"""
-		if not self.isApplied():
+		if not self.isInjected():
 			checkfile = open(self.config["CHECKFILE"], "a+")
 			checkfile.write(self.nr+"\n")
 			checkfile.close()
