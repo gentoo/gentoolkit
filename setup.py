@@ -2,11 +2,11 @@
 
 from distutils.core import setup
 
-VER = '9.9.9.9'
+__version__ = open("VERSION").read().strip()
 
 setup(
 	name='gentoolkit',
-	version=VER,
+	version=__version__,
 	description='Set of tools that work with and enhance portage.',
 	author='',
 	author_email='',
@@ -14,7 +14,7 @@ setup(
 	maintainer_email='tools-portage@gentoo.org',
 	url='http://www.gentoo.org/proj/en/portage/tools/index.xml',
 	download_url='http://distfiles.gentoo.org/distfiles/gentoolkit-%s.tar.gz'\
-		% VER,
+		% __version__,
 	package_dir={'': 'pym'},
 	packages=(
 		'gentoolkit',
