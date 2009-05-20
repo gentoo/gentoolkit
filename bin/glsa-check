@@ -131,7 +131,7 @@ if mode == "help" or mode == "HELP":
 		sys.stderr.write("\n" + msg)
 		sys.exit(1)
 
-# we need root priviledges for write access
+# we need root privileges for write access
 if mode in ["fix", "inject"] and os.geteuid() != 0:
 	sys.stderr.write(__program__ + ": root access is needed for \""+mode+"\" mode\n")
 	sys.exit(2)
