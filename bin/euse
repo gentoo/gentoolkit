@@ -7,7 +7,7 @@
 # Licensed under the GPL v2
 
 PROGRAM_NAME=euse
-PROGRAM_VERSION=$(cat /etc/gentoolkit-version)
+PROGRAM_VERSION=$(cat /usr/share/gentoolkit/VERSION)
 
 MAKE_CONF_PATH=/etc/make.conf
 MAKE_GLOBALS_PATH=/etc/make.globals

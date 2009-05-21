@@ -333,7 +333,7 @@ def print_version():
 	"""Print the version of this tool to the console."""
 
 	try:
-		with open('/etc/gentoolkit-version') as gentoolkit_version:
+		with open('/usr/share/gentoolkit/VERSION') as gentoolkit_version:
 			version = gentoolkit_version.read().strip()
 	except IOError, err:
 		pp.die(2, str(err))
