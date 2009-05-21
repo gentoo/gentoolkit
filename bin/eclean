@@ -9,7 +9,7 @@ from __future__ import with_statement
 # Meta:
 __author__ = "Thomas de Grenier de Latour (tgl)"
 __email__ = "degrenier@easyconnect.fr"
-__version__ = open('/etc/gentoolkit-version').read().strip()
+__version__ = open('/usr/share/gentoolkit/VERSION').read().strip()
 __productname__ = "eclean"
 __description__ = "A cleaning tool for Gentoo distfiles and binaries."
 

@@ -19,7 +19,7 @@ from xml.sax.handler import feature_namespaces
 import portage
 from portage.output import *
 
-version = open('/etc/gentoolkit-version').read().strip()
+version = open('/usr/share/gentoolkit/VERSION').read().strip()
 
 def getvar(pkg, var):
 	file = open(pkg + ".ebuild")

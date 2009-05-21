@@ -1,4 +1,8 @@
 2009-05-20: Paul Varner <fuzzyray@gentoo.org>
+	* All: Convert from using /etc/gentoolkit-version to
+	/usr/share/gentoolkit/VERSION
+
+2009-05-20: Paul Varner <fuzzyray@gentoo.org>
 	* glsa-check: Add patches from Robert Buchholz to do the following:
 	Handle unicode encoding better, python tweaks to speedup execution,
 	change behavior of getMinUpgrade, restructure system affection
