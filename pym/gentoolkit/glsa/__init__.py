@@ -22,7 +22,7 @@ import operator
 import xml.dom.minidom
 from StringIO import StringIO
 
-if sys.version_info[0:2] < (2,3):
+if sys.version_info[0:2] < (2, 3):
 	raise NotImplementedError("Python versions below 2.3 have broken XML code " \
 								+"and are not supported")
 
@@ -33,8 +33,8 @@ except ImportError:
 	import portage
 
 # Note: the space for rgt and rlt is important !!
-opMapping = {"le": "<=", "lt": "<", "eq": "=", "gt": ">", "ge": ">=", 
-			 "rge": ">=~", "rle": "<=~", "rgt": " >~", "rlt": " <~"}
+opMapping = {"le": "<=", "lt": "<", "eq": "=", "gt": ">", "ge": ">=",
+		"rge": ">=~", "rle": "<=~", "rgt": " >~", "rlt": " <~"}
 NEWLINE_ESCAPE = "!;\\n"	# some random string to mark newlines that should be preserved
 SPACE_ESCAPE = "!;_"		# some random string to mark spaces that should be preserved
 
@@ -589,7 +589,7 @@ class Glsa:
 		self.packages = {}
 		for p in self.affected.getElementsByTagName("package"):
 			name = p.getAttribute("name")
-			if not self.packages.has_key(name):
+			if not name in self.packages:
 				self.packages[name] = []
 			tmp = {}
 			tmp["arch"] = p.getAttribute("arch")
