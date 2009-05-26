@@ -254,11 +254,15 @@ process_ebuild() {
     #
     # (Optional) Delete previous entry
     #
+    # Could we use 'rm' instead of remove for all vcs?
     if [ "${opt_delete_old}" == "y" ] ; then
 		for x in ${delfiles} ; do
 			if [[ "${vcs}" == "cvs" ]];
 			then
 			    ${vcs} remove -f ${x}
+			elif [[ "${vcs}" == "git" ]];
+			then
+				${vcs} rm ${x}
 			else
 				${vcs} remove ${x}
 			fi
