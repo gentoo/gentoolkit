@@ -11,7 +11,7 @@
 # - getting GLSAs from http/ftp servers (not really useful without the fixed ebuilds)
 # - GPG signing/verification (until key policy is clear)
 
-__author__ = "Marius Mauch <genone@gentoo.org>"
+__author__ = "Marius Mauch <genone@gentoo.org>, Robert Buchholz <rbu@gentoo.org>"
 
 import os
 import sys
@@ -19,7 +19,7 @@ import urllib
 import codecs
 import re
 import operator
-import xml.dom.minidom
+import xml.etree.cElementTree as ET
 from StringIO import StringIO
 
 if sys.version_info[0:2] < (2, 3):
@@ -164,16 +164,15 @@ def getListElements(listnode):
 	"""
 	Get all <li> elements for a given <ol> or <ul> node.
 	
-	@type	listnode: xml.dom.Node
+	@type	listnode: ElementTree
 	@param	listnode: <ul> or <ol> list to get the elements for
 	@rtype:		List of Strings
 	@return:	a list that contains the value of the <li> elements
 	"""
-	if not listnode.nodeName in ["ul", "ol"]:
+	if not listnode.tag in ["ul", "ol"]:
 		raise GlsaFormatException("Invalid function call: listnode is not <ul> or <ol>")
 	rValue = [getText(li, format="strip") \
-		for li in listnode.childNodes \
-		if li.nodeType == xml.dom.Node.ELEMENT_NODE]
+		for li in listnode.getchildren()]
 	return rValue
 
 def getText(node, format, textfd = None):
@@ -185,7 +184,7 @@ def getText(node, format, textfd = None):
 	tabs and spaces. This function is only useful for the GLSA DTD,
 	it's not applicable for other DTDs.
 	
-	@type	node: xml.dom.Node
+	@type	node: ElementTree
 	@param	node: the root node to start with the parsing
 	@type	format: String
 	@param	format: this should be either I{strip}, I{keep} or I{xml}
@@ -200,45 +199,45 @@ def getText(node, format, textfd = None):
 	@return:	the (formatted) content of the node and its subnodes
 			except if textfd was not none
 	"""
+	if node == None:
+		return ""
 	if not textfd:
 		textfd = StringIO()
 		returnNone = False
 	else:
 		returnNone = True
 	if format in ["strip", "keep"]:
-		if node.nodeName in ["uri", "mail"]:
-			textfd.write(node.childNodes[0].data+": "+node.getAttribute("link"))
+		if node.tag in ["uri", "mail"]:
+			textfd.write(node.text+": "+(node.get("link") or ""))
 		else:
-			for subnode in node.childNodes:
-				if subnode.nodeName == "#text":
-					textfd.write(subnode.data)
-				else:
-					getText(subnode, format, textfd)
+			textfd.write(node.text)
+			for subnode in node.getchildren():
+				getText(subnode, format, textfd)
+				textfd.write(subnode.tail)
 	else: # format = "xml"
-		for subnode in node.childNodes:
-			if subnode.nodeName == "p":
-				for p_subnode in subnode.childNodes:
-					if p_subnode.nodeName == "#text":
-						textfd.write(p_subnode.data.strip())
-					elif p_subnode.nodeName in ["uri", "mail"]:
-						textfd.write(p_subnode.childNodes[0].data)
-						textfd.write(" ( "+p_subnode.getAttribute("link")+" )")
+		textfd.write(node.text)
+		for subnode in node.getchildren():
+			if subnode.tag == "p":
+				ptext = subnode.text
+				for p_subnode in subnode.getchildren():
+					ptext += (p_subnode.text or "").strip()
+					if p_subnode.tag in ["uri", "mail"]:
+						ptext += " <"+(p_subnode.get("link") or "")+">"
+					ptext += p_subnode.tail
+				textfd.write(ptext.strip())
 				textfd.write(NEWLINE_ESCAPE)
-			elif subnode.nodeName == "ul":
+			elif subnode.tag == "ul":
 				for li in getListElements(subnode):
 					textfd.write("-"+SPACE_ESCAPE+li+NEWLINE_ESCAPE+" ")
-			elif subnode.nodeName == "ol":
-				i = 0
-				for li in getListElements(subnode):
-					i = i+1
-					textfd.write(str(i)+"."+SPACE_ESCAPE+li+NEWLINE_ESCAPE+" ")
-			elif subnode.nodeName == "code":
+			elif subnode.tag == "ol":
+				for i, li in enumerate(getListElements(subnode)):
+					textfd.write(str(i+1)+"."+SPACE_ESCAPE+li+NEWLINE_ESCAPE+" ")
+			elif subnode.tag == "code":
 				textfd.write(getText(subnode, format="keep").lstrip().replace("\n", NEWLINE_ESCAPE))
 				textfd.write(NEWLINE_ESCAPE)
-			elif subnode.nodeName == "#text":
-				textfd.write(subnode.data)
 			else:
-				raise GlsaFormatException("Invalid Tag found: ", subnode.nodeName)
+				raise GlsaFormatException("Invalid Tag found: ", subnode.tag)
+			textfd.write(subnode.tail)
 	if returnNone:
 		return None
 	rValue = textfd.getvalue()
@@ -252,7 +251,7 @@ def getMultiTagsText(rootnode, tagname, format):
 	Returns a list with the text of all subnodes of type I{tagname}
 	under I{rootnode} (which itself is not parsed) using the given I{format}.
 	
-	@type	rootnode: xml.dom.Node
+	@type	rootnode: ElementTree
 	@param	rootnode: the node to search for I{tagname}
 	@type	tagname: String
 	@param	tagname: the name of the tags to search for
@@ -262,7 +261,7 @@ def getMultiTagsText(rootnode, tagname, format):
 	@return:	a list containing the text of all I{tagname} childnodes
 	"""
 	rValue = [getText(e, format) \
-		for e in rootnode.getElementsByTagName(tagname)]
+		for e in rootnode.findall(tagname)]
 	return rValue
 
 def makeAtom(pkgname, versionNode):
@@ -272,22 +271,18 @@ def makeAtom(pkgname, versionNode):
 	
 	@type	pkgname: String
 	@param	pkgname: the name of the package for this atom
-	@type	versionNode: xml.dom.Node
+	@type	versionNode: ElementTree
 	@param	versionNode: a <vulnerable> or <unaffected> Node that
 						 contains the version information for this atom
 	@rtype:		String
 	@return:	the portage atom
 	"""
-	rValue = opMapping[versionNode.getAttribute("range")] \
+	rValue = opMapping[versionNode.get("range")] \
 				+ pkgname \
 				+ "-" + getText(versionNode, format="strip")
-	try:
-		slot = versionNode.getAttribute("slot").strip()
-	except KeyError:
-		pass
-	else:
-		if slot and slot != "*":
-			rValue += ":" + slot
+	slot = versionNode.get("slot")
+	if slot and slot != "*":
+		rValue += ":" + slot.strip()
 	return str(rValue)
 
 def makeVersion(versionNode):
@@ -295,21 +290,17 @@ def makeVersion(versionNode):
 	creates from the information in the I{versionNode} a 
 	version string (format <op><version>).
 	
-	@type	versionNode: xml.dom.Node
+	@type	versionNode: ElementTree
 	@param	versionNode: a <vulnerable> or <unaffected> Node that
 						 contains the version information for this atom
 	@rtype:		String
 	@return:	the version string
 	"""
-	rValue = opMapping[versionNode.getAttribute("range")] \
+	rValue = opMapping[versionNode.get("range")] \
 			+getText(versionNode, format="strip")
-	try:
-		slot = versionNode.getAttribute("slot").strip()
-	except KeyError:
-		pass
-	else:
-		if slot and slot != "*":
-			rValue += ":" + slot
+	slot = versionNode.get("slot")
+	if slot and slot != "*":
+		rValue += ":" + slot.strip()
 	return rValue
 
 def match(atom, portdbname, match_type="default"):
@@ -526,81 +517,72 @@ class Glsa:
 		@rtype:		None
 		@returns:	None
 		"""
-		self.DOM = xml.dom.minidom.parse(myfile)
-		if not self.DOM.doctype:
-			raise GlsaTypeException(None)
-		elif self.DOM.doctype.systemId == "http://www.gentoo.org/dtd/glsa.dtd":
-			self.dtdversion = 0
-		elif self.DOM.doctype.systemId == "http://www.gentoo.org/dtd/glsa-2.dtd":
-			self.dtdversion = 2
-		else:
-			raise GlsaTypeException(self.DOM.doctype.systemId)
-		myroot = self.DOM.getElementsByTagName("glsa")[0]
-		if self.type == "id" and myroot.getAttribute("id") != self.nr:
-			raise GlsaFormatException("filename and internal id don't match:" + myroot.getAttribute("id") + " != " + self.nr)
+		self.DOM = ET.parse(myfile)
+		#elif self.DOM.doctype.systemId == "http://www.gentoo.org/dtd/glsa.dtd":
+			#self.dtdversion = 0
+		#elif self.DOM.doctype.systemId == "http://www.gentoo.org/dtd/glsa-2.dtd":
+			#self.dtdversion = 2
+		#else:
+			#raise GlsaTypeException(self.DOM.doctype.systemId)
+		myroot = self.DOM.getroot()
+		if myroot.tag != "glsa":
+			raise GlsaFormatException("Root tag was not 'glsa', but '%s' in %s:" % (self.tag, self.nr))
+		if self.type == "id" and myroot.get("id") != self.nr:
+			raise GlsaFormatException("filename and internal id don't match:" + myroot.get("id") + " != " + self.nr)
 
 		# the simple (single, required, top-level, #PCDATA) tags first
-		self.title = getText(myroot.getElementsByTagName("title")[0], format="strip")
-		self.synopsis = getText(myroot.getElementsByTagName("synopsis")[0], format="strip")
-		self.announced = format_date(getText(myroot.getElementsByTagName("announced")[0], format="strip"))
+		self.title = getText(myroot.find("title"), format="strip")
+		self.synopsis = getText(myroot.find("synopsis"), format="strip")
+		self.announced = format_date(getText(myroot.find("announced"), format="strip"))
 		
-		count = 1
 		# Support both formats of revised:
-		# <revised>December 30, 2007: 02</revised>
-		# <revised count="2">2007-12-30</revised>
-		revisedEl = myroot.getElementsByTagName("revised")[0]
+		# <revised>December 30, 2007: 02</revised>   (old style)
+		# <revised count="2">2007-12-30</revised>    (new style)
+		revisedEl = myroot.find("revised")
 		self.revised = getText(revisedEl, format="strip")
-		if (revisedEl.attributes.has_key("count")):
-			count = revisedEl.getAttribute("count")
-		elif (self.revised.find(":") >= 0):
+		if (self.revised.find(":") >= 0): # old style
 			(self.revised, count) = self.revised.split(":")
-		
+		else:                             #new style
+			count = revisedEl.get("count")
+
 		self.revised = format_date(self.revised)
 		
 		try:
 			self.count = int(count)
-		except ValueError:
+		except (ValueError, TypeError):
 			# TODO should this rais a GlsaFormatException?
 			self.count = 1
 		
 		# now the optional and 0-n toplevel, #PCDATA tags and references
-		try:
-			self.access = getText(myroot.getElementsByTagName("access")[0], format="strip")
-		except IndexError:
-			self.access = ""
+		self.access = getText(myroot.find("access"), format="strip")
+		# TODO
 		self.bugs = getMultiTagsText(myroot, "bug", format="strip")
-		self.references = getMultiTagsText(myroot.getElementsByTagName("references")[0], "uri", format="keep")
+		self.references = getMultiTagsText(myroot.find("references"), "uri", format="keep")
 		
 		# and now the formatted text elements
-		self.description = getText(myroot.getElementsByTagName("description")[0], format="xml")
-		self.workaround = getText(myroot.getElementsByTagName("workaround")[0], format="xml")
-		self.resolution = getText(myroot.getElementsByTagName("resolution")[0], format="xml")
-		self.impact_text = getText(myroot.getElementsByTagName("impact")[0], format="xml")
-		self.impact_type = myroot.getElementsByTagName("impact")[0].getAttribute("type")
-		try:
-			self.background = getText(myroot.getElementsByTagName("background")[0], format="xml")
-		except IndexError:
-			self.background = ""					
+		self.description = getText(myroot.find("description"), format="xml")
+		self.workaround = getText(myroot.find("workaround"), format="xml")
+		self.resolution = getText(myroot.find("resolution"), format="xml")
+		self.impact_text = getText(myroot.find("impact"), format="xml")
+		self.impact_type = myroot.find("impact").get("type")
+		self.background = getText(myroot.find("background"), format="xml")
 
 		# finally the interesting tags (product, affected, package)
-		self.glsatype = myroot.getElementsByTagName("product")[0].getAttribute("type")
-		self.product = getText(myroot.getElementsByTagName("product")[0], format="strip")
-		self.affected = myroot.getElementsByTagName("affected")[0]
+		self.glsatype = myroot.find("product").get("type")
+		self.product = getText(myroot.find("product"), format="strip")
 		self.packages = {}
-		for p in self.affected.getElementsByTagName("package"):
-			name = p.getAttribute("name")
-			if not name in self.packages:
-				self.packages[name] = []
-			tmp = {}
-			tmp["arch"] = p.getAttribute("arch")
-			tmp["auto"] = (p.getAttribute("auto") == "yes")
-			tmp["vul_vers"] = [makeVersion(v) for v in p.getElementsByTagName("vulnerable")]
-			tmp["unaff_vers"] = [makeVersion(v) for v in p.getElementsByTagName("unaffected")]
-			tmp["vul_atoms"] = [makeAtom(name, v) for v in p.getElementsByTagName("vulnerable")]
-			tmp["unaff_atoms"] = [makeAtom(name, v) for v in p.getElementsByTagName("unaffected")]
-			self.packages[name].append(tmp)
-		# TODO: services aren't really used yet
-		self.services = self.affected.getElementsByTagName("service")
+		affected = myroot.find("affected")
+		for p in affected.findall("package"):
+			name = p.get("name")
+			new_entry = {}
+			new_entry["arch"] = p.get("arch")
+			new_entry["auto"] = (p.get("auto") == "yes")
+			new_entry["vul_vers"] = [makeVersion(v) for v in p.findall("vulnerable")]
+			new_entry["unaff_vers"] = [makeVersion(v) for v in p.findall("unaffected")]
+			new_entry["vul_atoms"] = [makeAtom(name, v) for v in p.findall("vulnerable")]
+			new_entry["unaff_atoms"] = [makeAtom(name, v) for v in p.findall("unaffected")]
+			package_entries = self.packages.setdefault(name, [])
+			package_entries.append(new_entry)
 		return None
 
 	def dump(self, outstream=sys.stdout, encoding="utf-8"):
