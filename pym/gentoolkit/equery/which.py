@@ -91,7 +91,7 @@ def main(input_args):
 			pkg = sorted(matches).pop()
 			ebuild_path = pkg.get_ebuild_path()
 			if ebuild_path:
-				pp.print_info(0, os.path.normpath(ebuild_path))
+				print os.path.normpath(ebuild_path)
 			else:
 				pp.print_warn("No ebuilds to satisfy %s" % pkg.name)
 		else:

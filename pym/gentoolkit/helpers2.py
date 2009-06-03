@@ -13,16 +13,19 @@ query matches one or more packages.
 This should be merged into helpers when a clean path is found.
 """
 
+# Move to Imports section after Python 2.6 is stable
+from __future__ import with_statement
+
 __all__ = (
 	'compare_package_strings',
+	'do_lookup',
 	'find_best_match',
 	'find_installed_packages',
 	'find_packages',
 	'get_cpvs',
 	'get_installed_cpvs',
 	'get_uninstalled_cpvs',
-	'uses_globbing',
-	'do_lookup'
+	'uses_globbing'
 )
 __author__ = 'Douglas Anderson'
 __docformat__ = 'epytext'
@@ -40,16 +43,9 @@ from portage.util import unique_array
 
 import gentoolkit
 import gentoolkit.pprinter as pp
-from gentoolkit import catpkgsplit, Config
+from gentoolkit import Config, PORTDB, VARDB
 from gentoolkit import errors
 from gentoolkit.package import Package
-
-# =======
-# Globals
-# =======
-
-PORTDB = portage.db[portage.root]["porttree"].dbapi
-VARDB  = portage.db[portage.root]["vartree"].dbapi
 
 # =========
 # Functions
@@ -62,12 +58,12 @@ def compare_package_strings(pkg1, pkg2):
 	An alternative is to use the Package descriptor from gentoolkit.package
 	>>> pkgs = [Package(x) for x in package_list]
 	>>> pkgs.sort()
-	
+
 	@see: >>> help(cmp)
 	"""
 
-	pkg1 = catpkgsplit(pkg1)
-	pkg2 = catpkgsplit(pkg2)
+	pkg1 = portage.versions.catpkgsplit(pkg1)
+	pkg2 = portage.versions.catpkgsplit(pkg2)
 	# Compare categories
 	if pkg1[0] != pkg2[0]:
 		return cmp(pkg1[0], pkg2[0])
@@ -79,74 +75,58 @@ def compare_package_strings(pkg1, pkg2):
 		return portage.versions.pkgcmp(pkg1[1:], pkg2[1:])
 
 
-def find_best_match(query):
-	"""Return the highest unmasked version of a package matching query.
-	
+def do_lookup(query, query_opts):
+	"""A high-level wrapper around gentoolkit package-finder functions.
+
 	@type query: str
-	@param query: can be of the form: pkg, pkg-ver, cat/pkg, cat/pkg-ver, atom
-	@rtype: str or None
+	@param query: pkg, cat/pkg, pkg-ver, cat/pkg-ver, atom or regex
+	@type query_opts: dict
+	@param query_opts: user-configurable options from the calling module
+		Currently supported options are:
+
+		categoryFilter     = str or None
+		includeInstalled   = bool
+		includePortTree    = bool
+		includeOverlayTree = bool
+		isRegex            = bool
+		printMatchInfo     = bool           # Print info about the search
+
+	@rtype: list
+	@return: Package objects matching query
 	"""
 
-	match = PORTDB.xmatch("bestmatch-visible", query)
-
-	return Package(match) if match else None
-
-
-def find_installed_packages(query):
-	"""Return a list of Package objects that matched the search key."""
-
-	try:
-		matches = VARDB.match(query)
-	# catch the ambiguous package Exception
-	except ValueError, err:
-		if isinstance(err[0], list):
-			matches = []
-			for pkgkey in err[0]:
-				matches.append(VARDB.match(pkgkey))
+	if query_opts["includeInstalled"]:
+		if query_opts["includePortTree"] or query_opts["includeOverlayTree"]:
+			simple_package_finder = partial(find_packages, include_masked=True)
+			complex_package_finder = get_cpvs
 		else:
-			raise ValueError(err)
-	except portage.exception.InvalidAtom, err:
-		pp.print_warn("Invalid Atom: '%s'" % str(err))
-		return []
+			simple_package_finder = find_installed_packages
+			complex_package_finder = get_installed_cpvs
+	elif query_opts["includePortTree"] or query_opts["includeOverlayTree"]:
+		simple_package_finder = partial(find_packages, include_masked=True)
+		complex_package_finder = get_uninstalled_cpvs
+	else:
+		pp.die(2, "Not searching in installed, portage tree or overlay."
+			" Nothing to do.")
 
-	return [Package(x) for x in matches]
+	is_simple_query = True
+	if query_opts["isRegex"] or uses_globbing(query):
+		is_simple_query = False
 
+	if is_simple_query:
+		matches = _do_simple_lookup(query, simple_package_finder, query_opts)
+	else:
+		matches = _do_complex_lookup(query, complex_package_finder, query_opts)
 
-def uses_globbing(query):
-	"""Check the query to see if it is using globbing.
-
-	@rtype: bool
-	@return: True if query uses globbing, else False
-	"""
-
-	if set('!*?[]').intersection(set(query)):
-		if portage.dep.get_operator(query):
-			# Query may be an atom such as '=sys-apps/portage-2.2*'
-			pass
-		else:
-			return True
-
-	return False
+	return matches
 
 
-def _do_complex_lookup(query, query_opts):
+def _do_complex_lookup(query, package_finder, query_opts):
 	"""Find matches for a query which is a regex or includes globbing."""
 
 	# pylint: Too many branches (18/12)
 	# pylint: disable-message=R0912
 	result = []
-
-	if query_opts["includeInstalled"]:
-		if query_opts["includePortTree"] or query_opts["includeOverlayTree"]:
-			package_finder = get_cpvs
-		else:
-			package_finder = get_installed_cpvs
-	elif query_opts["includePortTree"] or query_opts["includeOverlayTree"]:
-		package_finder = get_uninstalled_cpvs
-	else:
-		pp.print_error("Not searching in installed, portage tree or overlay." +
-			" Nothing to do.")
-		pp.die(2, "This is an internal error. Please report this.")
 
 	if query_opts["printMatchInfo"] and not Config["piping"]:
 		print_query_info(query, query_opts)
@@ -194,28 +174,7 @@ def _do_complex_lookup(query, query_opts):
 	return [Package(x) for x in result]
 
 
-def print_query_info(query, query_opts):
-	"""Print info about the query to the screen."""
-
-	cats = prepare_categories(query_opts["categoryFilter"])
-	cat, pkg, ver, rev = split_query(query)
-	del ver, rev
-	if cats:
-		cat_str = "in %s " % ', '.join([pp.emph(x) for x in cats])
-	elif cat and not query_opts["isRegex"]:
-		cat_str = "in %s " % pp.emph(cat)
-	else:
-		cat_str = ""
-	
-	if query_opts["isRegex"]:
-		pkg_str = query
-	else:
-		pkg_str = pkg
-
-	print " * Searching for %s %s..." % (pp.emph(pkg_str), cat_str)
-
-
-def _do_simple_lookup(query, query_opts):
+def _do_simple_lookup(query, package_finder, query_opts):
 	"""Find matches for a query which is an atom or string."""
 
 	result = []
@@ -223,11 +182,6 @@ def _do_simple_lookup(query, query_opts):
 	cats = prepare_categories(query_opts["categoryFilter"])
 	if query_opts["printMatchInfo"] and not Config["piping"]:
 		print_query_info(query, query_opts)
-		
-	if query_opts["includePortTree"] or query_opts["includeOverlayTree"]:
-		package_finder = find_packages
-	else:
-		package_finder = find_installed_packages
 
 	result = package_finder(query)
 	if not query_opts["includeInstalled"]:
@@ -239,36 +193,34 @@ def _do_simple_lookup(query, query_opts):
 	return result
 
 
-def do_lookup(query, query_opts):
-	"""A high-level wrapper around gentoolkit package-finder functions.
-
+def find_best_match(query):
+	"""Return the highest unmasked version of a package matching query.
+	
 	@type query: str
-	@param query: pkg, cat/pkg, pkg-ver, cat/pkg-ver, atom or regex
-	@type query_opts: dict
-	@param query_opts: user-configurable options from the calling module
-		Currently supported options are:
-
-		categoryFilter     = str or None
-		includeInstalled   = bool
-		includePortTree    = bool
-		includeOverlayTree = bool
-		isRegex            = bool
-		printMatchInfo     = bool           # Print info about the search
-
-	@rtype: list
-	@return: Package objects matching query
+	@param query: can be of the form: pkg, pkg-ver, cat/pkg, cat/pkg-ver, atom
+	@rtype: str or None
 	"""
 
-	is_simple_query = True
-	if query_opts["isRegex"] or uses_globbing(query):
-		is_simple_query = False
+	match = PORTDB.xmatch("bestmatch-visible", query)
 
-	if is_simple_query:
-		matches = _do_simple_lookup(query, query_opts)
-	else:
-		matches = _do_complex_lookup(query, query_opts)
+	return Package(match) if match else None
 
-	return matches
+
+def find_installed_packages(query):
+	"""Return a list of Package objects that matched the search key."""
+
+	try:
+		matches = VARDB.match(query)
+	# catch the ambiguous package Exception
+	except portage.exception.AmbiguousPackageName, err:
+		matches = []
+		for pkgkey in err[0]:
+			matches.extend(VARDB.match(pkgkey))
+	except portage.exception.InvalidAtom, err:
+		pp.print_warn("Invalid Atom: '%s'" % str(err))
+		return []
+
+	return [Package(x) for x in matches]
 
 
 def find_packages(query, include_masked=False):
@@ -289,18 +241,6 @@ def find_packages(query, include_masked=False):
 		else:
 			matches = PORTDB.match(query)
 		matches.extend(VARDB.match(query))
-	# Catch ambiguous packages
-	except ValueError, err:
-		if isinstance(err[0], list):
-			matches = []
-			for pkgkey in err[0]:
-				if include_masked:
-					matches.extend(PORTDB.xmatch("match-all", pkgkey))
-				else:
-					matches.extend(PORTDB.match(pkgkey))
-				matches.extend(VARDB.match(pkgkey))
-		else:
-			raise ValueError(err)
 	except portage.exception.InvalidAtom, err:
 		raise errors.GentoolkitInvalidAtom(str(err))
 
@@ -400,6 +340,42 @@ def prepare_categories(category_filter):
 	return tuple(good_cats)
 
 
+def print_query_info(query, query_opts):
+	"""Print info about the query to the screen."""
+
+	cats = prepare_categories(query_opts["categoryFilter"])
+	cat, pkg, ver, rev = split_query(query)
+	del ver, rev
+	if cats:
+		cat_str = "in %s " % ', '.join([pp.emph(x) for x in cats])
+	elif cat and not query_opts["isRegex"]:
+		cat_str = "in %s " % pp.emph(cat)
+	else:
+		cat_str = ""
+	
+	if query_opts["isRegex"]:
+		pkg_str = query
+	else:
+		pkg_str = pkg
+
+	print " * Searching for %s %s..." % (pp.emph(pkg_str), cat_str)
+
+
+def print_file(path):
+	"""Display the contents of a file."""
+
+	with open(path) as open_file:
+		lines = open_file.read()
+		print lines.strip()
+
+
+def print_sequence(seq):
+	"""Print every item of a sequence."""
+
+	for item in seq:
+		print item
+
+
 def split_query(query):
 	"""Split a query into category, name, version and revision.
 
@@ -410,16 +386,52 @@ def split_query(query):
 		Each tuple element is a string or empty string ("").
 	"""
 
-	cat = name = ver = rev = ""
+	result = portage.versions.catpkgsplit(query)
 
-	try:
-		(cat, name, ver, rev) = gentoolkit.split_package_name(query)
-	except ValueError, err:
-		# FIXME: Not hitting this error anymore... but we should be?
-		if str(err) == 'too many values to unpack':
-			pp.print_error("Too many slashes ('/').")
-			raise errors.GentoolkitInvalidPackageName(query)
+	if result:
+		result = list(result)
+		if result[0] == 'null':
+			result[0] = ''
+		if result[3] == 'r0':
+			result[3] = ''
+	else:
+		result = query.split("/")
+		if len(result) == 1:
+			result = ['', query, '', '']
 		else:
-			raise ValueError(err)
-	
-	return (cat, name, ver, rev)
+			result = result + ['', '']
+
+	if len(result) != 4:
+		pp.print_error("Too many slashes ('/').")
+		raise errors.GentoolkitInvalidPackageName(query)
+
+	return tuple(result)
+
+
+def uniqify(seq, preserve_order=True): 
+	"""Return a uniqified list. Optionally preserve order."""
+
+	if preserve_order:
+		seen = set()
+		result = [x for x in seq if x not in seen and not seen.add(x)]
+	else:
+		result = list(set(seq))
+
+	return result
+
+
+def uses_globbing(query):
+	"""Check the query to see if it is using globbing.
+
+	@rtype: bool
+	@return: True if query uses globbing, else False
+	"""
+
+	if set('!*?[]').intersection(set(query)):
+		if portage.dep.get_operator(query):
+			# Query may be an atom such as '=sys-apps/portage-2.2*'
+			pass
+		else:
+			return True
+
+	return False

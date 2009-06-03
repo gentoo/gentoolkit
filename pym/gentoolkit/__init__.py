@@ -6,47 +6,37 @@
 #
 # $Header$
 
-__author__ = "Karl Trygve Kalleberg"
-__productname__ = "gentoolkit"
-__description__ = "Gentoolkit Common Library"
+# =======
+# Imports 
+# =======
 
-import os
-import sys
-try:
-	import portage
-except ImportError:
-	sys.path.insert(0, "/usr/lib/portage/pym")
-	import portage
-import re
+import portage
 try:
 	from threading import Lock
 except ImportError:
 	# If we don't have thread support, we don't need to worry about
 	# locking the global settings object. So we define a "null" Lock.
-	class Lock:
+	class Lock(object):
 		def acquire(self):
 			pass
 		def release(self):
 			pass
 
-try:
-	import portage.exception as portage_exception
-except ImportError:
-	import portage_exception
+# =======
+# Globals
+# =======
 
-try:
-	settingslock = Lock()
-	settings = portage.config(clone=portage.settings)
-	porttree = portage.db[portage.root]["porttree"]
-	vartree  = portage.db[portage.root]["vartree"]
-	virtuals = portage.db[portage.root]["virtuals"]
-except portage_exception.PermissionDenied, e:
-	sys.stderr.write("Permission denied: '%s'\n" % str(e))
-	sys.exit(e.errno)
+PORTDB = portage.db[portage.root]["porttree"].dbapi
+VARDB  = portage.db[portage.root]["vartree"].dbapi
+VIRTUALS = portage.db[portage.root]["virtuals"]
 
 Config = {
 	"verbosityLevel": 3
 }
 
-from helpers import *
-from package import *
+try:
+	settingslock = Lock()
+	settings = portage.config(clone=portage.settings)
+except portage.exception.PermissionDenied, err:
+	sys.stderr.write("Permission denied: '%s'\n" % str(err))
+	sys.exit(e.errno)

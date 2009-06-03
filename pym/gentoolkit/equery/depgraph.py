@@ -19,7 +19,7 @@ import gentoolkit
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
 from gentoolkit.equery import format_options, mod_usage, Config
-from gentoolkit.helpers2 import do_lookup
+from gentoolkit.helpers2 import do_lookup, find_best_match
 
 # =======
 # Globals
@@ -36,13 +36,8 @@ QUERY_OPTS = {
 	"includeMasked": True,
 	"isRegex": False,
 	"matchExact": True,
-	"printMatchInfo": True
+	"printMatchInfo": (not Config['quiet'])
 }
-
-if not Config["piping"] and Config["verbosityLevel"] >= 3:
-	VERBOSE = True
-else:
-	VERBOSE = False
 
 # =========
 # Functions
@@ -98,7 +93,7 @@ def display_graph(pkg, stats, level=0, seen_pkgs=None, suffix=""):
 	for dep in deps:
 		suffix = ""
 		depcpv = dep[2]
-		deppkg = gentoolkit.find_best_match(dep[0] + depcpv)
+		deppkg = find_best_match(dep[0] + depcpv)
 		if not deppkg:
 			print (pfx + dep[0] + depcpv),
 			print "(unable to resolve: package masked or removed)"
@@ -178,14 +173,14 @@ def main(input_args):
 		for pkg in matches:
 			stats = {"maxdepth": 0, "packages": 0}
 
-			if VERBOSE:
+			if Config['verbose']:
 				pp.print_info(3, " * dependency graph for %s:" % pp.cpv(pkg.cpv))
 			else:
 				pp.print_info(0, "%s:" % pkg.cpv)
 
 			stats = display_graph(pkg, stats)[1]
 
-			if VERBOSE:
+			if Config['verbose']:
 				info = ''.join(["[ ", pp.cpv(pkg.cpv), " stats: packages (",
 				pp.number(str(stats["packages"])), "), max depth (",
 				pp.number(str(stats["maxdepth"])), ") ]"])

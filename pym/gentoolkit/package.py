@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#!/usr/bin/python
 #
 # Copyright(c) 2004, Karl Trygve Kalleberg <karltk@gentoo.org>
 # Copyright(c) 2004-2009, Gentoo Foundation
@@ -14,18 +14,12 @@
 import os
 
 import portage
-from portage import catpkgsplit
-from portage.versions import vercmp
+from portage.versions import catpkgsplit, vercmp
 
-from gentoolkit import *
+import gentoolkit.pprinter as pp
+from gentoolkit import settings, settingslock, PORTDB, VARDB
 from gentoolkit import errors
-
-# =======
-# Globals
-# =======
-
-PORTDB = portage.db[portage.root]["porttree"].dbapi
-VARDB  = portage.db[portage.root]["vartree"].dbapi
+from gentoolkit.versionmatch import VersionMatch
 
 # =======
 # Classes
@@ -98,27 +92,33 @@ class Package(object):
 	def __repr__(self):
 		return "<%s %s @%#8x>" % (self.__class__.__name__, self._cpv, id(self))
 
-	def __cmp__(self, other):
-		# FIXME: __cmp__ functions dissallowed in py3k; need __lt__, __gt__.
-		if not isinstance(other, self.__class__):
-			raise TypeError("other isn't of %s type, is %s" %
-				(self.__class__, other.__class__))
-
-		if self.category != other.category:
-			return cmp(self.category, other.category)
-		elif self.name != other.name:
-			return cmp(self.name, other.name)
-		else:
-			# FIXME: this cmp() hack is for vercmp not using -1,0,1
-			# See bug 266493; this was fixed in portage-2.2_rc31
-			#return portage.vercmp(self.fullversion, other.fullversion)
-			return cmp(portage.vercmp(self.fullversion, other.fullversion), 0)
-
 	def __eq__(self, other):
 		return hash(self) == hash(other)
 
 	def __ne__(self, other):
 		return hash(self) != hash(other)
+
+	def __lt__(self, other):
+		if not isinstance(other, self.__class__):
+			raise TypeError("other isn't of %s type, is %s" %
+				(self.__class__, other.__class__))
+
+		if self.category != other.category:
+			return self.category < other.category
+		elif self.name != other.name:
+			return self.name < other.name
+		else:
+			# FIXME: this cmp() hack is for vercmp not using -1,0,1
+			# See bug 266493; this was fixed in portage-2.2_rc31
+			#return portage.vercmp(self.fullversion, other.fullversion)
+			result = cmp(portage.vercmp(self.fullversion, other.fullversion), 0)
+			if result == -1:
+				return True
+			else:
+				return False
+
+	def __gt__(self, other):
+		return not self.__lt__(other)
 
 	def __hash__(self):
 		return hash(self._cpv)
@@ -144,11 +144,13 @@ class Package(object):
 	def get_settings(self, key):
 		"""Returns the value of the given key for this package (useful 
 		for package.* files."""
-		self._settingslock.acquire()
-		self._settings.setcpv(self.cpv)
-		v = self._settings[key]
-		self._settingslock.release()
-		return v
+		try:
+			self._settingslock.acquire()
+			self._settings.setcpv(self.cpv)
+			result = self._settings[key]
+		finally:
+			self._settingslock.release()
+		return result
 
 	def get_cpv(self):
 		"""Returns full Category/Package-Version string"""
@@ -156,14 +158,14 @@ class Package(object):
 
 	def get_provide(self):
 		"""Return a list of provides, if any"""
-		if not self.is_installed():
-			try:
-				x = [self.get_env_var('PROVIDE')]
-			except KeyError:
-				x = []
-			return x
+		if self.is_installed():
+			result = VARDB.get_provide(self.cpv)
 		else:
-			return vartree.get_provide(self.cpv)
+			try:
+				result = [self.get_env_var('PROVIDE')]
+			except KeyError:
+				result = []
+		return result
 
 	def get_dependants(self):
 		"""Retrieves a list of CPVs for all packages depending on this one"""
@@ -176,11 +178,10 @@ class Package(object):
 		# Try to use the portage tree first, since emerge only uses the tree 
 		# when calculating dependencies
 		try:
-			cd = self.get_env_var("RDEPEND", porttree).split()
+			rdepends = self.get_env_var("RDEPEND", PORTDB).split()
 		except KeyError:
-			cd = self.get_env_var("RDEPEND", vartree).split()
-		r,i = self._parse_deps(cd)
-		return r
+			rdepends = self.get_env_var("RDEPEND", VARDB).split()
+		return self._parse_deps(rdepends)[0]
 
 	def get_compiletime_deps(self):
 		"""Returns a linearised list of first-level compile time dependencies
@@ -189,11 +190,10 @@ class Package(object):
 		# Try to use the portage tree first, since emerge only uses the tree 
 		# when calculating dependencies
 		try:
-			rd = self.get_env_var("DEPEND", porttree).split()
+			depends = self.get_env_var("DEPEND", PORTDB).split()
 		except KeyError:
-			rd = self.get_env_var("DEPEND", vartree).split()
-		r,i = self._parse_deps(rd)
-		return r
+			depends = self.get_env_var("DEPEND", VARDB).split()
+		return self._parse_deps(depends)[0]
 
 	def get_postmerge_deps(self):
 		"""Returns a linearised list of first-level post merge dependencies 
@@ -202,11 +202,10 @@ class Package(object):
 		# Try to use the portage tree first, since emerge only uses the tree 
 		# when calculating dependencies
 		try:
-			pd = self.get_env_var("PDEPEND", porttree).split()
+			postmerge_deps = self.get_env_var("PDEPEND", PORTDB).split()
 		except KeyError:
-			pd = self.get_env_var("PDEPEND", vartree).split()
-		r,i = self._parse_deps(pd)
-		return r
+			postmerge_deps = self.get_env_var("PDEPEND", VARDB).split()
+		return self._parse_deps(postmerge_deps)[0]
 
 	def intersects(self, other):
 		"""Check if a passed in package atom "intersects" this atom.
@@ -221,7 +220,7 @@ class Package(object):
 			">=dev-lang/python-2.4" and "dev-lang/python" but not
 			"<dev-lang/python-2.3"
 
-		@type other: gentoolkit.package.Package
+		@type other: L{gentoolkit.package.Package}
 		@param other: other package to compare
 		@see: pkgcore.ebuild.atom.py
 		"""
@@ -238,11 +237,11 @@ class Package(object):
 		if self.operator == '=':
 			if other.operator == '=*':
 				return self.fullversion.startswith(other.fullversion)
-			return VersionMatch(frompkg=other).match(self)
+			return VersionMatch(other).match(self)
 		if other.operator == '=':
 			if self.operator == '=*':
 				return other.fullversion.startswith(self.fullversion)
-			return VersionMatch(frompkg=self).match(other)
+			return VersionMatch(self).match(other)
 
 		# If we are both ~ matches we match if we are identical:
 		if self.operator == other.operator == '~':
@@ -273,13 +272,13 @@ class Package(object):
 			# match the other's endpoint (just checking one endpoint
 			# is not enough, it would give a false positive on <=2 vs >2)
 			return (
-				VersionMatch(frompkg=other).match(ranged) and
-				VersionMatch(frompkg=ranged).match(other))
+				VersionMatch(other).match(ranged) and
+				VersionMatch(ranged).match(other))
 
 		if other.operator == '~':
 			# Other definitely matches its own version. If ranged also
 			# does we're done:
-			if VersionMatch(frompkg=ranged).match(other):
+			if VersionMatch(ranged).match(other):
 				return True
 			# The only other case where we intersect is if ranged is a
 			# > or >= on other's version and a nonzero revision. In
@@ -362,8 +361,8 @@ class Package(object):
 
 	def is_overlay(self):
 		"""Returns True if the package is in an overlay."""
-		dir,ovl = portage.portdb.findname2(self.cpv)
-		return ovl != self._portdir_path
+		ebuild, tree = portage.portdb.findname2(self.cpv)
+		return tree != self._portdir_path
 
 	def is_masked(self):
 		"""Returns true if this package is masked against installation. 
@@ -372,80 +371,52 @@ class Package(object):
 		unmasked = portage.portdb.xmatch("match-visible", self.cpv)
 		return self.cpv not in unmasked
 
-	def get_ebuild_path(self,in_vartree=0):
+	def get_ebuild_path(self, in_vartree=False):
 		"""Returns the complete path to the .ebuild file"""
 		if in_vartree:
-			return vartree.getebuildpath(self.cpv)
-		else:
-			return portage.portdb.findname(self.cpv)
+			return VARDB.getebuildpath(self.cpv)
+		return PORTDB.findname(self.cpv)
 
 	def get_package_path(self):
 		"""Returns the path to where the ChangeLog, Manifest, .ebuild files
 		reside"""
-		p = self.get_ebuild_path()
-		sp = p.split("/")
-		if sp:
-			# FIXME: use os.path.join
-			return "/".join(sp[:-1])
+		ebuild_path = self.get_ebuild_path()
+		path_split = ebuild_path.split("/")
+		if path_split:
+			return os.sep.join(path_split[:-1])
 
-	def get_env_var(self, var, tree=""):
+	def get_env_var(self, var, tree=None):
 		"""Returns one of the predefined env vars DEPEND, RDEPEND,
 		SRC_URI,...."""
-		if tree == "":
-			mytree = vartree
+		if tree == None:
+			tree = VARDB
 			if not self.is_installed():
-				mytree = porttree
-		else:
-			mytree = tree
-		try:
-			r = mytree.dbapi.aux_get(self.cpv,[var])
-		except KeyError:
-			# aux_get raises KeyError if it encounters a bad digest, etc
-			raise
-		if not r:
+				tree = PORTDB
+		result = tree.aux_get(self.cpv, [var])
+		if not result:
 			raise errors.GentoolkitFatalError("Could not find the package tree")
-		if len(r) != 1:
+		if len(result) != 1:
 			raise errors.GentoolkitFatalError("Should only get one element!")
-		return r[0]
+		return result[0]
 
 	def get_use_flags(self):
 		"""Returns the USE flags active at time of installation"""
 		self._initdb()
 		if self.is_installed():
 			return self._db.getfile("USE")
-		return ""
 
 	def get_contents(self):
 		"""Returns the full contents, as a dictionary, in the form
-		[ '/bin/foo' : [ 'obj', '1052505381', '45ca8b89751...' ], ... ]"""
+		['/bin/foo' : [ 'obj', '1052505381', '45ca8b89751...' ], ... ]"""
 		self._initdb()
 		if self.is_installed():
 			return self._db.getcontents()
 		return {}		
 
-	# XXX >
-	def compare_version(self,other):
-		"""Compares this package's version to another's CPV; returns -1, 0, 1.
-		
-		Deprecated in favor of __cmp__.
-		"""
-		v1 = self.cpv_split
-		v2 = catpkgsplit(other.get_cpv())
-		# if category is different
-		if v1[0] != v2[0]:
-			return cmp(v1[0],v2[0])
-		# if name is different
-		elif v1[1] != v2[1]:
-			return cmp(v1[1],v2[1])
-		# Compare versions
-		else:
-			return portage.pkgcmp(v1[1:],v2[1:])
-	# < XXX
-
 	def size(self):
 		"""Estimates the installed size of the contents of this package,
 		if possible.
-		Returns [size, number of files in total, number of uncounted files]
+		Returns (size, number of files in total, number of uncounted files)
 		"""
 		contents = self.get_contents()
 		size = 0
@@ -457,7 +428,7 @@ class Package(object):
 				files += 1
 			except OSError:
 				uncounted += 1
-		return [size, files, uncounted]
+		return (size, files, uncounted)
 
 	def _initdb(self):
 		"""Internal helper function; loads package information from disk,
@@ -470,113 +441,106 @@ class Package(object):
 				settings["ROOT"],
 				settings
 			)
-			
 
-class VersionMatch(object):
-	"""Package restriction implementing Gentoo ebuild version comparison rules.
-	From pkgcore.ebuild.atom_restricts.
 
-	Any overriding of this class *must* maintain numerical order of
-	self.vals, see intersect for reason why. vals also must be a tuple.
+class PackageFormatter(object):
+	"""When applied to a L{gentoolkit.package.Package} object, determine the
+	location (Portage Tree vs. overlay), install status and masked status. That
+	information can then be easily formatted and displayed.
+	
+	Example usage:
+		>>> from gentoolkit.helpers2 import find_packages
+		>>> from gentoolkit.package import PackageFormatter
+		>>> pkgs = [PackageFormatter(x) for x in find_packages('gcc')]
+		>>> for pkg in pkgs:
+		...     # Only print packages that are installed and from the Portage
+		...     # tree
+		...     if set('IP').issubset(pkg.location):
+		...             print pkg
+		... 
+		[IP-] [  ] sys-devel/gcc-4.3.2-r3 (4.3)
+
+	@type pkg: L{gentoolkit.package.Package}
+	@param pkg: package to format
+	@type format: L{bool}
+	@param format: Whether to format the package name or not. 
+		Essentially C{format} should be set to False when piping or when
+		quiet output is desired. If C{format} is False, only the location
+		attribute will be created to save time.
 	"""
-	_convert_op2int = {(-1,):"<", (-1, 0): "<=", (0,):"=",
-		(0, 1):">=", (1,):">"}
 
-	_convert_int2op = dict([(v, k) for k, v in _convert_op2int.iteritems()])
-	del k, v
+	def __init__(self, pkg, format=True):
+		location = ''
+		maskmodes = ['  ', ' ~', ' -', 'M ', 'M~', 'M-']
 
-	def __init__(self, **kwargs):
-		"""This class will either create a VersionMatch instance out of
-		a Package instance, or from explicitly passed in operator, version,
-		and revision.
-
-		Possible args:
-			frompkg=<gentoolkit.package.Package> instance
-
-			OR
-
-			op=str: version comparison to do,
-				valid operators are ('<', '<=', '=', '>=', '>', '~')
-			ver=str: version to base comparison on
-			rev=str: revision to base comparison on
-		"""
-		if 'frompkg' in kwargs and kwargs['frompkg']:
-			self.operator = kwargs['frompkg'].operator
-			self.version = kwargs['frompkg'].version
-			self.revision = kwargs['frompkg'].revision
-			self.fullversion = kwargs['frompkg'].fullversion
-		elif set(('op', 'ver', 'rev')) == set(kwargs):
-			self.operator = kwargs['op']
-			self.version = kwargs['ver']
-			self.revision = kwargs['rev']
-			if not self.revision:
-				self.fullversion = self.version
-			else:
-				self.fullversion = "%s-%s" % (self.version, self.revision)
-		else:
-			raise TypeError('__init__() takes either a Package instance '
-				'via frompkg= or op=, ver= and rev= all passed in')
-
-		if self.operator != "~" and self.operator not in self._convert_int2op:
-			# FIXME: change error
-			raise errors.InvalidVersion(self.ver, self.rev,
-				"invalid operator, '%s'" % operator)
-
-		if self.operator == "~":
-			if not self.version:
-				raise ValueError(
-					"for ~ op, version must be specified")
-			self.droprevision = True
-			self.values = (0,)
-		else:
-			self.droprevision = False
-			self.values = self._convert_int2op[self.operator]
-
-	def match(self, pkginst):
-		if self.droprevision:
-			ver1, ver2 = self.version, pkginst.version
-		else:
-			ver1, ver2 = self.fullversion, pkginst.fullversion
-
-		#print "== VersionMatch.match DEBUG START =="
-		#print "ver1:", ver1
-		#print "ver2:", ver2
-		#print "vercmp(ver2, ver1):", vercmp(ver2, ver1)
-		#print "self.values:", self.values
-		#print "vercmp(ver2, ver1) in values?",
-		#print "vercmp(ver2, ver1) in self.values"
-		#print "==  VersionMatch.match DEBUG END  =="
-
-		return vercmp(ver2, ver1) in self.values
-
-	def __str__(self):
-		s = self._convert_op2int[self.values]
-
-		if self.droprevision or not self.revision:
-			return "ver %s %s" % (s, self.version)
-		return "ver-rev %s %s-%s" % (s, self.version, self.revision)
+		self.pkg = pkg
+		self.format = format
+		if format:
+			self.arch = settings["ARCH"]
+			self.mask = maskmodes[self.get_mask_status()]
+			self.slot = pkg.get_env_var("SLOT")
+		self.location = self.get_package_location()
 
 	def __repr__(self):
-		return "<%s %s @%#8x>" % (self.__class__.__name__, str(self), id(self))
+		return "<%s %s @%#8x>" % (self.__class__.__name__, self.pkg, id(self))
 
-	@staticmethod
-	def _convert_ops(inst):
-		if inst.droprevision:
-			return inst.values
-		return tuple(sorted(set((-1, 0, 1)).difference(inst.values)))
+	def __str__(self):
+		if self.format:
+			return "[%(location)s] [%(mask)s] %(package)s (%(slot)s)" % {
+				'location': self.location,
+				'mask': pp.maskflag(self.mask),
+				'package': pp.cpv(self.pkg.cpv),
+				'slot': self.slot
+			}
+		else:
+			return self.pkg.cpv
 
-	def __eq__(self, other):
-		if self is other:
-			return True
-		if isinstance(other, self.__class__):
-			if (self.droprevsion != other.droprevsion or
-				self.version != other.version or
-				self.revision != other.revision):
-				return False
-			return self._convert_ops(self) == self._convert_ops(other)
+	def get_package_location(self):
+		"""Get the physical location of a package on disk.
 
-		return False
+		@rtype: str
+		@return: one of:
+			'-P-' : Not installed and from the Portage tree
+			'--O' : Not installed and from an overlay
+			'IP-' : Installed and from the Portage tree
+			'I-O' : Installed and from an overlay
+		"""
 
-	def __hash__(self):
-		return hash((self.droprevision, self.version, self.revision,
-			self.values))
+		result = ['-', '-', '-']
+
+		if self.pkg.is_installed():
+			result[0] = 'I'
+		if self.pkg.is_overlay():
+			result[2] = 'O'
+		else:
+			result[1] = 'P'
+
+		return ''.join(result)
+
+	def get_mask_status(self):
+		"""Get the mask status of a given package. 
+
+		@type pkg: L{gentoolkit.package.Package}
+		@param pkg: pkg to get mask status of
+		@type arch: str
+		@param arch: output of gentoolkit.settings["ARCH"]
+		@rtype: int
+		@return: an index for this list: ["  ", " ~", " -", "M ", "M~", "M-"]
+			0 = not masked
+			1 = keyword masked
+			2 = arch masked
+			3 = hard masked
+			4 = hard and keyword masked,
+			5 = hard and arch masked
+		"""
+
+		keywords = self.pkg.get_env_var("KEYWORDS").split()
+		mask_status = 0
+		if self.pkg.is_masked():
+			mask_status += 3
+		if ("~%s" % self.arch) in keywords:
+			mask_status += 1
+		elif ("-%s" % self.arch) in keywords or "-*" in keywords:
+			mask_status += 2
+
+		return mask_status

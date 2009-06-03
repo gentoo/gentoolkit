@@ -78,10 +78,7 @@ def display_size(match_set):
 	for pkg in match_set:
 		(size, files, uncounted) = pkg.size()
 
-		if Config["piping"]:
-			info = "%s: total(%d), inaccessible(%d), size(%s)"
-			print info % (pkg.cpv, files, uncounted, size)
-		else:
+		if Config['verbose']:
 			print " * %s" % pp.cpv(pkg.cpv)
 			print "Total files : %s".rjust(25) % pp.number(str(files))
 
@@ -95,6 +92,9 @@ def display_size(match_set):
 				size_str = "%s %s" % format_bytes(size)
 
 			pp.print_info(0, "Total size  : %s".rjust(25) % size_str)
+		else:
+			info = "%s: total(%d), inaccessible(%d), size(%s)"
+			print info % (pkg.cpv, files, uncounted, size)
 
 
 def format_bytes(bytes_, precision=2):
