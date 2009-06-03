@@ -82,9 +82,7 @@ def display_useflags(output):
 	markers = ("-", "+")
 	color = [pp.useflagoff, pp.useflagon]
 	for in_makeconf, in_installed, flag, desc, restrict in output:
-		if Config["piping"]:
-			pp.print_info(0, markers[in_makeconf] + flag)
-		else:
+		if Config['verbose']:
 			flag_name = ""
 			if in_makeconf != in_installed:
 				flag_name += pp.emph(" %s %s" % 
@@ -101,20 +99,22 @@ def display_useflags(output):
 				restrict = "(%s %s)" % (pp.emph("Restricted to"), 
 					pp.cpv(restrict))
 				twrap.initial_indent = flag_name
-				pp.print_info(0, twrap.fill(restrict))
+				print twrap.fill(restrict)
 				if desc:
 					twrap.initial_indent = twrap.subsequent_indent
-					pp.print_info(0, twrap.fill(desc))
+					print twrap.fill(desc)
 				else:
-					pp.print_info(0, " : <unknown>")
+					print " : <unknown>"
 			else:
 				if desc:
 					twrap.initial_indent = flag_name
 					desc = twrap.fill(desc)
-					pp.print_info(0, desc)
+					print desc
 				else:
 					twrap.initial_indent = flag_name
-					pp.print_info(0, twrap.fill("<unknown>"))
+					print twrap.fill("<unknown>")
+		else:
+			print markers[in_makeconf] + flag
 
 
 def get_global_useflags():
@@ -277,15 +277,10 @@ def parse_module_options(module_opts):
 def print_legend(query):
 	"""Print a legend to explain the output format."""
 
-	if not Config['piping']:
-		pp.print_info(3, " * Searching for packages matching %s ..." %
-			pp.pkgquery(query))
-		pp.print_info(3, "[ Legend : %s - flag is set in make.conf       ]"
-			% pp.emph("U"))
-		pp.print_info(3, "[        : %s - package is installed with flag ]"
-			% pp.emph("I"))
-		pp.print_info(3, "[ Colors : %s, %s                         ]" %
-			(pp.useflagon("set"), pp.useflagoff("unset")))
+	print "[ Legend : %s - flag is set in make.conf       ]" % pp.emph("U")
+	print "[        : %s - package is installed with flag ]" % pp.emph("I")
+	print "[ Colors : %s, %s                         ]" % (
+		pp.useflagon("set"), pp.useflagoff("unset"))
 
 
 def main(input_args):
@@ -317,7 +312,8 @@ def main(input_args):
 		if not first_run:
 			print
 
-		print_legend(query)
+		if Config['verbose']:
+			print " * Searching for %s ..." % pp.pkgquery(query)
 
 		matches = get_matches(query)
 		matches.sort()
@@ -327,14 +323,15 @@ def main(input_args):
 
 			output = get_output_descriptions(pkg, global_usedesc)
 			if output:
-				if not Config['piping']:
-					pp.print_info(3, "[ Found these USE flags for %s ]" %
+				if Config['verbose']:
+					print_legend(query)
+					print (" * Found these USE flags for %s:" %
 						pp.cpv(pkg.cpv))
-					pp.print_info(3, pp.emph(" U I"))
+					print pp.emph(" U I")
 				display_useflags(output)
 			else:
-				if not Config['piping']:
-					pp.print_info(3, "[ No USE flags found for %s ]" %
+				if Config['verbose']:
+					pp.print_warn("No USE flags found for %s" %
 						pp.cpv(pkg.cpv))
 
 		first_run = False

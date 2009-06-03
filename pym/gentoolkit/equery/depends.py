@@ -33,10 +33,8 @@ QUERY_OPTS = {
 	"includePortTree": False,
 	"includeOverlayTree": False,
 	"isRegex": False,
-	"matchExact": True,
 	"onlyDirect": True,
-	"onlyInstalled": True,
-	"printMatchInfo": True,
+	"printMatchInfo": (not Config['quiet']),
 	"indentLevel": 0,
 	"depth": -1
 }
@@ -77,12 +75,11 @@ def cache_package_list(pkg_cache=None):
 	"""Ensure that the package cache is set."""
 
 	if not pkg_cache:
-		if QUERY_OPTS["onlyInstalled"]:
-			# TODO: move away from using strings here
-			packages = get_installed_cpvs()
+		if QUERY_OPTS['includePortTree']:
+			packages = [Package(x) for x in get_cpvs()]
 		else:
-			packages = get_cpvs()
-		packages.sort(compare_package_strings)
+			packages = [Package(x) for x in get_installed_cpvs()]
+		packages.sort()
 		pkg_cache = packages
 	else:
 		packages = pkg_cache
@@ -108,18 +105,18 @@ def display_dependencies(cpv_is_displayed, dependency, cpv):
 
 	if not cpv_is_displayed:
 		if dependency[1]:
-			if not Config["piping"] and Config["verbosityLevel"] >= 3:
+			if Config['verbose']:
 				print indent + pp.cpv(cpv),
 				print "(" + useflags + " ? " + atom + ")"
 			else:
 				print indent + cpv
 		else:
-			if not Config["piping"] and Config["verbosityLevel"] >= 3:
+			if Config['verbose']:
 				print indent + pp.cpv(cpv),
 				print "(" + atom + ")"
 			else:
 				print indent + cpv
-	elif not Config["piping"] and Config["verbosityLevel"] >= 3:
+	elif Config['verbose']:
 		indent = indent + " " * len(cpv)
 		if dependency[1]:
 			print indent + " (" + useflags + " ? " + atom + ")"
@@ -134,7 +131,7 @@ def find_dependencies(matches, pkg_cache):
 	@param queries: packages to find the dependencies for
 	"""
 
-	for pkg in [Package(x) for x in cache_package_list(pkg_cache)]:
+	for pkg in cache_package_list(pkg_cache):
 		if not pkg.cpv in PKGDEPS:
 			try:
 				deps = pkg.get_runtime_deps() + pkg.get_compiletime_deps()
@@ -192,11 +189,11 @@ def parse_module_options(module_opts):
 			print_help()
 			sys.exit(0)
 		elif opt in ('-a', '--all-packages'):
-			QUERY_OPTS["onlyInstalled"] = False
+			QUERY_OPTS['includePortTree'] = True
 		elif opt in ('-d', '--direct'):
 			continue
 		elif opt in ('-D', '--indirect'):
-			QUERY_OPTS["onlyDirect"] = False
+			QUERY_OPTS['onlyDirect'] = False
 		elif opt in ('--depth'):
 			if posarg.isdigit():
 				depth = int(posarg)

@@ -35,7 +35,7 @@ QUERY_OPTS = {
 	"isRegex": False,
 	"matchExact": True,
 	"outputTree": False,
-	"printMatchInfo": True,
+	"printMatchInfo": (not Config['quiet']),
 	"showType": False,
 	"showTimestamp": False,
 	"showMD5": False,
@@ -44,11 +44,6 @@ QUERY_OPTS = {
 
 FILTER_RULES = ('dir', 'obj', 'sym', 'dev', 'path', 'conf', 'cmd', 'doc',
 	'man', 'info')
-
-if not Config["piping"] and Config["verbosityLevel"] >= 3:
-	VERBOSE = True
-else:
-	VERBOSE = False
 
 # =========
 # Functions
@@ -302,8 +297,8 @@ def main(input_args):
 			pp.print_error("No matching packages found for %s" % query)
 
 		for pkg in matches:
-			if VERBOSE:
-				pp.print_info(1, " * Contents of %s:" % pp.cpv(pkg.cpv))
+			if Config['verbose']:
+				print " * Contents of %s:" % pp.cpv(pkg.cpv)
 
 			contents = pkg.get_contents()
 			display_files(filter_contents(contents))

@@ -132,7 +132,7 @@ def main(input_args):
 
 	query_re = prepare_search_regex(queries)
 
-	if not Config["piping"]:
+	if Config['verbose']:
 		pp.print_info(3, " * Searching for %s ... "
 			% (pp.regexpquery(",".join(queries))))
 	
@@ -148,13 +148,13 @@ def main(input_args):
 					pkg_str = pkg.key
 				else:
 					pkg_str = pkg.cpv
-				if Config['piping']:
-					print pkg_str
-				else:
+				if Config['verbose']:
 					file_str = pp.path(format_filetype(cfile, files[cfile]))
-					pp.print_info(0, "%s (%s)" % (pkg_str, file_str))
+					print "%s (%s)" % (pkg_str, file_str)
+				else:
+					print pkg_str
 
-					found_match = True
+				found_match = True
 
 		if found_match and QUERY_OPTS["earlyOut"]:
 			break

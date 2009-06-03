@@ -150,11 +150,12 @@ def split_package_name(name):
 		r[0] = ''
 	return r
 
-def sort_package_list(pkglist):
-	"""Returns the list ordered in the same way portage would do with lowest version
-	at the head of the list."""
-	pkglist.sort(Package.compare_version)
-	return pkglist
+# XXX: Defunct: use helpers2.compare_package_strings
+#def sort_package_list(pkglist):
+#	"""Returns the list ordered in the same way portage would do with lowest version
+#	at the head of the list."""
+#	pkglist.sort(Package.compare_version)
+#	return pkglist
 
 if __name__ == "__main__":
 	print "This module is for import only"

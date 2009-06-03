@@ -27,7 +27,8 @@ from portage import settings
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
 from gentoolkit.equery import format_options, mod_usage, Config
-from gentoolkit.helpers2 import find_packages
+from gentoolkit.helpers2 import find_packages, print_sequence, print_file, \
+	uniqify
 from gentoolkit.textwrap_ import TextWrapper
 
 # =======
@@ -53,11 +54,6 @@ PORTDIR = [settings["PORTDIR"] or os.path.join(os.sep, "usr", "portage")]
 # Check for overlays
 if settings["PORTDIR_OVERLAY"]:
 	PORTDIR.extend(settings["PORTDIR_OVERLAY"].split())
-
-if not Config["piping"] and Config["verbosityLevel"] >= 3:
-	VERBOSE = True
-else:
-	VERBOSE = False
 
 # =========
 # Functions
@@ -91,7 +87,7 @@ def print_help(with_description=True):
 def call_get_functions(metadata_path, package_dir, QUERY_OPTS):
 	"""Call information gathering functions and display the results."""
 	
-	if VERBOSE:
+	if Config['verbose']:
 		print get_overlay_name(package_dir)
 
 	try:
@@ -141,7 +137,7 @@ def call_get_functions(metadata_path, package_dir, QUERY_OPTS):
 		print_sequence(format_list(useflags))
 
 	if QUERY_OPTS["xml"]:
-		print_file(meta)
+		print_file(metadata_path)
 
 
 def format_line(line, first="", subsequent="", force_quiet=False):
@@ -233,7 +229,7 @@ def format_list(lst, first="", subsequent="", force_quiet=False):
 				# We don't want to send a blank line to format_line()
 				result.append("")
 	else:
-		if VERBOSE:
+		if Config['verbose']:
 			if force_quiet:
 				result = None
 			else:
@@ -374,17 +370,16 @@ def _get_upstream_maintainer(node):
 	maintainer = node.findall("maintainer")
 	maint = []
 	for elem in maintainer:
-		name = elem.find("name")
-		email = elem.find("email")
+		if elem.find("name") != None:
+			maint.append(elem.find("name").text)
+		if elem.find("email") != None:
+			maint.append(elem.find("email").text)
 		if elem.get("status") == "active":
-			status = "(%s)" % pp.output.green("active")
+			maint.append("(%s)" % pp.output.green("active"))
 		elif elem.get("status") == "inactive":
-			status = "(%s)" % pp.output.red("inactive")
-		elif elem.get("status"):
-			status = "(" + elem.get("status") + ")"
-		else:
-			status = ""
-		maint.append(" ".join([name.text, email.text, status]))
+			maint.append("(%s)" % pp.output.red("inactive"))
+		elif elem.get("status") != None:
+			maint.append("(" + elem.get("status") + ")")
 
 	return format_list(maint, "Maintainer: ", " " * 12, force_quiet=True)
 
@@ -430,33 +425,6 @@ def get_upstream(xml_tree):
 		first_run = False
 
 	return result
-
-
-def print_sequence(seq):
-	"""Print each element of a sequence."""
-
-	for elem in seq:
-		print elem
-
-
-def uniqify(seq, preserve_order=True): 
-	"""Return a uniqified list. Optionally preserve order."""
-
-	if preserve_order:
-		seen = set()
-		result = [x for x in seq if x not in seen and not seen.add(x)]
-	else:
-		result = list(set(seq))
-
-	return result
-
-
-def print_file(path):
-	"""Display the contents of a file."""
-
-	with open(path) as open_file:
-		lines = open_file.read()
-		print lines.strip()
 
 
 def parse_module_options(module_opts):

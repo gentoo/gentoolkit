@@ -17,10 +17,9 @@ from getopt import gnu_getopt, GetoptError
 
 import gentoolkit
 import gentoolkit.pprinter as pp
-from gentoolkit.equery import format_options, format_package_names, \
-	mod_usage, Config
+from gentoolkit.equery import format_options, mod_usage, Config
 from gentoolkit.helpers2 import do_lookup, get_installed_cpvs
-from gentoolkit.package import Package
+from gentoolkit.package import Package, PackageFormatter
 
 # =======
 # Globals
@@ -29,12 +28,12 @@ from gentoolkit.package import Package
 QUERY_OPTS = {
 	"categoryFilter": None,
 	"duplicates": False,
-	"includeInstalled": False,
+	"includeInstalled": True,
 	"includePortTree": False,
 	"includeOverlayTree": False,
 	"includeMasked": True,
 	"isRegex": False,
-	"printMatchInfo": True
+	"printMatchInfo": (not Config['quiet'])
 }
 
 # =========
@@ -66,36 +65,11 @@ def print_help(with_description=True):
 		(" -c, --category CAT", "only search in the category CAT"),
 		(" -d, --duplicates", "list only installed duplicate packages"),
 		(" -f, --full-regex", "query is a regular expression"),
-		(" -i, --installed", "list installed packages matching query"),
+		(" -I, --exclude-installed",
+			"exclude installed packages from output"),
 		(" -o, --overlay-tree", "list packages in overlays"),
 		(" -p, --portage-tree", "list packages in the main portage tree")
 	))
-
-
-def adjust_query_environment(queries):
-	"""Make sure the search environment is good to go."""
-
-	if not queries and not (QUERY_OPTS["duplicates"] or
-		QUERY_OPTS["includeInstalled"] or QUERY_OPTS["includePortTree"] or 
-		QUERY_OPTS["includeOverlayTree"]):
-		print_help()
-		sys.exit(2)
-	elif queries and not (QUERY_OPTS["duplicates"] or
-		QUERY_OPTS["includeInstalled"] or QUERY_OPTS["includePortTree"] or 
-		QUERY_OPTS["includeOverlayTree"]):
-		QUERY_OPTS["includeInstalled"] = True
-	elif not queries and (QUERY_OPTS["duplicates"] or
-		QUERY_OPTS["includeInstalled"] or QUERY_OPTS["includePortTree"] or 
-		QUERY_OPTS["includeOverlayTree"]):
-		queries = ["*"]
-
-	# Only search installed packages when listing duplicate packages
-	if QUERY_OPTS["duplicates"]:
-		QUERY_OPTS["includeInstalled"] = True
-		QUERY_OPTS["includePortTree"] = False
-		QUERY_OPTS["includeOverlayTree"] = False
-
-	return queries
 
 
 def get_duplicates(matches):
@@ -129,8 +103,8 @@ def parse_module_options(module_opts):
 			QUERY_OPTS['listAllPackages'] = True
 		elif opt in ('-c', '--category'):
 			QUERY_OPTS['categoryFilter'] = posarg
-		elif opt in ('-i', '--installed'):
-			QUERY_OPTS['includeInstalled'] = True
+		elif opt in ('-I', '--exclude-installed'):
+			QUERY_OPTS['includeInstalled'] = False
 		elif opt in ('-p', '--portage-tree'):
 			QUERY_OPTS['includePortTree'] = True
 		elif opt in ('-o', '--overlay-tree'):
@@ -145,55 +119,13 @@ def parse_module_options(module_opts):
 			QUERY_OPTS['duplicates'] = True
 
 
-def print_sequence(seq):
-	"""Print every item of a sequence."""
-
-	for item in seq:
-		print item
-
-
-def sort_by_location(matches):
-	"""Take a list of packages and sort them by location.
-	
-	@rtype: tuple
-	@return:
-		installed: list of all packages in matches that are in the vdb
-		overlay: list of all packages in matches that reside in an overlay
-		porttree: list of all packages that are not in the vdb or an overlay
-	"""
-
-	all_installed_packages = set()
-	if QUERY_OPTS["includeInstalled"]:
-		all_installed_packages = set(Package(x) for x in get_installed_cpvs())
-
-	# Cache package sets
-	installed = []
-	overlay = []
-	porttree = []
-
-	for pkg in matches:
-		if QUERY_OPTS["includeInstalled"]:
-			if pkg in all_installed_packages:
-				installed.append(pkg)
-				continue
-		if pkg.is_overlay():
-			if QUERY_OPTS["includeOverlayTree"]:
-				overlay.append(pkg)
-			continue
-		if QUERY_OPTS["includePortTree"]:
-			porttree.append(pkg)
-
-	return installed, overlay, porttree
-
-
 def main(input_args):
 	"""Parse input and run the program"""
 
-	short_opts = "hc:defiIop" # -I was used to turn off -i when it was
-	                          # the default action, -e is now default
+	short_opts = "hc:defiIop" # -i, -e were options for default actions
 
 	# 04/09: djanderson
-	# --exclude-installed is no longer needed. Kept for compatibility.
+	# --installed is no longer needed. Kept for compatibility.
 	# --exact-name is no longer needed. Kept for compatibility.
 	long_opts = ('help', 'all', 'category=', 'installed', 'exclude-installed',
 	'portage-tree', 'overlay-tree', 'full-regex', 'exact-name', 'duplicates')
@@ -207,7 +139,16 @@ def main(input_args):
 		sys.exit(2)
 
 	parse_module_options(module_opts)
-	queries = adjust_query_environment(queries)
+
+	# Only search installed packages when listing duplicate packages
+	if QUERY_OPTS["duplicates"]:
+		QUERY_OPTS["includeInstalled"] = True
+		QUERY_OPTS["includePortTree"] = False
+		QUERY_OPTS["includeOverlayTree"] = False
+
+	if not queries:
+		print_help()
+		sys.exit(2)
 
 	first_run = True
 	for query in queries:
@@ -222,30 +163,29 @@ def main(input_args):
 
 		matches.sort()
 
-		installed, overlay, porttree = sort_by_location(matches)
-
 		#
 		# Output
 		#
 
-		if QUERY_OPTS["includeInstalled"]:
-			print " * installed packages:"
-			if not Config["piping"]:
-				installed = format_package_names(installed, 1)
-			print_sequence(installed)
+		for pkg in matches:
+			if Config['verbose']:
+				pkgstr = PackageFormatter(pkg, format=True)
+			else:
+				pkgstr = PackageFormatter(pkg, format=False)
 
-		if QUERY_OPTS["includePortTree"]:
-			portdir = pp.path(gentoolkit.settings["PORTDIR"])
-			print " * Portage tree (%s):" % portdir 
-			if not Config["piping"]:
-				porttree = format_package_names(porttree, 2)
-			print_sequence(porttree)
-
-		if QUERY_OPTS["includeOverlayTree"]:
-			portdir_overlay = pp.path(gentoolkit.settings["PORTDIR_OVERLAY"])
-			print " * overlay tree (%s):" % portdir_overlay
-			if not Config["piping"]:
-				overlay = format_package_names(overlay, 3)
-			print_sequence(overlay)
+			if (QUERY_OPTS["includeInstalled"] and
+				not QUERY_OPTS["includePortTree"] and
+				not QUERY_OPTS["includeOverlayTree"]):
+				if not 'I' in pkgstr.location:
+					continue
+			if (QUERY_OPTS["includePortTree"] and
+				not QUERY_OPTS["includeOverlayTree"]):
+				if not 'P' in pkgstr.location:
+					continue
+			if (QUERY_OPTS["includeOverlayTree"] and
+				not QUERY_OPTS["includePortTree"]):
+				if not 'O' in pkgstr.location:
+					continue
+			print pkgstr
 
 		first_run = False

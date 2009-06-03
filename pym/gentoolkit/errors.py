@@ -12,6 +12,7 @@ __all__ = [
 	'GentoolkitInvalidPackageName',
 	'GentoolkitInvalidCPV',
 	'GentoolkitInvalidRegex',
+	'GentoolkitInvalidVersion',
 	'GentoolkitNoMatches'
 ]
 
@@ -74,6 +75,13 @@ class GentoolkitInvalidRegex(GentoolkitException):
 	"""The regex could not be compiled"""
 	def __init__(self, regex):
 		pp.print_error("Invalid regex: '%s'" % regex)
+		sys.exit(2)
+
+
+class GentoolkitInvalidVersion(GentoolkitException):
+	"""Got a malformed version"""
+	def __init__(self, version):
+		pp.print_error("Malformed version: '%s'" % version)
 		sys.exit(2)
 
 

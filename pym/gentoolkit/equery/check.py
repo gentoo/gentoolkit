@@ -213,20 +213,20 @@ def main(input_args):
 		matches.sort()
 
 		for pkg in matches:
-			if not Config["piping"] and Config["verbosityLevel"] >= 3:
-				print "[ Checking %s ]" % pp.cpv(pkg.cpv)
+			if Config['verbose']:
+				print " * Checking %s ..." % pp.emph(pkg.cpv)
 			else:
 				print "%s:" % pkg.cpv
 
 			passed, checked, errs = run_checks(pkg.get_contents())
 
-			if not Config["piping"] and Config["verbosityLevel"] >= 3:
+			if Config['verbose']:
 				for err in errs:
 					pp.print_error(err)
 
 			passed = pp.number(str(passed))
 			checked = pp.number(str(checked))
-			info = " * %(passed)s out of %(checked)s files passed"
+			info = "   %(passed)s out of %(checked)s files passed"
 			print info % locals()
 
 			first_run = False

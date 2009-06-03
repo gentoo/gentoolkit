@@ -28,7 +28,8 @@ import gentoolkit.pprinter as pp
 from gentoolkit import errors
 from gentoolkit.equery import format_options, mod_usage
 from gentoolkit.helpers2 import find_best_match, find_packages
-from gentoolkit.package import Package, VersionMatch
+from gentoolkit.package import Package
+from gentoolkit.versionmatch import VersionMatch
 
 # =======
 # Globals
@@ -89,7 +90,7 @@ def get_logpath(pkg):
 
 	logpath = os.path.join(pkg.get_package_path(), 'ChangeLog')
 	if not os.path.isfile(logpath) or not os.access(logpath, os.R_OK):
-		pp.die(1, "%s does not exist or is unreadable"
+		raise errors.GentoolkitFatalError("%s does not exist or is unreadable"
 			% pp.path(logpath))
 	
 	return logpath
@@ -133,6 +134,8 @@ def index_changelog(entries):
 		# Extract the package name from the entry, ex: 
 		# *xterm-242 (07 Mar 2009) => xterm-242
 		pkg_name = entry.split(' ', 1)[0].lstrip('*')
+		if not pkg_name.strip():
+			continue
 		pkg_split = pkgsplit(pkg_name)
 		result.append(
 			(VersionMatch(op="=", ver=pkg_split[1], rev=pkg_split[2]), entry))
@@ -315,6 +318,9 @@ def main(input_args):
 		pkg = get_match(query)
 		logpath = get_logpath(pkg)
 		log_entries = split_changelog(logpath)
+		if not any(log_entries):
+			raise errors.GentoolkitFatalError(
+				"%s exists but doesn't contain entries." % pp.path(logpath))
 		indexed_entries = index_changelog(log_entries)
 
 		#
@@ -328,6 +334,9 @@ def main(input_args):
 			for entry in log_entries[:end]:
 				print entry
 			first_run = False
+		elif log_entries and not indexed_entries:
+			# We can't match anything, so just print latest:
+			print log_entries[0].strip()
 		else:
 			if ranged_query:
 				pkg = ranged_query

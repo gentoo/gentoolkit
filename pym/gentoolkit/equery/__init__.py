@@ -25,9 +25,11 @@ import sys
 import time
 from getopt import getopt, GetoptError
 
+from portage import exception
+
 import gentoolkit
 import gentoolkit.pprinter as pp
-from gentoolkit import catpkgsplit, settings, Package, Config
+from gentoolkit import settings, Config
 from gentoolkit.textwrap_ import TextWrapper
 
 __productname__ = "equery"
@@ -123,34 +125,6 @@ def format_options(options):
 	return '\n'.join(result)
 
 
-def format_package_names(match_set, status):
-	"""Add location and mask status to package names.
-	
-	@type match_set: list of gentoolkit.package.Package
-	@param match_set: packages to format
-	@rtype: list
-	@return: formatted packages
-	"""
-
-	arch = gentoolkit.settings["ARCH"]
-	formatted_packages = []
-	pfxmodes = ['---', 'I--', '-P-', '--O']
-	maskmodes = ['  ', ' ~', ' -', 'M ', 'M~', 'M-']
-
-	for pkg in match_set:
-		mask = get_mask_status(pkg, arch)
-		pkgcpv = pkg.get_cpv()
-		slot = pkg.get_env_var("SLOT")
-
-		formatted_packages.append("[%s] [%s] %s (%s)" %
-			(pfxmodes[status],
-			pp.maskflag(maskmodes[mask]),
-			pp.cpv(pkgcpv),
-			str(slot)))
-	
-	return formatted_packages
-
-
 def format_filetype(path, fdesc, show_type=False, show_md5=False,
 		show_timestamp=False):
 	"""Format a path for printing.
@@ -214,36 +188,6 @@ def format_timestamp(timestamp):
 	return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(timestamp)))
 
 
-def get_mask_status(pkg, arch):
-	"""Get the mask status of a given package. 
-
-	@type pkg: gentoolkit.package.Package
-	@param pkg: pkg to get mask status of
-	@type arch: str
-	@param arch: output of gentoolkit.settings["ARCH"]
-	@rtype: int
-	@return: an index for this list: ["  ", " ~", " -", "M ", "M~", "M-"]
-		0 = not masked
-		1 = keyword masked
-		2 = arch masked
-		3 = hard masked
-		4 = hard and keyword masked,
-		5 = hard and arch masked
-	"""
-
-	# Determining mask status
-	keywords = pkg.get_env_var("KEYWORDS").split()
-	mask_status = 0
-	if pkg.is_masked():
-		mask_status += 3
-	if ("~%s" % arch) in keywords:
-		mask_status += 1
-	elif ("-%s" % arch) in keywords or "-*" in keywords:
-		mask_status += 2
-
-	return mask_status
-
-
 def initialize_configuration():
 	"""Setup the standard equery config"""
 
@@ -258,6 +202,8 @@ def initialize_configuration():
 
 	# Color handling: -1: Use Portage settings, 0: Force off, 1: Force on
 	Config['color'] = -1
+
+	Config['quiet'] = False
 
 	# Guess color output
 	if (Config['color'] == -1 and (not sys.stdout.isatty() or
@@ -316,7 +262,7 @@ def parse_global_options(global_opts, args):
 				print_help()
 				sys.exit(0)
 		elif opt in ('-q','--quiet'):
-			Config["verbosityLevel"] = 0
+			Config["quiet"] = True
 		elif opt in ('-C', '--no-color', '--nocolor'):
 			Config['color'] = 0
 			pp.output.nocolor()
@@ -368,7 +314,6 @@ def main():
 		print_help(with_description=False)
 		sys.exit(2)
 
-
 	# Parse global options
 	need_help = parse_global_options(global_opts, args)
 
@@ -381,6 +326,11 @@ def main():
 	if need_help:
 		module_args.append('--help')
 
+	if Config['piping'] or Config['quiet']:
+		Config['verbose'] = False
+	else:
+		Config['verbose'] = True
+
 	try:
 		expanded_module_name = expand_module_name(module_name)
 	except KeyError:
@@ -392,16 +342,10 @@ def main():
 		loaded_module = __import__(expanded_module_name, globals(),
 			locals(), [], -1)
 		loaded_module.main(module_args)
-	except ValueError, err:
-		if isinstance(err[0], list):
-			pp.print_error("Ambiguous package name. Use one of: ")
-			while err[0]:
-				print " " + err[0].pop()
-		else:
-			pp.print_error("Internal portage error, terminating")
-			if err:
-				pp.print_error(str(err[0]))
-		sys.exit(1)
+	except exception.AmbiguousPackageName, err:
+		pp.print_error("Ambiguous package name. Use one of: ")
+		while err[0]:
+			print " " + err[0].pop()
 	except IOError, err:
 		if err.errno != errno.EPIPE:
 			raise
