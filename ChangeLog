@@ -1,3 +1,28 @@
+2009-06-03: Christian Ruppert <idl0r@gentoo.org>
+	Cleanup, update ChangeLog, README, TODO.
+	* src/echangelog/echangelog: Add support for bzr. Cleanup. Removed git related if statement in check
+	  for unknown/untracked files since it was useless.
+
+2009-05-26: Christian Ruppert <idl0r@gentoo.org>
+	* src/ebump/ebump: Fixed bug 271322, thanks to Justin Lecher (jlec)
+	  <jlec@j-schmitz.net>.
+
+2009-05-15: Christian Ruppert <idl0r@gentoo.org>
+	* src/ekeyword/ekeyword: Fix keywording if the KEYWORDS line starts with
+	  whitespace, thanks to Markus Meier <maekke@gentoo.org>.
+
+2009-05-12: Christian Ruppert <idl0r@gentoo.org>
+	* src/echangelog/echangelog: Fix regex, bug 269557, thanks to Samuli
+	  Suominen <ssuominen@gentoo.org>.
+
+2009-05-09: Christian Ruppert <idl0r@gentoo.org>
+	* src/echangelog/echangelog: Ignore .git dir when running echangelog in
+	  the repository root, fixes bug 199805 c8,c13. Improved
+	  git_unknown_objects(), git status parsing improved. Thanks to Andrew
+	  Gaffney <agaffney@gentoo.org> for testing etc.
+	* src/echangelog/echangelog: Update category/package when creating the 
+	  initial ChangeLog, thanks to Serkan Kaba <serkan@gentoo.org>. Cleanup.
+
 2009-05-07: Christian Ruppert <idl0r@gentoo.org>
 	* echangelog: Re-add files (git) if the copyright has been updated, thanks
 	to Justin Lecher (jlec) <jlec@j-schmitz.net>.
