@@ -31,18 +31,19 @@ $opt_strict = 0;
 $opt_version = 0;
 
 my %vcs = (
+	bzr => {
+		diff => "bzr diff",
+		status => "bzr status -S .",
+		add => "bzr add",
+		skip => 3,
+		# The same as for hg.
+		regex => qr/^=== \S+ file '\S+\/\S+\/((\S+)\.ebuild)/
+	},
 	cvs => {
 		diff => "cvs -f diff -U0",
 		status => "cvs -fn up",
 		add => "cvs -f add",
 		skip => 6,
-		regex => qr/^Index: (([^\/]*?)\.ebuild)\s*$/
-	},
-	svn => {
-		diff => "svn diff -N",
-		status => "svn status",
-		add => "svn add",
-		skip => 4,
 		regex => qr/^Index: (([^\/]*?)\.ebuild)\s*$/
 	},
 	git => {
@@ -62,6 +63,13 @@ my %vcs = (
 		# hg diff is relative to the root.
 		# TODO: Write a proper regex :)
 		regex => qr/diff \-r \S+ \S+\/\S+\/((\S+)\.ebuild)/
+	},
+	svn => {
+		diff => "svn diff -N",
+		status => "svn status",
+		add => "svn add",
+		skip => 4,
+		regex => qr/^Index: (([^\/]*?)\.ebuild)\s*$/
 	},
 );
 
@@ -185,6 +193,7 @@ usage() if $opt_help;
 version() if $opt_version;
 
 # Figure out what kind of repo we are in.
+# TODO: we might also check svn/cvs more strict.
 if ( -d "CVS" ) {
 	$vcs = "cvs";
 } elsif ( -d '.svn' ) {
@@ -193,14 +202,20 @@ if ( -d "CVS" ) {
 	# Respect $PATH while looking for git
 	if (getenv("PATH")) {
 		foreach my $path ( split(":", getenv("PATH")) ) {
+			if ( -X "$path/bzr" ) {
+				open(BZR, '-|', "${path}/bzr root 2>/dev/null");
+				$vcs = "bzr" if defined(<BZR>);
+				close(BZR);
+				last if $vcs;
+			}
 			if ( -X "$path/git" ) {
-				open(GIT, '-|', "git rev-parse --git-dir 2>/dev/null");
+				open(GIT, '-|', "${path}/git rev-parse --git-dir 2>/dev/null");
 				$vcs = "git" if defined(<GIT>);
 				close(GIT);
 				last if $vcs;
 			}
 			if ( -X "$path/hg" ) {
-				open(HG, '-|', "hg root 2>/dev/null");
+				open(HG, '-|', "${path}/hg root 2>/dev/null");
 				$vcs = "hg" if defined(<HG>);
 				close(HG);
 				last if $vcs;
@@ -244,39 +259,62 @@ if (-f 'ChangeLog') {
 # Figure out what has changed around here
 open C, $vcs{$vcs}{status}.' 2>&1 |' or die "Can't run ".$vcs{$vcs}{status}.": $!\n";
 while (<C>) {
+	# I don't want mess our existing stuff with the horrible bazaar stuff.
+	# TODO: add stuff for untracked/conflicting files.
+	if ($vcs eq "bzr") {
+		# NEW, DELETED, MODIFIED
+		if (/^[\s\+\-]([NDM])\s+(.*)/) {
+			my ($status, $filename) = ($1, $2);
+			# strip category/package/ since everything is relative to the repo root.
+			$filename =~ s/^([^\/]+\/){2}//;
+
+			# skip empty $filename, e.g. if you add a new package, the first
+			# line would be the package directory app-foo/bar/ but thats stripped above.
+			next if !$filename;
+			# skip directories
+			next if -d $filename;
+
+			($actions{$filename} = $status) =~ tr/NDM/+-/d;
+			push(@files, $filename);
+			next;
+			}
+		# RENAMED/MOVED
+		elsif (/^R\s+(\S+) => (\S+)/) {
+			my ($old, $new) = ($1, $2);
+			$old =~ s/^([^\/]+\/){2}//;
+			$new =~ s/^([^\/]+\/){2}//;
+
+			next if !$old or !$new;
+			next if -d $old or -d $new;
+
+			$actions{$old} = '-';
+			$actions{$new} = '+';
+
+			push(@files, $old, $new);
+			next;
+		}
+	}
 	if (/^C\s+(\S+)/) {
+		# TODO: The git part here might be unused
 		if($vcs eq "git") {
-			my $filename = $2;
+			my $filename = $1;
 			$filename =~ /\S*\/(\S*)/;
 
-			if( -d $1 ) {
-				next;
-			}
+			next if -d $filename;
 
-			push @conflicts, $1;
+			push @conflicts, $filename;
 			next;
 		}
 
 		push @conflicts, $1;
 		next;
-	} elsif (/^\?\s+(\S+)/) {
-		if($vcs eq "git") {
-			my $filename = $2;
-			$filename =~ /\S*\/(\S*)/;
-
-			if( -d $1 ) {
-				next;
-			}
-
-			push @unknown, $1;
-			next;
-		} else {
-			push @unknown, $1;
-		}
-
-		$actions{$1} = '+';
+	}
+	elsif (/^\?\s+(\S+)/) {
+		push @unknown, $1;
+		$actions{$1} = '?';
 		next;
-	} elsif (/^([ARMD])\s+\+?\s*(\S+)/) {
+	}
+	elsif (/^([ARMD])\s+\+?\s*(\S+)/) {
 		my ($status, $filename) = ($1,$2);
 
 		if($vcs eq "git") {
@@ -457,18 +495,29 @@ if (@ebuilds) {
 		# We assume GNU diff output format here.
 		# git format: diff --git a/app-doc/repodoc/metadata.xml b/app-doc/repodoc/metadata.xml
 		elsif (/$vcs{$vcs}{regex}/) {
-			my $f = $1;
+			my ($file, $version) = ($1, $2);
 
 			if ($vcs eq "git") {
-				my $version = $2;
-
 				while (<C>) {
 					last if /^deleted file mode|^index/;
 					if (/^new file mode/) {
-						mypush(@files, $f);
+						mypush(@files, $file);
 						mypush(@new_versions, $version);
 						last;
 					}
+				}
+			}
+
+			if ($vcs eq "bzr") {
+				if (/^=== added file/) {
+					mypush(@files, $file);
+					mypush(@new_versions, $version);
+					last;
+				}
+				elsif(/^=== renamed file '.+\/([^\/]+\.ebuild)' => '.+\/(([^\/]+)\.ebuild)'/) {
+					mypush(@files, $1, $2);
+					mypush(@new_versions, $3);
+					last;
 				}
 			}
 
@@ -481,7 +530,7 @@ if (@ebuilds) {
 			while (<C>) {
 				last if /^[A-Za-z]/;
 				if (/^[-+](?!# Copyright)/) {
-					mypush(@files, $f);
+					mypush(@files, $file);
 					last;
 				}
 			}
