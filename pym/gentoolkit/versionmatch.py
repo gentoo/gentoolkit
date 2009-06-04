@@ -3,6 +3,9 @@
 # Copyright(c) 2009, Gentoo Foundation
 # Licensed under the GNU General Public License, v2
 #
+# Copyright: 2005-2007 Brian Harring <ferringb@gmail.com>
+# License: GPL2/BSD
+#
 # $Header$
 
 """Gentoo package version comparison object from pkgcore.ebuild.atom_restricts.
