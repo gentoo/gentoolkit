@@ -7,7 +7,7 @@
 """List all packages owning a particular file
 
 Note: Normally, only one package will own a file. If multiple packages own
-      the same file, it usually consitutes a problem, and should be reported.
+      the same file, it usually constitutes a problem, and should be reported.
 """
 
 __docformat__ = 'epytext'

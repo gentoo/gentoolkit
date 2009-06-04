@@ -289,8 +289,6 @@ def print_version():
 		"version": version,
 		"docstring": __doc__
 	}
-	print
-	print __authors__
 
 
 def split_arguments(args):
