@@ -241,8 +241,36 @@ def format_list(lst, first="", subsequent="", force_quiet=False):
 
 def get_herd(xml_tree):
 	"""Return a list of text nodes for <herd>."""
+	
+	result = []
+	for elem in xml_tree.findall("herd"):
+		herd_mail = get_herd_email(elem.text)
+		if herd_mail and Config['verbose']:
+			result.append("%s (%s)" % (elem.text, herd_mail))
+		else:
+			result.append(elem.text) 
 
-	return [e.text for e in xml_tree.findall("herd")]
+	return result
+
+
+def get_herd_email(herd):
+	"""Return the email of the given herd if it's in herds.xml, else None."""
+	
+	herds_path = os.path.join(PORTDIR[0], "metadata/herds.xml")
+
+	try:
+		herds_tree = ET.parse(herds_path)
+	except IOError, err:
+		pp.print_error(str(err))
+		return None
+
+	# Some special herds are not listed in herds.xml
+	if herd in ('no-herd', 'maintainer-wanted', 'maintainer-needed'):
+		return None
+	
+	for node in herds_tree.getiterator("herd"):
+		if node.findtext("name") == herd:
+			return node.findtext("email")
 
 
 def get_description(xml_tree):
@@ -484,7 +512,7 @@ def main(input_args):
 			if not package_dir:
 				raise errors.GentoolkitNoMatches(query)
 			metadata_path = os.path.join(package_dir, "metadata.xml")
-	
+
 			# --------------------------------
 			# Check options and call functions
 			# --------------------------------

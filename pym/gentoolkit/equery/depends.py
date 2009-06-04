@@ -151,7 +151,8 @@ def find_dependencies(matches, pkg_cache):
 			# Find all packages matching the dependency
 			depstr = dependency[0] + dependency[2]
 			if not depstr in DEPPKGS:
-				depcpvs = find_packages(depstr)
+				depcpvs = find_packages(depstr, 
+					include_masked=QUERY_OPTS["includePortTree"])
 				DEPPKGS[depstr] = depcpvs
 			else:
 				depcpvs = DEPPKGS[depstr]
@@ -240,6 +241,11 @@ def main(input_args):
 		if matches:
 			find_dependencies(matches, None)
 		else:
-			pp.print_error("No matching package found for %s" % query)
+			if QUERY_OPTS['includePortTree']:
+				pp.print_error("No matching package found for %s" % query)
+			else:
+				pp.print_error(
+					"No matching package or all versions masked for %s" % query
+				)
 
 		first_run = False
