@@ -1,3 +1,8 @@
+2009-06-05: Paul Varner <fuzzyray@gentoo.org>
+	* epkginfo: Add patch from Sebastian Mingramm to Make epkginfo slot
+	aware and only print keywords for the highest visible versions in each
+	slot. (Bug 232635)
+
 2009-05-20: Paul Varner <fuzzyray@gentoo.org>
 	* All: Convert from using /etc/gentoolkit-version to
 	/usr/share/gentoolkit/VERSION
