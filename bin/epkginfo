@@ -21,16 +21,6 @@ from portage.output import *
 
 version = open('/usr/share/gentoolkit/VERSION').read().strip()
 
-def getvar(pkg, var):
-	file = open(pkg + ".ebuild")
-	for line in file.readlines():
-		line = line.rstrip()
-		if re.match("^"+var+"=",line):
-			vars = re.split("\"",line)[1]
-			file.close
-			return re.split(" ",vars)
-	file.close()
-
 def earch(workdir):
 	"""Prints arch keywords for a given dir"""
 	portdir = portage.settings["PORTDIR"]
@@ -45,27 +35,72 @@ def earch(workdir):
 
 	ebuildlist.sort(lambda x,y: portage.pkgcmp(portage.pkgsplit(x),portage.pkgsplit(y)))
 
-	for pkg in ebuildlist:
-		keywords = getvar(pkg, "KEYWORDS")
+	slot_list = []
+
+	for pkg in ebuildlist:		
+		portdb = portage.portdbapi(portdir)
+		aux = portdb.aux_get(workdir.rsplit("/")[-2] + "/" + pkg, ['SLOT', 'KEYWORDS'])
+		
+		slot = aux[0]
+		keywords = keywords = re.split(' ',aux[1])
+		
+		if not slot in slot_list:
+			slot_list.append(slot)
+		
 		for arch in keywords:
-			if arch == "":
-				arch = None
-			archdict[arch] = pkg
+			if arch in archdict:
+				archdict[arch].append((pkg, slot))
+			else:
+				archdict[arch] = [ (pkg, slot) ]
 
 	archlist = archdict.keys();
 	archlist.sort()
 
-	for pkg in ebuildlist:
-		print darkgreen("Keywords: ") + pkg + ":",
-		for value in archlist:
-			if (value and archdict[value] == pkg):
-				if value[0] == "-":
-					print red(value),
-				elif "~" == value[0]:
-					print blue(value),				
-				else:
-					print green(value),
-		print ""
+	slot_list.sort()
+
+	for slot in slot_list:
+		visible_stable = {}
+		visible_unstable = {}
+		
+		for arch in archlist:
+			visible_stable[arch] = None
+			visible_unstable[arch] = None
+			
+		for pkg in ebuildlist:
+			for arch in archlist:
+				if (arch and (pkg, slot) in archdict[arch]):
+					if arch[0] == "-":
+						pass
+					elif "~" == arch[0]:
+						visible_unstable[arch] = pkg
+					else:
+						visible_unstable[arch] = None
+						visible_stable[arch] = pkg
+		
+		for pkg in ebuildlist:
+			found = False
+			for arch in archlist:
+				if (pkg, slot) in archdict[arch]:
+					found = True
+			
+			if not found:
+				continue
+			
+			if not pkg == ebuildlist[0]:
+				print ""
+				
+			print darkgreen("Keywords: ") + pkg + "[" + slot + "]:",
+			
+			for arch in archlist:
+				if (arch and (pkg, slot) in archdict[arch]):
+					if arch[0] == "-":
+						print red(arch),
+					elif "~" == arch[0]:
+						if visible_unstable[arch] == pkg:
+							print blue(arch),
+					else:
+						if visible_stable[arch] == pkg:
+							print green(arch),
 
 
 class Metadata_XML(handler.ContentHandler):
@@ -74,7 +109,7 @@ class Metadata_XML(handler.ContentHandler):
 	_inside_email="No"
 	_inside_longdescription="No"
 
-	_herd = ""
+	_herd = []
 	_maintainers = []
 	_longdescription = ""
 
@@ -100,7 +135,7 @@ class Metadata_XML(handler.ContentHandler):
 
 	def characters(self, contents):
 		if self._inside_herd == "Yes":
-			self._herd = contents
+			self._herd.append(contents)
 
 		if self._inside_longdescription == "Yes":
 			self._longdescription = contents
@@ -110,7 +145,7 @@ class Metadata_XML(handler.ContentHandler):
 
 
 def check_metadata(full_package):
-	"""Checks that the primary maintainer is still an active dev and list the hed the package belongs to"""
+	"""Checks that the primary maintainer is still an active dev and list the herd the package belongs to"""
 	metadata_file=portage.settings["PORTDIR"] + "/" + portage.pkgsplit(full_package)[0] + "/metadata.xml"
 	if not os.path.exists(metadata_file):
 		print darkgreen("Maintainer: ") + red("Error (Missing metadata.xml)")
@@ -122,16 +157,18 @@ def check_metadata(full_package):
 	parser.setContentHandler(handler)
 	parser.parse( metadata_file )
 
-	if len(handler._herd) < 1:
+	if handler._herd:
+		herds = ", ".join(handler._herd)
+		print darkgreen("Herd: ") + herds
+	else:       
 		print darkgreen("Herd: ") + red("Error (No Herd)")
 		return 1
-	else:
-		print darkgreen("Herd: ") + handler._herd
 
-	if len(handler._maintainers) < 1:
-		print darkgreen("Maintainer: ") + handler._herd
-	else:
+
+	if handler._maintainers:
 		print darkgreen("Maintainer: ") + ", ".join(handler._maintainers)
+	else:
+		print darkgreen("Maintainer: ") + "none"
 
 	if len(handler._longdescription) > 1:
 		print darkgreen("Description: ") + handler._longdescription
