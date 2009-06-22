@@ -1,3 +1,6 @@
+2009-06-22: Paul Varner <fuzzyray@gentoo.org>
+	* glsa-check: Fix traceback with glsa-check -f (Bug 275105)
+
 2009-06-05: Paul Varner <fuzzyray@gentoo.org>
 	* epkginfo: Add patch from Sebastian Mingramm to Make epkginfo slot
 	aware and only print keywords for the highest visible versions in each
