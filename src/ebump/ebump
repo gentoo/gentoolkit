@@ -165,7 +165,12 @@ process_ebuild() {
 
     einfo "Bumped ${PF}.ebuild to ${newPF}.ebuild"
 
-    cp ${PF}.ebuild ${newPF}.ebuild
+	if [[ "${vcs}" == "svn" ]];
+	then
+		svn cp ${PF}.ebuild ${newPF}.ebuild
+	else
+		cp ${PF}.ebuild ${newPF}.ebuild
+	fi
 
 	einfo "Reset keywords to ~arch"
 
