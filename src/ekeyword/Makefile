@@ -22,3 +22,5 @@ install: all
 	install -m 0644 AUTHORS README TODO ChangeLog $(docdir)/ekeyword/
 	install -m 0644 ekeyword.1 $(mandir)/
 
+clean:
+	$(RM) ekeyword.1

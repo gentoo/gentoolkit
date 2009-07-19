@@ -20,3 +20,6 @@ install: all
 	install -d $(docdir)/eviewcvs	
 	install -m 0644 AUTHORS README $(docdir)/eviewcvs/
 	install -m 0644 eviewcvs.1 $(mandir)/
+
+clean:
+	$(RM) eviewcvs.1
