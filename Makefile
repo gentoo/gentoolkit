@@ -1,54 +1,54 @@
-# Copyright 2003-2004 Karl Trygve Kalleberg <karltk@gentoo.org>
-# Copyright 2003-2004 Gentoo Technologies, Inc.
+# Copyright 1999-2009 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-#
-# $Header$
+# $Header: $
 
 include makedefs.mak
 
+TOOLS=ebump echangelog ego ekeyword eshowkw eviewcvs imlate
+RELEASE="gentoolkit-dev-$(VERSION)$(RELEASE_TAG)"
 
 all:
-	echo "YARMOUTH (vb.) To shout at foreigners in the belief that the louder you speak, the better they'll understand you." 
-	echo $(PYVERSION)
-	echo $(VERSION)
-	echo $(docdir)
-	echo $(bindir)
-	echo $(sbindir)
-	echo $(mandir)
+	@echo "YARMOUTH (vb.) To shout at foreigners in the belief that the louder you speak, the better they'll understand you." 
+	@echo "PYVERSION=$(PYVERSION)"
+	@echo "VERSION=$(VERSION)"
+	@echo "docdir=$(docdir)"
+	@echo "bindir=$(bindir)"
+	@echo "sbindir=$(sbindir)"
+	@echo "mandir=$(mandir)"
 
+# use $(TOOLS) if we have more than one test
 test:
-	make -C src/echangelog test
+	$(MAKE) -C src/echangelog test
 
 clean:
-	rm -rf release/*
-
-dist: dist-gentoolkit-dev
-
-dist-gentoolkit-dev:
-	mkdir -p release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)
-	for x in ekeyword echangelog ego ebump eviewcvs imlate; do \
-		( cd src/$$x ; $(MAKE) distdir=release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG) dist ) \
+	rm -rf release/
+	@for tool in $(TOOLS); do \
+		( $(MAKE) -C src/$${tool} clean ) \
 	done
-	cp Makefile AUTHORS README README.Developer TODO COPYING NEWS ChangeLog release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/
-	cat makedefs.mak | \
-		sed "s/^VERSION=.*/VERSION=$(VERSION)/" | \
-		sed "s/^RELEASE_TAG=.*/RELEASE_TAG=$(RELEASE_TAG)/" | \
-		sed "s:^docdir=.*:docdir=\$$(DESTDIR)/usr/share/doc/gentoolkit-dev-\$$(VERSION)\$$(RELEASE_TAG):" \
-		> release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/makedefs.mak
-	( cd release ; tar zcf gentoolkit-dev-$(VERSION)$(RELEASE_TAG).tar.gz gentoolkit-dev-$(VERSION)$(RELEASE_TAG)/ )
+
+dist:
+	mkdir -p release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)
+	@for tool in $(TOOLS); do \
+		( $(MAKE) -C src/$${tool} distdir=release/$(RELEASE) dist ) \
+	done
+
+	cp Makefile AUTHORS README README.Developer TODO COPYING NEWS ChangeLog release/$(RELEASE)/
+
+	@sed -e "s/^VERSION=.*/VERSION=$(VERSION)/" \
+		-e "s/^RELEASE_TAG=.*/RELEASE_TAG=$(RELEASE_TAG)/" \
+		makedefs.mak > release/$(RELEASE)/makedefs.mak
+
+	( cd release ; tar zcf $(RELEASE).tar.gz $(RELEASE)/ )
 
 install: install-gentoolkit-dev
 
-# FIXME: If run from the CVS tree, the documentation will be installed in
-#        $(DESTDIR)/usr/share/doc/gentoolkit-$(VERSION), not gentoolkit-dev-$(VERSION)
 install-gentoolkit-dev:
-
 	install -d $(docdir)
 	install -d $(bindir)
 	install -d $(mandir)
 
 	install -m 0644 AUTHORS ChangeLog COPYING NEWS README README.Developer TODO $(docdir)/
 
-	for x in ekeyword echangelog ego ebump eviewcvs imlate; do \
-		( cd src/$$x ; $(MAKE) DESTDIR=$(DESTDIR) install ) \
+	@for tool in $(TOOLS); do \
+		( $(MAKE) -C src/$${tool} DESTDIR=$(DESTDIR) install ) \
 	done

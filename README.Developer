@@ -10,6 +10,9 @@ STYLE POLICY
 If you're touching any of the python scripts please don't change the indentation
 style (if it's using tabs, you should use tabs too). Especially don't mix
 spaces and tabs as that makes the code completely unreadable.
+Tabs should be default for new scripts.
+
+Each script must provide a manpage.
 
 MAKING A RELEASE
 
@@ -20,19 +23,13 @@ us a mail at tools-portage@gentoo.org if you need an immediate release.
 
 The release manager (big words;) will then do
 
-1) make VERSION=major.minor.patch RELEASE_TAG=<optional> dist-gentoolkit
-2) copy release/gentoolkit-${VERSION}-${RELEASE_TAG}.tar.gz to 
+1) make VERSION=major.minor.patch RELEASE_TAG=<optional> dist
+2) copy release/gentoolkit-dev-${VERSION}-${RELEASE_TAG}.tar.gz to 
    dev.gentoo.org/space/distfiles-local/
-3) make a new ebuild, app-portage/gentoolkit/gentoolkit-${VERSION}.ebuild
+3) make a new ebuild, app-portage/gentoolkit-dev/gentoolkit-dev-${VERSION}.ebuild
    with a SRC_URI that points to 
-   mirror://gentoo/gentoolkit-${VERSION}-${RELEASE_TAG}.tar.gz
+   mirror://gentoo/gentoolkit-dev-${VERSION}-${RELEASE_TAG}.tar.gz
    (just use one of the previous ebuilds)
-
-The process is similar for gentoolkit-dev:
-
-1) make dist-gentoolkit-dev
-2) copy dist/gentoolkit-dev-${VERSION}-${RELEASE_TAG}.tar.gz to emu
-3) update app-portage/gentoolkit-dev
 
 Important!
 1) _ALWAYS_ make sure you don't "overwrite" a previous release. Your
@@ -42,24 +39,11 @@ Important!
    it right;)
 
 
-MAKING A RELEASE WITH release.sh
-
-If you have added your system details at the top of the release.sh script,
-you can make a release in the following fashion:
-
-(NOTE! This only works for -dev at the moment)
-
-1) Add a notice in the ChangeLog about the release you are making.
-2) Do VERSION="x.y.z" ./release.sh dev
-3) Test the package: ACCEPT_KEYWORDS="~arch" emerge gentoolkit-dev
-4) Do a repoman ci -m "Released x.y.z" in your 
-   CVS/app-portage/gentoolkit-dev directory.
-
-
 Currently, the following people have "release access":
 
- - genone@gentoo.org
+ - zmedico@gentoo.org
  - fuzzyray@gentoo.org
+ - idl0r@gentoo.org
 
-If you want a new release, ping either of us. If you want to get 
+If you want a new release, ping either one of us. If you want to get 
 "release access", talk to fuzzyray@gentoo.org
