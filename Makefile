@@ -61,7 +61,6 @@ install-gentoolkit:
 
 	install -d $(docdir)
 	install -d $(bindir)
-	install -d $(sbindir)
 	install -d $(mandir)
 	install -d $(sysconfdir)/env.d
 
