@@ -1,3 +1,10 @@
+2009-08-18: Robert Buchholz <rbu@gentoo.org>
+	* glsa-check: Remove 'new' target from glsa-list, everyone
+        should use 'affected' or 'all'
+	* glsa-check: fix getminupgrade API doc and TypeError (Bug 281101)
+	* glsa-check: Make --pretend output in glsa-check nicer.
+        Add colors and fix linebreaks.
+
 2009-06-22: Paul Varner <fuzzyray@gentoo.org>
 	* glsa-check: Fix traceback with glsa-check -f (Bug 275105)
 

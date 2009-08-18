@@ -24,14 +24,14 @@ __author__ = "Marius Mauch <genone@gentoo.org>"
 __version__ = open("/usr/share/gentoolkit/VERSION").read().strip()
 
 optionmap = [
-["-l", "--list", "list all unapplied GLSA"],
-["-d", "--dump", "--print", "show all information about the given GLSA"],
-["-t", "--test", "test if this system is affected by the given GLSA"],
-["-p", "--pretend", "show the necessary commands to apply this GLSA"],
-["-f", "--fix", "try to auto-apply this GLSA (experimental)"],
+["-l", "--list", "list the GLSAs"],
+["-d", "--dump", "--print", "show all information about the GLSAs"],
+["-t", "--test", "test if this system is affected by the GLSAs"],
+["-p", "--pretend", "show the necessary steps to apply the GLSAs"],
+["-f", "--fix", "try to auto-apply the GLSAs (experimental)"],
 ["-i", "--inject", "inject the given GLSA into the glsa_injected file"],
 ["-n", "--nocolor", "disable colors (option)"],
-["-e", "--emergelike", "do not use a least-change algorithm (option)"],
+["-e", "--emergelike", "upgrade to latest version (not least-change, option)"],
 ["-h", "--help", "show this help message"],
 ["-V", "--version", "some information about this tool"],
 ["-v", "--verbose", "print more information (option)"],
@@ -112,7 +112,7 @@ if len(params) <= 0 and mode in ["fix", "test", "pretend", "dump", "inject", "ma
 	sys.stderr.write("(specify \"all\" as parameter)\n\n")
 	mode = "HELP"
 elif len(params) <= 0 and mode == "list":
-	params.append("new")
+	params.append("affected")
 	
 # show help message
 if mode == "help" or mode == "HELP":
@@ -123,7 +123,7 @@ if mode == "help" or mode == "HELP":
 			msg += "\t" + o + "\n"
 	msg += "\nglsa-list can contain an arbitrary number of GLSA ids, \n"
 	msg += "filenames containing GLSAs or the special identifiers \n"
-	msg += "'all', 'new' and 'affected'\n"
+	msg += "'all' and 'affected'\n"
 	if mode == "help":
 		sys.stdout.write(msg)
 		sys.exit(0)
@@ -173,14 +173,15 @@ todolist = [e for e in completelist if e not in checklist]
 
 glsalist = []
 if "new" in params:
-	glsalist = todolist
 	params.remove("new")
+	sys.stderr.write("Warning: The 'new' glsa-list target has been removed, using 'affected'.\n")
+	params.append("affected")
 	
 if "all" in params:
 	glsalist = completelist
 	params.remove("all")
+
 if "affected" in params:
-	# replaced completelist with todolist on request of wschlich
 	for x in todolist:
 		try:
 			myglsa = Glsa(x, glsaconfig)
