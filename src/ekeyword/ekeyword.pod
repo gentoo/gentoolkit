@@ -31,42 +31,36 @@ To mark a single arch stable:
 
   $ ekeyword alpha metalog-0.7-r1.ebuild
   metalog-0.7-r1.ebuild
-  < KEYWORDS="~x86 ~ppc ~sparc ~alpha ~mips ~hppa ~amd64 ~ia64"
-  ---
-  > KEYWORDS="~x86 ~ppc ~sparc alpha ~mips ~hppa ~amd64 ~ia64"
+    -KEYWORDS="~alpha ~amd64 ~hppa ~ia64 ~mips ~ppc ~sparc ~x86"
+    +KEYWORDS="alpha ~amd64 ~hppa ~ia64 ~mips ~ppc ~sparc ~x86"
 
 When bumping a package, to mark all arches for testing:
 
   $ ekeyword ~all metalog-0.7-r2.ebuild
   metalog-0.7-r2.ebuild
-  < KEYWORDS="x86 ppc sparc alpha mips hppa amd64 ia64"
-  ---
-  > KEYWORDS="~x86 ~ppc ~sparc ~alpha ~mips ~hppa ~amd64 ~ia64"
+    -KEYWORDS="alpha amd64 hppa ia64 mips ppc sparc x86"
+    +KEYWORDS="~alpha ~amd64 ~hppa ~ia64 ~mips ~ppc ~sparc ~x86"
 
 To signify that a package is broken for all arches except one:
 
   $ ekeyword ^all -* ~x86 metalog-0.7-r3.ebuild
   metalog-0.7-r3.ebuild
-  < KEYWORDS="~x86 ~ppc ~sparc ~alpha ~mips ~hppa ~amd64 ~ia64"
-  ---
-  > KEYWORDS="-* ~x86"
+    -KEYWORDS="~alpha ~amd64 ~hppa ~ia64 ~mips ~ppc ~sparc ~x86"
+    +KEYWORDS="-* ~x86"
 
 To do lots of things at once:
 
   $ ekeyword alpha metalog-0.7-r1.ebuild \
       ~all metalog-0.7-r2.ebuild ^all -* ~x86 metalog-0.7-r3.ebuild
   metalog-0.7-r1.ebuild
-  < KEYWORDS="~x86 ~ppc ~sparc ~alpha ~mips ~hppa ~amd64 ~ia64"
-  ---
-  > KEYWORDS="~x86 ~ppc ~sparc alpha ~mips ~hppa ~amd64 ~ia64"
+    -KEYWORDS="~alpha ~amd64 ~hppa ~ia64 ~mips ~ppc ~sparc ~x86"
+    +KEYWORDS="alpha ~amd64 ~hppa ~ia64 ~mips ~ppc ~sparc ~x86"
   metalog-0.7-r2.ebuild
-  < KEYWORDS="x86 ppc sparc alpha mips hppa amd64 ia64"
-  ---
-  > KEYWORDS="~x86 ~ppc ~sparc ~alpha ~mips ~hppa ~amd64 ~ia64"
+    -KEYWORDS="alpha amd64 hppa ia64 mips ppc sparc x86"
+    +KEYWORDS="~alpha ~amd64 ~hppa ~ia64 ~mips ~ppc ~sparc ~x86"
   metalog-0.7-r3.ebuild
-  < KEYWORDS="~x86 ~ppc ~sparc ~alpha ~mips ~hppa ~amd64 ~ia64"
-  ---
-  > KEYWORDS="-* ~x86"
+    -KEYWORDS="~alpha ~amd64 ~hppa ~ia64 ~mips ~ppc ~sparc ~x86"
+    +KEYWORDS="-* ~x86"
 
 =head1 NOTES
 
