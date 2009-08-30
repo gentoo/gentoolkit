@@ -8,9 +8,9 @@
 #
 #   $ ekeyword ~alpha oaf-0.6.8-r1.ebuild
 #   12c12
-#   < KEYWORDS="x86 ppc sparc"
+#   < KEYWORDS="ppc sparc x86"
 #   ---
-#   > KEYWORDS="x86 ppc sparc ~alpha"
+#   > KEYWORDS="~alpha ppc sparc x86"
 
 
 my ($kw_re) = '^(?:([-~^]?)(\w[\w-]*)|([-^]\*))$';
