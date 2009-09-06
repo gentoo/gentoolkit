@@ -1,3 +1,6 @@
+2009-09-06: Christian Ruppert <idl0r@gentoo.org>
+	* src/echangelog/echangelog: Fix regex, thanks to Magnus Granberg (zorry) <zorry@ume.nu>.
+
 2009-07-20: Christian Ruppert <idl0r@gentoo.org>
 	* README.Developer, README: Some clean-up.
 	* Makefile, Makefile.skel, makedefs.mak: Some minor improvements. Fix

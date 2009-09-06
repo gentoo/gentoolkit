@@ -325,7 +325,7 @@ while (<C>) {
 			if (defined($prefix)) {
 				chomp($prefix);
 
-				if ($filename =~ /$prefix(\S*)/) {
+				if ($filename =~ /\Q$prefix\E(\S*)/) {
 					$filename = $1 ;
 				}
 				else {
