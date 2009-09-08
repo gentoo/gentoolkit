@@ -3,6 +3,3 @@
 - write a Gentoolkit Guide
 - revision bump tool
  - bump versioned files in filesdir
-
-+ check esearch, eupdatedb: separate package for now
- 
