@@ -1,3 +1,11 @@
+2009-09-09: Christian Ruppert <idl0r@gentoo.org>
+	* src/imlate/imlate: Bump to 0.0.4.
+		Add SLOT support.
+		Add option to specify the minimum mtime for the mtime check.
+		Add search by herd or maintainer.
+		Add single package mode.
+		Automatic detection of TARGET/MAIN-_ARCH.
+
 2009-09-06: Christian Ruppert <idl0r@gentoo.org>
 	* src/echangelog/echangelog: Fix regex, thanks to Magnus Granberg (zorry) <zorry@ume.nu>.
 
