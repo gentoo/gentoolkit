@@ -5,6 +5,7 @@
 		Add search by herd or maintainer.
 		Add single package mode.
 		Automatic detection of TARGET/MAIN-_ARCH.
+		Remove EXPERIMENTAL option, make it default.
 
 2009-09-06: Christian Ruppert <idl0r@gentoo.org>
 	* src/echangelog/echangelog: Fix regex, thanks to Magnus Granberg (zorry) <zorry@ume.nu>.

@@ -299,8 +299,7 @@ def get_imlate( conf, pkgs ):
 					elif kwd == exclude:
 						kwd_type = 3
 						break
-					# EXPERIMENTAL
-					elif kwd == exclude_all and conf["EXPERIMENTAL"]:
+					elif kwd == exclude_all:
 						kwd_type = 4
 					elif kwd == testing:
 						kwd_type = 1
@@ -309,10 +308,9 @@ def get_imlate( conf, pkgs ):
 				# ignore -arch and already stabilized packages
 				if kwd_type == 3 or kwd_type == 2:
 					continue
-				# EXPERIMENTAL
-				# drop packages without ~arch or arch but -*
+				# drop packages with -* and without ~arch or arch
 				# even if there is another version which includes arch or ~arch
-				if kwd_type == 4 and conf["EXPERIMENTAL"]:
+				if kwd_type == 4:
 					continue
 				# drop "stable candidates" with mtime < 30 days
 				# Shall we use gmtime/UTC here?
@@ -368,7 +366,7 @@ def get_settings( conf = None ):
 			_cat = _cat.strip()
 			_mycats.append(_cat )
 			if _cat not in mysettings.categories:
-				raise ValueError, "invalid categorie for -C switch '%s'" % _cat
+				raise ValueError, "invalid category for -C switch '%s'" % _cat
 		mysettings.categories = _mycats
 
 	# maybe thats not necessary because we override porttrees below..
@@ -418,9 +416,9 @@ def main():
 	parser.add_option( "-H", "--herd", dest = "herd", action = "store", type = "string",
 			help = "Show only packages from the specified herd", metavar = "HERD", default = None)
 
-	# EXPERIMENTAL
-	parser.add_option( "-e", "--experimental", dest = "experimental", action = "store_true", default = False,
-					help = "enables experimental functions/features (have a look for # EXPERIMENTAL comments in the source) [default: %default]" )
+#	# EXPERIMENTAL
+#	parser.add_option( "-e", "--experimental", dest = "experimental", action = "store_true", default = False,
+#					help = "enables experimental functions/features (have a look for # EXPERIMENTAL comments in the source) [default: %default]" )
 
 	parser.add_option( "-C", "--category", "--categories", dest = "categories", action = "store", default = None,
 					metavar = "CATEGORIES",
@@ -467,7 +465,7 @@ def main():
 		conf["STABLE"] = options.stable
 		conf["KEYWORD"] = options.keyword
 
-	conf["EXPERIMENTAL"] = options.experimental
+#	conf["EXPERIMENTAL"] = options.experimental
 	conf["CATEGORIES"] = options.categories
 
 	conf["MAINTAINER"] = options.maintainer
