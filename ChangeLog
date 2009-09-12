@@ -2,6 +2,7 @@
 	* src/echangelog/echangelog: Fix bug 284657, thanks to Andrew Gaffney <agaffney@gentoo.org>.
 		Cleanup VCS detection.
 		Cleanup.
+		Make --strict default, add --no-strict option.
 
 2009-09-09: Christian Ruppert <idl0r@gentoo.org>
 	* src/imlate/imlate: Bump to 0.0.4.
