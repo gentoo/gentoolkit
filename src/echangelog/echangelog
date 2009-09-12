@@ -10,7 +10,6 @@
 
 use strict;
 use POSIX qw(strftime getcwd setlocale);
-use File::Find;
 use File::Basename;
 use Getopt::Long;
 
@@ -23,7 +22,7 @@ $Text::Wrap::unexpand = 0;
 
 # Global variables
 my (@files, @ebuilds, @conflicts, @trivial, @unknown, @new_versions, %actions);
-my ($input, $editor, $entry, $user, $date, $text, $year, $vcs);
+my ($input, $editor, $entry, $user, $date, $text, $vcs);
 my ($opt_help, $opt_strict, $opt_version);
 
 $opt_help = 0;
