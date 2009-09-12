@@ -342,20 +342,22 @@ while (<C>) {
 }
 
 sub git_unknown_objects {
-	my $object = $_;
+	open(GIT, "-|", "${vcs} ls-files --exclude-standard --others");
+	while(defined( my $line = <GIT> )) {
+		chomp($line);
 
-	return if -d $object;
-	return if $File::Find::dir =~ m/^\.\/\.git\/?/;
-
-	open(C, '-|', "${vcs} status ${object} 2>&1 1>/dev/null");
-	push(@unknown, $object) if defined(<C>);
-	close(C);
+		# IMHO we can skip those files, even if they're untracked
+		#next if $line =~ m/^\.gitignore$/;
+		
+		push(@unknown, $line);
+	}
+	close(GIT);
 }
 
 # git only shows files already added so we need to check for unknown files
 # separately here.
 if($vcs eq "git") {
-	find(\&git_unknown_objects, "./");
+	git_unknown_objects();
 }
 
 # Separate out the trivial files for now
