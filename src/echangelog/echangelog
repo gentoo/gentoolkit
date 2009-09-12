@@ -10,7 +10,6 @@
 
 use strict;
 use POSIX qw(strftime getcwd setlocale);
-use File::Find;
 use File::Basename;
 use Getopt::Long;
 
@@ -23,12 +22,14 @@ $Text::Wrap::unexpand = 0;
 
 # Global variables
 my (@files, @ebuilds, @conflicts, @trivial, @unknown, @new_versions, %actions);
-my ($input, $editor, $entry, $user, $date, $text, $year, $vcs);
-my ($opt_help, $opt_strict, $opt_version);
+my ($input, $editor, $entry, $user, $date, $text, $vcs);
+my ($opt_help, $opt_nostrict, $opt_version);
 
 $opt_help = 0;
-$opt_strict = 0;
+$opt_nostrict = 0;
 $opt_version = 0;
+# DEPRECATED
+my $opt_strict = 0;
 
 my %vcs = (
 	bzr => {
@@ -79,7 +80,7 @@ sub usage {
 
 	Options:
 	    --help      err, this screen ...
-	    --strict    abort on trivial/no changes
+	    --no-strict do not abort on trivial/no changes
 	    --version   show version info
 	EOF
 	print $usage;
@@ -185,47 +186,56 @@ sub mypush(\@@) {
 
 GetOptions(
 	'help' => \$opt_help,
-	'strict' => \$opt_strict,
+	'no-strict' => \$opt_nostrict,
 	'version' => \$opt_version,
+	'strict' => \$opt_strict,
 );
 
 usage() if $opt_help;
 version() if $opt_version;
 
+if($opt_strict) {
+	print STDERR "Warning: The option '--strict' has been deprecated and will be removed soon!\n";
+	print STDERR "--strict behaviour is now default.\n";
+}
+
 # Figure out what kind of repo we are in.
-# TODO: we might also check svn/cvs more strict.
-if ( -d "CVS" ) {
-	$vcs = "cvs";
-} elsif ( -d '.svn' ) {
-	$vcs = "svn";
-} else {
-	# Respect $PATH while looking for git
-	if (getenv("PATH")) {
-		foreach my $path ( split(":", getenv("PATH")) ) {
-			if ( -X "$path/bzr" ) {
-				open(BZR, '-|', "${path}/bzr root 2>/dev/null");
-				$vcs = "bzr" if defined(<BZR>);
-				close(BZR);
-				last if $vcs;
-			}
-			if ( -X "$path/git" ) {
-				open(GIT, '-|', "${path}/git rev-parse --git-dir 2>/dev/null");
-				$vcs = "git" if defined(<GIT>);
-				close(GIT);
-				last if $vcs;
-			}
-			if ( -X "$path/hg" ) {
-				open(HG, '-|', "${path}/hg root 2>/dev/null");
-				$vcs = "hg" if defined(<HG>);
-				close(HG);
-				last if $vcs;
-			}
+# Respect $PATH while looking for the VCS
+if (getenv("PATH")) {
+	foreach my $path ( split(":", getenv("PATH")) ) {
+		if ( -X "${path}/bzr" ) {
+			open(BZR, '-|', "${path}/bzr root 2>/dev/null");
+			$vcs = "bzr" if defined(<BZR>);
+			close(BZR);
+			last if $vcs;
+		}
+		if ( -X "${path}/cvs" ) {
+			$vcs = "cvs" if -d "CVS";
+			last if $vcs;
+		}
+		if ( -X "${path}/git" ) {
+			open(GIT, '-|', "${path}/git rev-parse --git-dir 2>/dev/null");
+			$vcs = "git" if defined(<GIT>);
+			close(GIT);
+			last if $vcs;
+		}
+		if ( -X "${path}/hg" ) {
+			open(HG, '-|', "${path}/hg root 2>/dev/null");
+			$vcs = "hg" if defined(<HG>);
+			close(HG);
+			last if $vcs;
+		}
+		if ( -X "${path}/svn" ) {
+			$vcs = "svn" if -d ".svn";
+			last if $vcs;
 		}
 	}
+}
 
-	if ( ! $vcs ) {
-		die "No CVS, .git, .svn directories found, what kind of repo is this?";
-	}
+if ( ! $vcs ) {
+	print STDERR "Either no CVS, .git, .svn, ... directories found, the specific VCS has not been\n";
+	print STDERR "installed or you don't have execute rights!\n";
+	exit(1);
 }
 
 # Read the current ChangeLog
@@ -342,20 +352,22 @@ while (<C>) {
 }
 
 sub git_unknown_objects {
-	my $object = $_;
+	open(GIT, "-|", "${vcs} ls-files --exclude-standard --others");
+	while(defined( my $line = <GIT> )) {
+		chomp($line);
 
-	return if -d $object;
-	return if $File::Find::dir =~ m/^\.\/\.git\/?/;
-
-	open(C, '-|', "${vcs} status ${object} 2>&1 1>/dev/null");
-	push(@unknown, $object) if defined(<C>);
-	close(C);
+		# IMHO we can skip those files, even if they're untracked
+		#next if $line =~ m/^\.gitignore$/;
+		
+		push(@unknown, $line);
+	}
+	close(GIT);
 }
 
 # git only shows files already added so we need to check for unknown files
 # separately here.
 if($vcs eq "git") {
-	find(\&git_unknown_objects, "./");
+	git_unknown_objects();
 }
 
 # Separate out the trivial files for now
@@ -581,9 +593,10 @@ unless (@files) {
 	print STDERR "** modified.  Did you forget to $vcs add?\n";
 	print STDERR "**\n";
 
-	if ($opt_strict) {
+	if (!$opt_nostrict) {
 		print STDERR "** In strict mode, exiting\n";
-		exit 1;
+		print STDERR "** If you know what you're doing there pass '--no-strict' to echangelog\n";
+		exit(1);
 	}
 
 	@files = sort sortfunc @trivial;

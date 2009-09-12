@@ -3,3 +3,6 @@
 - write a Gentoolkit Guide
 - revision bump tool
  - bump versioned files in filesdir
+
+ - imlate
+ 	Compare one arch with all to see possible candidates for several architectures
