@@ -236,7 +236,7 @@ repeat() {
 get_keywords() {
     (
         inherit() { :; }
-        source ${1} 2>/dev/null
+        source "$(pwd)/${1}" 2>/dev/null
         echo ${KEYWORDS}
     )
 }
