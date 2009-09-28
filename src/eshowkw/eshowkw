@@ -283,11 +283,16 @@ show_keyword_diagram() {
     echo -e "\033[0;0m:"
     echo
 
-    local archs= arch_length=0 arch=
-    archs=( $(< $(get_portage_dir )/profiles/arch.list ) )
-    for arch in "${archs[@]}" ; do
+    local archs=() arch_length=0 arch=
+    while read arch
+    do
+        [[ -z "${arch}" ]] && continue
+        [[ "${arch:0:1}" == "#" ]] && continue
         [[ ${#arch} -gt ${arch_length} ]] && arch_length=${#arch}
-    done
+
+        archs[${#archs[*]}]=$arch
+    done < "$(get_portage_dir)/profiles/arch.list"
+
 
     local versions= pkgname= version_length=0 version=
     pkgname=$(basename $(readlink -f ./ ) )
