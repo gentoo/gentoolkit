@@ -372,11 +372,11 @@ if($vcs eq "git") {
 
 # Separate out the trivial files for now
 @files = grep {
-	!/files.digest|Manifest|ChangeLog/ or do { push @trivial, $_; 0; }
+	!/^(Manifest|ChangeLog)$/ or do { push @trivial, $_; 0; }
 } @files;
 
 @unknown = grep {
-	!/files.digest|Manifest|ChangeLog/ or do { push @trivial, $_; 0; }
+	!/^(Manifest|ChangeLog)$/ or do { push @trivial, $_; 0; }
 } @unknown;
 
 # Don't allow any conflicts

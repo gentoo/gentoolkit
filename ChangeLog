@@ -1,3 +1,6 @@
+2009-11-10: Christian Ruppert <idl0r@gentoo.org>
+	* src/echangelog/echangelog: Fix bug 288589, thanks to Kent Fredric	<kentfredric@gmail.com>.
+
 2009-28-09: Christian Ruppert <idl0r@gentoo.org>
 	* src/eshowkw/eshowkw: Make eshowkw a bit more POSIX compliant when using
 		/bin/sh, thanks to Daniel Pielmeier <billie@gentoo.org>.
