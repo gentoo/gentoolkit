@@ -23,15 +23,21 @@ set main ARCH (e.g. your arch) [default: amd64]
 .TP 
 .B \-t ARCH, \-\-target=ARCH
 set target ARCH (e.g. x86) [default: x86]
+.TP
+.B \-\-mtime=MTIME
+set minimum MTIME in days [default: 30]
 .TP 
 .B \-s, \-\-stable
 just show stable candidates (e.g. \-s and \-k is the default result) [default: True]
 .TP 
 .B \-k, \-\-keyword
 just show keyword candidates (e.g. \-s and \-k is the default result) [default: True]
-.TP 
-.B \-e, \-\-experimental
-enables experimental functions/features (have a look for # EXPERIMENTAL comments in the source) [default: False]
+.TP
+.B \-M MAINTAINER, \-\-maintainer=MAINTAINER
+Show only packages from the specified maintainer
+.TP
+.B \-H HERD, \-\-herd=HERD
+Show only packages from the specified herd
 .TP 
 .B \-C CATEGORIES, \-\-category=CATEGORIES, \-\-categories=CATEGORIES
 just check in the specified category/categories (comma separated) [default: none]

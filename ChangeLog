@@ -1,3 +1,6 @@
+2009-22-10: Christian Ruppert <idl0r@gentoo.org>
+	src/imlate/imlate.1: Update man-page.
+
 2009-11-10: Christian Ruppert <idl0r@gentoo.org>
 	* src/echangelog/echangelog: Fix bug 288589, thanks to Kent Fredric	<kentfredric@gmail.com>.
 
