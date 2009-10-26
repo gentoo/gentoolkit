@@ -1,5 +1,6 @@
 2009-10-26: Christian Ruppert <idl0r@gentoo.org>
 	* euse: Don't add an additional new line at the end of file.
+	* equery.1: Fix bug 248844, thanks to J M W <ultip@ymail.com>.
 
 2009-08-18: Robert Buchholz <rbu@gentoo.org>
 	* glsa-check: Remove 'new' target from glsa-list, everyone
