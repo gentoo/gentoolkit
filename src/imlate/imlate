@@ -29,6 +29,7 @@ from xml.dom import minidom, NotFoundErr
 from xml.parsers.expat import ExpatError
 # TODO: just import needed stuff to safe memory and maybe use "as foo"
 import portage
+import portage.versions
 
 if __name__ == "__main__":
 	from optparse import OptionParser
@@ -39,7 +40,7 @@ if __name__ == "__main__":
 # the problem is the keyword handling (ACCEPT_KEYWORDS)
 # portage < 2.1.6 does not support -*
 # but -* is needed to ensure that we just check for arch
-if portage.vercmp(portage.VERSION, "2.1.6") < 0:
+if portage.versions.vercmp(portage.VERSION, "2.1.6") < 0:
 	raise StandardError, "imlate requires portage >=2.1.6"
 
 # override/change portage module settings
@@ -138,8 +139,8 @@ def _get_metadata(metadata, element, tag):
 			node = _element.getElementsByTagName(tag)
 
 			if tag == "herd" and (not node or not node[0].childNodes):
-				print >> stderr, "'%s' is missing a <herd> tag or it is empty," % metadata
-				print >> stderr, "please file a bug at https://bugs.gentoo.org and refer to http://www.gentoo.org/proj/en/devrel/handbook/handbook.xml?part=2&chap=4"
+#				print >> stderr, "'%s' is missing a <herd> tag or it is empty," % metadata
+#				print >> stderr, "please file a bug at https://bugs.gentoo.org and refer to http://www.gentoo.org/proj/en/devrel/handbook/handbook.xml?part=2&chap=4"
 				values.append("no-herd")
 				continue
 
@@ -166,10 +167,10 @@ def is_maintainer(maintainer, metadata):
 		return False
 	else:
 		for addy in data:
-			for foo in mtainer:
-				if addy == foo:
+			for contact in mtainer:
+				if addy == contact:
 					return True
-				if addy.startswith(foo):
+				if addy.startswith(contact):
 					return True
 	return False
 
@@ -230,10 +231,10 @@ def get_packages( conf ):
 			slots[slot].append(cpvr)
 		
 		for slot in sorted(slots):
-			cpvr = portage.best( slots[slot] )
+			cpvr = portage.versions.best( slots[slot] )
 
 			if cpvr:
-				( cat, pkg, ver, rev ) = portage.catpkgsplit( cpvr )
+				( cat, pkg, ver, rev ) = portage.versions.catpkgsplit( cpvr )
 
 				if not cat in _pkgs.keys():
 					_pkgs[cat] = {}
@@ -320,9 +321,9 @@ def get_imlate( conf, pkgs ):
 						continue
 	
 				# look for an existing stable version
-				our = portage.best( conf["portdb"].dbapi.match( "%s/%s%s" % ( cat, pkg, slot ) ) )
+				our = portage.versions.best( conf["portdb"].dbapi.match( "%s/%s%s" % ( cat, pkg, slot ) ) )
 				if our:
-					_foo = portage.pkgsplit( our )
+					_foo = portage.versions.pkgsplit( our )
 					our_ver = _foo[1]
 					if _foo[2] != "r0":
 						our_ver = "%s-%s" % ( our_ver, _foo[2] )
@@ -331,7 +332,7 @@ def get_imlate( conf, pkgs ):
 	
 				# we just need the version if > our_ver
 				if our_ver:
-					if portage.vercmp( our_ver, vr ) >= 0:
+					if portage.versions.vercmp( our_ver, vr ) >= 0:
 						continue
 	
 				if kwd_type == 1 and conf["STABLE"]:
@@ -396,19 +397,19 @@ def main():
 	parser.disable_interspersed_args()
 
 	parser.add_option( "-f", "--file", dest = "filename", action = "store", type = "string",
-					help = "write result into FILE [default: %default]", metavar = "FILE", default = "stdout" )
+			help = "write result into FILE [default: %default]", metavar = "FILE", default = "stdout" )
 	parser.add_option( "-m", "--main", dest = "main_arch", action = "store", type = "string",
-					help = "set main ARCH (e.g. your arch) [default: %default]", metavar = "ARCH", default = MAIN_ARCH )
+			help = "set main ARCH (e.g. your arch) [default: %default]", metavar = "ARCH", default = MAIN_ARCH )
 	parser.add_option( "-t", "--target", dest = "target_arch", action = "store", type = "string",
-					help = "set target ARCH (e.g. x86) [default: %default]", metavar = "ARCH", default = TARGET_ARCH )
+			help = "set target ARCH (e.g. x86) [default: %default]", metavar = "ARCH", default = TARGET_ARCH )
 	parser.add_option( "--mtime", dest = "mtime", action = "store", type = "int",
 			help = "set minimum MTIME in days [default: %default]", metavar = "MTIME", default = 30 )
 
 	# TODO: leave a good comment here (about True/False) :)
 	parser.add_option( "-s", "--stable", dest = "stable", action = "store_true", default = False,
-					help = "just show stable candidates (e.g. -s and -k is the default result) [default: True]" )
+			help = "just show stable candidates (e.g. -s and -k is the default result) [default: True]" )
 	parser.add_option( "-k", "--keyword", dest = "keyword", action = "store_true", default = False,
-					help = "just show keyword candidates (e.g. -s and -k is the default result) [default: True]" )
+			help = "just show keyword candidates (e.g. -s and -k is the default result) [default: True]" )
 
 	parser.add_option( "-M", "--maintainer", dest = "maintainer", action = "store", type = "string",
 			help = "Show only packages from the specified maintainer", metavar = "MAINTAINER", default = None)
@@ -418,11 +419,11 @@ def main():
 
 #	# EXPERIMENTAL
 #	parser.add_option( "-e", "--experimental", dest = "experimental", action = "store_true", default = False,
-#					help = "enables experimental functions/features (have a look for # EXPERIMENTAL comments in the source) [default: %default]" )
+#			help = "enables experimental functions/features (have a look for # EXPERIMENTAL comments in the source) [default: %default]" )
 
 	parser.add_option( "-C", "--category", "--categories", dest = "categories", action = "store", default = None,
-					metavar = "CATEGORIES",
-					help = "just check in the specified category/categories (comma separated) [default: %default]")
+			metavar = "CATEGORIES",
+			help = "just check in the specified category/categories (comma separated) [default: %default]")
 
 	( options, args ) = parser.parse_args()
 
