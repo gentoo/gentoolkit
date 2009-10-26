@@ -520,6 +520,7 @@ modify() {
 	(while [ "$x" -eq "0" ]; do
 		read -r line
 		x="$?"
+		[[ "${x}" -ne "0" ]] && break
 		[ "${line:0:4}" == "USE=" ] && inuse=1
 		[ "${inuse}" == "0" ] && echo -E "${line}"
 		if [ "${inuse}" == "1" ] && echo "${line}" | egrep '" *(#.*)?$' > /dev/null; then
