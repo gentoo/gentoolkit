@@ -1,3 +1,7 @@
+2009-10-27: Christian Ruppert <idl0r@gentoo.org>
+	* revdep-rebuild.1: Fix bug 281050, thanks to Jesús Guerrero
+	<i92guboj@gentoo.org>.
+
 2009-10-26: Christian Ruppert <idl0r@gentoo.org>
 	* euse: Don't add an additional new line at the end of file.
 	* equery.1: Fix bug 248844, thanks to J M W <ultip@ymail.com>.
