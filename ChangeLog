@@ -1,6 +1,10 @@
 2009-10-27: Christian Ruppert <idl0r@gentoo.org>
+	* revdep-rebuild: Use realpath in get_file_owner to be able to get the
+		package containing e.g. /lib/libreadline.so.6 on amd64, fixes bug 280341.
+
+2009-10-27: Christian Ruppert <idl0r@gentoo.org>
 	* revdep-rebuild.1: Fix bug 281050, thanks to Jesús Guerrero
-	<i92guboj@gentoo.org>.
+		<i92guboj@gentoo.org>.
 
 2009-10-26: Christian Ruppert <idl0r@gentoo.org>
 	* euse: Don't add an additional new line at the end of file.
