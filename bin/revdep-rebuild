@@ -252,12 +252,19 @@ clean_exit() {
 }
 ##
 # Get the name of the package that owns a file or list of files given as args.
+# NOTE: depends on app-misc/realpath!
 get_file_owner() {
 	local IFS=$'\n'
-	# ${*/%/ } adds a space to the end of each object name to prevent false
+	# Add a space to the end of each object name to prevent false
 	# matches, for example /usr/bin/dia matching /usr/bin/dialog (bug #196460).
+	# The same for "${rpath} ".
+
+	rpath=$(realpath "${*}" 2>/dev/null)
+	# To ensure we always have something in rpath...
+	[[ -z $rpath ]] && rpath=${*}
+
 	find -L /var/db/pkg -name CONTENTS -print0 |
-		xargs -0 grep -Fl "${*/%/ }" |
+		xargs -0 grep -Fl -e "${*} " -e "${rpath} " |
 		sed 's:/var/db/pkg/\(.*\)/CONTENTS:\1:'
 }
 ##
