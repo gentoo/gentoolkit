@@ -89,6 +89,7 @@ declare WORKING_DIR            # Working directory where cache files are kept
 
 main() {
 	# preliminary setup
+	portage_settings
 	get_opts "$@"
 	setup_portage
 	setup_search_paths_and_masks
@@ -280,7 +281,6 @@ normalize_emerge_opts() {
 setup_color() {
 	# This should still work if NOCOLOR is set by the -C flag or in the user's
 	# environment.
-	export NOCOLOR=$(portageq envvar NOCOLOR)
 	[[ $NOCOLOR = yes || $NOCOLOR = true ]] && export RC_NOCOLOR=yes # HACK! (grr)
 	. /etc/init.d/functions.sh
 }
@@ -971,12 +971,38 @@ show_unowned_files() {
 		done < "$OWNERS_FILE" | gawk '!s[$0]++' # (omit dupes)
 	fi
 }
+
+# Get multiple portage variables at once to speedup revdep-rebuild.
+portage_settings() {
+	local results=()
+
+	local query_vars=(
+		ROOT
+		PORTAGE_NICENESS
+		EMERGE_DEFAULT_OPTS
+		NOCOLOR
+		SEARCH_DIRS
+		SEARCH_DIRS_MASK
+		LD_LIBRARY_MASK
+	)
+
+	# one value per line
+	IFS=$'\n'
+	results=( $(unset SEARCH_DIRS; unset SEARCH_DIRS_MASK; unset LD_LIBRARY_MASK; portageq envvar ${query_vars[*]}) )
+	IFS=$OIFS
+
+	PORTAGE_ROOT=${results[0]}
+	PORTAGE_NICENESS=${results[1]}
+	EMERGE_DEFAULT_OPTS=${results[2]}
+	export NOCOLOR=${results[3]}
+	SEARCH_DIRS+=" "${results[4]}
+	SEARCH_DIRS_MASK+=" "${results[5]}
+	LD_LIBRARY_MASK+=" "${results[6]}
+}
+
 ##
 # Setup portage and the search paths
 setup_portage() {
-	local PORTAGE_NICENESS=$(portageq envvar PORTAGE_NICENESS)
-	PORTAGE_ROOT=$(portageq envvar ROOT)
-
 	# Obey PORTAGE_NICENESS
 	if [[ $PORTAGE_NICENESS ]]; then
 		renice $PORTAGE_NICENESS $$ > /dev/null
@@ -1001,9 +1027,9 @@ setup_search_paths_and_masks() {
 	# Read the incremental variables from environment and portage
 	# Until such time as portage supports these variables as incrementals
 	# The value will be what is in /etc/make.conf
-	SEARCH_DIRS+=" "$(unset SEARCH_DIRS; portageq envvar SEARCH_DIRS)
-	SEARCH_DIRS_MASK+=" "$(unset SEARCH_DIRS_MASK; portageq envvar SEARCH_DIRS_MASK)
-	LD_LIBRARY_MASK+=" "$(unset LD_LIBRARY_MASK; portageq envvar LD_LIBRARY_MASK)
+#	SEARCH_DIRS+=" "$(unset SEARCH_DIRS; portageq envvar SEARCH_DIRS)
+#	SEARCH_DIRS_MASK+=" "$(unset SEARCH_DIRS_MASK; portageq envvar SEARCH_DIRS_MASK)
+#	LD_LIBRARY_MASK+=" "$(unset LD_LIBRARY_MASK; portageq envvar LD_LIBRARY_MASK)
 
 	# Add the defaults
 	if [[ -d /etc/revdep-rebuild ]]; then
@@ -1056,7 +1082,7 @@ rebuild() {
 	trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 
 	einfo 'All prepared. Starting rebuild'
-	echo "emerge --oneshot ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
+	echo "emerge --oneshot ${EMERGE_OPTIONS[@]} ${EMERGE_DEFAULT_OPTS} $REBUILD_LIST"
 
 	is_real_merge && countdown 10
 
@@ -1065,7 +1091,7 @@ rebuild() {
 
 	# Run in background to correctly handle Ctrl-C
 	{
-		EMERGE_DEFAULT_OPTS="--oneshot ${EMERGE_OPTIONS[@]}" emerge $REBUILD_LIST <&6
+		emerge --oneshot ${EMERGE_OPTIONS[@]} ${EMERGE_DEFAULT_OPTS} $REBUILD_LIST <&6
 		echo $? > "$STATUS_FILE"
 	} &
 	wait
