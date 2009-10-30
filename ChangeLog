@@ -1,3 +1,7 @@
+2009-10-30: Christian Ruppert <idl0r@gentoo.org>
+	* revdep-rebuild: Speedup portageq queries. Include FuzzyRay's patch to
+		respect EMERGE_DEFAULT_OPTS.
+
 2009-10-27: Christian Ruppert <idl0r@gentoo.org>
 	* revdep-rebuild: Use realpath in get_file_owner to be able to get the
 		package containing e.g. /lib/libreadline.so.6 on amd64, fixes bug 280341.
