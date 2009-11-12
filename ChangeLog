@@ -1,3 +1,7 @@
+2009-12-11: Christian Ruppert <idl0r@gentoo.org>
+	src/echangelog/test/test.sh, src/echangelog/Makefile:
+		Fix bug 292932, thanks to Alexis Ballier <aballier@gentoo.org>.
+
 2009-22-10: Christian Ruppert <idl0r@gentoo.org>
 	src/imlate/imlate: Some cleanup.
 		Disable metadata warnings.
