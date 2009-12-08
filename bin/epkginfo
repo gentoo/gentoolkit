@@ -74,7 +74,7 @@ def earch(workdir):
 					elif "~" == arch[0]:
 						visible_unstable[arch] = pkg
 					else:
-						visible_unstable[arch] = None
+						visible_unstable["~" + arch] = None
 						visible_stable[arch] = pkg
 		
 		for pkg in ebuildlist:
