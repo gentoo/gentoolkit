@@ -1,3 +1,6 @@
+2009-12-08: Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Merge rev 113 from djanderson's genscripts repo
+
 2009-10-30: Christian Ruppert <idl0r@gentoo.org>
 	* revdep-rebuild: Speedup portageq queries. Include FuzzyRay's patch to
 		respect EMERGE_DEFAULT_OPTS.

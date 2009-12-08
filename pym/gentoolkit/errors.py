@@ -4,32 +4,25 @@
 
 """Exception classes for gentoolkit"""
 
-__all__ = [
-	'FatalError',
+__all__ = (
 	'GentoolkitException',
+	'GentoolkitFatalError',
+	'GentoolkitAmbiguousPackage',
 	'GentoolkitInvalidAtom',
 	'GentoolkitInvalidCategory',
-	'GentoolkitInvalidPackageName',
+	'GentoolkitInvalidPackage',
 	'GentoolkitInvalidCPV',
 	'GentoolkitInvalidRegex',
 	'GentoolkitInvalidVersion',
 	'GentoolkitNoMatches'
-]
-
-# =======
-# Imports
-# =======
-
-import sys
-
-import gentoolkit.pprinter as pp
+)
 
 # ==========
 # Exceptions
 # ==========
 
 class GentoolkitException(Exception):
-	"""Base class for gentoolkit exceptions"""
+	"""Base class for gentoolkit exceptions."""
 	def __init__(self):
 		pass
 
@@ -37,64 +30,85 @@ class GentoolkitException(Exception):
 class GentoolkitFatalError(GentoolkitException):
 	"""A fatal error occurred. Usually used to catch Portage exceptions."""
 	def __init__(self, err):
-		pp.print_error("Fatal error: %s" % err)
-		sys.exit(2)
+		self.err = err
+
+	def __str__(self):
+		return "Fatal error: %s" % self.err
+
+
+class GentoolkitAmbiguousPackage(GentoolkitException):
+	"""Got an ambiguous package name."""
+	def __init__(self, choices):
+		self.choices = choices
+
+	def __str__(self):
+		choices = '\n'.join("  %s" % x for x in self.choices)
+		return '\n'.join(("Ambiguous package name. Choose from:", choices))
 
 
 class GentoolkitInvalidAtom(GentoolkitException):
-	"""Got a malformed package atom"""
+	"""Got a malformed package atom."""
 	def __init__(self, atom):
-		pp.print_error("Invalid atom: '%s'" % atom)
-		sys.exit(2)
+		self.atom = atom
+
+	def __str__(self):
+		return "Invalid atom: '%s'" % self.atom
 
 
 class GentoolkitInvalidCategory(GentoolkitException):
-	"""The category was not listed in portage.settings.categories"""
+	"""The category was not listed in portage.settings.categories."""
 	def __init__(self, category):
-		pp.print_error("Invalid category: '%s'" % category)
-		if not category:
-			pp.print_error("Try --category=cat1,cat2 with no spaces.")
-		sys.exit(2)
+		self.category = category
+
+	def __str__(self):
+		return "Invalid category: '%s'" % self.category
 
 
-class GentoolkitInvalidPackageName(GentoolkitException):
-	"""Got an unknown package name"""
+class GentoolkitInvalidPackage(GentoolkitException):
+	"""Got an unknown or invalid package."""
 	def __init__(self, package):
-		pp.print_error("Invalid package name: '%s'" % package)
-		sys.exit(2)
+		self.package = package
+
+	def __str__(self):
+		return "Invalid package: '%s'" % self.package
 
 
 class GentoolkitInvalidCPV(GentoolkitException):
-	"""Got an unknown package name"""
+	"""Got an invalid category/package-ver string."""
 	def __init__(self, cpv):
-		pp.print_error("Invalid CPV: '%s'" % cpv)
-		sys.exit(2)
+		self.cpv = cpv
+
+	def __str__(self):
+		return "Invalid CPV: '%s'" % self.cpv
 
 
 class GentoolkitInvalidRegex(GentoolkitException):
-	"""The regex could not be compiled"""
+	"""The regex could not be compiled."""
 	def __init__(self, regex):
-		pp.print_error("Invalid regex: '%s'" % regex)
-		sys.exit(2)
+		self.regex = regex
+
+	def __str__(self):
+		return "Invalid regex: '%s'" % self.regex
 
 
 class GentoolkitInvalidVersion(GentoolkitException):
-	"""Got a malformed version"""
+	"""Got a malformed version."""
 	def __init__(self, version):
-		pp.print_error("Malformed version: '%s'" % version)
-		sys.exit(2)
+		self.version = version
+
+	def __str__(self):
+		return "Malformed version: '%s'" % self.version
 
 
 class GentoolkitNoMatches(GentoolkitException):
-	"""No packages were found matching the search query"""
-	def __init__(self, query):
-		pp.print_error("No packages matching '%s'" % query)
-		sys.exit(2)
+	"""No packages were found matching the search query."""
+	def __init__(self, query, in_installed=False):
+		self.query = query
+		self.in_installed = in_installed
+
+	def __str__(self):
+		inst = 'installed ' if self.in_installed else ''
+		return "No %spackages matching '%s'" % (inst, self.query)
 
 
-# XXX: Deprecated
-class FatalError:
-	def __init__(self, s):
-		self._message = s
-	def get_message(self):
-		return self._message
+# vim: set ts=4 sw=4 tw=79:

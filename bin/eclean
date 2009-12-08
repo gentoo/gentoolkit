@@ -9,7 +9,7 @@ from __future__ import with_statement
 # Meta:
 __author__ = "Thomas de Grenier de Latour (tgl)"
 __email__ = "degrenier@easyconnect.fr"
-__version__ = open('/usr/share/gentoolkit/VERSION').read().strip()
+__version__ = "svn"
 __productname__ = "eclean"
 __description__ = "A cleaning tool for Gentoo distfiles and binaries."
 
@@ -206,14 +206,14 @@ def prettySize(size,justify=False):
 		size = size / 1024.
 		units.pop()
 	sizestr = fpformat.fix(size,approx)+units[-1]
-	if justify: 
+	if justify:
 		sizestr = " " + blue("[ ") + " "*(7-len(sizestr)) \
 		          + green(sizestr) + blue(" ]")
 	return sizestr
 
 
 ###############################################################################
-# yesNoAllPrompt: print a prompt until user answer in yes/no/all. Return a 
+# yesNoAllPrompt: print a prompt until user answer in yes/no/all. Return a
 # boolean for answer, and also may affect the 'accept_all' option.
 # Note: i gave up with getch-like functions, to much bugs in case of escape
 # sequences. Back to raw_input.
@@ -259,8 +259,8 @@ def parseSize(size):
 
 
 ###############################################################################
-# parseTime: convert a duration "Xu" ("X" is an int, and "u" a time unit in 
-# [Y,M,W,D,H]) into an integer which is a past EPOCH date. 
+# parseTime: convert a duration "Xu" ("X" is an int, and "u" a time unit in
+# [Y,M,W,D,H]) into an integer which is a past EPOCH date.
 # Raises ParseArgsException('time') in case of failure.
 # (yep, big approximations inside... who cares?)
 def parseTime(timespec):
@@ -287,7 +287,7 @@ def parseTime(timespec):
 # dict.
 def parseArgs(myoptions={}):
 
-	# local function for interpreting command line options 
+	# local function for interpreting command line options
 	# and setting myoptions accordingly
 	def optionSwitch(myoption,opts,action=None):
 		return_code = True
@@ -323,7 +323,7 @@ def parseArgs(myoptions={}):
 		# sanity check of --destructive only options:
 		for myopt in ('fetch-restricted', 'package-names'):
 			if (not myoptions['destructive']) and myoptions[myopt]:
-				if not myoptions['quiet']:	
+				if not myoptions['quiet']:
 					eerror("--%s only makes sense in --destructive mode." \
 							% myopt, myoptions['nocolor'])
 				myoptions[myopt] = False
@@ -429,14 +429,14 @@ def parseExcludeFile(filepath):
 	filecontents = file.readlines()
 	file.close()
 	cat_re = re.compile('^(?P<cat>[a-zA-Z0-9]+-[a-zA-Z0-9]+)(/\*)?$')
-	cp_re = re.compile('^(?P<cp>[-a-zA-Z0-9_]+/[-a-zA-Z0-9_]+)$')	
+	cp_re = re.compile('^(?P<cp>[-a-zA-Z0-9_]+/[-a-zA-Z0-9_]+)$')
 	for line in filecontents:
 		line = line.strip()
 		if not len(line): continue
 		if line[0] == '#': continue
 		try: mycat = cat_re.match(line).group('cat')
 		except: pass
-		else: 
+		else:
 			if not mycat in portage.settings.categories:
 				raise ParseExcludeFileException("Invalid category: "+mycat)
 			excl_dict['categories'][mycat] = None
@@ -604,7 +604,7 @@ def findPackages( \
 		package_names=False):
 	clean_dict = {}
 	# create a full package dictionary
-	
+
 	if not (os.path.isdir(pkgdir)):
 		eerror("%s does not appear to be a directory." % pkgdir, myoptions['nocolor'])
 		eerror("Please set PKGDIR to a sane value.", myoptions['nocolor'])
@@ -687,7 +687,7 @@ def doCleanup(clean_dict,action,myoptions):
 		     or yesNoAllPrompt(myoptions, \
 		                       "Do you want to delete this " \
 				       + file_type+"?"):
-			# non-interactive mode or positive answer. 
+			# non-interactive mode or positive answer.
 			# For each file, try to delete the file and clean it out
 			# of Packages metadata file
 			if action == 'packages':
@@ -713,7 +713,7 @@ def doCleanup(clean_dict,action,myoptions):
 					clean_size += filesize
 					if action == 'packages':
 						metadata.packages[:] = [p for p in metadata.packages if 'CPV' in p and p['CPV'] != file]
-				
+
 			if action == 'packages':
 				with open(os.path.join(pkgdir, 'Packages'), 'w') as metadata_file:
 					metadata.write(metadata_file)
@@ -740,7 +740,7 @@ def doAction(action,myoptions,exclude_dict={}):
 			destructive=myoptions['destructive'], \
 			package_names=myoptions['package-names'], \
 			time_limit=myoptions['time-limit'])
-	else: 
+	else:
 		clean_dict = findDistfiles( \
 			myoptions, \
 			exclude_dict=exclude_dict, \
@@ -796,7 +796,7 @@ def main():
 		elif e.value == 'version':
 			printVersion()
 			sys.exit(0)
-		else: 
+		else:
 			printUsage(e.value)
 			sys.exit(2)
 	# parse the exclusion file
@@ -811,7 +811,7 @@ def main():
 			eerror("Invalid exclusion file: %s" % myoptions['exclude-file'], \
 					myoptions['nocolor'])
 			eerror("See format of this file in `man %s`" % __productname__, \
-					myoptions['nocolor'])	
+					myoptions['nocolor'])
 			sys.exit(1)
 	else: exclude_dict={}
 	# security check for non-pretend mode

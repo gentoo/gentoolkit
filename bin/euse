@@ -7,7 +7,7 @@
 # Licensed under the GPL v2
 
 PROGRAM_NAME=euse
-PROGRAM_VERSION=$(cat /usr/share/gentoolkit/VERSION)
+VERSION="svn"
 
 MAKE_CONF_PATH=/etc/make.conf
 MAKE_GLOBALS_PATH=/etc/make.globals
@@ -67,9 +67,9 @@ check_sanity() {
 	# file permission tests
 	local descdir
 	local make_defaults
-	
+
 	descdir="$(get_portdir)/profiles"
-	
+
 	[ ! -r "${MAKE_CONF_PATH}" ] && error "${MAKE_CONF_PATH} is not readable"
 	[ ! -r "${MAKE_GLOBALS_PATH}" ] && error "${MAKE_GLOBALS_PATH} is not readable"
 	[ ! -h "${MAKE_PROFILE_PATH}" ] && error "${MAKE_PROFILE_PATH} is not a symlink"
@@ -86,7 +86,7 @@ check_sanity() {
 
 showhelp() {
 cat << HELP
-${PROGRAM_NAME} (${PROGRAM_VERSION})
+${PROGRAM_NAME} (${VERSION})
 
 Syntax: ${PROGRAM_NAME} <option> [suboptions] [useflaglist]
 
@@ -113,7 +113,7 @@ HELP
 
 showversion() {
 cat << VER
-${PROGRAM_NAME} (${PROGRAM_VERSION})
+${PROGRAM_NAME} (${VERSION})
 Written by Marius Mauch
 
 Copyright (C) 2004-2009 Gentoo Foundation, Inc.
@@ -144,16 +144,16 @@ for x in sys.stdin.read().split():
 		r.append(x)
 	elif x not in r:
 		r.append(x)
-print ' '.join(r)" 
+print ' '.join(r)"
 }
 
 # the following function creates a bash array ACTIVE_FLAGS that contains the
-# global use flags, indexed by origin: 0: environment, 1: make.conf, 
+# global use flags, indexed by origin: 0: environment, 1: make.conf,
 # 2: make.defaults, 3: make.globals
 get_useflags() {
 	# only calculate once as calling emerge is painfully slow
 	[ -n "${USE_FLAGS_CALCULATED}" ] && return
-	
+
 	# backup portdir so get_portdir() doesn't give false results later
 	portdir_backup="${PORTDIR}"
 
@@ -186,7 +186,7 @@ get_useflaglist() {
 	local descdir
 
 	descdir="$(get_portdir)/profiles"
-	
+
 	if [ -z "${SCOPE}" -o "${SCOPE}" == "global" ]; then
 		egrep "^[^# ]+ +-" "${descdir}/use.desc" | cut -d\  -f 1
 	fi
@@ -200,9 +200,9 @@ get_all_make_defaults() {
 	local curdir
 	local parent
 	local rvalue
-	
+
 	curdir="${1:-$(get_real_path ${MAKE_PROFILE_PATH})}"
-	
+
 	[ -f "${curdir}/make.defaults" ] && rvalue="${curdir}/make.defaults ${rvalue}"
 	if [ -f "${curdir}/parent" ]; then
 		for parent in $(egrep -v '(^#|^ *$)' ${curdir}/parent); do
@@ -218,9 +218,9 @@ get_all_make_defaults() {
 get_make_defaults() {
 	local curdir
 	local parent
-	
+
 	curdir="${1:-$(get_real_path ${MAKE_PROFILE_PATH})}"
-	
+
 	if [ ! -f "${curdir}/make.defaults" -a -f "${curdir}/parent" ]; then
 		for parent in $(egrep -v '(^#|^ *$)' ${curdir}/parent); do
 			if [ -f "$(get_make_defaults ${curdir}/${parent})" ]; then
@@ -233,9 +233,9 @@ get_make_defaults() {
 	echo "${curdir}/make.defaults"
 }
 
-# little helper function to get the status of a given flag in one of the 
+# little helper function to get the status of a given flag in one of the
 # ACTIVE_FLAGS elements. Arguments are 1: flag to test, 2: index of ACTIVE_FLAGS,
-# 3: echo value for positive (and as lowercase for negative) test result, 
+# 3: echo value for positive (and as lowercase for negative) test result,
 # 4 (optional): echo value for "missing" test result, defaults to blank
 get_flagstatus_helper() {
 	if echo " ${ACTIVE_FLAGS[${2}]} " | grep " ${1} " > /dev/null; then
@@ -277,35 +277,35 @@ get_portdir() {
 	echo "${PORTDIR}"
 }
 
-# This function takes a list of use flags and shows the status and 
+# This function takes a list of use flags and shows the status and
 # the description for each one, honoring $SCOPE
 showdesc() {
 	local descdir
 	local current_desc
 	local found_one
 	local args
-	
+
 	args="${*:-*}"
-	
+
 	if [ -z "${SCOPE}" ]; then
 		SCOPE="global" showdesc ${args}
 		echo
 		SCOPE="local" showdesc ${args}
 		return
 	fi
-	
+
 	descdir="$(get_portdir)/profiles"
-	
+
 	[ "${SCOPE}" == "global" ] && echo "global use flags (searching: ${args})"
 	[ "${SCOPE}" == "local" ] && echo "local use flags (searching: ${args})"
 	echo "************************************************************"
-	
+
 	if [ "${args}" == "*" ]; then
 		args="$(get_useflaglist | sort -u)"
 	fi
-	
+
 	set ${args}
-	
+
 	foundone=0
 	while [ -n "${1}" ]; do
 		if [ "${SCOPE}" == "global" ]; then
@@ -315,7 +315,7 @@ showdesc() {
 			fi
 			grep "^${1}  *-" "${descdir}/use.desc"
 		fi
-		# local flags are a bit more complicated as there can be multiple 
+		# local flags are a bit more complicated as there can be multiple
 		# entries per flag and we can't pipe into printf
 		if [ "${SCOPE}" == "local" ]; then
 			if grep ":${1}  *-" "${descdir}/use.local.desc" > /dev/null; then
@@ -333,7 +333,7 @@ showdesc() {
 		fi
 		shift
 	done
-	
+
 	if [ ${foundone} == 0 ]; then
 		echo "no matching entries found"
 	fi
@@ -361,13 +361,13 @@ showinstdesc() {
 
 	descdir="$(get_portdir)/profiles"
 	echo "************************************************************"
-	
+
 	if [ "${args}" = "*" ]; then
 		args="$(get_useflaglist | sort -u)"
 	fi
-	
+
 	set "${args[@]}"
-	
+
 	while [ -n "${1}" ]; do
 		case "${SCOPE}" in
 			"global")
@@ -406,7 +406,7 @@ showinstdesc() {
 		esac
 		shift
 	done
-	
+
 	if [ ${foundone} -lt 1 ]; then
 		echo "no matching entries found"
 	fi
@@ -418,15 +418,15 @@ showflags() {
 	local args
 
 	get_useflags
-	
+
 	args="${*:-*}"
-	
+
 	if [ "${args}" == "*" ]; then
 		args="$(get_useflaglist | sort -u)"
 	fi
-	
+
 	set ${args}
-	
+
 	while [ -n "${1}" ]; do
 		if echo " ${ACTIVE_FLAGS[9]} " | grep " ${1} " > /dev/null; then
 			printf "%-20s" ${1}
@@ -446,7 +446,7 @@ remove_flag() {
 	NEW_MAKE_CONF_USE="${NEW_MAKE_CONF_USE// ${1} / }"
 }
 
-# USE flag modification function. Mainly a loop with calls to add_flag and 
+# USE flag modification function. Mainly a loop with calls to add_flag and
 # remove_flag to create a new USE string which is then inserted into make.conf.
 modify() {
 	if [ -z "${*}" ]; then
@@ -458,11 +458,11 @@ modify() {
 			set $(get_useflaglist | sort -u)
 		fi
 	fi
-	
+
 	get_useflags
-	
+
 	NEW_MAKE_CONF_USE=" ${ACTIVE_FLAGS[1]} "
-	
+
 	while [ -n "${1}" ]; do
 		if [ "${ACTION}" == "add" ]; then
 			if echo " ${NEW_MAKE_CONF_USE} " | grep " ${1} " > /dev/null; then
@@ -491,13 +491,13 @@ modify() {
 			shift
 		fi
 	done
-	
+
 	#echo "old flags:"
 	#echo ${ACTIVE_FLAGS[1]}
 	#echo
 	#echo "new flags:"
 	#echo ${NEW_MAKE_CONF_USE}
-	
+
 	# a little loop to add linebreaks so we don't end with one ultra-long line
 	NEW_MAKE_CONF_USE_2=""
 	for x in ${NEW_MAKE_CONF_USE}; do
@@ -510,9 +510,9 @@ modify() {
 
 	# make a backup just in case the user doesn't like the new make.conf
 	cp -p "${MAKE_CONF_PATH}" "${MAKE_CONF_BACKUP_PATH}"
-	
+
 	# as sed doesn't really work with multi-line patterns we have to replace USE
-	# on our own here. Basically just skip everything between USE=" and the 
+	# on our own here. Basically just skip everything between USE=" and the
 	# closing ", printing our new USE line there instead.
 	inuse=0
 	had_use=0
@@ -536,7 +536,7 @@ modify() {
 		echo -ne "${NEW_MAKE_CONF_USE_2%% }"
 		echo '"'
 	fi ) < "${MAKE_CONF_BACKUP_PATH}" | sed -e 's:\\ $:\\:' > "${MAKE_CONF_PATH}"
-	
+
 	echo "${MAKE_CONF_PATH} was modified, a backup copy has been placed at ${MAKE_CONF_BACKUP_PATH}"
 }
 

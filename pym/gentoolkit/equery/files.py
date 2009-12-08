@@ -16,11 +16,12 @@ import os
 import sys
 from getopt import gnu_getopt, GetoptError
 
-import gentoolkit
+import portage
+
 import gentoolkit.pprinter as pp
-from gentoolkit.equery import format_filetype, format_options, mod_usage, \
-	Config
-from gentoolkit.helpers2 import do_lookup
+from gentoolkit.equery import (format_filetype, format_options, mod_usage,
+	CONFIG)
+from gentoolkit.helpers import do_lookup
 
 # =======
 # Globals
@@ -35,15 +36,16 @@ QUERY_OPTS = {
 	"isRegex": False,
 	"matchExact": True,
 	"outputTree": False,
-	"printMatchInfo": (not Config['quiet']),
+	"printMatchInfo": (not CONFIG['quiet']),
 	"showType": False,
 	"showTimestamp": False,
 	"showMD5": False,
 	"typeFilter": None
 }
 
-FILTER_RULES = ('dir', 'obj', 'sym', 'dev', 'path', 'conf', 'cmd', 'doc',
-	'man', 'info')
+FILTER_RULES = (
+	'dir', 'obj', 'sym', 'dev', 'path', 'conf', 'cmd', 'doc', 'man', 'info'
+)
 
 # =========
 # Functions
@@ -51,7 +53,7 @@ FILTER_RULES = ('dir', 'obj', 'sym', 'dev', 'path', 'conf', 'cmd', 'doc',
 
 def print_help(with_description=True):
 	"""Print description, usage and a detailed help message.
-	
+
 	@type with_description: bool
 	@param with_description: if true, print module's __doc__ string
 	"""
@@ -69,12 +71,14 @@ def print_help(with_description=True):
 		(" -t, --type", "include file type in output"),
 		("     --tree", "display results in a tree (turns off other options)"),
 		(" -f, --filter=RULES", "filter output by file type"),
-		("              RULES", 
+		("              RULES",
 			"a comma-separated list (no spaces); choose from:")
 	))
 	print " " * 24, ', '.join(pp.emph(x) for x in FILTER_RULES)
 
 
+# R0912: *Too many branches (%s/%s)*
+# pylint: disable-msg=R0912
 def display_files(contents):
 	"""Display the content of an installed package.
 
@@ -89,40 +93,43 @@ def display_files(contents):
 
 	for name in filenames:
 		if QUERY_OPTS["outputTree"]:
-			basename = name.split("/")[1:]
+			dirdepth = name.count('/')
+			indent = " "
+			if dirdepth == 2:
+				indent = "   "
+			elif dirdepth > 2:
+				indent = "   " * (dirdepth - 1)
+
+			basename = name.rsplit("/", dirdepth - 1)
 			if contents[name][0] == "dir":
 				if len(last) == 0:
 					last = basename
-					print pp.path(" /" + basename[0])
+					print pp.path(indent + basename[0])
 					continue
-				numol = 0
 				for i, directory in enumerate(basename):
 					try:
 						if directory in last[i]:
-							numol = i + 1
 							continue
-					# W0704: Except doesn't do anything
-					# pylint: disable-msg=W0704
 					except IndexError:
 						pass
 					last = basename
 					if len(last) == 1:
-						print pp.path(" " + last[0])
+						print pp.path(indent + last[0])
 						continue
-					ind = " " * (numol * 3)
-					print pp.path(ind + "> " + "/" + last[-1])
+					print pp.path(indent + "> /" + last[-1])
 			elif contents[name][0] == "sym":
-				print pp.path(" " * (len(last) * 3) + "+"),
+				print pp.path(indent + "+"),
 				print pp.path_symlink(basename[-1] + " -> " + contents[name][2])
-			else: 
-				print pp.path(" " * (len(last) * 3) + "+ ") + basename[-1]
+			else:
+				print pp.path(indent + "+ ") + basename[-1]
 		else:
-			pp.print_info(0, format_filetype(
+			print format_filetype(
 				name,
 				contents[name],
 				show_type=QUERY_OPTS["showType"],
 				show_md5=QUERY_OPTS["showMD5"],
-				show_timestamp=QUERY_OPTS["showTimestamp"]))
+				show_timestamp=QUERY_OPTS["showTimestamp"]
+			)
 
 
 def filter_by_doc(contents, content_filter):
@@ -136,7 +143,7 @@ def filter_by_doc(contents, content_filter):
 			for path in contents:
 				if contents[path][0] == 'obj' and path.startswith(docpath):
 					filtered_content[path] = contents[path]
-	
+
 	return filtered_content
 
 
@@ -150,7 +157,7 @@ def filter_by_command(contents):
 		if (contents[path][0] in ['obj', 'sym'] and
 			os.path.dirname(path) in userpath):
 			filtered_content[path] = contents[path]
-	
+
 	return filtered_content
 
 
@@ -172,7 +179,7 @@ def filter_by_path(contents):
 			if check_subdirs:
 				while (paths and paths[-1].startswith(basepath)):
 					paths.pop()
-	
+
 	return filtered_content
 
 
@@ -180,9 +187,9 @@ def filter_by_conf(contents):
 	"""Return a copy of content filtered by configuration files."""
 
 	filtered_content = {}
-	conf_path = gentoolkit.settings["CONFIG_PROTECT"].split()
+	conf_path = portage.settings["CONFIG_PROTECT"].split()
 	conf_path = tuple(os.path.normpath(x) for x in conf_path)
-	conf_mask_path = gentoolkit.settings["CONFIG_PROTECT_MASK"].split()
+	conf_mask_path = portage.settings["CONFIG_PROTECT_MASK"].split()
 	conf_mask_path = tuple(os.path.normpath(x) for x in conf_mask_path)
 	for path in contents:
 		if contents[path][0] == 'obj' and path.startswith(conf_path):
@@ -206,7 +213,7 @@ def filter_contents(contents):
 		content_filter = QUERY_OPTS['typeFilter']
 	else:
 		return contents
-	
+
 	filtered_content = {}
 	if frozenset(('dir', 'obj', 'sym', 'dev')).intersection(content_filter):
 		# Filter elements by type (as recorded in CONTENTS)
@@ -221,12 +228,12 @@ def filter_contents(contents):
 		filtered_content.update(filter_by_conf(contents))
 	if frozenset(('doc' ,'man' ,'info')).intersection(content_filter):
 		filtered_content.update(filter_by_doc(contents, content_filter))
-	
+
 	return filtered_content
 
 
 def parse_module_options(module_opts):
-	"""Parse module options and update GLOBAL_OPTS"""
+	"""Parse module options and update QUERY_OPTS"""
 
 	content_filter = []
 	opts = (x[0] for x in module_opts)
@@ -250,7 +257,9 @@ def parse_module_options(module_opts):
 			content_filter.extend(x.lstrip('=') for x in f_split)
 			for rule in content_filter:
 				if not rule in FILTER_RULES:
-					pp.print_error("Invalid filter rule '%s'" % rule)
+					sys.stderr.write(
+						pp.error("Invalid filter rule '%s'" % rule)
+					)
 					print
 					print_help(with_description=False)
 					sys.exit(2)
@@ -260,20 +269,21 @@ def parse_module_options(module_opts):
 def main(input_args):
 	"""Parse input and run the program"""
 
+	# -e, --exact-name is legacy option. djanderson '09
 	short_opts = "hemstf:"
 	long_opts = ('help', 'exact-name', 'md5sum', 'timestamp', 'type', 'tree',
-		'filter=') 
+		'filter=')
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
 	except GetoptError, err:
-		pp.print_error("Module %s" % err)
+		sys.stderr.write(pp.error("Module %s" % err))
 		print
 		print_help(with_description=False)
 		sys.exit(2)
 
 	parse_module_options(module_opts)
-	
+
 	if not queries:
 		print_help()
 		sys.exit(2)
@@ -294,13 +304,17 @@ def main(input_args):
 		matches = do_lookup(query, QUERY_OPTS)
 
 		if not matches:
-			pp.print_error("No matching packages found for %s" % query)
+			sys.stderr.write(
+				pp.error("No matching packages found for %s" % query)
+			)
 
 		for pkg in matches:
-			if Config['verbose']:
-				print " * Contents of %s:" % pp.cpv(pkg.cpv)
+			if CONFIG['verbose']:
+				print " * Contents of %s:" % pp.cpv(str(pkg.cpv))
 
 			contents = pkg.get_contents()
 			display_files(filter_contents(contents))
 
 		first_run = False
+
+# vim: set ts=4 sw=4 tw=79:

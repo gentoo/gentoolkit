@@ -1,0 +1,31 @@
+import os
+import os.path as osp
+import unittest
+import py_compile
+
+pym_dirs = os.walk(osp.dirname(osp.dirname(osp.dirname(__file__))))
+blacklist_dirs = frozenset(('.svn', 'tests'))
+
+class TestForSyntaxErrors(unittest.TestCase):
+
+	def test_compileability(self):
+		compileables = []
+		for thisdir, subdirs, files in pym_dirs:
+			if os.path.basename(thisdir) in blacklist_dirs:
+				continue
+			compileables.extend([
+				osp.join(thisdir, f)
+				for f in files
+				if osp.splitext(f)[1] == '.py'
+			])
+
+		for c in compileables:
+			py_compile.compile(c, doraise=True)
+
+
+def test_main():
+	test_support.run_unittest(TestGentoolkitHelpers2)
+
+
+if __name__ == '__main__':
+	test_main()
