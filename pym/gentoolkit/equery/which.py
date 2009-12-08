@@ -21,7 +21,7 @@ from getopt import gnu_getopt, GetoptError
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
 from gentoolkit.equery import format_options, mod_usage
-from gentoolkit.helpers2 import find_packages
+from gentoolkit.helpers import find_packages
 
 # =======
 # Globals
@@ -35,7 +35,7 @@ QUERY_OPTS = {"includeMasked": False}
 
 def print_help(with_description=True):
 	"""Print description, usage and a detailed help message.
-	
+
 	@type with_description: bool
 	@param with_description: if true, print module's __doc__ string
 	"""
@@ -53,7 +53,7 @@ def print_help(with_description=True):
 
 
 def parse_module_options(module_opts):
-	"""Parse module options and update GLOBAL_OPTS"""
+	"""Parse module options and update QUERY_OPTS"""
 
 	opts = (x[0] for x in module_opts)
 	for opt in opts:
@@ -73,7 +73,7 @@ def main(input_args):
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
 	except GetoptError, err:
-		pp.print_error("Module %s" % err)
+		sys.stderr.write(pp.error("Module %s" % err))
 		print
 		print_help(with_description=False)
 		sys.exit(2)
@@ -93,6 +93,10 @@ def main(input_args):
 			if ebuild_path:
 				print os.path.normpath(ebuild_path)
 			else:
-				pp.print_warn("No ebuilds to satisfy %s" % pkg.name)
+				sys.stderr.write(
+					pp.warn("No ebuilds to satisfy %s" % pkg.name)
+				)
 		else:
 			raise errors.GentoolkitNoMatches(query)
+
+# vim: set ts=4 sw=4 tw=79:

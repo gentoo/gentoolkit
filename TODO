@@ -2,16 +2,8 @@
  - add --overlay, --portdir to uses
  - add glsa pkgspec
   - query for current GLSAs on installed package(s)
- - add changelog <from> <to> [--last] [--lastentry] [--current]
-  - displays changelog entries
- - add check <pkg-spec> [--full] [--display=pkgnames,full]
-  - check md5 and timestamps (optionally also in CONFIG_PROTECT dirs)
- - add which
-  - as ewhich
-- fully deprecate dep-clean and pkg-clean
 - rewrite ekeywords and echangelog to use gentoolkit
-- add deep depends to equery
-- fully deprecate qpkg 
+- fully deprecate qpkg
 - fully deprecate pkg-size
 - merge change and echangelog
 - merge useflag and euse, have _one_ command line tool
@@ -20,9 +12,6 @@
   - merge generate-use and ufed?
 - rewrite revdep-rebuild to use gentoolkit
  - drop qpkg dependency; use equery instead
-- rewrite distfiles-clean to use gentoolkit
-- look through forums.gentoo.org for additional scripts
-- write a Gentoolkit Guide
 - write efeatures for turning on/off FEATURES in make.conf
 - look at ekeys, ewatch
 - revision bump tool
@@ -30,11 +19,23 @@
  - -m for changelog entry
  - use ~/.gentoo/gentoolkit/ebump.conf
  - use /etc/gentoolkit/ebump.conf
-- should be removed:
- - etc-update
- - epm
- - useflag
-- add 'clean' target
 
-+ check esearch, eupdatedb: separate package for now
- 
+equery:
+	Tests:
+		+helpers2 (FileOwner._extend_realpaths test probably doesn't clean up)
+	Run pylint and write test to run pylint
+	Write test to compile all modules (full syntax check). Take from portage.
+	Add more --debug stuff
+	Write tests for Dependencies._parser
+	Refactor each module to be useful for import. Done modules:
+		+depends
+		+belongs
+		+meta
+		+changes
+		+depgraph
+
+For Next Release:
+	- allow passing VERSION='123' in front of setup.py sdist and do version
+	  mangling at dist creation time.
+	- find all commits to main gentoolkit svn after rc7 push and merge where
+	  appropriate

@@ -15,11 +15,11 @@ __docformat__ = 'epytext'
 import sys
 from getopt import gnu_getopt, GetoptError
 
-import gentoolkit
 import gentoolkit.pprinter as pp
-from gentoolkit.equery import format_options, mod_usage, Config
-from gentoolkit.helpers2 import do_lookup, get_installed_cpvs, print_sequence
-from gentoolkit.package import Package, PackageFormatter
+from gentoolkit import errors
+from gentoolkit.equery import format_options, mod_usage, CONFIG
+from gentoolkit.helpers import do_lookup
+from gentoolkit.package import PackageFormatter
 
 # =======
 # Globals
@@ -41,7 +41,7 @@ QUERY_OPTS = {
 
 def print_help(with_description=True):
 	"""Print description, usage and a detailed help message.
-	
+
 	@type with_description: bool
 	@param with_description: if true, print module's __doc__ string
 	"""
@@ -61,8 +61,42 @@ def print_help(with_description=True):
 	))
 
 
+def display_useflags(query, pkg):
+	"""Display USE flag information for a given package."""
+
+	try:
+		useflags = [x.lstrip("+-") for x in pkg.get_env_var("IUSE").split()]
+	except errors.GentoolkitFatalError:
+		# aux_get KeyError or other unexpected result
+		return
+
+	if query not in useflags:
+		return
+
+	if CONFIG['verbose']:
+		fmt_pkg = PackageFormatter(pkg, do_format=True)
+	else:
+		fmt_pkg = PackageFormatter(pkg, do_format=False)
+
+	if (QUERY_OPTS["includeInstalled"] and
+		not QUERY_OPTS["includePortTree"] and
+		not QUERY_OPTS["includeOverlayTree"]):
+		if not 'I' in fmt_pkg.location:
+			return
+	if (QUERY_OPTS["includePortTree"] and
+		not QUERY_OPTS["includeOverlayTree"]):
+		if not 'P' in fmt_pkg.location:
+			return
+	if (QUERY_OPTS["includeOverlayTree"] and
+		not QUERY_OPTS["includePortTree"]):
+		if not 'O' in fmt_pkg.location:
+			return
+	print fmt_pkg
+
+
+
 def parse_module_options(module_opts):
-	"""Parse module options and update GLOBAL_OPTS"""
+	"""Parse module options and update QUERY_OPTS"""
 
 	# Parse module options
 	opts = (x[0] for x in module_opts)
@@ -89,7 +123,7 @@ def main(input_args):
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
 	except GetoptError, err:
-		pp.print_error("Module %s" % err)
+		sys.stderr.write(pp.error("Module %s" % err))
 		print
 		print_help(with_description=False)
 		sys.exit(2)
@@ -112,33 +146,11 @@ def main(input_args):
 		if not first_run:
 			print
 
-		if Config['verbose']:
+		if CONFIG['verbose']:
 			print " * Searching for USE flag %s ... " % pp.emph(query)
 
 		for pkg in matches:
-
-			useflags = [x.lstrip("+-") for x in pkg.get_env_var("IUSE").split()]
-			if query not in useflags:
-				continue
-
-			if Config['verbose']:
-				pkgstr = PackageFormatter(pkg, format=True)
-			else:
-				pkgstr = PackageFormatter(pkg, format=False)
-
-			if (QUERY_OPTS["includeInstalled"] and
-				not QUERY_OPTS["includePortTree"] and
-				not QUERY_OPTS["includeOverlayTree"]):
-				if not 'I' in pkgstr.location:
-					continue
-			if (QUERY_OPTS["includePortTree"] and
-				not QUERY_OPTS["includeOverlayTree"]):
-				if not 'P' in pkgstr.location:
-					continue
-			if (QUERY_OPTS["includeOverlayTree"] and
-				not QUERY_OPTS["includePortTree"]):
-				if not 'O' in pkgstr.location:
-					continue
-			print pkgstr
-
+			display_useflags(query, pkg)
 		first_run = False
+
+# vim: set ts=4 sw=4 tw=79:

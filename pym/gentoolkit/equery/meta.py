@@ -9,7 +9,6 @@
 # Move to Imports section after Python-2.6 is stable
 from __future__ import with_statement
 
-__author__  = "Douglas Anderson"
 __docformat__ = 'epytext'
 
 # =======
@@ -17,18 +16,14 @@ __docformat__ = 'epytext'
 # =======
 
 import os
-import re 
+import re
 import sys
-import xml.etree.cElementTree as ET
 from getopt import gnu_getopt, GetoptError
-
-from portage import settings
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
-from gentoolkit.equery import format_options, mod_usage, Config
-from gentoolkit.helpers2 import find_packages, print_sequence, print_file, \
-	uniqify
+from gentoolkit.equery import format_options, mod_usage, CONFIG
+from gentoolkit.helpers import find_packages, print_sequence, print_file
 from gentoolkit.textwrap_ import TextWrapper
 
 # =======
@@ -40,28 +35,23 @@ from gentoolkit.textwrap_ import TextWrapper
 # pylint: disable-msg=E1101
 
 QUERY_OPTS = {
-	"current": False,
-	"description": False,
-	"herd": False,
-	"maintainer": False,
-	"useflags": False,
-	"upstream": False,
-	"xml": False
-} 
-
-# Get the location of the main Portage tree
-PORTDIR = [settings["PORTDIR"] or os.path.join(os.sep, "usr", "portage")]
-# Check for overlays
-if settings["PORTDIR_OVERLAY"]:
-	PORTDIR.extend(settings["PORTDIR_OVERLAY"].split())
+	'current': False,
+	'description': False,
+	'herd': False,
+	'keywords': False,
+	'maintainer': False,
+	'useflags': False,
+	'upstream': False,
+	'xml': False
+}
 
 # =========
 # Functions
 # =========
 
-def print_help(with_description=True):
+def print_help(with_description=True, with_usage=True):
 	"""Print description, usage and a detailed help message.
-	
+
 	@type with_description: bool
 	@param with_description: if true, print module's __doc__ string
 	"""
@@ -69,83 +59,207 @@ def print_help(with_description=True):
 	if with_description:
 		print __doc__.strip()
 		print
-	print mod_usage(mod_name="meta")
-	print
+	if with_usage:
+		print mod_usage(mod_name="meta")
+		print
 	print pp.command("options")
 	print format_options((
 		(" -h, --help", "display this help message"),
-		(" -c, --current", "parse metadata.xml in the current directory"),
 		(" -d, --description", "show an extended package description"),
 		(" -H, --herd", "show the herd(s) for the package"),
+		(" -k, --keywords", "show keywords for all matching package versions"),
 		(" -m, --maintainer", "show the maintainer(s) for the package"),
 		(" -u, --useflags", "show per-package USE flag descriptions"),
 		(" -U, --upstream", "show package's upstream information"),
-		(" -x, --xml", "show the plain XML file")
+		(" -x, --xml", "show the plain metadata.xml file")
 	))
 
 
-def call_get_functions(metadata_path, package_dir, QUERY_OPTS):
-	"""Call information gathering functions and display the results."""
-	
-	if Config['verbose']:
-		print get_overlay_name(package_dir)
+def format_herds(herds):
+	"""Format herd information for display."""
 
-	try:
-		xml_tree = ET.parse(metadata_path)
-	except IOError:
-		pp.print_error("No metadata available")
-		first_run = False
-		return
+	result = []
+	for herd in herds:
+		herdstr = ''
+		email = "(%s)" % herd[1] if herd[1] else ''
+		herdstr = herd[0]
+		if CONFIG['verbose']:
+			herdstr += " %s" % (email,)
+		result.append(herdstr)
+
+	return result
+
+
+def format_maintainers(maints):
+	"""Format maintainer information for display."""
+
+	result = []
+	for maint in maints:
+		maintstr = ''
+		maintstr = maint.email
+		if CONFIG['verbose']:
+			maintstr += " (%s)" % (maint.name,) if maint.name else ''
+			maintstr += "\n%s" % (maint.description,) \
+				if maint.description else ''
+		result.append(maintstr)
+
+	return result
+
+
+def format_upstream(upstream):
+	"""Format upstream information for display."""
+
+	def _format_upstream_docs(docs):
+		result = []
+		for doc in docs:
+			doc_location = doc[0]
+			doc_lang = doc[1]
+			docstr = doc_location
+			if doc_lang is not None:
+				docstr += " (%s)" % (doc_lang,)
+			result.append(docstr)
+		return result
+
+	def _format_upstream_ids(ids):
+		result = []
+		for id_ in ids:
+			site = id_[0]
+			proj_id = id_[1]
+			idstr = "%s ID: %s" % (site, proj_id)
+			result.append(idstr)
+		return result
+
+	result = []
+	for up in upstream:
+		upmaints = format_maintainers(up.maintainers)
+		for upmaint in upmaints:
+			result.append(format_line(upmaint, "Maintainer:  ", " " * 13))
+
+		for upchange in up.changelogs:
+			result.append(format_line(upchange, "ChangeLog:   ", " " * 13))
+
+		updocs = _format_upstream_docs(up.docs)
+		for updoc in updocs:
+			result.append(format_line(updoc, "Docs:       ", " " * 13))
+
+		for upbug in up.bugtrackers:
+			result.append(format_line(upbug, "Bugs-to:     ", " " * 13))
+
+		upids = _format_upstream_ids(up.remoteids)
+		for upid in upids:
+			result.append(format_line(upid, "Remote-ID:   ", " " * 13))
+
+	return result
+
+
+def format_useflags(useflags):
+	"""Format USE flag information for display."""
+
+	result = []
+	for flag in useflags:
+		result.append(pp.useflag(flag.name))
+		result.append(flag.description)
+		result.append("")
+
+	return result
+
+
+def format_keywords(match):
+	"""Format keywords information for display."""
+
+	kwsplit = match.get_env_var('KEYWORDS').split()
+	ver = match.cpv.fullversion
+	keywords = ''
+	for kw in kwsplit:
+		if kw.startswith('~'):
+			keywords += " %s" % pp.useflag(kw, enabled=True)
+		else:
+			keywords += " %s" % pp.useflag(kw, enabled=False)
+
+	if CONFIG['verbose']:
+		result = format_line(
+			keywords, "%s: " % pp.cpv(ver), " " * (len(ver) + 2)
+			)
+	else:
+		result = "%s:%s" % (ver, keywords)
+
+	return result
+
+# R0912: *Too many branches (%s/%s)*
+# pylint: disable-msg=R0912
+def call_format_functions(matches):
+	"""Call information gathering functions and display the results."""
+
+	# Choose a good package to reference metadata from
+	ref_pkg = get_reference_pkg(matches)
+
+	if CONFIG['verbose']:
+		repo = ref_pkg.get_repo_name()
+		print " * %s [%s]" % (pp.cpv(ref_pkg.cpv.cp), pp.section(repo))
 
 	got_opts = False
-	if (QUERY_OPTS["herd"] or QUERY_OPTS["description"] or
-		QUERY_OPTS["useflags"] or QUERY_OPTS["maintainer"] or
-		QUERY_OPTS["upstream"] or QUERY_OPTS["xml"]):
+	if any(QUERY_OPTS.values()):
 		# Specific information requested, less formatting
 		got_opts = True
 
+	if not got_opts:
+		pkg_loc = ref_pkg.get_package_path()
+		print format_line(pkg_loc, "Location:    ", " " * 13)
+
 	if QUERY_OPTS["herd"] or not got_opts:
-		herd = get_herd(xml_tree)
+		herds = format_herds(ref_pkg.metadata.get_herds(include_email=True))
 		if QUERY_OPTS["herd"]:
-			herd = format_list(herd)
+			print_sequence(format_list(herds))
 		else:
-			herd = format_list(herd, "Herd:        ", " " * 13)
-		print_sequence(herd)
+			for herd in herds:
+				print format_line(herd, "Herd:        ", " " * 13)
 
 	if QUERY_OPTS["maintainer"] or not got_opts:
-		maint = get_maitainer(xml_tree)
+		maints = format_maintainers(ref_pkg.metadata.get_maintainers())
 		if QUERY_OPTS["maintainer"]:
-			maint = format_list(maint)
+			print_sequence(format_list(maints))
 		else:
-			maint = format_list(maint, "Maintainer:  ", " " * 13)
-		print_sequence(maint)
+			if not maints:
+				print format_line([], "Maintainer:  ", " " * 13)
+			else:
+				for maint in maints:
+					print format_line(maint, "Maintainer:  ", " " * 13)
 
 	if QUERY_OPTS["upstream"] or not got_opts:
-		upstream = get_upstream(xml_tree)
+		upstream = format_upstream(ref_pkg.metadata.get_upstream())
 		if QUERY_OPTS["upstream"]:
 			upstream = format_list(upstream)
 		else:
 			upstream = format_list(upstream, "Upstream:    ", " " * 13)
 		print_sequence(upstream)
 
+	if QUERY_OPTS["keywords"] or not got_opts:
+		for match in matches:
+			kwds = format_keywords(match)
+			if QUERY_OPTS["keywords"]:
+				print kwds
+			else:
+				indent = " " * (15 + len(match.cpv.fullversion))
+				print format_line(kwds, "Keywords:    ", indent)
+
 	if QUERY_OPTS["description"]:
-		desc = get_description(xml_tree)
+		desc = ref_pkg.metadata.get_descriptions()
 		print_sequence(format_list(desc))
 
 	if QUERY_OPTS["useflags"]:
-		useflags = get_useflags(xml_tree)
+		useflags = format_useflags(ref_pkg.metadata.get_useflags())
 		print_sequence(format_list(useflags))
 
 	if QUERY_OPTS["xml"]:
-		print_file(metadata_path)
+		print_file(os.path.join(ref_pkg.get_package_path(), 'metadata.xml'))
 
 
 def format_line(line, first="", subsequent="", force_quiet=False):
 	"""Wrap a string at word boundaries and optionally indent the first line
 	and/or subsequent lines with custom strings.
 
-	Preserve newlines if the longest line is not longer than 
-	Config['termWidth']. To force the preservation of newlines and indents, 
+	Preserve newlines if the longest line is not longer than
+	CONFIG['termWidth']. To force the preservation of newlines and indents,
 	split the string into a list and feed it to format_line via format_list.
 
 	@see: format_list()
@@ -161,7 +275,7 @@ def format_line(line, first="", subsequent="", force_quiet=False):
 	"""
 
 	if line:
-		line = line.expandtabs().strip("\n").splitlines() 
+		line = line.expandtabs().strip("\n").splitlines()
 	else:
 		if force_quiet:
 			return
@@ -172,18 +286,18 @@ def format_line(line, first="", subsequent="", force_quiet=False):
 		wider_indent = first
 	else:
 		wider_indent = subsequent
-	
+
 	widest_line_len = len(max(line, key=len)) + len(wider_indent)
-	
-	if widest_line_len > Config['termWidth']:
-		twrap = TextWrapper(width=Config['termWidth'], expand_tabs=False,
+
+	if widest_line_len > CONFIG['termWidth']:
+		twrap = TextWrapper(width=CONFIG['termWidth'], expand_tabs=False,
 			initial_indent=first, subsequent_indent=subsequent)
 		line = " ".join(line)
 		line = re.sub("\s+", " ", line)
 		line = line.lstrip()
 		result = twrap.fill(line)
 	else:
-		# line will fit inside Config['termWidth'], so preserve whitespace and 
+		# line will fit inside CONFIG['termWidth'], so preserve whitespace and
 		# newlines
 		line[0] = first + line[0]          # Avoid two newlines if len == 1
 
@@ -212,7 +326,7 @@ def format_list(lst, first="", subsequent="", force_quiet=False):
 	@type subsequent: string
 	@param subsequent: text to prepend to subsequent lines
 	@rtype: list
-	@return: list with element text wrapped at Config['termWidth']
+	@return: list with element text wrapped at CONFIG['termWidth']
 	"""
 
 	result = []
@@ -229,7 +343,7 @@ def format_list(lst, first="", subsequent="", force_quiet=False):
 				# We don't want to send a blank line to format_line()
 				result.append("")
 	else:
-		if Config['verbose']:
+		if CONFIG['verbose']:
 			if force_quiet:
 				result = None
 			else:
@@ -239,238 +353,34 @@ def format_list(lst, first="", subsequent="", force_quiet=False):
 	return result
 
 
-def get_herd(xml_tree):
-	"""Return a list of text nodes for <herd>."""
-	
-	result = []
-	for elem in xml_tree.findall("herd"):
-		herd_mail = get_herd_email(elem.text)
-		if herd_mail and Config['verbose']:
-			result.append("%s (%s)" % (elem.text, herd_mail))
-		else:
-			result.append(elem.text) 
+def get_reference_pkg(matches):
+	"""Find a package in the Portage tree to reference."""
 
-	return result
-
-
-def get_herd_email(herd):
-	"""Return the email of the given herd if it's in herds.xml, else None."""
-	
-	herds_path = os.path.join(PORTDIR[0], "metadata/herds.xml")
-
-	try:
-		herds_tree = ET.parse(herds_path)
-	except IOError, err:
-		pp.print_error(str(err))
-		return None
-
-	# Some special herds are not listed in herds.xml
-	if herd in ('no-herd', 'maintainer-wanted', 'maintainer-needed'):
-		return None
-	
-	for node in herds_tree.getiterator("herd"):
-		if node.findtext("name") == herd:
-			return node.findtext("email")
-
-
-def get_description(xml_tree):
-	"""Return a list of text nodes for <longdescription>.
-
-	@todo: Support the `lang' attribute
-	"""
-
-	return [e.text for e in xml_tree.findall("longdescription")]
-
-
-def get_maitainer(xml_tree):
-	"""Return a parsable tree of all maintainer elements and sub-elements."""
-
-	first_run = True
-	result = []
-	for node in xml_tree.findall("maintainer"):
-		if not first_run:
-			result.append("")
-		restrict = node.get("restrict")
-		if restrict:
-			result.append("(%s %s)" %
-			(pp.emph("Restrict to"), pp.output.green(restrict)))
-		result.extend(e.text for e in node)
-		first_run = False
-
-	return result
-
-
-def get_overlay_name(p_dir):
-	"""Determine the overlay name and return a formatted string."""
-
-	result = []
-	cat_pkg = '/'.join(p_dir.split('/')[-2:])
-	result.append(" * %s" % pp.cpv(cat_pkg))
-	o_dir = '/'.join(p_dir.split('/')[:-2])
-	if o_dir != PORTDIR[0]:
-		# o_dir is an overlay
-		o_name = o_dir.split('/')[-1]
-		o_name = ("[", o_name, "]")
-		result.append(pp.output.turquoise("".join(o_name)))
-
-	return ' '.join(result)
-
-
-def get_package_directory(query):
-	"""Find a package's portage directory."""
-
-	matches = find_packages(query, include_masked=True)
-	# Prefer a package that's in the Portage tree over one in an
-	# overlay. Start with oldest first.
 	pkg = None
 	while list(reversed(matches)):
 		pkg = matches.pop()
 		if not pkg.is_overlay():
 			break
-	
-	return pkg.get_package_path() if pkg else None
-	
 
-def get_useflags(xml_tree):
-	"""Return a list of formatted <useflag> lines, including blank elements
-	where blank lines should be printed."""
-
-	first_run = True
-	result = []
-	for node in xml_tree.getiterator("flag"):
-		if not first_run:
-			result.append("")
-		flagline = pp.useflag(node.get("name"))
-		restrict = node.get("restrict")
-		if restrict:
-			result.append("%s (%s %s)" %
-				(flagline, pp.emph("Restrict to"), pp.output.green(restrict)))
-		else:
-			result.append(flagline)
-		# ElementTree handles nested element text in a funky way. 
-		# So we need to dump the raw XML and parse it manually.
-		flagxml = ET.tostring(node)
-		flagxml = re.sub("\s+", " ", flagxml)
-		flagxml = re.sub("\n\t", "", flagxml)
-		flagxml = re.sub("<(pkg|cat)>(.*?)</(pkg|cat)>",
-			pp.cpv(r"\2"), flagxml)
-		flagtext = re.sub("<.*?>", "", flagxml)
-		result.append(flagtext)
-		first_run = False
-
-	return result
-
-
-def _get_upstream_bugtracker(node):
-	"""Extract and format upstream bugtracker information."""
-
-	bt_loc = [e.text for e in node.findall("bugs-to")]
-
-	return format_list(bt_loc, "Bugs to:    ", " " * 12, force_quiet=True)
-
-
-def _get_upstream_changelog(node):
-	"""Extract and format upstream changelog information."""
-
-	cl_paths = [e.text for e in node.findall("changelog")]
-
-	return format_list(cl_paths, "Changelog:  ", " " * 12, force_quiet=True)
-
-
-def _get_upstream_documentation(node):
-	"""Extract and format upstream documentation information."""
-
-	doc = []
-	for elem in node.findall("doc"):
-		lang = elem.get("lang")
-		if lang:
-			lang = "(%s)" % pp.output.yellow(lang)
-		else:
-			lang = ""
-		doc.append(" ".join([elem.text, lang]))
-
-	return format_list(doc, "Docs:       ", " " * 12, force_quiet=True)
-
-
-def _get_upstream_maintainer(node):
-	"""Extract and format upstream maintainer information."""
-
-	maintainer = node.findall("maintainer")
-	maint = []
-	for elem in maintainer:
-		if elem.find("name") != None:
-			maint.append(elem.find("name").text)
-		if elem.find("email") != None:
-			maint.append(elem.find("email").text)
-		if elem.get("status") == "active":
-			maint.append("(%s)" % pp.output.green("active"))
-		elif elem.get("status") == "inactive":
-			maint.append("(%s)" % pp.output.red("inactive"))
-		elif elem.get("status") != None:
-			maint.append("(" + elem.get("status") + ")")
-
-	return format_list(maint, "Maintainer: ", " " * 12, force_quiet=True)
-
-
-def _get_upstream_remoteid(node):
-	"""Extract and format upstream remote ID."""
-
-	r_id = [e.get("type") + ": " + e.text for e in node.findall("remote-id")]
-
-	return format_list(r_id, "Remote ID:  ", " " * 12, force_quiet=True)
-
-
-def get_upstream(xml_tree):
-	"""Return a list of formatted <upstream> lines, including blank elements
-	where blank lines should be printed."""
-
-	first_run = True
-	result = []
-	for node in xml_tree.findall("upstream"):
-		if not first_run:
-			result.append("")
-
-		maint = _get_upstream_maintainer(node)
-		if maint:
-			result.append("\n".join(maint))
-
-		changelog = _get_upstream_changelog(node)
-		if changelog:
-			result.append("\n".join(changelog))
-
-		documentation = _get_upstream_documentation(node)
-		if documentation:
-			result.append("\n".join(documentation))
-
-		bugs_to = _get_upstream_bugtracker(node)
-		if bugs_to:
-			result.append("\n".join(bugs_to))
-
-		remote_id = _get_upstream_remoteid(node)
-		if remote_id:
-			result.append("\n".join(remote_id))
-
-		first_run = False
-
-	return result
+	return pkg
 
 
 def parse_module_options(module_opts):
-	"""Parse module options and update GLOBAL_OPTS"""
+	"""Parse module options and update QUERY_OPTS"""
 
 	opts = (x[0] for x in module_opts)
 	for opt in opts:
 		if opt in ('-h', '--help'):
 			print_help()
 			sys.exit(0)
-		elif opt in ('-c', '--current'):
-			QUERY_OPTS["current"] = True
 		elif opt in ('-d', '--description'):
 			QUERY_OPTS["description"] = True
 		elif opt in ('-H', '--herd'):
 			QUERY_OPTS["herd"] = True
 		elif opt in ('-m', '--maintainer'):
 			QUERY_OPTS["maintainer"] = True
+		elif opt in ('-k', '--keywords'):
+			QUERY_OPTS["keywords"] = True
 		elif opt in ('-u', '--useflags'):
 			QUERY_OPTS["useflags"] = True
 		elif opt in ('-U', '--upstream'):
@@ -482,44 +392,37 @@ def parse_module_options(module_opts):
 def main(input_args):
 	"""Parse input and run the program."""
 
-	short_opts = "hcdHmuUx"
-	long_opts = ('help', 'current', 'description', 'herd', 'maintainer',
+	short_opts = "hdHkmuUx"
+	long_opts = ('help', 'description', 'herd', 'keywords', 'maintainer',
 		'useflags', 'upstream', 'xml')
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
 	except GetoptError, err:
-		pp.print_error("Module %s" % err)
+		sys.stderr.write(pp.error("Module %s" % err))
 		print
 		print_help(with_description=False)
 		sys.exit(2)
 
 	parse_module_options(module_opts)
-	
+
 	# Find queries' Portage directory and throw error if invalid
-	if not queries and not QUERY_OPTS["current"]:
+	if not queries:
 		print_help()
 		sys.exit(2)
-	
-	if QUERY_OPTS["current"]:
-		package_dir = os.getcwd()
-		metadata_path = os.path.join(package_dir, "metadata.xml")
-		call_get_functions(metadata_path, package_dir, QUERY_OPTS)
-	else:
-		first_run = True
-		for query in queries:
-			package_dir = get_package_directory(query)
-			if not package_dir:
-				raise errors.GentoolkitNoMatches(query)
-			metadata_path = os.path.join(package_dir, "metadata.xml")
 
-			# --------------------------------
-			# Check options and call functions
-			# --------------------------------
-		
-			if not first_run:
-				print
-				
-			call_get_functions(metadata_path, package_dir, QUERY_OPTS)
-	
-			first_run = False
+	first_run = True
+	for query in queries:
+		matches = find_packages(query, include_masked=True)
+		if not matches:
+			raise errors.GentoolkitNoMatches(query)
+
+		if not first_run:
+			print
+
+		matches.sort()
+		call_format_functions(matches)
+
+		first_run = False
+
+# vim: set ts=4 sw=4 tw=79:

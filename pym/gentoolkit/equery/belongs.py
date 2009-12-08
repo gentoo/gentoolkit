@@ -16,15 +16,13 @@ __docformat__ = 'epytext'
 # Imports
 # =======
 
-import re
 import sys
 from getopt import gnu_getopt, GetoptError
 
 import gentoolkit.pprinter as pp
-from gentoolkit.equery import format_filetype, format_options, mod_usage, \
-	Config
-from gentoolkit.helpers2 import get_installed_cpvs
-from gentoolkit.package import Package
+from gentoolkit.equery import (format_filetype, format_options, mod_usage,
+	CONFIG)
+from gentoolkit.helpers import FileOwner
 
 # =======
 # Globals
@@ -36,27 +34,60 @@ QUERY_OPTS = {
 	"nameOnly": False
 }
 
+# =======
+# Classes
+# =======
+
+class BelongsPrinter(object):
+	"""Outputs a formatted list of packages that claim to own a files."""
+
+	def __init__(self, verbose=True, name_only=False):
+		if verbose:
+			self.print_fn = self.print_verbose
+		else:
+			self.print_fn = self.print_quiet
+
+		self.name_only = name_only
+
+	def __call__(self, pkg, cfile):
+		self.print_fn(pkg, cfile)
+
+	# W0613: *Unused argument %r*
+	# pylint: disable-msg=W0613
+	def print_quiet(self, pkg, cfile):
+		"Format for minimal output."
+		if self.name_only:
+			name = pkg.cpv.cp
+		else:
+			name = str(pkg.cpv)
+		print name
+
+	def print_verbose(self, pkg, cfile):
+		"Format for full output."
+		file_str = pp.path(format_filetype(cfile, pkg.get_contents()[cfile]))
+		if self.name_only:
+			name = pkg.cpv.cp
+		else:
+			name = str(pkg.cpv)
+		print pp.cpv(name), "(" + file_str + ")"
+
+
 # =========
 # Functions
 # =========
 
 def parse_module_options(module_opts):
-	"""Parse module options and update GLOBAL_OPTS"""
+	"""Parse module options and update QUERY_OPTS"""
 
 	opts = (x[0] for x in module_opts)
 	for opt in opts:
 		if opt in ('-h','--help'):
 			print_help()
 			sys.exit(0)
-		elif opt in ('-c', '--category'):
-			# Remove this warning after a reasonable amount of time
-			# (djanderson, 2/2009)
-			pp.print_warn("Module option -c, --category not implemented")
-			print
 		elif opt in ('-e', '--early-out', '--earlyout'):
 			if opt == '--earlyout':
-				pp.print_warn("Use of --earlyout is deprecated.")
-				pp.print_warn("Please use --early-out.")
+				sys.stderr.write(pp.warn("Use of --earlyout is deprecated."))
+				sys.stderr.write(pp.warn("Please use --early-out."))
 				print
 			QUERY_OPTS['earlyOut'] = True
 		elif opt in ('-f', '--full-regex'):
@@ -65,31 +96,9 @@ def parse_module_options(module_opts):
 			QUERY_OPTS['nameOnly'] = True
 
 
-def prepare_search_regex(queries):
-	"""Create a regex out of the queries"""
-
-	if QUERY_OPTS["fullRegex"]:
-		result = queries
-	else:
-		result = []
-		# Trim trailing and multiple slashes from queries
-		slashes = re.compile('/+')
-		for query in queries:
-			query = slashes.sub('/', query).rstrip('/')
-			if query.startswith('/'):
-				query = "^%s$" % re.escape(query)
-			else:
-				query = "/%s$" % re.escape(query)
-			result.append(query)
-
-	result = "|".join(result)
-
-	return re.compile(result)
-
-
 def print_help(with_description=True):
 	"""Print description, usage and a detailed help message.
-	
+
 	@type with_description: bool
 	@param with_description: if true, print module's __doc__ string
 	"""
@@ -111,15 +120,14 @@ def print_help(with_description=True):
 def main(input_args):
 	"""Parse input and run the program"""
 
-	# -c, --category is not implemented
-	short_opts = "hc:fen"
-	long_opts = ('help', 'category=', 'full-regex', 'early-out', 'earlyout',
+	short_opts = "h:fen"
+	long_opts = ('help', 'full-regex', 'early-out', 'earlyout',
 		'name-only')
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
 	except GetoptError, err:
-		pp.print_error("Module %s" % err)
+		sys.stderr.write(pp.error("Module %s" % err))
 		print
 		print_help(with_description=False)
 		sys.exit(2)
@@ -130,31 +138,19 @@ def main(input_args):
 		print_help()
 		sys.exit(2)
 
-	query_re = prepare_search_regex(queries)
+	if CONFIG['verbose']:
+		print " * Searching for %s ... " % (pp.regexpquery(",".join(queries)))
 
-	if Config['verbose']:
-		pp.print_info(3, " * Searching for %s ... "
-			% (pp.regexpquery(",".join(queries))))
-	
-	matches = get_installed_cpvs()
-	
-	# Print matches to screen or pipe
-	found_match = False
-	for pkg in [Package(x) for x in matches]:
-		files = pkg.get_contents()
-		for cfile in files:
-			if query_re.search(cfile):
-				if QUERY_OPTS["nameOnly"]:
-					pkg_str = pkg.key
-				else:
-					pkg_str = pkg.cpv
-				if Config['verbose']:
-					file_str = pp.path(format_filetype(cfile, files[cfile]))
-					print "%s (%s)" % (pkg_str, file_str)
-				else:
-					print pkg_str
+	printer_fn = BelongsPrinter(
+		verbose=CONFIG['verbose'], name_only=QUERY_OPTS['nameOnly']
+	)
 
-				found_match = True
+	find_owner = FileOwner(
+		is_regex=QUERY_OPTS['fullRegex'],
+		early_out=QUERY_OPTS['earlyOut'],
+		printer_fn=printer_fn
+	)
 
-		if found_match and QUERY_OPTS["earlyOut"]:
-			break
+	find_owner(queries)
+
+# vim: set ts=4 sw=4 tw=79:

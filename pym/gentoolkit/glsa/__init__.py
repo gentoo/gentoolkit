@@ -33,7 +33,7 @@ except ImportError:
 	import portage
 
 # Note: the space for rgt and rlt is important !!
-opMapping = {"le": "<=", "lt": "<", "eq": "=", "gt": ">", "ge": ">=", 
+opMapping = {"le": "<=", "lt": "<", "eq": "=", "gt": ">", "ge": ">=",
 			 "rge": ">=~", "rle": "<=~", "rgt": " >~", "rlt": " <~"}
 NEWLINE_ESCAPE = "!;\\n"	# some random string to mark newlines that should be preserved
 SPACE_ESCAPE = "!;_"		# some random string to mark spaces that should be preserved
@@ -42,7 +42,7 @@ def center(text, width):
 	"""
 	Returns a string containing I{text} that is padded with spaces on both
 	sides. If C{len(text) >= width} I{text} is returned unchanged.
-	
+
 	@type	text: String
 	@param	text: the text to be embedded
 	@type	width: Integer
@@ -65,15 +65,15 @@ def center(text, width):
 def wrap(text, width, caption=""):
 	"""
 	Wraps the given text at column I{width}, optionally indenting
-	it so that no text is under I{caption}. It's possible to encode 
+	it so that no text is under I{caption}. It's possible to encode
 	hard linebreaks in I{text} with L{NEWLINE_ESCAPE}.
-	
+
 	@type	text: String
 	@param	text: the text to be wrapped
 	@type	width: Integer
 	@param	width: the column at which the text should be wrapped
 	@type	caption: String
-	@param	caption: this string is inserted at the beginning of the 
+	@param	caption: this string is inserted at the beginning of the
 					 return value and the paragraph is indented up to
 					 C{len(caption)}.
 	@rtype:		String
@@ -84,7 +84,7 @@ def wrap(text, width, caption=""):
 	text = text.replace(2*NEWLINE_ESCAPE, NEWLINE_ESCAPE+" "+NEWLINE_ESCAPE)
 	words = text.split()
 	indentLevel = len(caption)+1
-	
+
 	for w in words:
 		if line[-1] == "\n":
 			rValue += line
@@ -132,13 +132,13 @@ def get_glsa_list(repository, myconfig):
 	Returns a list of all available GLSAs in the given repository
 	by comparing the filelist there with the pattern described in
 	the config.
-	
+
 	@type	repository: String
 	@param	repository: The directory or an URL that contains GLSA files
 						(Note: not implemented yet)
 	@type	myconfig: portage.config
 	@param	myconfig: a GLSA aware config instance (see L{checkconfig})
-	
+
 	@rtype:		List of Strings
 	@return:	a list of GLSA IDs in this repository
 	"""
@@ -151,7 +151,7 @@ def get_glsa_list(repository, myconfig):
 	dirlist = os.listdir(repository)
 	prefix = myconfig["GLSA_PREFIX"]
 	suffix = myconfig["GLSA_SUFFIX"]
-	
+
 	for f in dirlist:
 		try:
 			if f[:len(prefix)] == prefix and f[-1*len(suffix):] == suffix:
@@ -163,7 +163,7 @@ def get_glsa_list(repository, myconfig):
 def getListElements(listnode):
 	"""
 	Get all <li> elements for a given <ol> or <ul> node.
-	
+
 	@type	listnode: xml.dom.Node
 	@param	listnode: <ul> or <ol> list to get the elements for
 	@rtype:		List of Strings
@@ -184,7 +184,7 @@ def getText(node, format, textfd = None):
 	parameter the text might be formatted by adding/removing newlines,
 	tabs and spaces. This function is only useful for the GLSA DTD,
 	it's not applicable for other DTDs.
-	
+
 	@type	node: xml.dom.Node
 	@param	node: the root node to start with the parsing
 	@type	format: String
@@ -251,7 +251,7 @@ def getMultiTagsText(rootnode, tagname, format):
 	"""
 	Returns a list with the text of all subnodes of type I{tagname}
 	under I{rootnode} (which itself is not parsed) using the given I{format}.
-	
+
 	@type	rootnode: xml.dom.Node
 	@param	rootnode: the node to search for I{tagname}
 	@type	tagname: String
@@ -267,9 +267,9 @@ def getMultiTagsText(rootnode, tagname, format):
 
 def makeAtom(pkgname, versionNode):
 	"""
-	creates from the given package name and information in the 
+	creates from the given package name and information in the
 	I{versionNode} a (syntactical) valid portage atom.
-	
+
 	@type	pkgname: String
 	@param	pkgname: the name of the package for this atom
 	@type	versionNode: xml.dom.Node
@@ -292,9 +292,9 @@ def makeAtom(pkgname, versionNode):
 
 def makeVersion(versionNode):
 	"""
-	creates from the information in the I{versionNode} a 
+	creates from the information in the I{versionNode} a
 	version string (format <op><version>).
-	
+
 	@type	versionNode: xml.dom.Node
 	@param	versionNode: a <vulnerable> or <unaffected> Node that
 						 contains the version information for this atom
@@ -314,17 +314,17 @@ def makeVersion(versionNode):
 
 def match(atom, portdbname, match_type="default"):
 	"""
-	wrapper that calls revisionMatch() or portage.dbapi.match() depending on 
+	wrapper that calls revisionMatch() or portage.dbapi.match() depending on
 	the given atom.
-	
+
 	@type	atom: string
 	@param	atom: a <~ or >~ atom or a normal portage atom that contains the atom to match against
 	@type	portdb: portage.dbapi
 	@param	portdb:	one of the portage databases to use as information source
 	@type	match_type: string
-	@param	match_type: if != "default" passed as first argument to dbapi.xmatch 
+	@param	match_type: if != "default" passed as first argument to dbapi.xmatch
 				to apply the wanted visibility filters
-	
+
 	@rtype:		list of strings
 	@return:	a list with the matching versions
 	"""
@@ -341,15 +341,15 @@ def revisionMatch(revisionAtom, portdb, match_type="default"):
 	handler for the special >~, >=~, <=~ and <~ atoms that are supposed to behave
 	as > and < except that they are limited to the same version, the range only
 	applies to the revision part.
-	
+
 	@type	revisionAtom: string
 	@param	revisionAtom: a <~ or >~ atom that contains the atom to match against
 	@type	portdb: portage.dbapi
 	@param	portdb:	one of the portage databases to use as information source
 	@type	match_type: string
-	@param	match_type: if != "default" passed as first argument to portdb.xmatch 
+	@param	match_type: if != "default" passed as first argument to portdb.xmatch
 				to apply the wanted visibility filters
-	
+
 	@rtype:		list of strings
 	@return:	a list with the matching versions
 	"""
@@ -370,35 +370,34 @@ def revisionMatch(revisionAtom, portdb, match_type="default"):
 		if eval(r1+" "+revisionAtom[0:2]+" "+r2):
 			rValue.append(v)
 	return rValue
-		
+
 
 def getMinUpgrade(vulnerableList, unaffectedList, minimize=True):
 	"""
-	Checks if the state of installed packages matches an atom in
-	I{vulnerableList} and returns an update path.
+	Checks if the systemstate is matching an atom in
+	I{vulnerableList} and returns string describing
+	the lowest version for the package that matches an atom in
+	I{unaffectedList} and is greater than the currently installed
+	version. It will return an empty list if the system is affected,
+	and no upgrade is possible or None if the system is not affected.
+	Both I{vulnerableList} and I{unaffectedList} should have the
+	same base package.
 
-        Return value is:
-         * None if the system is not affected
-         * a list of tuples (a,b) where
-                  a  is a cpv describing an installed vulnerable atom
-                  b  is a cpv describing an uninstalled unaffected atom
-                       in the same slot as a
-                     OR the empty string ("") which means no upgrade
-                       is possible
-	
 	@type	vulnerableList: List of Strings
 	@param	vulnerableList: atoms matching vulnerable package versions
 	@type	unaffectedList: List of Strings
 	@param	unaffectedList: atoms matching unaffected package versions
 	@type	minimize:	Boolean
 	@param	minimize:	True for a least-change upgrade, False for emerge-like algorithm
-	
-	@rtype:		List | None
-	@return:	None if unaffected or a list of (vuln, upgrade) atoms.
+
+	@rtype:		String | None
+	@return:	the lowest unaffected version that is greater than
+				the installed version.
 	"""
+	rValue = ""
 	v_installed = reduce(operator.add, [match(v, "vartree") for v in vulnerableList], [])
 	u_installed = reduce(operator.add, [match(u, "vartree") for u in unaffectedList], [])
-	
+
 	# remove all unaffected atoms from vulnerable list
 	v_installed = list(set(v_installed).difference(set(u_installed)))
 
@@ -417,18 +416,13 @@ def getMinUpgrade(vulnerableList, unaffectedList, minimize=True):
 
 	for vuln in v_installed:
 		update = ""
-		# find the best update path for the vuln atom
 		for c in avail_updates:
 			c_pv = portage.catpkgsplit(c)
 			i_pv = portage.catpkgsplit(vuln)
-			if portage.pkgcmp(c_pv[1:], i_pv[1:]) <= 0:
-				# c is less or equal than vuln
-				continue
-			if portage.db["/"]["porttree"].dbapi.aux_get(c, ["SLOT"]) != \
-			   portage.db["/"]["vartree"].dbapi.aux_get(vuln, ["SLOT"]):
-				# upgrade to a different slot
-				continue
-			if update == ""	or (minimize ^ (portage.pkgcmp(c_pv[1:], portage.catpkgsplit(update)[1:]) > 0)):
+			if portage.pkgcmp(c_pv[1:], i_pv[1:]) > 0 \
+					and (update == "" \
+						or (minimize ^ (portage.pkgcmp(c_pv[1:], portage.catpkgsplit(update)[1:]) > 0))) \
+					and portage.db["/"]["porttree"].dbapi.aux_get(c, ["SLOT"]) == portage.db["/"]["vartree"].dbapi.aux_get(vuln, ["SLOT"]):
 				update = c_pv[0]+"/"+c_pv[1]+"-"+c_pv[2]
 				if c_pv[3] != "r0":		# we don't like -r0 for display
 					update += "-"+c_pv[3]
@@ -440,7 +434,7 @@ def format_date(datestr):
 	"""
 	Takes a date (announced, revised) date from a GLSA and formats
 	it as readable text (i.e. "January 1, 2008").
-	
+
 	@type	date: String
 	@param	date: the date string to reformat
 	@rtype:		String
@@ -450,16 +444,16 @@ def format_date(datestr):
 	splitdate = datestr.split("-", 2)
 	if len(splitdate) != 3:
 		return datestr
-	
+
 	# This cannot raise an error as we use () instead of []
 	splitdate = (int(x) for x in splitdate)
-	
+
 	from datetime import date
 	try:
 		d = date(*splitdate)
 	except ValueError:
 		return datestr
-	
+
 	# TODO We could format to local date format '%x' here?
 	return d.strftime("%B %d, %Y")
 
@@ -470,7 +464,7 @@ class GlsaTypeException(Exception):
 
 class GlsaFormatException(Exception):
 	pass
-				
+
 class GlsaArgumentException(Exception):
 	pass
 
@@ -482,9 +476,9 @@ class Glsa:
 	"""
 	def __init__(self, myid, myconfig):
 		"""
-		Simple constructor to set the ID, store the config and gets the 
+		Simple constructor to set the ID, store the config and gets the
 		XML data by calling C{self.read()}.
-		
+
 		@type	myid: String
 		@param	myid: String describing the id for the GLSA object (standard
 					  GLSAs have an ID of the form YYYYMM-nn) or an existing
@@ -506,7 +500,7 @@ class Glsa:
 		"""
 		Here we build the filename from the config and the ID and pass
 		it to urllib to fetch it from the filesystem or a remote server.
-		
+
 		@rtype:		None
 		@return:	None
 		"""
@@ -523,10 +517,10 @@ class Glsa:
 
 	def parse(self, myfile):
 		"""
-		This method parses the XML file and sets up the internal data 
+		This method parses the XML file and sets up the internal data
 		structures by calling the different helper functions in this
 		module.
-		
+
 		@type	myfile: String
 		@param	myfile: Filename to grab the XML data from
 		@rtype:		None
@@ -549,7 +543,7 @@ class Glsa:
 		self.title = getText(myroot.getElementsByTagName("title")[0], format="strip")
 		self.synopsis = getText(myroot.getElementsByTagName("synopsis")[0], format="strip")
 		self.announced = format_date(getText(myroot.getElementsByTagName("announced")[0], format="strip"))
-		
+
 		count = 1
 		# Support both formats of revised:
 		# <revised>December 30, 2007: 02</revised>
@@ -560,15 +554,15 @@ class Glsa:
 			count = revisedEl.getAttribute("count")
 		elif (self.revised.find(":") >= 0):
 			(self.revised, count) = self.revised.split(":")
-		
+
 		self.revised = format_date(self.revised)
-		
+
 		try:
 			self.count = int(count)
 		except ValueError:
 			# TODO should this rais a GlsaFormatException?
 			self.count = 1
-		
+
 		# now the optional and 0-n toplevel, #PCDATA tags and references
 		try:
 			self.access = getText(myroot.getElementsByTagName("access")[0], format="strip")
@@ -576,7 +570,7 @@ class Glsa:
 			self.access = ""
 		self.bugs = getMultiTagsText(myroot, "bug", format="strip")
 		self.references = getMultiTagsText(myroot.getElementsByTagName("references")[0], "uri", format="keep")
-		
+
 		# and now the formatted text elements
 		self.description = getText(myroot.getElementsByTagName("description")[0], format="xml")
 		self.workaround = getText(myroot.getElementsByTagName("workaround")[0], format="xml")
@@ -586,7 +580,7 @@ class Glsa:
 		try:
 			self.background = getText(myroot.getElementsByTagName("background")[0], format="xml")
 		except IndexError:
-			self.background = ""					
+			self.background = ""
 
 		# finally the interesting tags (product, affected, package)
 		self.glsatype = myroot.getElementsByTagName("product")[0].getAttribute("type")
@@ -611,10 +605,10 @@ class Glsa:
 
 	def dump(self, outstream=sys.stdout, encoding="utf-8"):
 		"""
-		Dumps a plaintext representation of this GLSA to I{outfile} or 
+		Dumps a plaintext representation of this GLSA to I{outfile} or
 		B{stdout} if it is ommitted. You can specify an alternate
 		I{encoding} if needed (default is utf-8).
-		
+
 		@type	outstream: File
 		@param	outfile: Stream that should be used for writing
 						 (defaults to sys.stdout)
@@ -655,13 +649,13 @@ class Glsa:
  		myreferences = " ".join(r.replace(" ", SPACE_ESCAPE)+NEWLINE_ESCAPE for r in self.references)
 		outstream.write("\n"+wrap(myreferences, width, caption="References:       "))
 		outstream.write("\n")
-	
+
 	def isVulnerable(self):
 		"""
 		Tests if the system is affected by this GLSA by checking if any
 		vulnerable package versions are installed. Also checks for affected
 		architectures.
-		
+
 		@rtype:		Boolean
 		@returns:	True if the system is affected, False if not
 		"""
@@ -674,12 +668,12 @@ class Glsa:
 						rValue = rValue \
 							or (None != getMinUpgrade([v,], path["unaff_atoms"]))
 		return rValue
-	
+
 	def isInjected(self):
 		"""
 		Looks if the GLSA ID is in the GLSA checkfile to check if this
 		GLSA should be marked as applied.
-		
+
 		@rtype:		Boolean
 		@returns:	True if the GLSA is in the inject file, False if not
 		"""
@@ -691,7 +685,7 @@ class Glsa:
 	def inject(self):
 		"""
 		Puts the ID of this GLSA into the GLSA checkfile, so it won't
-		show up on future checks. Should be called after a GLSA is 
+		show up on future checks. Should be called after a GLSA is
 		applied or on explicit user request.
 
 		@rtype:		None
@@ -702,13 +696,13 @@ class Glsa:
 			checkfile.write(self.nr+"\n")
 			checkfile.close()
 		return None
-	
+
 	def getMergeList(self, least_change=True):
 		"""
 		Returns the list of package-versions that have to be merged to
-		apply this GLSA properly. The versions are as low as possible 
+		apply this GLSA properly. The versions are as low as possible
 		while avoiding downgrades (see L{getMinUpgrade}).
-		
+
 		@type	least_change: Boolean
 		@param	least_change: True if the smallest possible upgrade should be selected,
 					False for an emerge-like algorithm

@@ -19,7 +19,7 @@ from xml.sax.handler import feature_namespaces
 import portage
 from portage.output import *
 
-version = open('/usr/share/gentoolkit/VERSION').read().strip()
+__version__ = "svn"
 
 def earch(workdir):
 	"""Prints arch keywords for a given dir"""
@@ -177,7 +177,7 @@ def check_metadata(full_package):
 
 def usage(code):
 	"""Prints the uage information for this script"""
-	print green("epkginfo"), "(%s)" % version
+	print green("epkginfo"), "(%s)" % __version__
 	print
 	print "Usage: epkginfo [package-cat/]package"
 	sys.exit(code)
