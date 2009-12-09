@@ -75,6 +75,36 @@ def print_help(with_description=True, with_usage=True):
 	))
 
 
+def filter_keywords(matches):
+	"""Filter non-unique keywords per slot.
+
+	This view apparently makes version bumps easier for package maintainers.
+
+	@type matches: array
+	@param matches: set of L{gentoolkit.package.Package} instances whose
+		'key' are all the same.
+	@rtype: dict
+	@return: a dict with L{gentoolkit.package.Package} instance keys and
+		'array of keywords not found in a higher version of pkg within the
+		same slot' values.
+	"""
+
+	result = {}
+	slot_map = {}
+	# Start from the newest
+	rev_matches = reversed(matches)
+	for pkg in rev_matches:
+		keywords_str, slot = pkg.get_env_vars(('KEYWORDS', 'SLOT'))
+		keywords = keywords_str.split()
+		result[pkg] = [x for x in keywords if x not in slot_map.get(slot, [])]
+		try:
+			slot_map[slot].update(keywords)
+		except KeyError:
+			slot_map[slot] = set(keywords)
+
+	return result
+
+
 def format_herds(herds):
 	"""Format herd information for display."""
 
@@ -164,26 +194,40 @@ def format_useflags(useflags):
 	return result
 
 
-def format_keywords(match):
-	"""Format keywords information for display."""
+def format_keywords(keywords):
+	"""Sort and colorize keywords for display."""
 
-	kwsplit = match.get_env_var('KEYWORDS').split()
-	ver = match.cpv.fullversion
-	keywords = ''
-	for kw in kwsplit:
-		if kw.startswith('~'):
-			keywords += " %s" % pp.useflag(kw, enabled=True)
+	result = []
+
+	for kw in sorted(keywords):
+		if kw.startswith(('~', '-')):
+			# keyword (~) or arch (-) masked, color red
+			kw = pp.useflag(kw, enabled=True)
 		else:
-			keywords += " %s" % pp.useflag(kw, enabled=False)
+			# unmasked, color blue
+			kw = pp.useflag(kw, enabled=False)
+		result.append(kw)
+
+	return ' '.join(result)
+
+
+def format_keywords_line(pkg, fmtd_keywords):
+	"""Format the entire keywords line for display."""
+
+	slot = pkg.get_env_var('SLOT')
+	ver = pkg.cpv.fullversion
+	verstr_len = len(ver) + 1 + len(slot)  # +1 for ':'
 
 	if CONFIG['verbose']:
 		result = format_line(
-			keywords, "%s: " % pp.cpv(ver), " " * (len(ver) + 2)
-			)
+			fmtd_keywords, "%s:%s: " % (pp.cpv(ver), pp.slot(slot)),
+			" " * (verstr_len + 2)
+		)
 	else:
-		result = "%s:%s" % (ver, keywords)
+		result = "%s:%s: %s" % (ver, slot, fmtd_keywords)
 
 	return result
+
 
 # R0912: *Too many branches (%s/%s)*
 # pylint: disable-msg=R0912
@@ -234,13 +278,20 @@ def call_format_functions(matches):
 		print_sequence(upstream)
 
 	if QUERY_OPTS["keywords"] or not got_opts:
+		# Get {<Package 'dev-libs/glib-2.20.5'>: [u'ia64', u'm68k', ...], ...}
+		keyword_map = filter_keywords(matches)
+
 		for match in matches:
-			kwds = format_keywords(match)
+			fmtd_keywords = format_keywords(keyword_map[match])
+			keywords_line = format_keywords_line(match, fmtd_keywords)
 			if QUERY_OPTS["keywords"]:
-				print kwds
+				print keywords_line
 			else:
-				indent = " " * (15 + len(match.cpv.fullversion))
-				print format_line(kwds, "Keywords:    ", indent)
+				# FIXME: duplicate code
+				slot = match.get_env_var('SLOT')
+				verstr_len = len(match.cpv.fullversion) + len(slot)
+				indent = " " * (16 + verstr_len)
+				print format_line(keywords_line, "Keywords:    ", indent)
 
 	if QUERY_OPTS["description"]:
 		desc = ref_pkg.metadata.get_descriptions()
@@ -357,8 +408,9 @@ def get_reference_pkg(matches):
 	"""Find a package in the Portage tree to reference."""
 
 	pkg = None
-	while list(reversed(matches)):
-		pkg = matches[-1]
+	rev_matches = list(reversed(matches))
+	while rev_matches:
+		pkg = rev_matches.pop()
 		if not pkg.is_overlay():
 			break
 

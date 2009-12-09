@@ -2,6 +2,7 @@ include AUTHORS
 include ChangeLog
 include COPYING
 include CREDITS
+include DEVELOPING
 include NEWS
 include README
 include TODO

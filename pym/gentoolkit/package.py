@@ -194,18 +194,6 @@ class Package(CPV):
 
 		return result
 
-	def get_provide(self):
-		"""Return a list of provides, if any"""
-
-		if self.is_installed():
-			result = VARDB.get_provide(str(self.cpv))
-		else:
-			try:
-				result = [self.get_env_var('PROVIDE')]
-			except KeyError:
-				result = []
-		return result
-
 	def get_ebuild_path(self, in_vartree=False):
 		"""Returns the complete path to the .ebuild file.
 
@@ -238,19 +226,25 @@ class Package(CPV):
 
 		return self.get_package_path().split(os.sep)[-3]
 
-	def get_env_var(self, var, tree=None):
-		"""Returns one of the predefined env vars DEPEND, SRC_URI, etc."""
+	def get_env_vars(self, envvars, tree=None):
+		"""Returns one or more of the predefined environment variables.
+
+		@type envvars: array
+		@param envvars: one or more of (DEPEND, SRC_URI, etc.)"""
 
 		if tree is None:
 			tree = self._get_trees()[0]
 		try:
-			result = tree.aux_get(str(self.cpv), [var])
-			if len(result) != 1:
-				raise errors.GentoolkitFatalError
+			result = tree.aux_get(str(self.cpv), envvars)
 		except (KeyError, errors.GentoolkitFatalError):
 			err = "aux_get returned unexpected results"
 			raise errors.GentoolkitFatalError(err)
-		return result[0]
+		return result
+
+	def get_env_var(self, *args, **kwargs):
+		"""Returns one of the predefined environment variables."""
+
+		return self.get_env_vars(args, **kwargs)[0]
 
 	def get_use_flags(self):
 		"""Returns the USE flags active at time of installation."""
@@ -286,7 +280,7 @@ class Package(CPV):
 	def is_installed(self):
 		"""Returns True if this package is installed (merged)"""
 
-		return VARDB.cpv_exists(str(self.cpv))
+		return self.dblink.exists()
 
 	def is_overlay(self):
 		"""Returns True if the package is in an overlay."""
