@@ -165,6 +165,11 @@ EW
 
 print_usage() {
 cat << EOF
+${APP_NAME}: (${VERSION})
+
+Copyright (C) 2003-2009 Gentoo Foundation, Inc.
+This is free software; see the source for copying conditions.
+
 Usage: $APP_NAME [OPTIONS] [--] [EMERGE_OPTIONS]
 
 Broken reverse dependency rebuilder.
@@ -191,11 +196,6 @@ Calls emerge, options after -- are ignored by $APP_NAME
 and passed directly to emerge.
 
 Report bugs to <http://bugs.gentoo.org>
-
-${APP_NAME}: (${VERSION})
-
-Copyright (C) 2003-2009 Gentoo Foundation, Inc.
-This is free software; see the source for copying conditions.
 
 EOF
 }
