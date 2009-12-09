@@ -12,14 +12,29 @@ pylint --rcfile=pylintrc yourfile.py
 
 Creating a release:
 ===================
+Note: We are using VERSION="0.3.0" simply as an example.
+
 - Run Gentoolkit's test suite, make sure it passes:
+Note: requires dev-python/snakeoil
 ./setup.py test
+
 - Create a tag for the release
+svn copy svn+ssh://<dev>@svn.gentoo.org/var/svnroot/gentoolkit/trunk \
+         svn+ssh://<dev>@svn.gentoo.org/var/svnroot/gentoolkit/tags/gentoolkit-0.3.0 \
+	 -m "Tagging the <VERSION> release of gentoolkit."
+svn update to pull the tag from subversion
+cd to the local tags/gentoolkit-0.3.0 directory
+
 - Set the version of the release:
-VERSION="0.3.0" ./setup set_version
+VERSION="0.3.0" ./setup.py set_version
+
 - Create a source distribution (you need to add VERSION here, too):
 VERSION="0.3.0" ./setup.py sdist
+Transfer dist/gentoolkit-0.3.0.tar.gz to dev.gentoo.org:/space/distfiles-local
+
 - Reset svn version to 'svn' (default):
 ./setup.py set_version
+
 - Clean up temporary files:
-./setup clean -a
+./setup.py clean -a
+
