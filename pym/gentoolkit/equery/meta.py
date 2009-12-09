@@ -358,7 +358,7 @@ def get_reference_pkg(matches):
 
 	pkg = None
 	while list(reversed(matches)):
-		pkg = matches.pop()
+		pkg = matches[-1]
 		if not pkg.is_overlay():
 			break
 
