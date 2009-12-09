@@ -127,11 +127,11 @@ class Dependencies(CPV):
 		Optionally gather indirect dependencies.
 
 		@type max_depth: int
-		@param max_depth: Maximum depth to recurse if.
+		@keyword max_depth: Maximum depth to recurse if.
 			<1 means no maximum depth
 			>0 means recurse only this depth;
 		@type printer_fn: callable
-		@param printer_fn: If None, no effect. If set, it will be applied to
+		@keyword printer_fn: If None, no effect. If set, it will be applied to
 			each result.
 		@rtype: list
 		@return: [(depth, pkg), ...]
@@ -210,19 +210,18 @@ class Dependencies(CPV):
 			44
 
 		@type pkgset: iterable
-		@param pkgset: sorted pkg cpv strings or any 'intersectable' objects to
-			use for calculate our revdep graph.
+		@keyword pkgset: sorted pkg cpv strings or anything sublassing
+			L{gentoolkit.cpv.CPV} to use for calculate our revdep graph.
 		@type max_depth: int
-		@param max_depth: Maximum depth to recurse if only_direct=False.
+		@keyword max_depth: Maximum depth to recurse if only_direct=False.
 			-1 means no maximum depth;
 			 0 is the same as only_direct=True;
 			>0 means recurse only this many times;
 		@type only_direct: bool
-		@param only_direct: to recurse or not to recurse
+		@keyword only_direct: to recurse or not to recurse
 		@type printer_fn: callable
-		@param printer_fn: If None, no effect. If set, it will be applied to
-			each L{gentoolkit.atom.Atom} object as it is added to
-			the results.
+		@keyword printer_fn: If None, no effect. If set, it will be applied to
+			each L{gentoolkit.atom.Atom} object as it is added to the results.
 		@rtype: list
 		@return: L{gentoolkit.dependencies.Dependencies} objects
 		"""

@@ -3,8 +3,10 @@ import os.path as osp
 import unittest
 import py_compile
 
+"""Does a basic syntax check by compiling all modules. From Portage."""
+
 pym_dirs = os.walk(osp.dirname(osp.dirname(osp.dirname(__file__))))
-blacklist_dirs = frozenset(('.svn', 'tests'))
+blacklist_dirs = frozenset(('.svn', 'test'))
 
 class TestForSyntaxErrors(unittest.TestCase):
 

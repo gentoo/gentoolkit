@@ -86,7 +86,8 @@ class Atom(portage.dep.Atom, CPV):
 			">=dev-lang/python-2.4" and "dev-lang/python" but not
 			"<dev-lang/python-2.3"
 
-		@type other: Any "Intersectable" object
+		@type other: L{gentoolkit.atom.Atom} or
+			L{gentoolkit.versionmatch.VersionMatch}
 		@param other: other package to compare
 		@see: L{pkgcore.ebuild.atom}
 		"""

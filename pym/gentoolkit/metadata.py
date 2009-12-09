@@ -176,8 +176,8 @@ class MetaData(object):
 		"""Parse a valid metadata.xml file.
 
 		@type metadata_path: str
-		@ivar metadata_path: path to a valid metadata.xml file
-		@raise IOError: if C{matadata_path} can not be read
+		@param metadata_path: path to a valid metadata.xml file
+		@raise IOError: if C{metadata_path} can not be read
 		"""
 
 		self.metadata_path = metadata_path
@@ -247,9 +247,8 @@ class MetaData(object):
 		if self._descriptions is not None:
 			return self._descriptions
 
-		self._descriptions = [
-			e.text for e in self._xml_tree.findall("longdescription")
-		]
+		long_descriptions = self._xml_tree.findall("longdescription")
+		self._descriptions = [e.text for e in long_descriptions]
 		return self._descriptions
 
 	def get_maintainers(self):
