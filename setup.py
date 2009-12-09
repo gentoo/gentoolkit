@@ -14,7 +14,7 @@ cwd = os.getcwd()
 # Bash files that need `VERSION=""` subbed, relative to this dir:
 bash_scripts = [os.path.join(cwd, path) for path in (
 	'bin/euse',
-	'bin/revdep-rebuild',
+	'bin/revdep-rebuild'
 )]
 
 # Python files that need `__version__ = ""` subbed, relative to this dir:
@@ -51,7 +51,7 @@ class set_version(core.Command):
 				with open(f, 'w') as s:
 					s.writelines(updated_file)
 		quote = r'[\'"]{1}'
-		bash_re = r'(?<=^VERSION=)' + quote + '[^\'"]*' + quote
+		bash_re = r'(?<=VERSION=)' + quote + '[^\'"]*' + quote
 		sub(bash_scripts, bash_re)
 		python_re = r'(?<=^__version__ = )' + quote + '[^\'"]*' + quote
 		sub(python_scripts, python_re)
