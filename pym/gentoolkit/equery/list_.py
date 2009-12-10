@@ -83,10 +83,10 @@ def get_duplicates(matches):
 	dups = {}
 	result = []
 	for pkg in matches:
-		if pkg.cp in dups:
-			dups[pkg.cp].append(pkg)
+		if pkg.cpv.cp in dups:
+			dups[pkg.cpv.cp].append(pkg)
 		else:
-			dups[pkg.cp] = [pkg]
+			dups[pkg.cpv.cp] = [pkg]
 
 	for cpv in dups.values():
 		if len(cpv) > 1:
