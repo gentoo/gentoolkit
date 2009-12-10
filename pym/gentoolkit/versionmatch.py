@@ -45,7 +45,7 @@ class VersionMatch(object):
 
 		if not isinstance(cpv, CPV):
 			raise ValueError("cpv must be a gentoolkit.cpv.CPV instance")
-		self.cpv = cpv
+		#self.cpv = cpv
 		self.operator = op
 		self.version = cpv.version
 		self.revision = cpv.revision
@@ -70,8 +70,9 @@ class VersionMatch(object):
 
 		Example usage:
 			>>> from gentoolkit.versionmatch import VersionMatch
-			>>> VersionMatch(op='>',ver='1.5',rev='').match(
-			... VersionMatch(op='=',ver='2.0',rev=''))
+			>>> from gentoolkit.cpv import CPV
+			>>> VersionMatch(CPV('foo/bar-1.5'), op='>').match(
+			... VersionMatch(CPV('foo/bar-2.0')))
 			True
 
 		@type other: gentoolkit.versionmatch.VersionMatch OR
@@ -90,7 +91,7 @@ class VersionMatch(object):
 	def __str__(self):
 		operator = self._convert_op2int[self.values]
 
-		if self.droprevision or not self.cpv.revision:
+		if self.droprevision or not self.revision:
 			return "ver %s %s" % (operator, self.version)
 		return "ver-rev %s %s-%s" % (
 			operator, self.version, self.revision

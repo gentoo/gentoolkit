@@ -99,7 +99,21 @@ class CPV(object):
 			raise TypeError("other isn't of %s type, is %s" % (
 				self.__class__, other.__class__)
 			)
-		return not self < other and not self == other
+		return not self <= other
+
+	def __le__(self, other):
+		if not isinstance(other, self.__class__):
+			raise TypeError("other isn't of %s type, is %s" % (
+				self.__class__, other.__class__)
+			)
+		return self < other or self == other
+
+	def __ge__(self, other):
+		if not isinstance(other, self.__class__):
+			raise TypeError("other isn't of %s type, is %s" % (
+				self.__class__, other.__class__)
+			)
+		return self > other or self == other
 
 	def __repr__(self):
 		return "<%s %r>" % (self.__class__.__name__, str(self))

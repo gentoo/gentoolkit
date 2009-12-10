@@ -51,7 +51,7 @@ class TestFileOwner(unittest.TestCase):
 		self.failUnlessRaises(AttributeError, extend_realpaths, set())
 
 
-class TestGentoolkitHelpers2(unittest.TestCase):
+class TestGentoolkitHelpers(unittest.TestCase):
 
 	def test_compare_package_strings(self):
 		# Test ordering of package strings, Portage has test for vercmp,

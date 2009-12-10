@@ -37,12 +37,6 @@ class TestEqueryInit(unittest.TestCase):
 		for key in unused_keys:
 			self.failUnlessRaises(KeyError, equery.expand_module_name, key)
 
-	def test_format_timestamp(self):
-		# Test that a certain timetamp produces the correct formatted string
-		tstamp = 1257626685.6503389
-		tstr = '2009-11-07 15:44:45'
-		self.failUnlessEqual(equery.format_timestamp(tstamp), tstr)
-
 
 def test_main():
 	test_support.run_unittest(TestEqueryInit)
