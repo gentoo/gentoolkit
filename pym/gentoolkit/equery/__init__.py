@@ -39,7 +39,7 @@ from gentoolkit.textwrap_ import TextWrapper
 __productname__ = "equery"
 __authors__ = (
 	'Karl Trygve Kalleberg - Original author',
-	'Douglas Anderson - Modular redesign; author of meta, changes'
+	'Douglas Anderson - 0.3.0 author'
 )
 
 # =======
@@ -220,7 +220,7 @@ def initialize_configuration():
 
 
 def main_usage():
-	"""Print the main usage message for equery"""
+	"""Return the main usage message for equery"""
 
 	return "%(usage)s %(product)s [%(g_opts)s] %(mod_name)s [%(mod_opts)s]" % {
 		'usage': pp.emph("Usage:"),
@@ -232,7 +232,7 @@ def main_usage():
 
 
 def mod_usage(mod_name="module", arg="pkgspec", optional=False):
-	"""Provide a consistant usage message to the calling module.
+	"""Provide a consistent usage message to the calling module.
 
 	@type arg: string
 	@param arg: what kind of argument the module takes (pkgspec, filename, etc)

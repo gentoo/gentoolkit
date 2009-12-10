@@ -27,7 +27,20 @@ from gentoolkit import errors
 # =======
 
 class Atom(portage.dep.Atom, CPV):
-	"""Portage's Atom class with an improved intersects method from pkgcore.
+	"""Portage's Atom class with an improvements from pkgcore.
+
+	Gentoolkit's Atom is not backwards compatible with Portage's because we set
+	parts and combinations of parts of cpv as attributes on Atom.cpv instead of
+	putting them directly in Atom's namespace like Portage does, for one.
+	For example:
+	Gentoolkit.Atom: str(atom.cpv)     # cpv string
+					 atom.cpv.category # category
+	Portage.Atom: atom.cpv      # cpv string
+				  atom.category # category
+
+	Also, Portage's Atom.slot is a string, whereas
+	Gentoolkit's Atom.slot is a tuple as in pkgcore, since multiple slots are
+		OK
 
 	portage.dep.Atom provides the following instance variables:
 
@@ -37,7 +50,7 @@ class Atom(portage.dep.Atom, CPV):
 	@ivar cp: cat/pkg
 	@type cpv: str
 	@ivar cpv: cat/pkg-ver (if ver)
-	@type slot: str or None
+	@type slot: str or None (modified to tuple if not None)
 	@ivar slot: slot passed in as cpv:#
 	"""
 
@@ -46,21 +59,140 @@ class Atom(portage.dep.Atom, CPV):
 
 	def __init__(self, atom):
 		self.atom = atom
+		self.operator = self.blocker = self.use = self.slot = None
 
 		try:
 			portage.dep.Atom.__init__(self, atom)
-		except portage.exception.InvalidAtom, err:
-			raise errors.GentoolkitInvalidAtom(err)
+		except portage.exception.InvalidAtom:
+			raise errors.GentoolkitInvalidAtom(atom)
 
 		# Make operator compatible with intersects
 		if self.operator is None:
 			self.operator = '='
+
+		# Make slot a tuple if defined
+		# pylint screwup:
+		# E1101: 75:Atom.__init__: Instance of 'tuple' has no 'split' member
+		# pylint: disable-msg=E1101
+		if self.slot is not None:
+			self.slot = tuple(sorted(self.slot.split(',')))
 
 		self.cpv = CPV(self.cpv)
 
 		# use_conditional is USE flag condition for this Atom to be required:
 		# For: !build? ( >=sys-apps/sed-4.0.5 ), use_conditional = '!build'
 		self.use_conditional = None
+
+	def __eq__(self, other):
+		if not isinstance(other, self.__class__):
+			err = "other isn't of %s type, is %s"
+			raise TypeError(err % (self.__class__, other.__class__))
+
+		if self.operator != other.operator:
+			return False
+
+		if self.cpv != other.cpv:
+			return False
+
+		if bool(self.blocker) != bool(other.blocker):
+			return False
+
+		if self.blocker and other.blocker:
+			if self.blocker.overlap.forbid != other.blocker.overlap.forbid:
+				return False
+
+		# Don't believe Portage has something like this
+		#c = cmp(self.negate_vers, other.negate_vers)
+		#if c:
+		#	return c
+
+		if self.slot != other.slot:
+			return False
+
+		this_use = None
+		if self.use is not None:
+			this_use = sorted(self.use.tokens)
+		that_use = None
+		if other.use is not None:
+			that_use = sorted(other.use.tokens)
+		if this_use != that_use:
+			return False
+
+		# Not supported by Portage Atom yet
+		#return cmp(self.repo_id, other.repo_id)
+		return True
+
+	def __ne__(self, other):
+		if not isinstance(other, self.__class__):
+			err = "other isn't of %s type, is %s"
+			raise TypeError(err % (self.__class__, other.__class__))
+
+		return not self == other
+
+	def __lt__(self, other):
+		if not isinstance(other, self.__class__):
+			err = "other isn't of %s type, is %s"
+			raise TypeError(err % (self.__class__, other.__class__))
+
+		if self.operator != other.operator:
+			return self.operator < other.operator
+
+		if self.cpv != other.cpv:
+			return self.cpv < other.cpv
+
+		if bool(self.blocker) != bool(other.blocker):
+			# We want non blockers, then blockers, so only return True
+			# if self.blocker is True and other.blocker is False.
+			return bool(self.blocker) > bool(other.blocker)
+
+		if self.blocker and other.blocker:
+			if self.blocker.overlap.forbid != other.blocker.overlap.forbid:
+				# we want !! prior to !
+				return (self.blocker.overlap.forbid <
+					other.blocker.overlap.forbid)
+
+		# Don't believe Portage has something like this
+		#c = cmp(self.negate_vers, other.negate_vers)
+		#if c:
+		#	return c
+
+		if self.slot != other.slot:
+			return self.slot < other.slot
+
+		this_use = None
+		if self.use is not None:
+			this_use = sorted(self.use.tokens)
+		that_use = None
+		if other.use is not None:
+			that_use = sorted(other.use.tokens)
+		if this_use != that_use:
+			return this_use < that_use
+
+		# Not supported by Portage Atom yet
+		#return cmp(self.repo_id, other.repo_id)
+
+		return False
+
+	def __gt__(self, other):
+		if not isinstance(other, self.__class__):
+			err = "other isn't of %s type, is %s"
+			raise TypeError(err % (self.__class__, other.__class__))
+
+		return not self <= other
+
+	def __le__(self, other):
+		if not isinstance(other, self.__class__):
+			raise TypeError("other isn't of %s type, is %s" % (
+				self.__class__, other.__class__)
+			)
+		return self < other or self == other
+
+	def __ge__(self, other):
+		if not isinstance(other, self.__class__):
+			raise TypeError("other isn't of %s type, is %s" % (
+				self.__class__, other.__class__)
+			)
+		return self > other or self == other
 
 	def __repr__(self):
 		uc = self.use_conditional
@@ -104,6 +236,34 @@ class Atom(portage.dep.Atom, CPV):
 				return True
 			return False
 
+		# Slot dep only matters if we both have one. If we do they
+		# must be identical:
+		if (self.slot is not None and other.slot is not None and
+			self.slot != other.slot):
+			return False
+
+		# TODO: Uncomment when Portage's Atom supports repo
+		#if (self.repo_id is not None and other.repo_id is not None and
+		#	self.repo_id != other.repo_id):
+		#	return False
+
+		# Use deps are similar: if one of us forces a flag on and the
+		# other forces it off we do not intersect. If only one of us
+		# cares about a flag it is irrelevant.
+
+		# Skip the (very common) case of one of us not having use deps:
+		if self.use and other.use:
+			# Set of flags we do not have in common:
+			flags = set(self.use.tokens) ^ set(other.use.tokens)
+			for flag in flags:
+				# If this is unset and we also have the set version we fail:
+				if flag[0] == '-' and flag[1:] in flags:
+					return False
+
+        # Remaining thing to check is version restrictions. Get the
+        # ones we can check without actual version comparisons out of
+        # the way first.
+
 		# If one of us is unversioned we intersect:
 		if not self.operator or not other.operator:
 			return True
@@ -142,19 +302,23 @@ class Atom(portage.dep.Atom, CPV):
 
 		# If we get here at least one of us is a <, <=, > or >=:
 		if self.operator in ('<', '<=', '>', '>='):
-			ranged, other = self, other
-			ranged.operator = self.operator
+			# pylint screwup:
+			# E0601: Using variable 'ranged' before assignment
+			# pylint: disable-msg=E0601
+			ranged, ranged.operator = self, self.operator
 		else:
-			ranged, other = other, self
-			ranged.operator = other.operator
+			ranged, ranged.operator = other, other.operator
+			other, other.operator = self, self.operator
 
 		if '<' in other.operator or '>' in other.operator:
 			# We are both ranged, and in the opposite "direction" (or
 			# we would have matched above). We intersect if we both
 			# match the other's endpoint (just checking one endpoint
 			# is not enough, it would give a false positive on <=2 vs >2)
-			return (VersionMatch(other.cpv, op=other.operator).match(ranged) and
-				VersionMatch(ranged.cpv, op=ranged.operator).match(other.cpv))
+			return (
+				VersionMatch(other.cpv, op=other.operator).match(ranged.cpv) and
+				VersionMatch(ranged.cpv, op=ranged.operator).match(other.cpv)
+			)
 
 		if other.operator == '~':
 			# Other definitely matches its own version. If ranged also
@@ -176,7 +340,7 @@ class Atom(portage.dep.Atom, CPV):
 			if '<' in ranged.operator:
 				# If other.revision is not defined then other does not
 				# match anything smaller than its own fullversion:
-				if not other.cpv.revision:
+				if other.cpv.revision:
 					return False
 
 				# If other.revision is defined then we can always
