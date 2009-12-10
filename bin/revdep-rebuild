@@ -263,16 +263,20 @@ clean_exit() {
 # NOTE: depends on app-misc/realpath!
 get_file_owner() {
 	local IFS=$'\n'
-	# Add a space to the end of each object name to prevent false
-	# matches, for example /usr/bin/dia matching /usr/bin/dialog (bug #196460).
-	# The same for "${rpath} ".
 
 	rpath=$(realpath "${*}" 2>/dev/null)
 	# To ensure we always have something in rpath...
 	[[ -z $rpath ]] && rpath=${*}
 
-	find -L /var/db/pkg -name CONTENTS -print0 |
-		xargs -0 grep -Fl -e "${*} " -e "${rpath} " |
+	# Workaround for bug 280341
+	mlib=$(echo ${*}|sed 's:/lib/:/lib64/:')
+	[[ "${*}" == "${mlib}" ]] && mlib=$(echo ${*}|sed 's:/lib64/:/lib/:')
+
+	# Add a space to the end of each object name to prevent false
+	# matches, for example /usr/bin/dia matching /usr/bin/dialog (bug #196460).
+	# The same for "${rpath} ".
+	find /var/db/pkg -type f -name CONTENTS -print0 |
+		xargs -0 grep -m 1 -Fl -e "${*} " -e "${rpath} " -e "${mlib} " |
 		sed 's:/var/db/pkg/\(.*\)/CONTENTS:\1:'
 }
 ##
