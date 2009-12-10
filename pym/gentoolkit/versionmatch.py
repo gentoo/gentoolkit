@@ -45,7 +45,7 @@ class VersionMatch(object):
 
 		if not isinstance(cpv, CPV):
 			raise ValueError("cpv must be a gentoolkit.cpv.CPV instance")
-		#self.cpv = cpv
+		self.cpv = cpv
 		self.operator = op
 		self.version = cpv.version
 		self.revision = cpv.revision

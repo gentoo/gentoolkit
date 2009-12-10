@@ -345,7 +345,7 @@ class PackageFormatter(object):
 				'slot': self.pkg.get_env_var("SLOT")
 			}
 		else:
-			return self.pkg.cpv
+			return str(self.pkg.cpv)
 
 	def format_package_location(self):
 		"""Get the install status (in /var/db/?) and origin (from and overlay
