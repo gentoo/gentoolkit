@@ -238,8 +238,10 @@ class Atom(portage.dep.Atom, CPV):
 
 		# Slot dep only matters if we both have one. If we do they
 		# must be identical:
-		if (self.slot is not None and other.slot is not None and
-			self.slot != other.slot):
+		this_slot = getattr(self, 'slot', None)
+		that_slot = getattr(other, 'slot', None)
+		if (this_slot is not None and that_slot is not None and
+			this_slot != that_slot):
 			return False
 
 		# TODO: Uncomment when Portage's Atom supports repo
@@ -252,9 +254,11 @@ class Atom(portage.dep.Atom, CPV):
 		# cares about a flag it is irrelevant.
 
 		# Skip the (very common) case of one of us not having use deps:
-		if self.use and other.use:
+		this_use = getattr(self, 'use', None)
+		that_use = getattr(other, 'use', None)
+		if this_use and that_use:
 			# Set of flags we do not have in common:
-			flags = set(self.use.tokens) ^ set(other.use.tokens)
+			flags = set(this_use.tokens) ^ set(that_use.tokens)
 			for flag in flags:
 				# If this is unset and we also have the set version we fail:
 				if flag[0] == '-' and flag[1:] in flags:

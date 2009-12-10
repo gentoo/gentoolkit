@@ -81,7 +81,7 @@ class DependPrinter(object):
 		else:
 			formatted_dep = mdep.operator + str(mdep.cpv)
 		if mdep.slot:
-			formatted_dep += pp.emph(':') + pp.slot(mdep.slot)
+			formatted_dep += pp.emph(':') + pp.slot(','.join(mdep.slot))
 		if mdep.use:
 			useflags = pp.useflag(','.join(mdep.use.tokens))
 			formatted_dep += (pp.emph('[') + useflags + pp.emph(']'))
