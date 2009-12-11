@@ -82,7 +82,7 @@ def print_help(with_description=True):
 def display_files(contents):
 	"""Display the content of an installed package.
 
-	@see: gentoolkit.package.Package.get_contents
+	@see: gentoolkit.package.Package.parsed_contents
 	@type contents: dict
 	@param contents: {'path': ['filetype', ...], ...}
 	"""
@@ -202,7 +202,7 @@ def filter_by_conf(contents):
 def filter_contents(contents):
 	"""Filter files by type if specified by the user.
 
-	@see: gentoolkit.package.Package.get_contents
+	@see: gentoolkit.package.Package.parsed_contents
 	@type contents: dict
 	@param contents: {'path': ['filetype', ...], ...}
 	@rtype: dict
@@ -312,7 +312,7 @@ def main(input_args):
 			if CONFIG['verbose']:
 				print " * Contents of %s:" % pp.cpv(str(pkg.cpv))
 
-			contents = pkg.get_contents()
+			contents = pkg.parsed_contents()
 			display_files(filter_contents(contents))
 
 		first_run = False

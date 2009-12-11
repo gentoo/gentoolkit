@@ -202,7 +202,7 @@ def main(input_args):
 					# ms_int is a number representation of mask level.
 					# Only 2 and above are "hard masked" and have reasons.
 					continue
-				mask_reason = pkg.get_mask_reason()
+				mask_reason = pkg.mask_reason()
 				if not mask_reason:
 					# Package not on system or not masked
 					continue

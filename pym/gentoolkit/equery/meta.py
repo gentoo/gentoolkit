@@ -201,30 +201,24 @@ def format_keywords(keywords):
 
 	for kw in sorted(keywords):
 		if kw.startswith(('~', '-')):
-			# keyword (~) or arch (-) masked, color red
-			kw = pp.useflag(kw, enabled=True)
-		else:
-			# unmasked, color blue
+			# keyword (~) or arch (-) masked
 			kw = pp.useflag(kw, enabled=False)
+		else:
+			# unmasked
+			kw = pp.useflag(kw, enabled=True)
 		result.append(kw)
 
 	return ' '.join(result)
 
 
-def format_keywords_line(pkg, fmtd_keywords):
+def format_keywords_line(pkg, fmtd_keywords, slot, verstr_len):
 	"""Format the entire keywords line for display."""
 
-	slot = pkg.environment('SLOT')
 	ver = pkg.cpv.fullversion
-	verstr_len = len(ver) + 1 + len(slot)  # +1 for ':'
-
-	if CONFIG['verbose']:
-		result = format_line(
-			fmtd_keywords, "%s:%s: " % (pp.cpv(ver), pp.slot(slot)),
-			" " * (verstr_len + 2)
-		)
-	else:
-		result = "%s:%s: %s" % (ver, slot, fmtd_keywords)
+	result = "%s:%s: %s" % (ver, pp.slot(slot), fmtd_keywords)
+	if CONFIG['verbose'] and fmtd_keywords:
+		result = format_line(fmtd_keywords, "%s:%s: " % (ver, pp.slot(slot)),
+			" " * (verstr_len + 2))
 
 	return result
 
@@ -238,7 +232,7 @@ def call_format_functions(matches):
 	ref_pkg = get_reference_pkg(matches)
 
 	if CONFIG['verbose']:
-		repo = ref_pkg.get_repo_name()
+		repo = ref_pkg.repo_id()
 		print " * %s [%s]" % (pp.cpv(ref_pkg.cpv.cp), pp.section(repo))
 
 	got_opts = False
@@ -246,12 +240,8 @@ def call_format_functions(matches):
 		# Specific information requested, less formatting
 		got_opts = True
 
-	if not got_opts:
-		pkg_loc = ref_pkg.get_package_path()
-		print format_line(pkg_loc, "Location:    ", " " * 13)
-
 	if QUERY_OPTS["herd"] or not got_opts:
-		herds = format_herds(ref_pkg.metadata.get_herds(include_email=True))
+		herds = format_herds(ref_pkg.metadata.herds(include_email=True))
 		if QUERY_OPTS["herd"]:
 			print_sequence(format_list(herds))
 		else:
@@ -259,7 +249,7 @@ def call_format_functions(matches):
 				print format_line(herd, "Herd:        ", " " * 13)
 
 	if QUERY_OPTS["maintainer"] or not got_opts:
-		maints = format_maintainers(ref_pkg.metadata.get_maintainers())
+		maints = format_maintainers(ref_pkg.metadata.maintainers())
 		if QUERY_OPTS["maintainer"]:
 			print_sequence(format_list(maints))
 		else:
@@ -270,39 +260,44 @@ def call_format_functions(matches):
 					print format_line(maint, "Maintainer:  ", " " * 13)
 
 	if QUERY_OPTS["upstream"] or not got_opts:
-		upstream = format_upstream(ref_pkg.metadata.get_upstream())
+		upstream = format_upstream(ref_pkg.metadata.upstream())
 		if QUERY_OPTS["upstream"]:
 			upstream = format_list(upstream)
 		else:
 			upstream = format_list(upstream, "Upstream:    ", " " * 13)
 		print_sequence(upstream)
 
+	if not got_opts:
+		pkg_loc = ref_pkg.package_path()
+		print format_line(pkg_loc, "Location:    ", " " * 13)
+
 	if QUERY_OPTS["keywords"] or not got_opts:
 		# Get {<Package 'dev-libs/glib-2.20.5'>: [u'ia64', u'm68k', ...], ...}
 		keyword_map = filter_keywords(matches)
 
 		for match in matches:
+			slot = match.environment('SLOT')
+			verstr_len = len(match.cpv.fullversion) + len(slot)
 			fmtd_keywords = format_keywords(keyword_map[match])
-			keywords_line = format_keywords_line(match, fmtd_keywords)
+			keywords_line = format_keywords_line(
+				match, fmtd_keywords, slot, verstr_len
+			)
 			if QUERY_OPTS["keywords"]:
 				print keywords_line
 			else:
-				# FIXME: duplicate code
-				slot = match.environment('SLOT')
-				verstr_len = len(match.cpv.fullversion) + len(slot)
 				indent = " " * (16 + verstr_len)
 				print format_line(keywords_line, "Keywords:    ", indent)
 
 	if QUERY_OPTS["description"]:
-		desc = ref_pkg.metadata.get_descriptions()
+		desc = ref_pkg.metadata.descriptions()
 		print_sequence(format_list(desc))
 
 	if QUERY_OPTS["useflags"]:
-		useflags = format_useflags(ref_pkg.metadata.get_useflags())
+		useflags = format_useflags(ref_pkg.metadata.use())
 		print_sequence(format_list(useflags))
 
 	if QUERY_OPTS["xml"]:
-		print_file(os.path.join(ref_pkg.get_package_path(), 'metadata.xml'))
+		print_file(os.path.join(ref_pkg.package_path(), 'metadata.xml'))
 
 
 def format_line(line, first="", subsequent="", force_quiet=False):

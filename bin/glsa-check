@@ -6,22 +6,15 @@
 import os
 import sys
 import codecs
-try:
-	import portage
-except ImportError:
-	sys.path.insert(0, "/usr/lib/portage/pym")
-	import portage
 
-try:
-	from portage.output import *
-except ImportError:
-	from output import *
+import portage
+from portage.output import *
 
 from getopt import getopt, GetoptError
 
 __program__ = "glsa-check"
 __author__ = "Marius Mauch <genone@gentoo.org>"
-__version__ = open("/usr/share/gentoolkit/VERSION").read().strip()
+__version__ = "svn"
 
 optionmap = [
 ["-l", "--list", "list the GLSAs"],
@@ -55,12 +48,12 @@ try:
 	args, params = getopt(sys.argv[1:], "".join([o[0][1] for o in optionmap]), \
 		[x[2:] for x in reduce(lambda x,y: x+y, [z[1:-1] for z in optionmap])])
 	args = [a for a,b in args]
-	
+
 	for option in ["--nocolor", "-n"]:
 		if option in args:
 			nocolor()
 			args.remove(option)
-			
+
 	verbose = False
 	for option in ["--verbose", "-v"]:
 		if option in args:
@@ -72,7 +65,7 @@ try:
 		if option in args:
 			list_cve = True
 			args.remove(option)
-	
+
 	least_change = True
 	for option in ["--emergelike", "-e"]:
 		if option in args:
@@ -113,7 +106,7 @@ if len(params) <= 0 and mode in ["fix", "test", "pretend", "dump", "inject", "ma
 	mode = "HELP"
 elif len(params) <= 0 and mode == "list":
 	params.append("affected")
-	
+
 # show help message
 if mode == "help" or mode == "HELP":
 	msg = "Syntax: glsa-check <option> [glsa-list]\n\n"
@@ -176,7 +169,7 @@ if "new" in params:
 	params.remove("new")
 	sys.stderr.write("Warning: The 'new' glsa-list target has been removed, using 'affected'.\n")
 	params.append("affected")
-	
+
 if "all" in params:
 	glsalist = completelist
 	params.remove("all")
@@ -298,7 +291,7 @@ if mode in ["dump", "fix", "inject", "pretend"]:
 				mergedict = {}
 				for (vuln, update) in myglsa.getAffectionTable(least_change=least_change):
 					mergedict.setdefault(update, []).append(vuln)
-				
+
 				# first, extract the atoms that cannot be upgraded (where key == "")
 				no_upgrades = []
 				if "" in mergedict:
@@ -348,7 +341,7 @@ if mode == "mail":
 		import portage.mail as portage_mail
 	except ImportError:
 		import portage_mail
-		
+
 	import socket
 	from StringIO import StringIO
 	try:
@@ -363,7 +356,7 @@ if mode == "mail":
 		myrecipient = glsaconfig["PORTAGE_ELOG_MAILURI"].split()[0]
 	else:
 		myrecipient = "root@localhost"
-	
+
 	if "PORTAGE_ELOG_MAILFROM" in glsaconfig:
 		myfrom = glsaconfig["PORTAGE_ELOG_MAILFROM"]
 	else:
@@ -395,9 +388,9 @@ if mode == "mail":
         if glsalist or not quiet:
 		mymessage = portage_mail.create_message(myfrom, myrecipient, mysubject, summary, myattachments)
 		portage_mail.send_mail(glsaconfig, mymessage)
-		
+
 	sys.exit(0)
-	
+
 # something wrong here, all valid paths are covered with sys.exit()
 sys.stderr.write("nothing more to do\n")
 sys.exit(2)

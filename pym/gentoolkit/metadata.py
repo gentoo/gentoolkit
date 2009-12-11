@@ -13,18 +13,18 @@
 		>>> pkg_md = MetaData('/usr/portage/app-misc/gourmet/metadata.xml')
 		>>> pkg_md
 		<MetaData '/usr/portage/app-misc/gourmet/metadata.xml'>
-		>>> pkg_md.get_herds()
+		>>> pkg_md.herds()
 		['no-herd']
-		>>> for maint in pkg_md.get_maintainers():
+		>>> for maint in pkg_md.maintainers():
 		...     print "{0} ({1})".format(maint.email, maint.name)
 		...
 		nixphoeni@gentoo.org (Joe Sapp)
-		>>> for flag in pkg_md.get_useflags():
+		>>> for flag in pkg_md.use():
 		...     print flag.name, "->", flag.description
 		...
 		rtf -> Enable export to RTF
 		gnome-print -> Enable printing support using gnome-print
-		>>> upstream = pkg_md.get_upstream()
+		>>> upstream = pkg_md.upstream()
 		>>> upstream
 		[<_Upstream {'docs': [], 'remoteid': [], 'maintainer':
 		 [<_Maintainer 'Thomas_Hinkle@alumni.brown.edu'>], 'bugtracker': [],
@@ -135,24 +135,24 @@ class _Upstream(object):
 
 	def __init__(self, node):
 		self.node = node
-		self.maintainers = self.get_upstream_maintainers()
-		self.changelogs = self.get_upstream_changelogs()
-		self.docs = self.get_upstream_documentation()
-		self.bugtrackers = self.get_upstream_bugtrackers()
-		self.remoteids = self.get_upstream_remoteids()
+		self.maintainers = self.upstream_maintainers()
+		self.changelogs = self.upstream_changelogs()
+		self.docs = self.upstream_documentation()
+		self.bugtrackers = self.upstream_bugtrackers()
+		self.remoteids = self.upstream_remoteids()
 
 	def __repr__(self):
 		return "<%s %r>" % (self.__class__.__name__, self.__dict__)
 
-	def get_upstream_bugtrackers(self):
+	def upstream_bugtrackers(self):
 		"""Retrieve upstream bugtracker location from xml node."""
 		return [e.text for e in self.node.findall('bugs-to')]
 
-	def get_upstream_changelogs(self):
+	def upstream_changelogs(self):
 		"""Retrieve upstream changelog location from xml node."""
 		return [e.text for e in self.node.findall('changelog')]
 
-	def get_upstream_documentation(self):
+	def upstream_documentation(self):
 		"""Retrieve upstream documentation location from xml node."""
 		result = []
 		for elem in self.node.findall('doc'):
@@ -160,11 +160,11 @@ class _Upstream(object):
 			result.append((elem.text, lang))
 		return result
 
-	def get_upstream_maintainers(self):
+	def upstream_maintainers(self):
 		"""Retrieve upstream maintainer information from xml node."""
 		return [_Maintainer(m) for m in self.node.findall('maintainer')]
 
-	def get_upstream_remoteids(self):
+	def upstream_remoteids(self):
 		"""Retrieve upstream remote ID from xml node."""
 		return [(e.text, e.get('type')) for e in self.node.findall('remote-id')]
 
@@ -215,7 +215,7 @@ class MetaData(object):
 			if node.findtext('name') == herd:
 				return node.findtext('email')
 
-	def get_herds(self, include_email=False):
+	def herds(self, include_email=False):
 		"""Return a list of text nodes for <herd>.
 
 		@type include_email: bool
@@ -236,7 +236,7 @@ class MetaData(object):
 
 		return result
 
-	def get_descriptions(self):
+	def descriptions(self):
 		"""Return a list of text nodes for <longdescription>.
 
 		@rtype: list
@@ -251,7 +251,7 @@ class MetaData(object):
 		self._descriptions = [e.text for e in long_descriptions]
 		return self._descriptions
 
-	def get_maintainers(self):
+	def maintainers(self):
 		"""Get maintainers' name, email and description.
 
 		@rtype: list
@@ -267,7 +267,7 @@ class MetaData(object):
 
 		return self._maintainers
 
-	def get_useflags(self):
+	def use(self):
 		"""Get names and descriptions for USE flags defined in metadata.
 
 		@rtype: list
@@ -283,7 +283,7 @@ class MetaData(object):
 
 		return self._useflags
 
-	def get_upstream(self):
+	def upstream(self):
 		"""Get upstream contact information.
 
 		@rtype: list

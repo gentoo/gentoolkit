@@ -91,19 +91,11 @@ class ChangeLog(object):
 		# Process the ChangeLog:
 		self.entries = self._split_changelog()
 		self.indexed_entries = self._index_changelog()
+		self.full = self.entries
+		self.latest = self.entries[0]
 
 	def __repr__(self):
 		return "<%s %r>" % (self.__class__.__name__, self.changelog_path)
-
-	@property
-	def full(self):
-		"""Return the output of L{self._split_changelog}."""
-		return self.entries
-
-	@property
-	def latest(self):
-		"""Return the newest ChangeLog entry."""
-		return self.entries[0]
 
 	def entries_matching_atom(self, atom):
 		"""Return entries whose header versions match atom's version.
@@ -280,7 +272,9 @@ class FileOwner(object):
 			# we can use re.match, else use re.search.
 			use_match = True
 
-		return self.find_owners(query_re, use_match=use_match)
+		pkgset = get_installed_cpvs()
+
+		return self.find_owners(query_re, use_match=use_match, pkgset=pkgset)
 
 	def find_owners(self, query_re, use_match=False, pkgset=None):
 		"""Find owners and feed data to supplied output function.
@@ -302,10 +296,8 @@ class FileOwner(object):
 
 		results = []
 		found_match = False
-		if pkgset is None:
-			pkgset = get_installed_cpvs()
 		for pkg in sorted([Package(x) for x in pkgset]):
-			files = pkg.get_contents()
+			files = pkg.parsed_contents()
 			for cfile in files:
 				match = query_fn(cfile)
 				if match:
@@ -366,9 +358,8 @@ def compare_package_strings(pkg1, pkg2):
 	"""Similar to the builtin cmp, but for package strings. Usually called
 	as: package_list.sort(compare_package_strings)
 
-	An alternative is to use the Package descriptor from gentoolkit.package
-	>>> pkgs = [Package(x) for x in package_list]
-	>>> pkgs.sort()
+	An alternative is to use the CPV descriptor from gentoolkit.cpv:
+	>>> cpvs = sorted(CPV(x) for x in package_list)
 
 	@see: >>> help(cmp)
 	"""

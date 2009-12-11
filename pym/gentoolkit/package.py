@@ -7,7 +7,12 @@
 #
 # $Header$
 
-"""Provides classes for accessing Portage db information for a given package."""
+"""Provides an interface to package information stored by package managers.
+
+The package class is the heart of much of Gentoolkit. Given a CPV
+(category/package-version string),
+TODO: finish this docstring
+"""
 
 __all__ = (
 	'Package',
@@ -100,7 +105,7 @@ class Package(CPV):
 
 		if self._metadata is None:
 			metadata_path = os.path.join(
-				self.get_package_path(), 'metadata.xml'
+				self.package_path(), 'metadata.xml'
 			)
 			self._metadata = MetaData(metadata_path)
 
@@ -132,6 +137,15 @@ class Package(CPV):
 	def environment(self, envvars, tree=None):
 		"""Returns one or more of the predefined environment variables.
 
+		Available envvars are:
+		----------------------
+			BINPKGMD5  COUNTER         FEATURES   LICENSE  SRC_URI
+			CATEGORY   CXXFLAGS        HOMEPAGE   PDEPEND  USE
+			CBUILD     DEFINED_PHASES  INHERITED  PF
+			CFLAGS     DEPEND          IUSE       PROVIDE
+			CHOST      DESCRIPTION     KEYWORDS   RDEPEND
+			CONTENTS   EAPI            LDFLAGS    SLOT
+
 		Example usage:
 			>>> pkg = Package('sys-apps/portage-2.1.6.13')
 			>>> pkg.environment('USE')
@@ -162,16 +176,13 @@ class Package(CPV):
 			return result[0]
 		return result
 
-	# Namespace compatibility 2009, djanderson
-	get_env_var = environment
-
 	def exists(self):
 		"""Return True if package exists in the Portage tree, else False"""
 
 		return bool(PORTDB.cpv_exists(str(self.cpv)))
 
 	@staticmethod
-	def get_settings(key):
+	def settings(key):
 		"""Returns the value of the given key for this package (useful
 		for package.* files."""
 
@@ -183,7 +194,7 @@ class Package(CPV):
 			settings.lock()
 		return result
 
-	def get_mask_status(self):
+	def mask_status(self):
 		"""Shortcut to L{portage.getmaskingstatus}.
 
 		@rtype: None or list
@@ -208,7 +219,7 @@ class Package(CPV):
 
 		return result
 
-	def get_mask_reason(self):
+	def mask_reason(self):
 		"""Shortcut to L{portage.getmaskingreason}.
 
 		@rtype: None or tuple
@@ -219,7 +230,7 @@ class Package(CPV):
 		try:
 			result = portage.getmaskingreason(str(self.cpv),
 				settings=settings,
-				PORTDB=PORTDB,
+				portdb=PORTDB,
 				return_location=True)
 			if result is None:
 				result = tuple()
@@ -230,13 +241,13 @@ class Package(CPV):
 
 		return result
 
-	def get_ebuild_path(self, in_vartree=False):
+	def ebuild_path(self, in_vartree=False):
 		"""Returns the complete path to the .ebuild file.
 
 		Example usage:
-			>>> pkg.get_ebuild_path()
+			>>> pkg.ebuild_path()
 			'/usr/portage/sys-apps/portage/portage-2.1.6.13.ebuild'
-			>>> pkg.get_ebuild_path(in_vartree=True)
+			>>> pkg.ebuild_path(in_vartree=True)
 			'/var/db/pkg/sys-apps/portage-2.1.6.13/portage-2.1.6.13.ebuild'
 		"""
 
@@ -244,30 +255,30 @@ class Package(CPV):
 			return VARDB.findname(str(self.cpv))
 		return PORTDB.findname(str(self.cpv))
 
-	def get_package_path(self):
+	def package_path(self):
 		"""Return the path to where the ebuilds and other files reside."""
 
 		if self._package_path is None:
-			path_split = self.get_ebuild_path().split(os.sep)
+			path_split = self.ebuild_path().split(os.sep)
 			self._package_path = os.sep.join(path_split[:-1])
 
 		return self._package_path
 
-	def get_repo_name(self):
-		"""Using the package path, determine the repo name.
+	def repo_id(self):
+		"""Using the package path, determine the repository id.
 
 		@rtype: str
-		@return: /usr/<THIS>portage</THIS>/cat-egory/name/
+		@return: /usr/<THIS>portage</THIS>/category/name/
 		"""
 
-		return self.get_package_path().split(os.sep)[-3]
+		return self.package_path().split(os.sep)[-3]
 
-	def get_use_flags(self):
+	def use(self):
 		"""Returns the USE flags active at time of installation."""
 
 		return self.dblink.getstring("USE")
 
-	def get_contents(self):
+	def parsed_contents(self):
 		"""Returns the parsed CONTENTS file.
 
 		@rtype: dict
@@ -276,14 +287,14 @@ class Package(CPV):
 
 		return self.dblink.getcontents()
 
-	def get_size(self):
+	def size(self):
 		"""Estimates the installed size of the contents of this package.
 
 		@rtype: tuple
 		@return: (size, number of files in total, number of uncounted files)
 		"""
 
-		contents = self.get_contents()
+		contents = self.parsed_contents()
 		size = n_uncounted = n_files = 0
 		for cfile in contents:
 			try:
@@ -354,11 +365,11 @@ class PackageFormatter(object):
 	def __str__(self):
 		if self.do_format:
 			maskmodes = ['  ', ' ~', ' -', 'M ', 'M~', 'M-', 'XX']
-			return "[%(location)s] [%(mask)s] %(package)s (%(slot)s)" % {
+			return "[%(location)s] [%(mask)s] %(package)s:%(slot)s" % {
 				'location': self.location,
 				'mask': pp.maskflag(maskmodes[self.format_mask_status()[0]]),
 				'package': pp.cpv(str(self.pkg.cpv)),
-				'slot': self.pkg.environment("SLOT")
+				'slot': pp.slot(self.pkg.environment("SLOT"))
 			}
 		else:
 			return str(self.pkg.cpv)
@@ -409,11 +420,11 @@ class PackageFormatter(object):
 		"""
 
 		result = 0
-		masking_status = self.pkg.get_mask_status()
+		masking_status = self.pkg.mask_status()
 		if masking_status is None:
 			return (6, [])
 
-		if ("~%s keyword" % self.pkg.get_settings("ARCH")) in masking_status:
+		if ("~%s keyword" % self.pkg.settings("ARCH")) in masking_status:
 			result += 1
 		if "missing keyword" in masking_status:
 			result += 2

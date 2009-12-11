@@ -342,8 +342,8 @@ Include all packages from the Portage tree in the search path. Use this option t
 .EX
 $ equery list binutils
  * Searching for binutils ...
- [I--] [XX] sys-devel/binutils-2.18-r1 (i686-pc-linux-gnu-2.18)
- [IP-] [ ~] sys-devel/binutils-2.19.1-r1 (i686-pc-linux-gnu-2.19.1)
+ [I--] [XX] sys-devel/binutils-2.18-r1:i686-pc-linux-gnu-2.18
+ [IP-] [ ~] sys-devel/binutils-2.19.1-r1:i686-pc-linux-gnu-2.19.1
 .EE
 .HP
 Location field (\fB[IPO-]\fP):
@@ -360,7 +360,7 @@ The third field is the full package name and version.
 .HP
 Slot:
 .br
-The fourth field, in parentheses, is the package's slot. \fB0\fP is the default slot. To find all packages with multiple slots installed, use \fB--duplicates\fP.
+The fourth field, after the colon, is the package's slot. \fB0\fP is the default slot. To find all packages with multiple slots installed, use \fB--duplicates\fP.
 .P
 \fBNote:\fP Because it takes extra processing time to determine the location, mask status and slot, you can speed up output by passing the \fB--quiet\fP global option to \fBequery\fP when you don't care about the extra information.
 

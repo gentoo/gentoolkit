@@ -64,7 +64,7 @@ class BelongsPrinter(object):
 
 	def print_verbose(self, pkg, cfile):
 		"Format for full output."
-		file_str = pp.path(format_filetype(cfile, pkg.get_contents()[cfile]))
+		file_str = pp.path(format_filetype(cfile, pkg.parsed_contents()[cfile]))
 		if self.name_only:
 			name = pkg.cpv.cp
 		else:
