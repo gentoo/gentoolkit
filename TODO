@@ -35,7 +35,7 @@ equery:
 		+depgraph
 
 For Next Release:
-	- allow passing VERSION='123' in front of setup.py sdist and do version
-	  mangling at dist creation time.
 	- find all commits to main gentoolkit svn after rc7 push and merge where
 	  appropriate
+	- write a docstring for Package which details especially the change in have
+	  cpv as an object, not a string.

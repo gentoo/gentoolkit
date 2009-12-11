@@ -68,7 +68,7 @@ class Dependencies(CPV):
 	def __repr__(self):
 		return "<%s %r>" % (self.__class__.__name__, self.atom)
 
-	def get_env_vars(self, envvars):
+	def environment(self, envvars):
 		"""Returns predefined env vars DEPEND, SRC_URI, etc."""
 
 		# Try to use the Portage tree first, since emerge only uses the tree
@@ -83,7 +83,7 @@ class Dependencies(CPV):
 		"""Get the contents of DEPEND and parse it with self.parser."""
 
 		try:
-			return self.parser(self.get_env_vars(('DEPEND',))[0])
+			return self.parser(self.environment(('DEPEND',))[0])
 		except portage.exception.InvalidPackageName, err:
 			raise errors.GentoolkitInvalidCPV(err)
 
@@ -91,7 +91,7 @@ class Dependencies(CPV):
 		"""Get the contents of PDEPEND and parse it with self.parser."""
 
 		try:
-			return self.parser(self.get_env_vars(('PDEPEND',))[0])
+			return self.parser(self.environment(('PDEPEND',))[0])
 		except portage.exception.InvalidPackageName, err:
 			raise errors.GentoolkitInvalidCPV(err)
 
@@ -99,7 +99,7 @@ class Dependencies(CPV):
 		"""Get the contents of RDEPEND and parse it with self.parser."""
 
 		try:
-			return self.parser(self.get_env_vars(('RDEPEND',))[0])
+			return self.parser(self.environment(('RDEPEND',))[0])
 		except portage.exception.InvalidPackageName, err:
 			raise errors.GentoolkitInvalidCPV(err)
 
@@ -108,7 +108,7 @@ class Dependencies(CPV):
 
 		env_vars = ('DEPEND', 'PDEPEND', 'RDEPEND')
 		try:
-			return self.parser(' '.join(self.get_env_vars(env_vars)))
+			return self.parser(' '.join(self.environment(env_vars)))
 		except portage.exception.InvalidPackageName, err:
 			raise errors.GentoolkitInvalidCPV(err)
 

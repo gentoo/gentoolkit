@@ -65,7 +65,7 @@ def display_useflags(query, pkg):
 	"""Display USE flag information for a given package."""
 
 	try:
-		useflags = [x.lstrip("+-") for x in pkg.get_env_var("IUSE").split()]
+		useflags = [x.lstrip("+-") for x in pkg.environment("IUSE").split()]
 	except errors.GentoolkitFatalError:
 		# aux_get KeyError or other unexpected result
 		return
