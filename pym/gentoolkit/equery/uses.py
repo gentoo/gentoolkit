@@ -185,7 +185,7 @@ def get_output_descriptions(pkg, global_usedesc):
 	"""Prepare descriptions and usage information for each USE flag."""
 
 	local_usedesc = pkg.metadata.get_useflags()
-	iuse = pkg.get_env_var("IUSE")
+	iuse = pkg.environment("IUSE")
 
 	if iuse:
 		usevar = uniqify([x.lstrip('+-') for x in iuse.split()])

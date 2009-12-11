@@ -94,7 +94,7 @@ def filter_keywords(matches):
 	# Start from the newest
 	rev_matches = reversed(matches)
 	for pkg in rev_matches:
-		keywords_str, slot = pkg.get_env_vars(('KEYWORDS', 'SLOT'))
+		keywords_str, slot = pkg.environment(('KEYWORDS', 'SLOT'))
 		keywords = keywords_str.split()
 		result[pkg] = [x for x in keywords if x not in slot_map.get(slot, [])]
 		try:
@@ -214,7 +214,7 @@ def format_keywords(keywords):
 def format_keywords_line(pkg, fmtd_keywords):
 	"""Format the entire keywords line for display."""
 
-	slot = pkg.get_env_var('SLOT')
+	slot = pkg.environment('SLOT')
 	ver = pkg.cpv.fullversion
 	verstr_len = len(ver) + 1 + len(slot)  # +1 for ':'
 
@@ -288,7 +288,7 @@ def call_format_functions(matches):
 				print keywords_line
 			else:
 				# FIXME: duplicate code
-				slot = match.get_env_var('SLOT')
+				slot = match.environment('SLOT')
 				verstr_len = len(match.cpv.fullversion) + len(slot)
 				indent = " " * (16 + verstr_len)
 				print format_line(keywords_line, "Keywords:    ", indent)

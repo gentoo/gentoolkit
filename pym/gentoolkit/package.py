@@ -129,6 +129,42 @@ class Package(CPV):
 
 		return self._deps
 
+	def environment(self, envvars, tree=None):
+		"""Returns one or more of the predefined environment variables.
+
+		Example usage:
+			>>> pkg = Package('sys-apps/portage-2.1.6.13')
+			>>> pkg.environment('USE')
+			'elibc_glibc kernel_linux userland_GNU x86'
+			>>> pkg.environment(('USE', 'IUSE'))
+			['elibc_glibc kernel_linux userland_GNU x86',
+				'build doc epydoc selinux linguas_pl']
+
+		@type envvars: str or array
+		@param envvars: one or more of (DEPEND, SRC_URI, etc.)
+		@rtype: str or list
+		@return: str if envvars is str, list if envvars is array
+		"""
+
+		if tree is None:
+			tree = self._get_trees()[0]
+		got_string = False
+		if isinstance(envvars, basestring):
+			got_string = True
+			envvars = (envvars,)
+		try:
+			result = tree.aux_get(str(self.cpv), envvars)
+		except (KeyError, errors.GentoolkitFatalError):
+			err = "aux_get returned unexpected results"
+			raise errors.GentoolkitFatalError(err)
+
+		if got_string:
+			return result[0]
+		return result
+
+	# Namespace compatibility 2009, djanderson
+	get_env_var = environment
+
 	def exists(self):
 		"""Return True if package exists in the Portage tree, else False"""
 
@@ -226,26 +262,6 @@ class Package(CPV):
 
 		return self.get_package_path().split(os.sep)[-3]
 
-	def get_env_vars(self, envvars, tree=None):
-		"""Returns one or more of the predefined environment variables.
-
-		@type envvars: array
-		@param envvars: one or more of (DEPEND, SRC_URI, etc.)"""
-
-		if tree is None:
-			tree = self._get_trees()[0]
-		try:
-			result = tree.aux_get(str(self.cpv), envvars)
-		except (KeyError, errors.GentoolkitFatalError):
-			err = "aux_get returned unexpected results"
-			raise errors.GentoolkitFatalError(err)
-		return result
-
-	def get_env_var(self, *args, **kwargs):
-		"""Returns one of the predefined environment variables."""
-
-		return self.get_env_vars(args, **kwargs)[0]
-
 	def get_use_flags(self):
 		"""Returns the USE flags active at time of installation."""
 
@@ -342,7 +358,7 @@ class PackageFormatter(object):
 				'location': self.location,
 				'mask': pp.maskflag(maskmodes[self.format_mask_status()[0]]),
 				'package': pp.cpv(str(self.pkg.cpv)),
-				'slot': self.pkg.get_env_var("SLOT")
+				'slot': self.pkg.environment("SLOT")
 			}
 		else:
 			return str(self.pkg.cpv)
