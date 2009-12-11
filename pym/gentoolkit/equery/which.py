@@ -89,12 +89,12 @@ def main(input_args):
 		matches = find_packages(query, QUERY_OPTS['includeMasked'])
 		if matches:
 			pkg = sorted(matches).pop()
-			ebuild_path = pkg.get_ebuild_path()
+			ebuild_path = pkg.ebuild_path()
 			if ebuild_path:
 				print os.path.normpath(ebuild_path)
 			else:
 				sys.stderr.write(
-					pp.warn("No ebuilds to satisfy %s" % pkg.name)
+					pp.warn("No ebuilds to satisfy %s" % pkg.cpv.name)
 				)
 		else:
 			raise errors.GentoolkitNoMatches(query)

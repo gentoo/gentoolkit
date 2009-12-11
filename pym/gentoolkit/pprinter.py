@@ -120,9 +120,9 @@ def subsection(string):
 	"""Print a string as a subsection header."""
 	return output.turquoise(string)
 
-def useflag(string, enabled=False):
+def useflag(string, enabled=True):
 	"""Print a USE flag string"""
-	return output.red(string) if enabled else output.blue(string)
+	return output.green(string) if enabled else output.blue(string)
 
 def warn(string):
 	"""Print a warning string to stderr."""

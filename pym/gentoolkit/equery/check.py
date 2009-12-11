@@ -4,7 +4,7 @@
 #
 # $Header: $
 
-"""Check timestamps and MD5 sums for files owned by a given installed package"""
+"""Checks timestamps and MD5 sums for files owned by a given installed package"""
 
 __docformat__ = 'epytext'
 
@@ -78,7 +78,7 @@ class VerifyContents(object):
 		result = {}
 		for pkg in pkgs:
 			# _run_checks returns tuple(n_passed, n_checked, err)
-			check_results = self._run_checks(pkg.get_contents())
+			check_results = self._run_checks(pkg.parsed_contents())
 			result[pkg.cpv] = check_results
 			if self.printer_fn is not None:
 				self.printer_fn(pkg.cpv, check_results)

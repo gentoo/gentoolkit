@@ -4,9 +4,7 @@
 #
 # $Header: $
 
-"""Display the Gentoo ChangeLog entry for the latest installable version of a
-given package.
-"""
+"""Displays the ChangeLog entry for the latest installable version of a package"""
 
 # Move to Imports sections when Python 2.6 is stable
 from __future__ import with_statement
@@ -175,7 +173,7 @@ def main(input_args):
 			print
 
 		match = get_match(query)
-		changelog_path = os.path.join(match.get_package_path(), 'ChangeLog')
+		changelog_path = os.path.join(match.package_path(), 'ChangeLog')
 		changelog = ChangeLog(changelog_path)
 
 		#

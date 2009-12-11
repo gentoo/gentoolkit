@@ -7,9 +7,6 @@
 #
 # $Header$
 
-"""The functions in this module have been deprecated and are not even
-guaranteed to work. Improved functions can be found in helpers2.py"""
-
 import warnings
 
 import portage

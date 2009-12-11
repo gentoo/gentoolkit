@@ -34,8 +34,15 @@ equery:
 		+changes
 		+depgraph
 
+Ebuild changes:
+	- Add:
+		src_test() {
+			"${python}" setup.py test || die "testing returned non zero"
+		}
+	- Add:
+		DEPEND on python 2.5 (needed for 'from __future__ import with' and others)
+
 For Next Release:
-	- find all commits to main gentoolkit svn after rc7 push and merge where
-	  appropriate
+	- write NEWS file
 	- write a docstring for Package which details especially the change in have
 	  cpv as an object, not a string.

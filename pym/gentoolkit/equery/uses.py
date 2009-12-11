@@ -77,7 +77,9 @@ def display_useflags(output):
 	twrap.subsequent_indent = " " * (maxflag_len + 8)
 
 	markers = ("-", "+")
-	color = [pp.useflag, partial(pp.useflag, enabled=True)]
+	color = (
+		partial(pp.useflag, enabled=False), partial(pp.useflag, enabled=True)
+	)
 	for in_makeconf, in_installed, flag, desc, restrict in output:
 		if CONFIG['verbose']:
 			flag_name = ""
@@ -184,7 +186,7 @@ def get_matches(query):
 def get_output_descriptions(pkg, global_usedesc):
 	"""Prepare descriptions and usage information for each USE flag."""
 
-	local_usedesc = pkg.metadata.get_useflags()
+	local_usedesc = pkg.metadata.use()
 	iuse = pkg.environment("IUSE")
 
 	if iuse:
@@ -194,7 +196,7 @@ def get_output_descriptions(pkg, global_usedesc):
 		usevar = []
 
 	if pkg.is_installed():
-		used_flags = pkg.get_use_flags().split()
+		used_flags = pkg.use().split()
 	else:
 		used_flags = settings["USE"].split()
 
@@ -224,7 +226,7 @@ def get_output_descriptions(pkg, global_usedesc):
 		except AttributeError:
 			restrict = ""
 
-		if flag in pkg.get_settings("USE").split():
+		if flag in pkg.settings("USE").split():
 			inuse = True
 		if flag in used_flags:
 			inused = True
@@ -280,6 +282,7 @@ def main(input_args):
 	#
 
 	first_run = True
+	legend_printed = False
 	for query in queries:
 		if not first_run:
 			print
@@ -296,7 +299,9 @@ def main(input_args):
 			output = get_output_descriptions(pkg, global_usedesc)
 			if output:
 				if CONFIG['verbose']:
-					print_legend()
+					if not legend_printed:
+						print_legend()
+						legend_printed = True
 					print (" * Found these USE flags for %s:" %
 						pp.cpv(str(pkg.cpv)))
 					print pp.emph(" U I")

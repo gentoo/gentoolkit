@@ -78,7 +78,7 @@ def display_size(match_set):
 	"""
 
 	for pkg in match_set:
-		size, files, uncounted = pkg.get_size()
+		size, files, uncounted = pkg.size()
 
 		if CONFIG['verbose']:
 			print " * %s" % pp.cpv(str(pkg.cpv))
