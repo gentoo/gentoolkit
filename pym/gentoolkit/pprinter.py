@@ -17,7 +17,6 @@ __all__ = (
 	'globaloption',
 	'installedflag',
 	'localoption',
-	'maskflag',
 	'number',
 	'path',
 	'path_symlink',
@@ -48,84 +47,85 @@ import portage.output as output
 # pylint: disable-msg=E1101
 
 def command(string):
-	"""Print a program command string."""
+	"""Returns a program command string."""
 	return output.green(string)
 
 def cpv(string):
-	"""Print a category/package-<version> string."""
+	"""Returns a category/package-<version> string."""
 	return output.green(string)
 
 def die(err, string):
-	"""Print an error string and die with an error code."""
+	"""Returns an error string and die with an error code."""
 	sys.stderr.write(error(string))
 	sys.exit(err)
 
 def emph(string):
-	"""Print a string as emphasized."""
+	"""Returns a string as emphasized."""
 	return output.bold(string)
 
 def error(string):
-	"""Prints an error string to stderr."""
+	"""Prints an error string."""
 	return output.red("!!! ") + string + "\n"
 
 def globaloption(string):
-	"""Print a global option string, i.e. the program global options."""
+	"""Returns a global option string, i.e. the program global options."""
 	return output.yellow(string)
 
-def installedflag(string):
-	"""Print an installed flag string"""
-	return output.bold(string)
-
 def localoption(string):
-	"""Print a local option string, i.e. the program local options."""
+	"""Returns a local option string, i.e. the program local options."""
 	return output.green(string)
 
-def maskflag(string):
-	"""Print a masking flag string"""
-	return output.red(string)
-
 def number(string):
-	"""Print a number string"""
+	"""Returns a number string."""
 	return output.turquoise(string)
 
 def path(string):
-	"""Print a file or directory path string"""
+	"""Returns a file or directory path string."""
 	return output.bold(string)
 
 def path_symlink(string):
-	"""Print a symlink string."""
+	"""Returns a symlink string."""
 	return output.turquoise(string)
 
 def pkgquery(string):
-	"""Print a package query string."""
+	"""Returns a package query string."""
 	return output.bold(string)
 
 def productname(string):
-	"""Print a product name string, i.e. the program name."""
+	"""Returns a product name string, i.e. the program name."""
 	return output.turquoise(string)
 
 def regexpquery(string):
-	"""Print a regular expression string"""
+	"""Returns a regular expression string."""
 	return output.bold(string)
 
 def section(string):
-	"""Print a string as a section header."""
+	"""Returns a string as a section header."""
 	return output.turquoise(string)
 
 def slot(string):
-	"""Print a slot string"""
+	"""Returns a slot string"""
 	return output.bold(string)
 
 def subsection(string):
-	"""Print a string as a subsection header."""
+	"""Returns a string as a subsection header."""
 	return output.turquoise(string)
 
 def useflag(string, enabled=True):
-	"""Print a USE flag string"""
-	return output.green(string) if enabled else output.blue(string)
+	"""Returns a USE flag string."""
+	return output.blue(string) if enabled else output.red(string)
+
+def keyword(string, stable=True, hard_masked=False):
+	"""Returns a keyword string."""
+	if stable:
+		return output.green(string)
+	if hard_masked:
+		return output.red(string)
+	# keyword masked:
+	return output.blue(string)
 
 def warn(string):
-	"""Print a warning string to stderr."""
+	"""Returns a warning string."""
 	return "!!! " + string + "\n"
 
 # vim: set ts=4 sw=4 tw=79:

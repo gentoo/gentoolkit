@@ -4,7 +4,7 @@
 #
 # $Header: $
 
-"""Displays the ChangeLog entry for the latest installable version of a package"""
+"""Displays the ChangeLog entry for the latest installable version of an atom"""
 
 # Move to Imports sections when Python 2.6 is stable
 from __future__ import with_statement

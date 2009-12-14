@@ -9,9 +9,19 @@
 
 """Provides an interface to package information stored by package managers.
 
-The package class is the heart of much of Gentoolkit. Given a CPV
-(category/package-version string),
-TODO: finish this docstring
+The Package class is the heart of much of Gentoolkit. Given a CPV
+(category/package-version) string, it can reveal the package's status in the
+tree and VARDB (/var/db/), provide rich comparison and sorting, and expose
+important parts of Portage's back-end.
+
+Example usage:
+	>>> portage = Package('sys-apps/portage-2.1.6.13')
+	>>> portage.ebuild_path()
+	'/usr/portage/sys-apps/portage/portage-2.1.6.13.ebuild'
+	>>> portage.is_masked()
+	False
+	>>> portage.is_installed()
+	True
 """
 
 __all__ = (
@@ -40,7 +50,7 @@ from gentoolkit.metadata import MetaData
 # =======
 
 class Package(CPV):
-	"""Provides methods for ascertaining the state of a given CPV."""
+	"""Exposes the state of a given CPV."""
 
 	def __init__(self, cpv):
 		if isinstance(cpv, CPV):
@@ -86,19 +96,6 @@ class Package(CPV):
 	def __str__(self):
 		return str(self.cpv)
 
-	def _get_trees(self):
-		"""Return dbapi objects for each repository that contains self."""
-
-		result = []
-		if self.is_installed():
-			result.append(VARDB)
-		if self.exists():
-			result.append(PORTDB)
-		if not result:
-			raise errors.GentoolkitFatalError("Could not find package tree")
-
-		return result
-
 	@property
 	def metadata(self):
 		"""Instantiate a L{gentoolkit.metadata.MetaData} object here."""
@@ -134,7 +131,7 @@ class Package(CPV):
 
 		return self._deps
 
-	def environment(self, envvars, tree=None):
+	def environment(self, envvars, prefer_vdb=True, no_fallback=False):
 		"""Returns one or more of the predefined environment variables.
 
 		Available envvars are:
@@ -156,21 +153,43 @@ class Package(CPV):
 
 		@type envvars: str or array
 		@param envvars: one or more of (DEPEND, SRC_URI, etc.)
+		@type prefer_vdb: bool
+		@keyword prefer_vdb: if True, look in the vardb before portdb, else
+			reverse order. Specifically KEYWORDS will get more recent
+			information by preferring portdb.
+		@type no_fallback: bool
+		@keyword no_fallback: query only the preferred db
 		@rtype: str or list
 		@return: str if envvars is str, list if envvars is array
+		@raise KeyError: if key is not found in requested db(s)
 		"""
 
-		if tree is None:
-			tree = self._get_trees()[0]
 		got_string = False
 		if isinstance(envvars, basestring):
 			got_string = True
 			envvars = (envvars,)
-		try:
-			result = tree.aux_get(str(self.cpv), envvars)
-		except (KeyError, errors.GentoolkitFatalError):
-			err = "aux_get returned unexpected results"
-			raise errors.GentoolkitFatalError(err)
+		if prefer_vdb:
+			try:
+				result = VARDB.aux_get(str(self.cpv), envvars)
+			except KeyError:
+				try:
+					if no_fallback:
+						raise KeyError
+					result = PORTDB.aux_get(str(self.cpv), envvars)
+				except KeyError:
+					err = "aux_get returned unexpected results"
+					raise errors.GentoolkitFatalError(err)
+		else:
+			try:
+				result = PORTDB.aux_get(str(self.cpv), envvars)
+			except KeyError:
+				try:
+					if no_fallback:
+						raise KeyError
+					result = VARDB.aux_get(str(self.cpv), envvars)
+				except KeyError:
+					err = "aux_get returned unexpected results"
+					raise errors.GentoolkitFatalError(err)
 
 		if got_string:
 			return result[0]
@@ -255,14 +274,12 @@ class Package(CPV):
 			return VARDB.findname(str(self.cpv))
 		return PORTDB.findname(str(self.cpv))
 
-	def package_path(self):
+	def package_path(self, in_vartree=False):
 		"""Return the path to where the ebuilds and other files reside."""
 
-		if self._package_path is None:
-			path_split = self.ebuild_path().split(os.sep)
-			self._package_path = os.sep.join(path_split[:-1])
-
-		return self._package_path
+		if in_vartree:
+			return self.dblink.getpath()
+		return os.sep.join(self.ebuild_path().split(os.sep)[:-1])
 
 	def repo_id(self):
 		"""Using the package path, determine the repository id.
@@ -365,9 +382,14 @@ class PackageFormatter(object):
 	def __str__(self):
 		if self.do_format:
 			maskmodes = ['  ', ' ~', ' -', 'M ', 'M~', 'M-', 'XX']
+			maskmode = maskmodes[self.format_mask_status()[0]]
 			return "[%(location)s] [%(mask)s] %(package)s:%(slot)s" % {
 				'location': self.location,
-				'mask': pp.maskflag(maskmodes[self.format_mask_status()[0]]),
+				'mask': pp.keyword(
+					maskmode,
+					stable=not maskmode.strip(),
+					hard_masked=set(('M', 'X', '-')).intersection(maskmode)
+				),
 				'package': pp.cpv(str(self.pkg.cpv)),
 				'slot': pp.slot(self.pkg.environment("SLOT"))
 			}

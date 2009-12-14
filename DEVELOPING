@@ -1,7 +1,7 @@
-Code Guidelines
+Python Code Guidelines
 ---------------
 These are a few guidelines to stick to when modifying or adding code to
-Gentoolkit.
+Gentoolkit. These guidelines do not apply to pym/gentoolkit/test/*.
 
 First, read Python's PEP 8: http://www.python.org/dev/peps/pep-0008/
 Next, read Portage's DEVELOPING file.

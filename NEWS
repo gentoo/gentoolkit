@@ -1,0 +1,40 @@
+News (new features/major bug fixes)
+
+gentoolkit-0.3.0
+----------------
+
+epkginfo:
+  * is now a link to equery meta and has all the features equery meta has
+
+equery:
+  * --help menus cleaned up, using notations (b)elongs instead of belongs(b).
+  * man page has been rewritten.
+  * --quiet effects more modules.
+  * 2 new modules:
+    * changes - Gentoo ChangeLog viewer, try:
+      `equery changes portage` to see entry for portage version that emerge
+        wants to install;
+      `equery changes portage --from=2.2_rc20 --to=2.2_rc30` to see all entries
+        between the specified versions.
+    * meta - Displays information available in metadata.xml and keyword info.
+      Try `equery meta boost` to list herd, maintainers, keywords, and more.
+  * Modules which are meant to run on multiple packages (check, list, size) now
+    allow category and package name globbing, (so no more need for --exact-name
+    or --category).
+
+      # Exact name matching by default:
+      $ equery l zilla
+       * Searching for zilla ...
+
+      # Use globs to fuzzy match
+      $ equery l *zilla*
+       * Searching for *zilla* ...
+      [IP-] [  ] www-client/mozilla-firefox-3.5.4:0
+
+      # Use globs to 'category filter'
+      $ equery l www-client/*
+       * Searching for * in www-client ...
+      [I--] [XX] www-client/chromium-4.0.223.5:0
+      [IP-] [  ] www-client/epiphany-2.26.3-r2:0
+      [IP-] [  ] www-client/links-2.2:2
+      [IP-] [  ] www-client/mozilla-firefox-3.5.4:0

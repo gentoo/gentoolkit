@@ -4,7 +4,7 @@
 #
 # $Header: $
 
-"""List all packages that depend on a given query"""
+"""List all packages that depend on a atom given query"""
 
 __docformat__ = 'epytext'
 

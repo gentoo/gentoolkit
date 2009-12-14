@@ -40,9 +40,21 @@ Ebuild changes:
 			"${python}" setup.py test || die "testing returned non zero"
 		}
 	- Add:
-		DEPEND on python 2.5 (needed for 'from __future__ import with' and others)
+		DEPEND on python 2.5 (needed for 'from __future__ import with_statement' and others)
 
 For Next Release:
 	- write NEWS file
-	- write a docstring for Package which details especially the change in have
-	  cpv as an object, not a string.
+    - make CPV.__init__ more strict, it allows some silly stuff
+	-  $ equery uses '>=sys-apps/portage-2'
+	  * Searching for >=sys-apps/portage-2 ...
+	  * Found these USE flags for sys-apps/portage-2.1.6.13:
+	- belongs doesn't properly match atom syntax
+
+
+For following release:
+	- transition package query backend to using Query class.
+	  Query class should accept any kind package of input accepted by equery.
+	  Most of the functions in helpers should be able to moved out, either in
+	  to query (many of those functions pertain to finding packages matching a
+	  query) or into other appropriate modules (split_cpv,
+	  compare_package_strings into cpv, as they also requires a cpv string)
