@@ -76,9 +76,11 @@ def print_help(with_description=True, with_usage=True):
 
 
 def filter_keywords(matches):
-	"""Filter non-unique keywords per slot.
+	"""Filters non-unique keywords per slot.
 
-	This view apparently makes version bumps easier for package maintainers.
+	Does not filter arch mask keywords (-). Besides simple non-unique keywords,
+	also remove unstable keywords (~) if a higher version in the same slot is
+	stable. This view makes version bumps easier for package maintainers.
 
 	@type matches: array
 	@param matches: set of L{gentoolkit.package.Package} instances whose
@@ -88,19 +90,31 @@ def filter_keywords(matches):
 		'array of keywords not found in a higher version of pkg within the
 		same slot' values.
 	"""
+	def del_archmask(keywords):
+		"""Don't add arch_masked to filter set."""
+		return [x for x in keywords if not x.startswith('-')]
+
+	def add_unstable(keywords):
+		"""Add unstable keyword for all stable keywords to filter set."""
+		result = list(keywords)
+		result.extend(
+			['~%s' % x for x in keywords if not x.startswith(('-', '~'))]
+		)
+		return result
 
 	result = {}
 	slot_map = {}
 	# Start from the newest
 	rev_matches = reversed(matches)
 	for pkg in rev_matches:
-		keywords_str, slot = pkg.environment(('KEYWORDS', 'SLOT'))
+		keywords_str, slot = pkg.environment(('KEYWORDS', 'SLOT'),
+			prefer_vdb=False)
 		keywords = keywords_str.split()
 		result[pkg] = [x for x in keywords if x not in slot_map.get(slot, [])]
 		try:
-			slot_map[slot].update(keywords)
+			slot_map[slot].update(del_archmask(add_unstable(keywords)))
 		except KeyError:
-			slot_map[slot] = set(keywords)
+			slot_map[slot] = set(del_archmask(add_unstable(keywords)))
 
 	return result
 
@@ -200,12 +214,15 @@ def format_keywords(keywords):
 	result = []
 
 	for kw in sorted(keywords):
-		if kw.startswith(('~', '-')):
-			# keyword (~) or arch (-) masked
-			kw = pp.useflag(kw, enabled=False)
+		if kw.startswith('-'):
+			# arch masked
+			kw = pp.keyword(kw, stable=False, hard_masked=True)
+		elif kw.startswith('~'):
+			# keyword masked
+			kw = pp.keyword(kw, stable=False, hard_masked=False)
 		else:
-			# unmasked
-			kw = pp.useflag(kw, enabled=True)
+			# stable
+			kw = pp.keyword(kw, stable=True, hard_masked=False)
 		result.append(kw)
 
 	return ' '.join(result)

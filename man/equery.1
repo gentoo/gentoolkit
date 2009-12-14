@@ -409,21 +409,27 @@ http://www.gentoo.org/proj/en/devrel/handbook/handbook.xml?part=2&chap=4
 
 .IR "LOCAL OPTIONS" ":"
 .HP
-.B \-c, \-\-current
-.br
-Parse a metadata.xml file in the current directory. Useful for package maintainers to review formatting.
-.HP
 .B \-d, \-\-description
 .br
 Show an extended package description.
 .HP
 .B \-H, \-\-herd
 .br
-Show the herd(s) for the package. When not piping and not passing \fB--quiet\fP as a global option, also show the herd's email address.
+Show the herd(s) for the package. When not piping and not passing \fB--quiet\fP as a global option, also show the herd's email address. (shown by default)
+.HP
+.B \-k, \-\-keywords
+.br
+Show keywords for all matching versions. \fBkeywords\fP does not list all keywords for all versions. Instead, it filters the list to make it easier to spot versions that need bumping or are okay to remove from the tree. It filters by slot. For example:
+.br
+Keywords:    1.35.0-r3:\fB0\fP:
+.br
+Keywords:    1.35.0-r5:\fB0\fP: amd64 hppa ppc x86 ~alpha ~arm ~ia64 ~mips ~ppc64 ~s390 ~sh ~sparc
+.br
+In this output from \fBequery meta boost\fP, -r5 is the highest available version in slot 0, so all keywords are listed. The actual keywords for -r3 are "~amd64 ~hppa ~ppc ~x86", but since a higher version in the same slot has the same or more stable keywording, they are filtered out. Arch mask keywords (-*) are always shown.
 .HP
 .B \-m, \-\-maintainer
 .br
-Show the package maintainer(s) email address. If the metadata is available, also show the maitainer's name and/or job description.
+Show the package maintainer(s) email address. If the metadata is available, also show the maintainer's name and/or job description. (shown by default)
 .HP
 .B \-u, \-\-useflags
 .br
@@ -431,7 +437,7 @@ Show per-package USE flag descriptions. Per-package USE flag descriptions are so
 .HP
 .B \-U, \-\-upstream
 .br
-Show information about the package's upstream project. This information can be extremely useful for finding an author's email, upstream bug tracker or upstream documentation. However, most maintainers do not currently provide this information.
+Show information about the package's upstream project, including the author's email, upstream bug tracker or upstream documentation. At the time of writing, most maintainers do not provide this information. (shown by default)
 .HP
 .B \-x, \-\-xml
 .br
