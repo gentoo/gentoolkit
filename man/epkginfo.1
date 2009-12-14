@@ -1,34 +1,38 @@
-.TH "epkginfo" "1" "0.4.1" "Ned Ludd" "gentoolkit"
+.TH "EPKGINFO" "1" "August 2009" "GENTOOLKIT"
+
 .SH "NAME"
-.LP 
 epkginfo \- Displays metadata information from packages in portage
-.SH "SYNTAX"
-.LP 
-epkginfo [\fIpackage\-cat/\fP]package
+
+.SH "SYNOPSIS"
+.BI "epkginfo " "[options] " "package name or atom"
+
+.SH "DESCRIPTION"
+.B Epkginfo
+is a shortcut to \fBequery meta\fP. For all available options and more
+examples, see \fBman equery\fP.
+
 .SH "EXAMPLES"
-$ epkginfo app\-portage/gentoolkit
-.br 
-\fBPackage:\fR app\-portage/gentoolkit
-.br 
-\fBHerd:\fR tools\-portage
-.br 
-\fBMaintainer:\fR tools\-portage
-.br 
-\fBLocation:\fR /usr/portage/app\-portage/gentoolkit
-.br 
-\fBKeywords:\fR gentoolkit\-0.2.2:
-.br 
-\fBKeywords:\fR gentoolkit\-0.2.3:  mips
-.br 
-\fBKeywords:\fR gentoolkit\-0.2.3\-r1:  ppc ppc64 alpha arm s390 amd64 hppa x86 sparc ia64 m68k sh
-.br 
-\fBKeywords:\fR gentoolkit\-0.2.4_pre3:
-.br 
-\fBKeywords:\fR gentoolkit\-0.2.4_pre4:
-.br 
-\fBKeywords:\fR gentoolkit\-0.2.4_pre5:  ~arm ~hppa ~x86 ~m68k ~amd64 ~ppc ~sh ~x86\-fbsd ~ia64 ~alpha ~sparc ~ppc64 ~sparc\-fbsd ~mips ~s390
+.nf
+  * app-portage/gentoolkit [portage]
+Location:    /usr/portage/app-portage/gentoolkit
+Herd:        tools-portage (tools-portage@gentoo.org)
+Maintainer:  None specified
+Upstream:    None specified
+Keywords:    0.2.4.5: alpha amd64 arm hppa ia64 m68k ~mips ppc ppc64
+                      s390 sh sparc x86 -x86-fbsd
+Keywords:    0.3.0_rc5: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips
+                        ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd
+                        ~x86-fbsd
+Keywords:    0.3.0_rc6: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips
+                        ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd
+                        ~x86-fbsd
+Keywords:    0.3.0_rc7: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips
+                        ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd
+                        ~x86-fbsd
+.fi
+
 .SH "AUTHORS"
-.LP 
-Ned Ludd <solar@gentoo.org>
+.LP
+Douglas Anderson <douglasjanderson@gmail.com>
 .SH "BUGS"
 Please report any bugs to http://bugs.gentoo.org
