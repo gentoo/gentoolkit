@@ -1014,8 +1014,10 @@ portage_settings() {
 ##
 # Setup portage and the search paths
 setup_portage() {
-	# Obey PORTAGE_NICENESS
+	# Obey PORTAGE_NICENESS (which is incremental to the current nice value)
 	if [[ $PORTAGE_NICENESS ]]; then
+		current_niceness=$(nice)
+		let PORTAGE_NICENESS=${current_niceness}+${PORTAGE_NICENESS}
 		renice $PORTAGE_NICENESS $$ > /dev/null
 		# Since we have already set our nice value for our processes,
 		# reset PORTAGE_NICENESS to zero to avoid having emerge renice again.
