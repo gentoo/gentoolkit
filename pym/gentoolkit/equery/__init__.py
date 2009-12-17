@@ -216,6 +216,8 @@ def initialize_configuration():
 		os.getenv("NOCOLOR") in ("yes", "true")) or CONFIG['color'] == 0):
 		pp.output.nocolor()
 
+	CONFIG['verbose'] = not CONFIG['piping']
+
 
 def main_usage():
 	"""Return the main usage message for equery"""
