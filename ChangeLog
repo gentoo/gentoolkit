@@ -1,3 +1,8 @@
+2009-12-17: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix revdep-rebuild to properly honor
+	PORTAGE_NICENESS as an incremental to the current nice level (Bug
+	297174).
+
 2009-12-08: Paul Varner <fuzzyray@gentoo.org>
 	* gentoolkit: Merge rev 113 from djanderson's genscripts repo
 
