@@ -1,3 +1,8 @@
+2009-12-17: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix revdep-rebuild to properly honor
+	PORTAGE_NICENESS as an incremental to the current nice level. (Bug
+	297174).
+
 2009-04-30: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Add patch from loki_val to check -l dependencies in 
 	.la files (Bug #267898)
