@@ -216,8 +216,6 @@ def initialize_configuration():
 		os.getenv("NOCOLOR") in ("yes", "true")) or CONFIG['color'] == 0):
 		pp.output.nocolor()
 
-	CONFIG['verbose'] = not CONFIG['piping']
-
 
 def main_usage():
 	"""Return the main usage message for equery"""
@@ -269,6 +267,7 @@ def parse_global_options(global_opts, args):
 			pp.output.nocolor()
 		elif opt in ('-N', '--no-pipe'):
 			CONFIG['piping'] = False
+			CONFIG['verbose'] = True
 		elif opt in ('-V', '--version'):
 			print_version()
 			sys.exit(0)
