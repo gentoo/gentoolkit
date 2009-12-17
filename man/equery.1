@@ -299,7 +299,7 @@ Include all packages from the Portage tree in the search path. Use this option t
 equery hasuse -pI perl
 .EE
 .br
-View all Gentoo packages that have the "perl" USE flag, exluding installed packages.
+View all Gentoo packages that have the "perl" USE flag, excluding installed packages.
 .EX
 .HP
 USE="perl"; for PKG in $(equery -q hasuse $USE); do echo $PKG: $(equery -q uses $PKG |grep $USE); done
