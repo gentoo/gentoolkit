@@ -303,8 +303,12 @@ class Dependencies(CPV):
 				use_conditional = tok[:-1]
 				continue
 			if isinstance(tok, list):
-				asdf = self._parser(tok, use_conditional, depth=depth+1)
-				result.extend(asdf)
+				sub_r = self._parser(tok, use_conditional, depth=depth+1)
+				result.extend(sub_r)
+				use_conditional = None
+				continue
+			if tok[0] == '!':
+				# We're not interested in blockers
 				continue
 			atom = Atom(tok)
 			if use_conditional is not None:

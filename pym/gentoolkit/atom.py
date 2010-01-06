@@ -68,14 +68,7 @@ class Atom(portage.dep.Atom, CPV):
 
 		# Make operator compatible with intersects
 		if self.operator is None:
-			self.operator = '='
-
-		# Make slot a tuple if defined
-		# pylint screwup:
-		# E1101: 75:Atom.__init__: Instance of 'tuple' has no 'split' member
-		# pylint: disable-msg=E1101
-		if self.slot is not None:
-			self.slot = tuple(sorted(self.slot.split(',')))
+			self.operator = ''
 
 		self.cpv = CPV(self.cpv)
 
