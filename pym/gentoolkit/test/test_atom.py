@@ -71,8 +71,8 @@ class TestGentoolkitAtom(unittest.TestCase):
 		# slots.
 		self.assertNotEqual2(Atom('cat/pkg:1'), Atom('cat/pkg'))
 		self.assertEqual2(Atom('cat/pkg:2'), Atom('cat/pkg:2'))
-		self.assertEqual2(Atom('cat/pkg:2,1'), Atom('cat/pkg:2,1'))
-		self.assertEqual2(Atom('cat/pkg:2,1'), Atom('cat/pkg:1,2'))
+		# http://dev.gentoo.org/~tanderson/pms/eapi-2-approved/pms.html#x1-190002.1.2
+		self.assertEqual2(Atom('cat/pkg:AZaz09+_.-'), Atom('cat/pkg:AZaz09+_.-'))
 		for lesser, greater in (('0.1', '1'), ('1', '1-r1'), ('1.1', '1.2')):
 			self.assertTrue(Atom('=d/b-%s' % lesser) <
 				Atom('=d/b-%s' % greater),
@@ -126,8 +126,9 @@ class TestGentoolkitAtom(unittest.TestCase):
 			('=cat/pkg-1-r1*', '<cat/pkg-1-r1', False),
 			('=cat/pkg-1*', '>cat/pkg-2', False),
 			('>=cat/pkg-8.4', '=cat/pkg-8.3.4*', False),
-			('cat/pkg::gentoo', 'cat/pkg', True),
-			('cat/pkg::gentoo', 'cat/pkg::foo', False),
+			# Repos not yet supported by Portage
+			#('cat/pkg::gentoo', 'cat/pkg', True),
+			#('cat/pkg::gentoo', 'cat/pkg::foo', False),
 			('=sys-devel/gcc-4.1.1-r3', '=sys-devel/gcc-3.3*', False),
 			('=sys-libs/db-4*', '~sys-libs/db-4.3.29', True),
 		]:

@@ -1,5 +1,5 @@
 Python Code Guidelines
----------------
+----------------------
 These are a few guidelines to stick to when modifying or adding code to
 Gentoolkit. These guidelines do not apply to pym/gentoolkit/test/*.
 
@@ -33,7 +33,7 @@ Line-Wrapping
       ...
   )
 
-- Max. line length is strictly 80 characters with a tab length of 4 characters.
+- Preferred line length is 80 characters with a tab length of 4 characters.
 - "The preferred way of wrapping long lines is by using Python's implied line
   continuation inside parentheses, brackets and braces" rather than using '\'
   (PEP 8).
@@ -47,12 +47,12 @@ Line-Wrapping
     self._descriptions = \
         [e.text for e in self._xml_tree.findall("longdescription")]
 
-  BETTER:
+  OK:
     self._descriptions = [
         e.text for e in self._xml_tree.findall("longdescription")
     ]
 
-  BEST: (easiest to read and test)
+  OK: (easiest to read and test)
     long_descriptions = self._xml_tree.findall("longdescription")
     self._descriptions = [e.text for e in long_descriptions]
 
@@ -153,14 +153,9 @@ something tricky about them, though.
 Other concerns:
 ---------------
 - Choose names which are full, clear words (not necessary in small loops).
-- It is NEVER necessary to prefix names with "my". Consider:
-    class FooThinger(object):
-        def __init__(self, foo):
-            self.myfoo = foo
-
-  Just use FooThinger.foo or FooThinger.orig_foo; "my"foo tells us nothing.
+- It is NEVER necessary to prefix names with "my". It adds no useful
+  information.
 - Comment and document in simple, unambiguous and non-repetitive English.
 - When adding a TODO, FIXME or XXX comment, please date it and add your name so
   that other devs know who to ask about the proposed change.
-- Be careful of spelling. DO spell check your source code and be professional
-  when writing comments.
+- Be careful of spelling.

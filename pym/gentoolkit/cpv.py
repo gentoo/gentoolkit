@@ -36,11 +36,10 @@ class CPV(object):
 		'sys-apps/portage-2.2-r1'
 		>>> # An 'rc' (release candidate) version is less than non 'rc' version:
 		... CPV('sys-apps/portage-2') > CPV('sys-apps/portage-2_rc10')
+		True
 	"""
 
 	def __init__(self, cpv):
-		if not cpv:
-			raise errors.GentoolkitInvalidCPV(cpv)
 		self.scpv = cpv
 
 		values = split_cpv(cpv)
@@ -131,6 +130,7 @@ def split_cpv(cpv):
 
 	Inlined from helpers because of circular imports.
 
+	@todo: this function is slow and accepts some crazy things for cpv
 	@type cpv: str
 	@param cpv: pkg, cat/pkg, pkg-ver, cat/pkg-ver, atom or regex
 	@rtype: tuple
