@@ -1,0 +1,107 @@
+#!/usr/bin/python
+# Copyright 1999-2003 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2
+# $Header$
+# Author: Leo Lipelis <aeoo@gentoo.org>
+# Author: Karl Trygve Kalleberg <karltk@gentoo.org>
+
+import commands
+import re
+import sys
+import time
+import os
+from output import *
+
+print
+print red("!!! As of Gentoolkit 0.2.0, this tool is deprecated")
+print red("!!!") + " Refer to 'emerge clean' and 'emerge depclean' for replacements."
+print
+
+time.sleep(4)
+
+# constants for package tuples that are stored in pkg_hash
+PKG_TIME = 0 # number of seconds for ctime function
+PKG = 1 # package full path as accepted by ebuild
+PKG_NAME = 2 # package name as accepted by emerge
+
+(status, pkg_files) = commands.getstatusoutput(
+		"find /var/db/pkg -iname '*.ebuild' -printf '%T@ %p\n' | sort -n")
+
+pkg_file_list = pkg_files.splitlines()
+
+pkg_hash = {}
+for time_pkg_pair in pkg_file_list:
+	(pkg_time, pkg) = time_pkg_pair.split()
+	pkg_time = int(pkg_time)
+	# This covers developer trees with not-accepted categories
+	tmp_name = re.match(r'/var/db/pkg/(.*/.*)/.*', pkg)
+	if not tmp_name: continue
+	pkg_name = tmp_name.group(1)
+	tmp_core = re.match(r'(.*)-\d.*', pkg_name)
+	if not tmp_core: continue
+	pkg_core = tmp_core.group(1)
+	if pkg_hash.has_key(pkg_core):
+		pkg_hash[pkg_core].append((pkg_time, pkg, pkg_name))
+	else:
+		pkg_hash[pkg_core] = [(pkg_time, pkg, pkg_name)]
+
+total_len = len(pkg_hash.keys())
+curpkg = 0
+tmpname = os.tmpnam()
+assume_yes = 0
+
+if len(sys.argv) > 1:
+	if sys.argv[1] in ["-y", "--yes"]:
+		assume_yes = 1
+	elif sys.argv[1] in ["-h", "--help"]:
+		print """pkg-clean [options]
+
+-y, --yes       Don't ask for individual confirmation before unmerging; assume yes.
+"""
+		sys.exit(0)
+
+for pkg_core in pkg_hash.keys():
+	print "Examining %s:" % (pkg_core)
+	if len(pkg_hash[pkg_core]) < 2:
+		continue
+	unmerged_indexes = []
+	
+	curpkg += 1
+	choices = ""
+	idx = 1
+	for pkg_tuple in pkg_hash[pkg_core]:
+		choices += " %d \"%s %s\" 0" % \
+			   (idx, time.ctime(pkg_tuple[PKG_TIME]),
+			    pkg_tuple[PKG_NAME])
+		idx += 1
+
+	params = "dialog --separate-output --backtitle \"pkg-clean processing package %d of %d\" " % ( curpkg, total_len)
+	params += "--checklist \"Select which package(s) to unmerge\" 20 70 12" + choices
+	res = os.system(params + " 2> " + tmpname)
+	if res:
+		sys.exit(0)
+	
+	ins = open(tmpname)
+	for j in ins.readlines():
+		idx = int(j)
+		if idx == 0:
+			break
+
+		full_path = pkg_hash[pkg_core][idx-1][PKG]
+		ebuild = full_path.replace('/var/db/pkg','')
+
+		if not assume_yes: 
+			params = "dialog --backtitle \"" + ebuild + "\" " + \
+				 "--yesno \"Are you sure you want to unmerge " + ebuild + " ?\" 20 70"
+			res = os.system(params)
+		else:
+			res = 0
+
+		if res == 0:
+			(status, unmerge_out) = commands.getstatusoutput(
+				"ebuild %s unmerge" % (full_path))
+			print unmerge_out
+			time.sleep(2)
+			if status != 0:
+				sys.exit(status)
+	ins.close()

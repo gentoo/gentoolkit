@@ -1,0 +1,44 @@
+#!/usr/bin/python
+# Copyright 1999-2003 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2
+# $Header$
+#
+# Author: Marius Mauch <genone@gentoo.org>
+#
+# ewhich is a tool to get the ebuild filename for a given package name
+
+import portage,sys,os
+from output import *
+
+sys.stderr.write("\n" + red("!!!") + " As of Gentoolkit 0.2.0 this tool is deprecated\n")
+sys.stderr.write(red("!!!") + " Refer to 'equery which' for a replacement\n\n") 
+
+def print_help():
+	print
+	print fuscia(os.path.basename(sys.argv[0])), "is a tool to get the filename of the ebuild for a given package"
+	print ' '*len(os.path.basename(sys.argv[0])), "that would be used by portage with the current configuration"
+	print
+	print yellow("Syntax:"), os.path.basename(sys.argv[0]), teal("<package>")
+	print
+	print teal("<package>"), "is either a simple package name (like "+green("xfree")+"),"
+	print "          a package name with category (like "+green("x11-base/xfree")+")"
+	print "          or a DEPEND style atom as defined in ebuild(5) (like "+green(">=x11-base/xfree-4.3.0")+")"
+	print
+
+if len(sys.argv) <= 1 or sys.argv[1] == "-h" or sys.argv[1] == "--help":
+	print_help()
+	sys.exit(0)
+
+p = portage.db[portage.root]["porttree"].dbapi.xmatch("bestmatch-visible", sys.argv[1])
+if len(p) <= 1:
+	print
+	print red("*"), "\""+sys.argv[1]+"\" is not a valid package name or a masked package"
+	print
+	sys.exit(1)
+pv = portage.catpkgsplit(p)
+ebuild = "/"+pv[0]+"/"+pv[1]+"/"+p.split("/")[1]+".ebuild"
+for ov in portage.settings["PORTDIR_OVERLAY"].split():
+	if os.path.exists(ov+ebuild):
+		print os.path.normpath(ov+ebuild)
+		sys.exit(0)
+print os.path.normpath(portage.settings["PORTDIR"]+ebuild)

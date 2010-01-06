@@ -1,0 +1,390 @@
+#! /bin/sh
+#
+# Copyright (c) 2004 Karl Trygve Kalleberg <karltk@gentoo.org>
+# Copyright (c) Gentoo Technologies, Inc.
+# Licensed under the GNU General Public License, version 2
+#
+# Maintainer: Karl Trygve Kalleberg <karltk@gentoo.org>
+
+__version__="0.1.0"
+__author__="Karl Trygve Kalleberg"
+__email__="<karltk@gentoo.org>"
+__description__="Ebuild version bumping tool"
+
+
+
+die() {
+    echo $1 > /dev/stderr
+    exit -1
+}
+
+einfo() {
+    if [ ${opt_verbosity} -gt 1 ] ; then
+	echo $*
+    fi
+}
+
+print_version() {
+    echo "${__description__}, v${__version__}"
+    echo "Copyright (c) 2004 ${__author__} ${__email__}"
+    echo "Copyright (c) 2004 Gentoo Technologies, Inc."
+    echo "Licensed under the GNU General Public License, version 2"
+}
+
+print_usage() {
+    echo "Usage: ebump <options> foo<.ebuild>"
+    echo "Ebuild version bumping tool, v${__version__}"
+    echo "  -V|--version           show version info"
+    echo "  -v|--verbose           increase verbosity"
+    echo "  -q|--quiet             turn off output"
+    echo "  -C|--no-vcs            do not add to VCS"
+    echo "  -m|--message           append message to ChangeLog"
+    echo "  -d|--delete-old        delete previous revision from VCS (DANGEROUS!)"
+}
+
+#
+# Load options from /etc/gentoolkit/ebump.conf and ${HOME}/.gentoo/ebump.conf
+# Home directory file takes precedence.
+#
+load_options() {
+
+    # FIXME: Sourcing config files like this is really a bad idea; users may
+    # easily override any function in this program inside his config files.
+
+    if [ -f /etc/gentoolkit/ebump.conf ] ; then
+	. /etc/gentoolkit/ebump.conf
+    fi
+    if [ -f ${HOME}/.gentoo/gentool-env ] ; then
+	. ${HOME}/.gentoo/gentool-env
+    fi
+    if [ -f ${HOME}/.gentoo/ebump.conf ] ; then
+	. ${HOME}/.gentoo/ebump.conf
+    fi
+
+	# FIXME: remove this warning in 2-3 releases.
+	if [[ -n ${opt_add_cvs} ]];
+	then
+		echo "Warning: opt_add_cvs is deprecated, please use opt_add_vcs from now on!" >/dev/stderr
+	fi
+}
+
+#
+# Find closes ebuild to ${1}, if any
+#
+find_ebuild() {
+    f=${1}
+
+    if [ -f ${1} ] ; then
+	echo ${1}
+    fi
+
+    if [ -f ${1}.ebuild ] ; then
+	echo ${1}
+    fi
+}
+
+#
+# splitname (version|name|revision) package-name-version-revision
+#
+splitname() {
+    case $1 in
+	version)
+	    echo ${2} | sed -r "s/.*-([0-9].*)/\1/"
+	    ;;
+	name)
+	    name=$(echo ${2} | sed -r "s/(.*)-[0-9].*/\1/")
+	    if [ ${name} == ${2} ] ; then
+		if [ $(echo ${2} | grep "^[0-9].*") ] ; then
+		    # The filename starts with a version number, thus it has no
+                    # name
+		    name=""
+		else
+		    # The filename doesn't have a recognizeable version number;
+                    # everything is a name
+		    name=${2}
+		fi
+	    fi
+	    echo ${name}
+	    ;;
+	revision)
+	    rev=$(echo ${2} | sed -r "s/.*-r([0-9][0-9]*)/\1/")
+	    if [ ${rev} == ${2} ] ; then
+		rev=0
+	    fi
+	    echo ${rev}
+	    ;;
+	vernorev)
+	    ver=$(echo ${2} | sed -r "s/.*-([0-9].*)-r[0-9]+/\1/")
+	    if [ ${ver} == ${2} ] ; then
+		ver=$(echo ${2} | sed -r "s/.*-([0-9].*)/\1/")
+	    fi
+	    echo ${ver}
+	    ;;
+	*)
+	    echo
+    esac
+}
+
+process_ebuild() {
+	vcs=$1
+    ebuild_arg=$2
+	shift $#
+
+    # Files to add to VCS
+    addfiles=""
+    # Files to remove from VCS
+    delfiles=""
+
+    if [ -z ${ebuild_arg} ] ; then
+	print_usage
+	exit
+    fi
+
+    #
+    # Try to find a matching ebuild
+    #
+
+    ebuild_name=$(find_ebuild ${ebuild_arg})
+    if [ -z ${ebuild_name} ] ; then
+	die "Could not find ${ebuild_arg}"
+    fi
+    einfo "Processing ebuild ${ebuild_name}"
+
+    #
+    # Bump revision suffix (or add one)
+    #
+
+    PF=$(basename ${ebuild_name} .ebuild)
+    PN=$(splitname name ${PF})
+    PV=$(splitname version ${PF})
+    rev=$(splitname revision ${PF})
+    PV_norev=$(splitname vernorev ${PF})
+    newPF=${PN}-${PV_norev}-r$[rev+1]
+
+#    echo $PF / $PN / $PV / $rev / $PV_norev / $newPF
+
+    einfo "Bumped ${PF}.ebuild to ${newPF}.ebuild"
+
+	if [[ "${vcs}" == "svn" ]];
+	then
+		svn cp ${PF}.ebuild ${newPF}.ebuild
+	else
+		cp ${PF}.ebuild ${newPF}.ebuild
+	fi
+
+	einfo "Reset keywords to ~arch"
+
+	ekeyword '~all' "${newPF}.ebuild"
+
+    addfiles="${addfiles} ${newPF}.ebuild"
+    delfiles="${delfiles} ${PF}.ebuild"
+
+    #
+    # (Optional) Bump relevant files in files/
+    #
+
+    if [ "${opt_bump_auxfiles}" == "y" ] ; then
+
+        # Gather list of auxiliary files in files/ that has a versioned
+	# filename, where the version matches our current version.
+
+	bumplist=""
+	for x in $(echo files/*) ; do
+	    if [ ! -z $(echo $x | grep "${PV}$") ] ; then
+		bumplist="${bumplist} ${x}"
+	    fi
+	done
+
+        # Bump version of all matches
+
+	for x in ${bumplist} ; do
+
+	    bn=$(basename ${x})
+	    dn=$(dirname ${x})
+
+	    PN=$(splitname name ${bn})
+	    PV=$(splitname version ${bn})
+	    rev=$(splitname revision ${bn})
+	    PV_norev=$(splitname vernorev ${bn})
+
+#	    echo $PN / ${PV_norev} / ${rev}
+
+	    # Special case for when we have no name part; filename
+	    # is just a version number
+	    if [ -z "${PN}" ] ; then
+		newbn=${PV_norev}-r$[rev+1]
+	    else
+		newbn=${PN}-${PV_norev}-r$[rev+1]
+	    fi
+
+	    if [ -d ${dn}/${bn} ] ; then
+		if [ -e ${dn}/${newbn} ] ; then
+		    echo "Directory ${dn}/${newbn} exists, not copying" > /dev/stderr
+		else
+		    cp -a ${dn}/${bn} ${dn}/${newbn}
+			# uhm, is that necessary?
+#		    find ${dn}/${newbn} -name CVS | xargs rm -rf
+		fi
+	    else
+		cp ${dn}/${bn} ${dn}/${newbn}
+	    fi
+
+	    addfiles="${addfiles} ${dn}/${newbn}"
+	    delfiles="${delfiles} ${dn}/${bn}"
+
+	    einfo "Bumped ${dn}/${bn} to ${dn}/${newbn}"
+	done
+    fi
+
+#    echo "addfiles ${addfiles}"
+#    echo "delfiles ${delfiles}"
+
+	filelist="${addfiles}"
+
+    #
+    # (Optional) Add VCS entry for all new files
+    #
+    if [ "${opt_add_vcs}" == "y" ] ; then
+		for x in ${addfiles} ; do
+		    if [ -d ${x} ] ; then
+				find ${x} -exec ${vcs} add {} ';'
+		    else
+				${vcs} add ${x}
+		    fi
+		done
+		einfo "Added ${addfiles} to VCS"
+    fi
+
+
+    #
+    # (Optional) Delete previous entry
+    #
+    # Could we use 'rm' instead of remove for all vcs?
+    if [ "${opt_delete_old}" == "y" ] ; then
+		for x in ${delfiles} ; do
+			if [[ "${vcs}" == "cvs" ]];
+			then
+			    ${vcs} remove -f ${x}
+			elif [[ "${vcs}" == "git" ]];
+			then
+				${vcs} rm ${x}
+			else
+				${vcs} remove ${x}
+			fi
+		done
+		einfo "Removed ${delfiles} from VCS"
+    fi
+
+    #
+    # (Optional) Add ChangeLog entry
+    #
+	if [[ "${opt_add_changelog}" == "y" ]] && [[ "${opt_add_vcs}" == "y" ]];
+	then
+		# FIXME: remove this warning in 2-3 releases
+		if [[ -n ${AUTHORNAME} ]] || [[ -n ${AUTHOREMAIL} ]];
+		then
+			echo "Warning: AUTHORNAME and AUTHOREMAIL is deprecated!" >/dev/stderr
+			echo "Please take a look at echangelog(1)." >/dev/stderr
+			echo "To avoid this warning unset AUTHORNAME and AUTHOREMAIL." >/dev/stderr
+		fi
+
+		echangelog "${opt_commitmessage}" || set $?
+
+		if [[ ${1:-0} -ne 0 ]];
+		then
+			einfo "Modifying ChangeLog failed!"
+		else
+			einfo "Added ChangeLog entry"
+		fi
+    fi
+}
+
+function get_vcs() {
+	if [[ -d "CVS" ]];
+	then
+		echo "cvs"
+		return 0
+	elif [[ -d ".svn" ]];
+	then
+		echo "svn"
+		return 0
+	else
+		if [[ -x "$(which git)" ]];
+		then
+			if [[ -n "$(git rev-parse --git-dir 2>/dev/null)" ]];
+			then
+				echo "git"
+				return 0
+			fi
+		fi
+		echo
+		return 1
+	fi
+}
+
+original_params=${#}
+
+#
+# Global options
+#
+opt_verbosity=1
+opt_warn_on_delete=y
+opt_add_changelog=y
+opt_add_vcs=y
+opt_bump_auxfiles=y
+opt_delete_old=n
+opt_commitmessage=""
+
+load_options
+
+skip=0
+while [ ${#} -gt 0 ] ; do
+    arg=${1}
+    shift
+    if [ ${skip} -gt 0 ] ; then
+	skip=$[skip-1]
+    else
+	case ${arg} in
+	    -h|--help)
+		print_usage
+		exit 0
+		;;
+	    -m|--message)
+		opt_commitmessage="${1}"
+		skip=1
+		;;
+	    -C|--no-vcs)
+		opt_add_vcs=n
+		;;
+	    -V|--version)
+		print_version
+		exit
+		;;
+	    -v|--verbose)
+		opt_verbosity=$[opt_verbosity + 1]
+		;;
+	    -q|--quiet)
+		opt_verbosity=0
+		;;
+	    -d|--delete-old)
+		opt_delete_old=y
+		;;
+	    *)
+		ebuild_arg=${arg}
+		;;
+	esac
+    fi
+done
+
+_vcs=$(get_vcs)
+if [[ -z "${_vcs}" ]];
+then
+	echo "Warning: no cvs, git or svn repository found!" >/dev/stderr
+	echo "Changes can't be added to the VCS" >/dev/stderr
+	opt_add_vcs=n
+	opt_delete_old=n
+fi
+process_ebuild "${_vcs}" ${ebuild_arg}
+
+# TODO:
+# - put cli parser into separate functions

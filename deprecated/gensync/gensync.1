@@ -1,0 +1,75 @@
+.TH gensync 1 "0.1.0" "Gentoolkit" "Gentoo Administration"
+.SH "NAME"
+.LP 
+gensync \- Gentoo: Overlay Sync Tool
+.SH "SYNTAX"
+.LP 
+gensync [\fIoption\fP] <\fIrepo-id-1 repo-id-2 ...\fP>
+
+.SH "DESCRIPTION" 
+
+.LP
+
+\fIgensync\fR synchronises your machine against an upstream repository
+of ebuild files, called a sync source. Normally, Portage will only
+synchronise against the main Portage tree maintained by the Gentoo
+project. However, there exist development trees with auxiliary ebuild
+files that may occasionally be of interest to the adventurous power
+user, such as the \fIbreakmygentoo.net\fR sync source.
+
+This tool can be used to synchronise against these alternative sync
+sources.
+
+.SH "OPTIONS"
+.LP 
+\fB\-l\fR
+.br
+\fB--list-sources\fB
+.IP 
+List available sync sources known to \fIgensync\fR.
+
+.LP 
+\fB\-V\fR
+.br
+\fB--version\fB
+.IP 
+Display version information and exit.
+
+.LP 
+\fB\-C\fR
+.br
+\fB--no-color\fB
+.IP 
+Turn off colors.
+
+.LP 
+\fB\-h\fR
+.br 
+\fB\--help\fR
+.IP 
+Display help.
+
+.SH "CONFIGURATION FILES"
+.LP
+\fB/etc/gensync/gensync.conf\fR
+.IP
+The main configuration file, commented and self-explanatory
+
+.LP
+\fB/etc/gensync/*.syncsource\fR
+.IP
+Per-sync source configuration files, describing the sync source to
+\fIgensync\fR.
+
+
+.SH "SEE ALSO"
+.LP 
+The rest of the utilities in \fIapp-portage/gentoolkit-dev\fR, such as
+\fIechangelog\fR, \fIebump\fR and \fIego\fR.
+
+.SH "AUTHORS"
+.LP 
+Matthew Schick <matt@breakmygentoo.net> (original author)
+.br
+Karl Trygve Kalleberg <karltk@gentoo.org>
+

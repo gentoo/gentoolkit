@@ -1,0 +1,8 @@
+- rewrite ekeyword and echangelog to use gentoolkit
+- look through forums.gentoo.org for additional scripts
+- write a Gentoolkit Guide
+- revision bump tool
+ - bump versioned files in filesdir
+
+ - imlate
+ 	Compare one arch with all to see possible candidates for several architectures

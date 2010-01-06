@@ -1,0 +1,37 @@
+Package: gentoolkit-dev
+Authors: Aron Griffis <agriffis@gentoo.org>
+         Brandon Low <lostlogic@gentoo.org>
+         Ian Leitch <port001@gentoo.org>
+         Karl Trygve Kalleberg <karltk@gentoo.org>
+         Marius Mauch <genone@gentoo.org>
+         Paul Varner <fuzzyray@gentoo.org>
+         Christian Ruppert <idl0r@gentoo.org>
+         See src/<tool>/AUTHORS for tool-specific authors
+
+MOTIVATION
+
+The gentoolkit and gentoolkit-dev packages contain a collection of useful
+administration scripts particular to the Gentoo Linux distribution. It contains
+rough drafts and implementations of features that may in time make it into
+Portage, or into full-fledged tools in their own right.
+
+The gentoolkit-dev package is intended primarily for Gentoo developers.
+
+CONTENTS
+
+gentoolkit-dev
+==============
+ebump          - Ebuild revision bumper
+echangelog     - update portage ChangeLogs
+ego            - 
+ekeyword       - modify package KEYWORDS
+eshowkw        - Display ebuild keywords in a graphical form
+eviewcvs       - generate viewcvs URLs
+imlate         - Displays candidates for keywords for an architecture based upon a target architecture
+
+IMPROVEMENTS
+
+Any suggestions for improvements should be sent to tools-portage@gentoo.org, or
+added as a bug assigned to us.
+
+We only accept new contributions if they are written in bash or python.

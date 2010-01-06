@@ -1,0 +1,688 @@
+#!/usr/bin/env python2
+#
+# -*- mode: python; -*-
+#
+# --| Version Information |------------------------------------------
+# 
+#  etcat v0.1.4 (27 Apr 2003)
+#
+#  $Header$
+#
+# --| About |--------------------------------------------------------
+#
+#  etcat is a Portage/Ebuild Information Extractor. Basically, it
+#  provides higher level convienence functions to the Portage system
+#  used by Gentoo Linux. 
+#  
+#  You can use it to quickly find out the recent changes of your
+#  favourite package, the size of installed packages, the
+#  available versions for a package and more.
+#
+# --| License |------------------------------------------------------
+#
+#  Distributed under the terms of the GNU General Public License v2
+#  Copyright (c) 2002 Alastair Tse.
+#
+# --| Usage |--------------------------------------------------------
+#
+#  etcat [options] <command> <package[-ver]|ebuild|category/package[-ver]>
+#
+#  -b/belongs  ) checks what package(s) a file belongs to
+#  -c/changes  ) list the more recent changelog entry
+#  -d/depends  ) list all those that have this in their depends
+#  -f/files	) list all files that belong to this package
+#  -g/graph	) graph dependencies
+#  -s/size	 ) guesses the size of a installed packaged.
+#  -u/uses	 ) list all the use variables used in this package/ebuild
+#  -v/versions ) list all the versions available for a package
+#
+# --| TODO |---------------------------------------------------------
+# 
+# - in ver_cmp: 1.2.10a < 1.2.10, need to fix that
+# 
+# --| Changes |------------------------------------------------------
+#
+#  * etcat-0.3.1 (10 Oct 2004) [karltk]
+#	- Fixed changes help examples
+#  * etcat-0.3.1 (08 Jan 2004) [genone]
+#	- adding missing python searchpath modification
+#	- fixing sort order
+#  * etcat-0.3.0 (12 Jul 2003) [karltk]
+#	- Refactored interesting stuff into the Gentoolkit module
+#  * etcat-0.2.0 (13 Jun 2003)
+#	- Updated "versions" with PORTAGE_OVERLAY detection
+#	- Added "graph" feature
+#  * etcat-0.1.5 (30 Apr 2003)
+#	- Fixed disappearing short opts. Oops.
+#  * etcat-0.1.4 (27 Apr 2003)
+#	- Cleaned up command execution code to provide a single place
+#	  to specify functions
+#	- Added own custom wrapping print code.
+#	- Added "files" feature
+#	- Added "depends" feature
+#  * etcat-0.1.3 (24 Apr 2003)
+#	- Overhaul of commandline interpreter
+#	- Added "belongs" feature
+#	- Reimplemented "uses" to deal with IUSE more cleanly
+#	  and sources use.local.desc
+#	- Natural Order Listings for version
+#  * etcat-0.1.2 (29 Mar 2003)
+#	- Added unstable indicator to complement masked
+#	- improved use flag listing
+#  * etcat-0.1.1 (21 Jan 2003)
+#	- Add package to versions listing even if it's not in
+#	  the portage anymore (21 Jan 2003)
+#	- Fixed old ehack references (17 Jan 2003)
+#  * etcat-0.1 (31 Oct 2002)
+#	Initial Release;
+#
+# -------------------------------------------------------------------
+
+
+
+import os
+import sys
+import re
+import pprint
+import getopt
+import glob
+
+# portage and gentoolkit need special path modifications
+sys.path.insert(0, "/usr/lib/portage/pym")
+sys.path.insert(0, "/usr/lib/gentoolkit/pym")
+
+import gentoolkit
+from stat import *
+try:
+	from portage.output import *
+except ImportError:
+	from output import *
+
+__author__ = "Alastair Tse"
+__email__ = "liquidx@gentoo.org"
+__version__ = "0.3.1"
+__productname__ = "etcat"
+__description__ = "Portage Information Extractor"
+
+# .-------------------------------------------------------.
+# | Initialise Colour Settings							|
+# `-------------------------------------------------------'
+if (not sys.stdout.isatty()) or (gentoolkit.settings["NOCOLOR"] in ["yes","true"]):
+	nocolor()
+
+# "option": ("shortcommand","desc",["example one", "example two"])
+options = {
+"belongs": \
+("b","Searches for a package that owns a specified file with an option to restrict the search space.",
+["etcat belongs /usr/bin/gimp media-gfx",
+ "etcat belongs /usr/lib/libjpeg.so media-*",
+ "etcat belongs /usr/lib/libmpeg.so"]),
+"changes": \
+("c","Outputs the changelog entry to screen. It is possible to give a version number along with the package name.",
+["etcat changes mozilla", 
+ "etcat changes =mozilla-1.1-r1", 
+ "etcat changes gkrellm$"]),
+"depends": \
+("d","Finds all packages that are directly dependent to a regex search string.",
+["etcat depends 'gnome-base/libgnome'", 
+ "etcat depends '>=dev-lang/python-2.2'"]),
+"files": \
+("f","Lists files that belongs to a package and optionally with version.",[]),
+"graph": \
+("g","Graphs Dependencies (NON WORKING)",[]),
+"size": \
+("s","Lists the installed size of a package.",[]),
+"uses": \
+("u", "Advanced output of USE vars in a package. Tells you flags used by a package at time of installation, flags in current config and flag description.",[]),
+"versions": \
+("v","Displays the versions available for a specific package. Colour coded to indicate installation status and displays slot information.",
+[turquoise("(I)") + "nstalled", 
+ yellow("(~)") + "Unstable Testing Branch", 
+ red("(M)") + "asked Package"])
+}
+
+# .-------------------------------------------------------.
+# | Small Wrapping Printer with Indent Support			|
+# `-------------------------------------------------------'
+
+def wrap_print(string, indent=0, width=74):
+	line_len = width - indent
+	str_len = len(string)
+	lines = []
+	
+	pos = 0
+	thisline = ""
+	while pos < str_len:
+		# if we still have space stuff the
+		# character in this line
+		if len(thisline) < line_len-1:
+			thisline += string[pos]
+			pos += 1
+		# if we're at the end of the line,
+		# check if we should hyphenate or
+		# append
+		elif len(thisline) == line_len -1:
+			# end of a text
+			if pos == str_len -1:
+				thisline += string[pos]
+				pos += 1
+			# end of a word
+			elif string[pos] != " " and string[pos+1] == " ":
+				thisline += string[pos]		
+				pos += 1
+			# just a space
+			elif string[pos] == " ":
+				thisline += string[pos]				
+				pos += 1
+			# start of a word, we start the word on the next line
+			elif pos>0 and string[pos-1] == " ":
+				thisline += " "
+			# needs hyphenating
+			else:
+				thisline += "-"
+				
+			# append the line
+			lines.append(thisline)
+			thisline = ""
+
+	# append last line
+	if thisline:
+		lines.append(thisline)
+			
+	for line in lines:
+		print " "*indent + line
+
+# +-------------------------------------------------------+
+# | Pretty Print Log									  |
+# +-------------------------------------------------------+
+# | Extracts and prints out the log entry corresponding   |
+# | to a certain revision if given. If not supplied,	  |
+# | prints out the latest/topmost entry				   |
+# `-------------------------------------------------------'	
+	
+# output the latest entry in changelog
+def output_log(lines, package_ver=""):
+	# using simple rules that all changelog entries have a "*"
+	# as the first char
+	is_log = 0
+	is_printed = 0
+
+	for line in lines:
+		if package_ver:
+			start_entry = re.search("^[\s]*\*[\s]*(" + package_ver + ")[\s]+.*(\(.*\))",line)
+		else:
+			start_entry = re.search("^[\s]*\*[\s]*(.*)[\s]+.*(\(.*\))",line)
+		if not is_log and start_entry:
+			is_printed = 1
+			is_log = 1
+			print green("*") + "  " + white(start_entry.group(1)) + "  " + turquoise(start_entry.group(2)) + " :"
+		elif is_log and re.search("^[\s]*\*[\s]*(.*)[\s]+.*(\(.*\))",line):
+			break
+		elif is_log:
+			print line.rstrip()
+		else:
+			pass
+		
+	return is_printed
+
+# .-------------------------------------------------------.
+# | Changes Function									  |
+# +-------------------------------------------------------+
+# | Print out the ChangeLog entry for package[-version]   |
+# `-------------------------------------------------------'
+
+def changes(query, matches):
+	if not report_matches(query,matches,installed_only=0):
+		return
+
+	for pkg in matches:
+		changelog_file = pkg.get_package_path() + "/ChangeLog"
+		if os.path.exists(changelog_file):
+			output_log(open(changelog_file).readlines(), pkg.get_name()+"-"+pkg.get_version())
+		else:
+			print red("Error") + ": No Changelog for " + pkg.get_cpv()
+
+
+# .-------------------------------------------------------.
+# | Versions Function									 |
+# +-------------------------------------------------------+
+# | Prints out the available version, masked status and   |
+# | installed status.									 |
+# `-------------------------------------------------------'		
+		
+def versions(query, matches):
+	# this function should also report masked packages
+	matches = gentoolkit.find_packages(query, masked=True)
+	if not report_matches(query,matches):
+		return
+
+	# sorting result list
+	matches = gentoolkit.sort_package_list(matches)
+		
+	# FIXME: old version printed result of regex search on name,
+	# so "ant" would return app-emacs/semantic, etc...
+	
+	last_cp = ""
+
+	for pkg in matches:
+		new_cp = pkg.get_category()+"/"+pkg.get_name()
+		if last_cp != new_cp:
+			print green("*") + "  " + white(new_cp) + " :"
+		last_cp = new_cp
+			
+		state = []
+		color = green
+		unstable = 0
+		overlay = ""
+			
+		# check if masked
+		if pkg.is_masked():
+			state.append(red("M"))
+			color = red
+		else:
+			state.append(" ")
+
+		# check if in unstable
+		kwd = pkg.get_env_var("KEYWORDS")
+		if "~" + gentoolkit.settings["ARCH"] in kwd.split():
+			state.append(yellow("~"))
+			if color != red:
+				color = yellow
+			unstable = 1
+		else:
+			state.append(" ")
+				
+		# check if installed
+		if pkg.is_installed():
+			state.append(turquoise("I"))
+			color = turquoise
+		else:
+			state.append(" ")
+
+		# check if this is a OVERLAY ebuilds
+		if pkg.is_overlay():
+			overlay = " OVERLAY"
+
+		ver = pkg.get_version()
+		slot = pkg.get_env_var("SLOT")
+		print " "*8 + "[" + "".join(state) + "] " + color(ver) + " (" + color(slot) + ")" + overlay
+
+# .-------------------------------------------------------.
+# | List USE flags for a single ebuild, if it's installed |
+# +-------------------------------------------------------+
+# | Just uses the new IUSE parameter in ebuilds		   |
+# `-------------------------------------------------------' 
+def uses(query, matches):
+	useflags = gentoolkit.settings["USE"].split()	
+	usedesc = {}
+	uselocaldesc = {}
+
+	# Load global USE flag descriptions
+	try:
+		fd = open(gentoolkit.settings["PORTDIR"]+"/profiles/use.desc")
+		usedesc = {}
+		for line in fd.readlines():
+			if line[0] == "#":
+				continue
+			fields = line.split(" - ")
+			if len(fields) == 2:
+				usedesc[fields[0].strip()] = fields[1].strip()
+	except IOError:
+		pass
+
+	# Load local USE flag descriptions
+	try:
+		fd = open(gentoolkit.settings["PORTDIR"]+"/profiles/use.local.desc")
+		for line in fd.readlines():
+			if line[0] == "#":
+				continue
+			fields = line.split(" - ")
+			if len(fields) == 2:
+				catpkguse = re.search("([a-z]+-[a-z]+/.*):(.*)", fields[0])
+				if catpkguse:
+					if not uselocaldesc.has_key(catpkguse.group(1).strip()):
+						uselocaldesc[catpkguse.group(1).strip()] = {catpkguse.group(2).strip() : fields[1].strip()}
+					else:
+						uselocaldesc[catpkguse.group(1).strip()][catpkguse.group(2).strip()] = fields[1].strip()
+	except IOError:
+		pass
+		
+	print "[ Colour Code : " + green("set") + " " + red("unset") + " ]"
+	print "[ Legend   : (U) Col 1 - Current USE flags        ]"
+	print "[          : (I) Col 2 - Installed With USE flags ]"
+
+	if filter(gentoolkit.Package.is_installed, matches):
+		only_installed = True
+	else:
+		only_installed = False
+
+	# Iterate through matches, printing a report for each package
+	for p in matches:
+		if not p.is_installed() and only_installed:
+			continue
+	
+		bestver = p.get_cpv()
+		iuse = p.get_env_var("IUSE")
+		
+		if iuse: usevar = iuse.split()
+		else: usevar = []
+		
+		inuse = []
+		used = p.get_use_flags().split()
+
+		# store (inuse, inused, flag, desc)
+		output = []
+
+		for u in usevar:
+			inuse = 0
+			inused = 0
+			try:
+				desc = usedesc[u]
+			except KeyError:
+				try:
+					desc = uselocaldesc[p.get_category()+"/"+p.get_name()][u]
+				except KeyError:
+					desc = ""
+
+			if u in p.get_settings("USE"): inuse = 1
+			if u in used: inused = 1
+				
+			output.append((inuse, inused, u, desc))
+
+		# pretty print
+		if output:
+			print
+			print white(" U I ") + "[ Found these USE variables in : " + white(bestver) + " ]"
+			maxflag_len = 0
+			for inuse, inused, u, desc in output:
+				if len(u) > maxflag_len:
+					maxflag_len = len(u)
+		
+			for inuse, inused, u, desc in output:
+				flag = ["-","+"]
+				colour = [red, green]
+				if inuse != inused:
+					print yellow(" %s %s" % (flag[inuse], flag[inused])),
+				else:
+					print " %s %s" % (flag[inuse], flag[inused]),
+
+				print colour[inuse](u.ljust(maxflag_len)),
+			
+				# print description
+				if desc:
+					print ":", desc
+				else:
+					print ": unknown"
+		else:
+			print "[ No USE flags found for :", white(p.get_cpv()), "]"		
+
+	return
+
+# .-------------------------------------------------------.
+# | Graphs the Dependency Tree for a package			  |
+# +-------------------------------------------------------+
+# | Naive graphing of dependencies
+# `-------------------------------------------------------'
+
+def graph(query, matches):
+	if not report_matches(query, matches):
+		return
+
+	for pkg in matches:
+		if not pkg.is_installed():
+			continue
+		rgraph(pkg)
+
+def rgraph(pkg,level=0,pkgtbl=[],suffix=""):
+
+	cpv=pkg.get_cpv()
+
+	print level*" " + "`-- " + cpv + suffix
+	pkgtbl.append(cpv)
+	
+	for x in pkg.get_runtime_deps():
+		suffix=""
+		cpv=x[2]
+		pkg=gentoolkit.find_best_match(x[0] + cpv)
+		if not pkg:
+			continue
+		if pkg.get_cpv() in pkgtbl:
+			continue
+		if cpv.find("virtual")==0:
+			suffix+=" (" + cpv + ")"
+		if len(x[1]):
+			suffix+=" [ " + "".join(x[1]) + " ]"
+		pkgtbl=rgraph(pkg,level+1,pkgtbl,suffix)
+	return pkgtbl
+
+# .-------------------------------------------------------.
+# | Required By Function								  |
+# +-------------------------------------------------------+
+# | Find what packages require a given package name	   |
+# `-------------------------------------------------------'
+
+def depends(query, matches):
+	
+	print "[ Results for search key : " + white(query) + " ]"
+
+	isdepend = gentoolkit.split_package_name(query)
+	
+	for pkg in matches:
+		if pkg.is_installed():
+			deps = pkg.get_runtime_deps()
+			for x in deps:
+				cpvs=gentoolkit.split_package_name(x[2])
+				cat_match=0
+				ver_match=0
+				name_match=0
+				if not isdepend[0] or isdepend[0] == cpvs[0]:
+					cat_match=1
+				if not isdepend[2] or \
+				   (isdepend[2] == cpvs[2] and isdepend[3] == cpvs[3]):
+					ver_match=1
+				if isdepend[1] == cpvs[1]:
+					name_match=1
+				if cat_match and ver_match and name_match:
+					print turquoise("*"), white(pkg.get_cpv()), white("[ ") + "".join(x[1]), white("]")
+
+# .-------------------------------------------------------.
+# | Belongs to which package							  |
+# +-------------------------------------------------------+
+# | Finds what package a file belongs to				  |
+# `-------------------------------------------------------'			
+			
+def belongs(query,matches):
+
+	q = query.split()
+
+	if len(q) > 1:
+		item=q[0]
+		cat=q[1]
+		fn=lambda x: x.find(cat)==0
+	else:
+		item=q[0]
+		cat="*"
+		fn=None
+	matches = gentoolkit.find_all_installed_packages(fn)
+
+	print "Searching for " + item + " in " + cat + " ..."
+
+	rx = re.compile(item)
+
+	for pkg in matches:
+		if pkg.get_contents():
+			for fn in pkg.get_contents().keys():
+				if rx.search(fn):
+					print pkg.get_cpv()
+					break # We know this pkg matches, look for any more matches
+	return
+		
+# .-------------------------------------------------------.
+# | Size of all packages matching query				   |
+# +-------------------------------------------------------+
+# | Finds the size of installed packages				  |
+# `-------------------------------------------------------'			
+def size(query,packages):
+	packages = gentoolkit.find_packages(query)
+	if not report_matches(query, packages):
+		return
+
+	for pkg in packages:
+		if not pkg.is_installed():
+			continue
+		x=pkg.size()
+		size=x[0]
+		files=x[1]
+		uncounted=x[2]
+		print turquoise("*") + " " + white(pkg.get_cpv())
+		print " Total Files : ".rjust(25) + str(files)
+		if uncounted:
+			print " Inaccessible Files : ".rjust(25) + str(uncounted)
+		print " Total Size : ".rjust(25) + "%.2f KB" % (size/1024.0)
+
+
+def report_matches(query, matches, installed_only=1):
+	print "[ Results for search key	   : " + white(query) + " ]"
+	print "[ Candidate applications found : " + white(str(len(matches))) + " ]"
+	print
+
+	if installed_only and matches:
+		print " Only printing found installed programs."
+		print
+	elif installed_only:
+		print "No packages found."
+
+	if matches:
+		return 1
+	else:
+		return 0
+
+
+# .-------------------------------------------------------.
+# | Files in a package									|
+# +-------------------------------------------------------+
+# | Lists all the files in a package					  |
+# `-------------------------------------------------------'			
+def files(query,matches):
+	if not report_matches(query, matches):
+		return
+	
+	for package in matches:
+		if not package.is_installed():
+			continue
+		contents = package.get_contents()
+		
+		print yellow(" * ") + white(package.get_cpv())
+		for x in contents.keys():
+			t = contents[x][0]
+			if t == "obj":
+				print x
+			elif t == "sym":
+				print turquoise(x)
+			elif t == "dir":
+				print blue(x)
+			else:
+				print x
+
+# .-------------------------------------------------------.
+# | Help Function										 |
+# `-------------------------------------------------------'
+def ver():
+	print __productname__ + " (" + __version__ + ") - " + __description__ + " - By: " + __author__
+
+def help():
+	screenwidth = 74
+	margin = 2
+	margin_desc = 4
+	margin_ex = 8
+	
+	ver()
+	print yellow("NOTICE: ") + "This tool will be phased out at some point in"
+	print "        the future, please use equery instead."
+	print "        Bugs are still fixed, but new features won't be added."
+	print
+	print white("Usage: ") + turquoise(__productname__) + " [ " + green("options") + " ] [ " + turquoise("action") + " ] [ " + turquoise("package") + " ]"
+	print
+	print turquoise("Actions:")
+	print
+	for name,tup in options.items():
+		print " "*margin + green(name) + " (" + green("-" + tup[0]) + " short option)"
+		wrap_print(tup[1],indent=margin_desc)
+		for example in tup[2]:
+			print " "*margin_ex + example
+		print
+
+# .-------------------------------------------------------.
+# | Main Function										 |
+# `-------------------------------------------------------'
+def main():
+	
+	action = ''
+	query = ''
+	
+	if len(sys.argv) < 3:
+		help()
+		sys.exit(1)
+		
+	# delegates the commandline stuff to functions
+	pointer = 2
+	# short/long opts mapping
+	shortopts = ["-"+x[0] for x in options.values()]
+	short2long = {}
+	for k,v in options.items():
+		short2long[v[0]] = k
+	longopts = options.keys()
+	# loop thru arguments
+	for arg in sys.argv[1:]:
+		if arg[0] == "-" and len(arg) == 2 and arg in shortopts:
+			action = short2long[arg[1]]
+			query = ' '.join(sys.argv[pointer:])
+			break
+		elif arg in longopts:
+			action = arg
+			query = ' '.join(sys.argv[pointer:])
+			break
+		else:
+			pointer += 1
+			
+	# abort if we don't have an action or query string
+	if not query or action not in options.keys():
+		help()
+		sys.exit(1)
+	else:
+		try:
+			matches = gentoolkit.find_packages(query)
+		except KeyError, e:
+			if e[0].find("Specific key requires operator") == 0:
+				print red("!!!"), "Invalid syntax: missing operator"
+				print red("!!!"), "If you want only specific versions please use one of"
+				print red("!!!"), "the following operators as prefix for the package name:"
+				print red("!!!"), "   >  >=  =  <=  <"
+				print red("!!!"), "Example to only match gcc versions greater or equal 3.2:"
+				print red("!!!"), "   >=sys-devel/gcc-3.2"
+			else:
+				print red("!!!"), "Internal portage error, terminating"
+				if len(e[0]):
+					print red("!!!"), e
+			sys.exit(2)
+		except ValueError, e:
+			if isinstance(e[0],list):
+				print red("!!!"), "Ambiguous package name \"%s\"" % query
+				print red("!!!"), "Please use one of the following long names:"
+				for p in e[0]:
+					print red("!!!"), "    "+p
+			else:
+				print red("!!!"), "Internal portage error, terminating"
+				if len(e[0]):
+					print red("!!!"), e[0]
+			sys.exit(2)
+		function = globals()[action]
+		function(query, matches)
+	
+if __name__ == "__main__":
+	try:
+		main()
+	except KeyboardInterrupt:
+		print "Operation Aborted!"
+
+

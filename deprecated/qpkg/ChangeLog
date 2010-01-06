@@ -1,0 +1,5 @@
+2004-02-18 Brandon Low <lostlogic@gentoo.org>
+	* Fix a reported security issue, have a TMP location that is process specific
+
+2004-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added Makefile

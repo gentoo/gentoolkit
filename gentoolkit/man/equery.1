@@ -1,0 +1,538 @@
+.TH "EQUERY" "1" "August 2009" "GENTOOLKIT"
+.SH "NAME"
+equery \- Gentoo Package Query Tool
+
+.SH "SYNOPSIS"
+.BI "equery " "[global-options] " "module " "[local-options]"
+
+.SH "DESCRIPTION"
+.B Equery
+is a collection of modules for querying the state of Gentoo packages, files and USE flags.
+
+.SH "GLOBAL OPTIONS"
+.HP
+.B \-h, \-\-help
+.br
+Output a help message.
+.HP
+.B \-q, \-\-quiet
+.br
+Be less verbose where possible. In some modules, this option can increase the output speed.
+.HP
+.B \-C, \-\-no-color
+.br
+Do not colorize output.
+.HP
+.B \-N, \-\-no\-pipe
+.br
+Turn off automatic pipe detection. Use this option if you do not want
+.B equery
+to detect if the output is being directed to the screen or to another program and adjust color and verbosity accordingly.
+.HP
+.B \-V, \-\-version
+.br
+Display \fBGentoolkit\fP's version. Please include this in all bug reports. (see
+.B BUGS
+below)
+
+.SH "MODULES"
+.B Equery
+uses a system of modules. Each module has both a long and short name. The list below uses the notation "\fBmodule (m)\fP", where \fIm\fP is the short name and \fImodule\fP is the long name.
+.P
+You can view the
+.B help
+message for a specific module by using
+.BR "-h" ", " "--help "
+as either a global option (after
+.B equery
+and before the module name) or as a local option (after the module name).
+
+.SS
+.BI "belongs (b) [OPTIONS] " "FILE"
+List the package that owns \fIFILE\fP.
+.P
+.BI Note:
+Normally, only one package will own \fIFILE\fP. If multiple packages own the
+same file it should be reported. (see
+.B BUGS
+below)
+
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-f, \-\-full-regex
+.br
+The supplied query is a regular expression.
+.HP
+.B \-e, \-\-early-out
+.br
+Stop when the first match is found. This is generally a safe optimization when searching for the owner of a single file.
+.HP
+.B \-n, \-\-name-only
+.br
+Do not print the version.
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+equery belongs --early-out /usr/bin/euse
+.EE
+.br
+Find out what package installed a certain command.
+.EX
+.HP
+emerge -p $(equery -q belongs -nf '^/usr/bin/g?vim.*')
+.EE
+.br
+Tell
+.B emerge
+to reinstall or update any package that installed a file matching a regular expression.
+
+.SS
+.BI "changes (c) [OPTIONS] " "PKG"
+Display the Gentoo ChangeLog entry for the latest installable version of \fIPKG\fP.
+
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-l, \-\-latest
+.br
+Display only the latest ChangeLog entry. It's not uncommon for changes to be prepended to the ChangeLog without a version header if the changes did not require a version bump. Use this option to display such entries.
+.HP
+.B \-f, \-\-full
+.br
+Display the full ChangeLog.
+.br
+\fBHint\fP: Try piping (|) the output to a pager, like 'less'.
+.HP
+.BI "\-\-limit=" "NUM"
+.br
+Limit the \fINUM\fP of entries displayed. Use  this option in conjunction with \fB--full\fP. \fB--limit=3\fP would display the three latest entries.
+.HP
+.BI "\-\-from=" "VER"
+.br
+Set which \fIVER\fP to display from. Using this option by itself is equivalent to passing \fBchanges\fP a ranged package atom, e.g., '>=foo/bar-1.5'. It can be used in conjunction with \fB--to\fP to request a more complex range of entries.
+.HP
+.BI "\-\-to=" "VER"
+.br
+Set which \fIVER\fP to display to. (See \fB--from\fP)
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+equery changes portage
+.EE
+.br
+Display the Gentoo ChangeLog entry for the latest installable version of Portage.
+.EX
+.HP
+equery changes '=sys-apps/portage-2.1.6*'
+.EE
+.br
+Use Portage's atom syntax. (See \fBman 5 ebuild\fP)
+.EX
+.HP
+equery changes portage --from=2.2_rc1 --to=2.2
+.EE
+.br
+Display any ChangeLog entry within a range of versions.
+
+.SS
+.BI "check (k) [OPTIONS] " "PKG"
+Check timestamps and MD5 sums for files owned by \fIPKG\fP, where \fIPKG\fP is an installed package.
+
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-f, \-\-full-regex
+.br
+The supplied query is a regular expression.
+.HP
+.B \-o, \-\-only-failures
+.br
+Only display packages which don't pass all checks.
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+equery check --only-failures '*'
+.EE
+.br
+Verify timestamps and MD5 sums for all installed packages and show only packages which fail checks.
+.EX
+.HP
+equery check 'dev-python/*' dev-lang/python
+.EE
+.br
+Verify every installed package in the \fBdev-python\fP category, and Python itself.
+
+.SS
+.BI "depends (d) [OPTIONS] " "PKG"
+List all packages that depend on \fIPKG\fP.
+
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-a, \-\-all-packages
+.br
+Include dependencies that are not installed. This can take a while.
+.HP
+.B \-D, \-\-indirect
+.br
+Search for both direct and indirect dependencies.
+.HP
+.BI "\-\-depth=" "NUM"
+.br
+Limit the indirect dependency tree to a depth of \fINUM\fP. \fB--depth=0\fP is equivalent to not using \fB--indirect\fP.
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+equery depends --indirect xulrunner
+.EE
+.br
+Figure out why a package got installed on your system.
+
+.SS
+.BI "depgraph (g) [OPTIONS] " "PKG"
+Display a direct dependency graph for every matching version of \fIPKG\fP. A dependency graph is an
+indented tree showing the relationship between packages and their dependencies.
+
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-A, \-\-no-atom
+.br
+Do not show the dependency atom that match the package.
+.HP
+.B \-U, \-\-no-useflags
+.br
+Do not show USE flags.
+.HP
+.B \-l, \-\-linear
+.br
+Do not format the graph by indenting dependencies. This option will print the
+recursion depth in square brackets before the package name for easier viewing
+in narrow terminals.
+.HP
+.BI "\-\-depth=" "NUM"
+.br
+Limit the dependency graph to a depth of \fINUM\fP. \fB--depth=0\fP means no
+maximum depth. Default depth is set to 1.
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+equery depgraph --depth=0 portage
+.EE
+.br
+View a full tree of all direct and indirect compile-time, run-time, and post-merge dependencies for a package.
+
+.SS
+.BI "files (f) [OPTIONS] " "PKG"
+List files and directories installed by \fIPKG\fP.
+
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-m, \-\-md5sum
+.br
+Include the file's MD5 sum in the output.
+.HP
+.B \-s, \-\-timestamp
+.br
+Include the file's timestamp in the output.
+.HP
+.B \-t, \-\-type
+.br
+Include the file type in the output.
+.HP
+.B \-\-tree
+.br
+Display files in a tree format. This option turns off all other local options.
+.HP
+.BI "\-f, \-\-filter=" "RULES"
+.br
+Filter output by file type.
+.HP
+RULES
+.br
+A comma-separated list (no spaces); choose from:
+.br
+.B dir, obj, sym, dev, path, conf, cmd, doc, man, info
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+equery files --tree vlc
+.EE
+.br
+View a file tree of all files installed by a package.
+.EX
+.HP
+equery files --filter=cmd vlc
+.EE
+.br
+Find out where a package installed its executables.
+
+.SS
+.BI "hasuse (h) [OPTIONS] " "USE"
+List all installed packages that have a given \fIPKG\fP flag.
+
+\fBNote\fP: \fBhasuse\fP does not currently have the ability to display if packages are built with the given USE flag or not. It can only list which packages have the flag as an option. (See \fIEXAMPLES\fP)
+
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-I, \-\-exclude-installed
+.br
+Exclude installed packages from being output.
+.HP
+.B \-o, \-\-overlay-tree
+.br
+Include package from overlays in the search path.
+.HP
+.B \-p, \-\-portage-tree
+.br
+Include all packages from the Portage tree in the search path. Use this option to search through all standard Gentoo packages, including those that are not installed.
+.P
+.IR "OUTPUT" ":"
+.HP
+(See \fIOUTPUT\fP for \fBlist\fP below)
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+equery hasuse -pI perl
+.EE
+.br
+View all Gentoo packages that have the "perl" USE flag, excluding installed packages.
+.EX
+.HP
+USE="perl"; for PKG in $(equery -q hasuse $USE); do echo $PKG: $(equery -q uses $PKG |grep $USE); done
+.EE
+.br
+This Bash one-liner uses \fBhasuse\fP to find a list of packages that have a certain USE flag, and \fBuses\fP to check whether the flag is enabled or disabled. Modify \fBUSE="perl"\fP to change the query.
+
+.SS
+.BI "list (l) [OPTIONS] " "PKG"
+List installed versions of \fIPKG\fP or all packages matching the query pattern.
+
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-d, \-\-duplicates
+.br
+List only packages with more than one version installed.
+.HP
+.B \-f, \-\-full-regex
+.br
+The supplied query is a regular expression.
+.HP
+.B \-m, \-\-mask-reason
+.br
+Print the reason why a package was masked.
+.HP
+.B \-I, \-\-exclude-installed
+.br
+Exclude installed packages from being output.
+.HP
+.B \-o, \-\-overlay-tree
+.br
+Include package from overlays in the search path.
+.HP
+.B \-p, \-\-portage-tree
+.br
+Include all packages from the Portage tree in the search path. Use this option to search through all standard Gentoo packages, including those that are not installed.
+.P
+.IR "OUTPUT" ":"
+
+.EX
+$ equery list binutils
+ * Searching for binutils ...
+ [I--] [XX] sys-devel/binutils-2.18-r1:i686-pc-linux-gnu-2.18
+ [IP-] [ ~] sys-devel/binutils-2.19.1-r1:i686-pc-linux-gnu-2.19.1
+.EE
+.HP
+Location field (\fB[IPO-]\fP):
+.br
+The first field shows the location and install status of the package. It consists of three letters in square brackets. \fBI\fP indicates the package is currently installed. \fBP\fP indicates the package is available in the Portage tree. \fBO\fP indicates the package is available in at least one overlay. \fB-\fP is a place holder and has no meaning. \fB[I-O]\fP would mean that the package is installed and available from an overlay, but not available from the Portage tree.
+.HP
+Mask-status field (\fB[ ~M-XX]\fP):
+.br
+The second field shows the mask status of the package. Empty brackets indicate that the package is unmasked. A \fB~\fP means the package is masked by keyword, e.g., you are running a stable system and the package is marked testing). \fBM\fP means hard masked, e.g., the package maintainer has determined the package is unfit for widespread usage. \fB-\fP means arch masked, e.g., you are running an amd64 system, but this package only works on x86. Lastly, \fBXX\fP only occurs when the location field is \fB[I--]\fP. Together, they indicate that the package was installed from the Portage tree or an overlay, but has since been removed from that tree; therefore \fBequery\fP can not determine a mask status for it.
+.HP
+Package name:
+.br
+The third field is the full package name and version.
+.HP
+Slot:
+.br
+The fourth field, after the colon, is the package's slot. \fB0\fP is the default slot. To find all packages with multiple slots installed, use \fB--duplicates\fP.
+.P
+\fBNote:\fP Because it takes extra processing time to determine the location, mask status and slot, you can speed up output by passing the \fB--quiet\fP global option to \fBequery\fP when you don't care about the extra information.
+
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+equery list '*'
+.EE
+.br
+List all installed packages. This is equivalent to '\fBequery list\fP' in \fBGentoolkit\fP versions prior to 0.3.0.
+.EX
+.HP
+equery list -op mozilla-firefox
+.EE
+.br
+List all available versions of the package exactly matching 'mozilla-firefox'. This is equivalent to '\fBequery list --exact-name -o -p mozilla-firefox\fP' in \fBGentoolkit\fP versions prior to 0.3.0.
+.EX
+.HP
+equery list '*zilla*'
+.EE
+.br
+List all packages that contain (fuzzy match) 'zilla'. This is equivalent to '\fBequery list zilla\fP' in \fBGentoolkit\fP versions prior to 0.3.0.
+.EX
+.HP
+equery list 'www-client/*'
+.EE
+.br
+List all packages in the category \fBwww-client\fP. This is equivalent to '\fBequery list --category=www-client\fP' in \fBGentoolkit\fP versions prior to 0.3.0.
+.EX
+.HP
+equery list --duplicates '*'
+.EE
+.br
+List all packages with more than one version installed. This is equivalent to '\fBequery list --duplicates\fP' in \fBGentoolkit\fP versions prior to 0.3.0.
+
+.SS
+.BI "meta (m) [OPTIONS] " "PKG"
+Display metadata about \fIPKG\fP.
+
+\fBmeta\fP reads a file called metadata.xml which must be included with all Portage tree packages. \fBmeta\fP does not read ebuilds, so it can only return version independent metadata. Since until now there had not been an easy way for users to view metadata.xml, and because package maintainers are only required to fill out a very small portion of the file, there are still many packages without detailed metadata available. For more information about metadata.xml, see:
+.br
+.EX
+http://www.gentoo.org/proj/en/devrel/handbook/handbook.xml?part=2&chap=4
+.EE
+
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-d, \-\-description
+.br
+Show an extended package description.
+.HP
+.B \-H, \-\-herd
+.br
+Show the herd(s) for the package. When not piping and not passing \fB--quiet\fP as a global option, also show the herd's email address. (shown by default)
+.HP
+.B \-k, \-\-keywords
+.br
+Show keywords for all matching versions. \fBkeywords\fP does not list all keywords for all versions. Instead, it filters the list to make it easier to spot versions that need bumping or are okay to remove from the tree. It filters by slot. For example:
+.br
+Keywords:    1.35.0-r3:\fB0\fP:
+.br
+Keywords:    1.35.0-r5:\fB0\fP: amd64 hppa ppc x86 ~alpha ~arm ~ia64 ~mips ~ppc64 ~s390 ~sh ~sparc
+.br
+In this output from \fBequery meta boost\fP, -r5 is the highest available version in slot 0, so all keywords are listed. The actual keywords for -r3 are "~amd64 ~hppa ~ppc ~x86", but since a higher version in the same slot has the same or more stable keywording, they are filtered out. Arch mask keywords (-*) are always shown.
+.HP
+.B \-m, \-\-maintainer
+.br
+Show the package maintainer(s) email address. If the metadata is available, also show the maintainer's name and/or job description. (shown by default)
+.HP
+.B \-u, \-\-useflags
+.br
+Show per-package USE flag descriptions. Per-package USE flag descriptions are sometimes added to metadata.xml if the affect of the USE flag is unusual, or if the USE flag is rare enough to be undefined in the global definition file. \fBequery uses\fP now displays these same local descriptions as well, so this option is left in \fBmeta\fP for completeness only.
+.HP
+.B \-U, \-\-upstream
+.br
+Show information about the package's upstream project, including the author's email, upstream bug tracker or upstream documentation. At the time of writing, most maintainers do not provide this information. (shown by default)
+.HP
+.B \-x, \-\-xml
+.br
+Dump the plain XML file to the screen.
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+equery meta gnucash
+.EE
+.br
+Show general information about maintainership, including herd, maintainer and upstream.
+.EX
+.HP
+equery meta --description screen
+.EE
+.br
+See if the package maintainer has provided an extended description.
+.EX
+.HP
+equery -N meta -H gnome |grep -o --color=never '[^( ]*@gentoo.org'
+.EE
+.br
+Extract the herd's email address to let them know they're doing a great job. Remember, bug reports should go to bugs.gentoo.org. The above example will extract one or more emails if available, or return nothing if the herd is \fBno-herd\fP.
+
+.SS
+.BI "size (s) [OPTIONS] " "PKG"
+Print total size of files contained in a given \fIPKG\fP.
+
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-b, \-\-bytes
+.br
+Report package size in bytes.
+.HP
+.B \-f, \-\-full-regex
+.br
+The query is a regular expression.
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+equery -q size 'www-client/*'
+.EE
+.br
+Get a one-line summary of the number of files and total size (in bytes) of those files for each installed package in a category.
+
+.SS
+.BI "uses (u) [OPTIONS] " "PKG"
+Display USE flag statuses and desriptions for a given \fRPKG\fP.
+
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-a, \-\-all
+.br
+Display all package versions. Without this option, \fBequery\fP will choose the best available version.
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+equery uses app-misc/beagle
+.EE
+.br
+See which USE flags are enabled for a specific package.
+.EX
+.HP
+USE="perl"; for PKG in $(equery -q hasuse $USE); do echo $PKG: $(equery -q uses $PKG |grep $USE); done
+.EE
+.br
+This Bash one-liner uses \fBhasuse\fP to find a list of packages that have a certain USE flag, and \fBuses\fP to check whether the flag is enabled or disabled. Modify \fBUSE="perl"\fP to change the query.
+
+.SS
+.BI "which (w) [OPTIONS] " "PKG"
+Display the path to the ebuild that would be used by Portage with the current configuation.
+
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-m, \-\-include-masked
+.br
+Return the path to the hightest version ebuild available.
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+less $(equery which xorg-server)
+.EE
+.br
+View the most recent installable ebuild.
+
+.SH "BUGS"
+Submit bug reports to http://bugs.gentoo.org.
+
+.SH "AUTHORS"
+Karl Trygve Kalleberg <karltk@gentoo.org>, 2003
+.br
+Katerina Barone\-Adesi <katerinab@gmail.com>, 2004
+.br
+Douglas Anderson <douglasjanderson@gmail.com>, 2009

@@ -1,0 +1,39 @@
+#!/usr/bin/python
+#
+# Copyright 2009 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2 or later
+#
+# $Header$
+
+"""Shortcut to equery meta"""
+
+__authors__ = (
+	'Douglas Anderson <douglasjanderson@gmail.com>: equery meta',
+	'Ned Ludd <solar@gentoo.org>: first full implimentation'
+	'Eldad Zack <eldad@gentoo.org>: earch',
+	'Eric Olinger <EvvL AT RustedHalo DOT net>: metadata'
+	)
+
+import sys
+
+from gentoolkit import equery, errors
+from gentoolkit.equery import mod_usage
+from gentoolkit.equery.meta import main, print_help
+
+def print_epkginfo_help():
+	print mod_usage(mod_name="epkginfo")
+	print
+	print_help(with_usage=False)
+
+equery.initialize_configuration()
+args = sys.argv[1:]
+if not args or set(('-h', '--help')).intersection(args):
+	print_epkginfo_help()
+else:
+	try:
+		main(args)
+	except errors.GentoolkitException, err:
+		from gentoolkit import pprinter as pp
+		pp.die(1, str(err))
+
+# vim: set ts=4 sw=4 tw=79:

@@ -1,0 +1,2 @@
+This directory is intended to be used for small developer oriented scripts used in gentoolkit-dev.
+If a script develops into a full fledged tool, it will be moved into its own subdirectory.

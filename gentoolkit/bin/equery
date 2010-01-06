@@ -1,0 +1,44 @@
+#!/usr/bin/python
+#
+# Copyright 2002-2009 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2 or later
+#
+# $Header$
+
+"""equery is a flexible utility for Gentoo linux which can display various
+information about packages, such as the files they own, their USE flags,
+the MD5 sum of each file owned by a given package, and many other things.
+"""
+
+import sys
+# This block ensures that ^C interrupts are handled quietly.
+try:
+	import signal
+
+	def exithandler(signum,frame):
+		signal.signal(signal.SIGINT, signal.SIG_IGN)
+		signal.signal(signal.SIGTERM, signal.SIG_IGN)
+		print
+		sys.exit(1)
+
+	signal.signal(signal.SIGINT, exithandler)
+	signal.signal(signal.SIGTERM, exithandler)
+	signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
+except KeyboardInterrupt:
+	print
+	sys.exit(1)
+
+from gentoolkit import equery, errors
+
+try:
+	equery.main()
+except errors.GentoolkitException, err:
+	if '--debug' in sys.argv:
+		raise
+	else:
+		from gentoolkit import pprinter as pp
+		sys.stderr.write(pp.error(str(err)))
+		print
+		print "Add '--debug' to global options for traceback."
+		sys.exit(1)

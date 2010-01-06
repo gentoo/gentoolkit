@@ -1,0 +1,28 @@
+* gentoolkit
+  Original author: Karl Trygve Kalleberg <karltk@gentoo.org>
+  Library additions and refactor: Douglas Anderson <douglasjanderson@gmail.com>
+  Current maintainer: Paul Varner <fuzzyray@gentoo.org>
+
+* eclean
+  Original author: Thomas de Grenier de Latour (tgl) <degrenier@easyconnect.fr>
+
+* epkginfo
+  Author: Ned Ludd <solar@gentoo.org>
+  earch: Eldad Zack <eldad@gentoo.org>
+  metadata: Olinger <EvvL AT RustedHalo DOT net>
+
+* equery
+  Original author: Karl Trygve Kalleberg <karltk@gentoo.org>
+  0.3.0 author: Douglas Anderson <douglasjanderson@gmail.com>
+
+* eread
+  Original author: Donnie Berkholz <dberkholz@gentoo.org>
+  Updated by: Uwe Klosa <uwe.klosa@gmail.com>
+
+* euse
+  Original perl version: Arun Bhanu <codebear@gentoo.org>
+  New bash version: Marius Mauch <genone@gentoo.org>
+
+* revdep-rebuild
+  Original author: Stanislav Brabec
+  Rewrite author: Michael A. Smith

@@ -1,0 +1,46 @@
+24 Apr 2009 Paul Varner <fuzzyray@gentoo.org>
+	* Handle multiline KEYWORDS
+
+07 Jan 2009 Mike Frysinger <vapier@gentoo.org>
+	* Support intended KEYWORDS
+	* Convert every instance of KEYWORDS in the file
+	* Error out on invalid arguments #156827
+	* Tighten up diff output to show KEYWORDS changes
+
+27 Oct 2005 Aron Griffis <agriffis@gentoo.org>
+	* Fix handling of comments
+	* Add support for bare ~ as a synonym for ~all
+
+23 Mar 2005 Aron Griffis <agriffis@gentoo.org>
+	* Only modify non-masked keywords with "all"
+
+17 Mar 2005 Aron Griffis <agriffis@gentoo.org>
+	* Sort keywords alphabetically
+
+09 Nov 2004 Aron Griffis <agriffis@gentoo.org>
+	* Fix mismatching of ppc vs. ppc-macos #69683
+
+15 Sep 2004 Aron Griffis <agriffis@gentoo.org>
+	* Update for GLEP 22 keywords
+	* Change copyright line for Gentoo Foundation
+
+12 Apr 2004 Aron Griffis <agriffis@gentoo.org>
+	* Add ability to remove keywords with ^, for example:
+	  ekeyword ^alpha blah.ebuild
+	* Add support for -*, for example: ekeyword -* would add it;
+	  ekeyword ^* would remove it.
+	* Add a man-page for ekeyword
+
+09 Apr 2004 Aron Griffis <agriffis@gentoo.org>
+	* Add ability to modify all keywords via all, ~all, or -all, for
+	  example: ekeyword -all ~alpha ia64 blah.ebuild
+
+31 Mar 2004 Aron Griffis <agriffis@gentoo.org>
+	* Fix bug 28426 with patch from Mr_Bones_ to keep ekeyword from confusing
+	  ppc and ppc64
+
+2004-01-12 Aron Griffis <agriffis@gentoo.org>
+	* Allow multiple keywords
+
+2004-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added Makefile

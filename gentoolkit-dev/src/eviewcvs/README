@@ -1,0 +1,11 @@
+Most of the documentation is contained in the man-page, which you can
+read directly (using GNU man) by doing
+
+	man ./eviewcvs.1
+
+To rebuild the man-page from pod source, do
+
+	pod2man --name=eviewcvs --center='Gentoolkit' \
+		eviewcvs.pod eviewcvs.1
+
+03 Nov 2004 agriffis

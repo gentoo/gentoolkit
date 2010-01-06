@@ -1,0 +1,173 @@
+.TH "eclean" "1" "0.4.1" "gentoolkit"
+.SH "NAME"
+eclean \- A cleaning tool for Gentoo distfiles and binary packages.
+.SH "SYNOPSIS"
+.LP
+.B eclean \fR[\fIglobal\-options\fR] ... <\fIactions\fR> \fR[\fIaction\-options\fR] ...
+.LP
+.B eclean\-dist \fR[\fIglobal\-options, distfiles\-options\fR] ...
+.LP
+.B eclean\-pkg \fR[\fIglobal\-options, packages\-options\fR] ...
+.LP
+.B eclean(-dist,-pkg) \fR[\fI\-\-help, \-\-version\fR]
+.SH "DESCRIPTION"
+\fBeclean\fP is small tool to remove obsolete portage sources files and binary packages.  
+Used on a regular basis, it prevents your DISTDIR and PKGDIR directories to 
+infinitely grow, while not deleting files which may still be useful.
+.PP
+By default, eclean will protect all distfiles or binary packages corresponding to some
+ebuilds available in the Portage tree.  This is the safest mode, since it will protect
+whatever may still be useful, for instance to downgrade a package without downloading
+its sources for the second time, or to reinstall a package you unmerge by mistake
+without recompiling it.  Sure, it's also a mode in which your DISTDIR and PKGDIR will
+stay rather big (although still not growing infinitely).  For the 'distfiles', this
+mode is also quit slow mode because it requiries some access to the whole Portage tree.
+.PP
+If you use the \-\-destructive option, eclean will only protect files corresponding to
+some currently installed package (taking their exact version into account).  It will
+save much more space, while still preserving sources files around for minor revision
+bumps, and binaries for reinstallation of corrupted packages.  But it won't keep files
+for less usual operations like downgrading or reinstalling an unmerged package.  This
+is also the fastest execution mode (big difference for distfiles), and the one used by
+most other cleaning scripts around like yacleaner (at least in its version 0.3).
+.PP
+Somewhere in the middle, adding the \-\-package\-names option when using \-\-destructive
+will protect files corresponding to all existing versions of installed packages.  It will
+allow easy downgrading without recompilation or redownloading in case of trouble, but
+won't protect you against package uninstallation.
+.PP
+In addition to this main modes, some options allow to declare a few special cases file 
+protection rules:
+.IP o
+\-\-time-limit is useful to protect files which are more recent than a given amount of time. 
+.IP o
+\-\-size-limit (for distfiles only) is useful if you want to protect files bigger than  a given size.
+.IP o
+\-\-fetch-restricted (for distfiles only) is useful to protect manually downloaded files.
+But it's also very slow (again, it's a reading of the whole Portage tree data)...
+.IP o
+Finally, you can list some categories or package names to protect in exclusion files (see
+\fBEXCLUSION FILES\fP below).
+.SH "PARAMETERS"
+.SS "Global options"
+.TP
+\fB\-C, \-\-nocolor\fP				turn off colors on output
+.TP
+\fB\-d, \-\-destructive\fP			only keep the minimum for a reinstallation
+.TP
+\fB\-e, \-\-exclude\-file=<path>\fP	path to the exclusion file
+\fB<path>\fP is the absolute path to the exclusion file you want to use.
+When this option is not used, default paths are /etc/eclean/{packages,distfiles}.exclude
+(if they exist).  Use /dev/null if you have such a file at it standard location and
+you want to temporary ignore it.
+.TP
+\fB\-i, \-\-interactive\fP          ask confirmation before deleting
+.TP
+\fB\-n, \-\-package\-names\fP       protect all versions (\-\-destructive only)
+.TP
+\fB\-p, \-\-pretend\fP              only display what would be cleaned
+.TP
+\fB\-q, \-\-quiet\fP                be as quiet as possible, only display errors
+.TP
+\fB\-t, \-\-time-limit=<time>\fP    don't delete files modified since <time>
+\fB<time>\fP is an amount of time: "1y" is "one year", "2w" is "two weeks", etc.
+.br
+Units are: y (years), m (months), w (weeks), d (days) and h (hours).
+.TP
+\fB\-h, \-\-help\fP                 display the help screen
+.TP
+\fB\-V, \-\-version\fP              display version informations
+.SS "Actions"
+.TP
+\fBdistfiles\fR
+Clean files from /usr/portage/distfiles (or whatever else is your DISTDIR in /etc/make.conf).
+This action should be useful to almost any Gentoo user, we all have to big DISTDIRs sometime...
+.br
+\fBeclean\-dist\fP is a shortcut to call eclean with the "distfiles" action, for simplified
+command\-line.
+.TP
+\fBpackages\fR
+Clean files from /usr/portage/packages (or whatever else is your PKGDIR in /etc/make.conf).
+This action is in particular useful for people who use the "buildpkg" or "buildsyspkg"
+FEATURES flags.
+.br
+\fBeclean\-pkg\fP is a shortcut to call eclean with the "packages" action, for simplified
+command\-line.
+.SS "Options for the 'distfiles' action"
+.TP
+\fB\-f, \-\-fetch-restricted\fP		protect fetch-restricted files (\-\-destructive only)
+.TP
+\fB\-s, \-\-size-limit=<size>\fP	don't delete distfiles bigger than <size>
+<size> is a size specification: "10M" is "ten megabytes", "200K" is "two hundreds kilobytes",
+etc.
+.br
+Units are: G, M, K and B.
+.SS "Options for the 'packages' action"
+.TP
+There is no specific option for this action.
+.SH "EXCLUSION FILES"
+Exclusions files are lists of packages names or categories you want to protect
+in particular.  This may be useful to protect more binary packages for some system
+related packages for instance.  Syntax is the following:
+.IP o
+blank lines and lines starting with a "#" (comments) are ignored.
+.IP o
+only one entry per line is allowed.
+.IP o
+if a line contains a category name, like "sys\-apps", then all packages from this 
+category will be protected.  "sys\-apps/*" is also allowed for aesthetic reasons, but
+that does NOT mean that wildcard are supported in any way for any other usage.
+.IP o
+if a line contains a package name ("app\-shells/bash"), then this package will be
+protected.  Versioned atoms like ">=app\-shells/bash\-3" are NOT supported.  Also, the
+full package name (with category) is mandatory.
+.IP o
+if a line contains a package name with an exclamation mark in front ("!sys\-apps/portage"),
+then this package will be excluded from protection.  This is only useful if the category 
+itself was protected.
+.IP o
+for distfiles protection, a line can also a filename to protect. This is useful if you have
+there some files which are not registered by the ebuilds, like OpenOffice.org i18n files
+("helpcontent_33_unix.tgz" for instance).
+.LP
+By default, if it exists, /etc/eclean/packages.exclude (resp. distfiles.exclude) will be use
+when action is "packages" (resp. "distfiles").  This can be overide with the \-\-exclude\-file
+option.
+.SH "EXAMPLES"
+.LP
+Clean distfiles only, with per file confirmation prompt:
+.br
+.B # eclean \-i distfiles
+.LP
+Check which binary packages could be removed, with a no-color display:
+.br
+.B # eclean \-Cp packages
+.LP
+Clean binary packages of uninstalled packages, but keep all versions of installed ones:
+.br
+.B # eclean-pkg \-d \-n
+.LP
+Clean all distfiles except for installed packages (exact version), those which
+are less than one month old, bigger than 50MB, or fetch-restricted:
+.br
+.B # eclean-dist \-d \-t1m -s50M -f
+.LP
+From a crontab, silently clean packages in the safest mode, and then distfiles in destructive
+mode but protecting files less than a week old, every sunday at 1am:
+.br
+.B 0 1 * * sun \ \ eclean \-C \-q packages ; eclean \-C \-q \-d \-t1w distfiles
+.".SH "BUGS"
+.".TP
+."The policy used to decide wether a distfile can be removed or not relies on the SRC_URI variables ."of ebuilds.  It means that if an ebuild uses files that are not part of its SRC_URI, eclean will ."probably remove them.  This are ebuilds bugs, please report them as such on ."http://bugs.gentoo.org. 
+.".TP
+."In safest mode (default, without the \-\-destructive option), this script can be very slow.  There
+."is not much to do about it without hacking outside of the portage API.
+.SH "SEE ALSO"
+.TP
+The Gentoo forum thread that gave birth to eclean:
+.B http://forums.gentoo.org/viewtopic.php?t=3011
+.TP
+The bug report requesting eclean inclusion in gentoolkit:
+.B http://bugs.gentoo.org/show_bug.cgi?id=33877
+.SH "AUTHORS"
+Thomas de Grenier de Latour (tgl) <degrenier@easyconnect.fr>
