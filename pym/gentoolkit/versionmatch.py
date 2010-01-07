@@ -1,9 +1,9 @@
 #! /usr/bin/python
 #
-# Copyright(c) 2009 Gentoo Foundation
+# Copyright(c) 2009-2010 Gentoo Foundation
 # Licensed under the GNU General Public License, v2
 #
-# Copyright: 2005-2007 Brian Harring <ferringb@gmail.com>
+# Copyright(c): 2005-2007 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD
 #
 # $Header$

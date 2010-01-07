@@ -1,4 +1,4 @@
-# Copyright(c) 2009, Gentoo Foundation
+# Copyright(c) 2009-2010, Gentoo Foundation, Inc.
 # Copyright: 2006-2008 Brian Harring <ferringb@gmail.com>
 #
 # License: GPL2/BSD

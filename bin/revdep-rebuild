@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 1999-2008 Gentoo Foundation
+# Copyright 1999-2010 Gentoo Foundation
 
 # revdep-rebuild: Reverse dependency rebuilder.
 # Original Author: Stanislav Brabec
@@ -167,7 +167,7 @@ print_usage() {
 cat << EOF
 ${APP_NAME}: (${VERSION})
 
-Copyright (C) 2003-2009 Gentoo Foundation, Inc.
+Copyright (C) 2003-2010 Gentoo Foundation, Inc.
 This is free software; see the source for copying conditions.
 
 Usage: $APP_NAME [OPTIONS] [--] [EMERGE_OPTIONS]
