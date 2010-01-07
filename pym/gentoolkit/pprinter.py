@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # Copyright 2004 Karl Trygve Kalleberg <karltk@gentoo.org>
-# Copyright 2004-2009 Gentoo Foundation
+# Copyright 2004-2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 #
 # $Header$
