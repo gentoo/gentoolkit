@@ -1,3 +1,7 @@
+2009-01-08: Paul Varner <fuzzyray@gentoo.org>
+	* epkginfo/equery: Fix expkinfo to not traceback if herds.xml is not
+	present in the tree. (Bug 300108)
+
 2009-12-17: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix revdep-rebuild to properly honor
 	PORTAGE_NICENESS as an incremental to the current nice level (Bug

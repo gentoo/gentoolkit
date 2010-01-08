@@ -205,7 +205,10 @@ class MetaData(object):
 
 		if self._herdstree is None:
 			herds_path = os.path.join(settings['PORTDIR'], 'metadata/herds.xml')
-			self._herdstree = etree.parse(herds_path)
+			try:
+				self._herdstree = etree.parse(herds_path)
+			except IOError:
+				return None
 
 		# Some special herds are not listed in herds.xml
 		if herd in ('no-herd', 'maintainer-wanted', 'maintainer-needed'):
