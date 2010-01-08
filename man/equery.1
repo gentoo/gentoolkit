@@ -299,7 +299,7 @@ Include all packages from the Portage tree in the search path. Use this option t
 equery hasuse -pI perl
 .EE
 .br
-View all Gentoo packages that have the "perl" USE flag, excluding installed packages.
+View all Gentoo packages that have the "perl" USE flag, exluding installed packages.
 .EX
 .HP
 USE="perl"; for PKG in $(equery -q hasuse $USE); do echo $PKG: $(equery -q uses $PKG |grep $USE); done
@@ -342,7 +342,7 @@ Include all packages from the Portage tree in the search path. Use this option t
 .EX
 $ equery list binutils
  * Searching for binutils ...
- [I--] [XX] sys-devel/binutils-2.18-r1:i686-pc-linux-gnu-2.18
+ [I--] [??] sys-devel/binutils-2.18-r1:i686-pc-linux-gnu-2.18
  [IP-] [ ~] sys-devel/binutils-2.19.1-r1:i686-pc-linux-gnu-2.19.1
 .EE
 .HP
@@ -350,9 +350,9 @@ Location field (\fB[IPO-]\fP):
 .br
 The first field shows the location and install status of the package. It consists of three letters in square brackets. \fBI\fP indicates the package is currently installed. \fBP\fP indicates the package is available in the Portage tree. \fBO\fP indicates the package is available in at least one overlay. \fB-\fP is a place holder and has no meaning. \fB[I-O]\fP would mean that the package is installed and available from an overlay, but not available from the Portage tree.
 .HP
-Mask-status field (\fB[ ~M-XX]\fP):
+Mask-status field (\fB[ ~M-??]\fP):
 .br
-The second field shows the mask status of the package. Empty brackets indicate that the package is unmasked. A \fB~\fP means the package is masked by keyword, e.g., you are running a stable system and the package is marked testing). \fBM\fP means hard masked, e.g., the package maintainer has determined the package is unfit for widespread usage. \fB-\fP means arch masked, e.g., you are running an amd64 system, but this package only works on x86. Lastly, \fBXX\fP only occurs when the location field is \fB[I--]\fP. Together, they indicate that the package was installed from the Portage tree or an overlay, but has since been removed from that tree; therefore \fBequery\fP can not determine a mask status for it.
+The second field shows the mask status of the package. Empty brackets indicate that the package is unmasked. A \fB~\fP means the package is masked by keyword, e.g., you are running a stable system and the package is marked testing). \fBM\fP means hard masked, e.g., the package maintainer has determined the package is unfit for widespread usage. \fB-\fP means arch masked, e.g., you are running an amd64 system, but this package only works on x86. Lastly, \fB??\fP only occurs when the location field is \fB[I--]\fP. Together, they indicate that the package was installed from the Portage tree or an overlay, but has since been removed from that tree; therefore \fBequery\fP can not determine a mask status for it.
 .HP
 Package name:
 .br

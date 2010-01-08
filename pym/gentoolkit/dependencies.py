@@ -1,4 +1,4 @@
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -307,6 +307,12 @@ class Dependencies(CPV):
 				result.extend(sub_r)
 				use_conditional = None
 				continue
+			# FIXME: This is a quick fix for bug #299260.
+			#        A better fix is to not discard blockers in the parser,
+			#        but to check for atom.blocker in whatever equery/depends
+			#        (in this case) and ignore them there.
+			# TODO: Test to see how much a performance impact ignoring
+			#       blockers here rather than checking for atom.blocker has.
 			if tok[0] == '!':
 				# We're not interested in blockers
 				continue
