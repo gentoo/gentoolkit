@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # Copyright(c) 2004, Karl Trygve Kalleberg <karltk@gentoo.org>
-# Copyright(c) 2004-2010, Gentoo Foundation
+# Copyright(c) 2004-2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -381,14 +381,14 @@ class PackageFormatter(object):
 
 	def __str__(self):
 		if self.do_format:
-			maskmodes = ['  ', ' ~', ' -', 'M ', 'M~', 'M-', 'XX']
+			maskmodes = ['  ', ' ~', ' -', 'M ', 'M~', 'M-', '??']
 			maskmode = maskmodes[self.format_mask_status()[0]]
 			return "[%(location)s] [%(mask)s] %(package)s:%(slot)s" % {
 				'location': self.location,
 				'mask': pp.keyword(
 					maskmode,
 					stable=not maskmode.strip(),
-					hard_masked=set(('M', 'X', '-')).intersection(maskmode)
+					hard_masked=set(('M', '?', '-')).intersection(maskmode)
 				),
 				'package': pp.cpv(str(self.pkg.cpv)),
 				'slot': pp.slot(self.pkg.environment("SLOT"))
@@ -429,7 +429,7 @@ class PackageFormatter(object):
 
 		@rtype: tuple: (int, list)
 		@return: int = an index for this list:
-			["  ", " ~", " -", "M ", "M~", "M-", "XX"]
+			["  ", " ~", " -", "M ", "M~", "M-", "??"]
 			0 = not masked
 			1 = keyword masked
 			2 = arch masked
