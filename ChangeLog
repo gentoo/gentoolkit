@@ -1,3 +1,6 @@
+2009-01-11: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Set environment using 'portageq -v' (Bug 300229)
+
 2009-01-08: Paul Varner <fuzzyray@gentoo.org>
 	* epkginfo/equery: Fix expkinfo to not traceback if herds.xml is not
 	present in the tree. (Bug 300108)

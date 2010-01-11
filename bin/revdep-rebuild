@@ -985,30 +985,19 @@ show_unowned_files() {
 
 # Get multiple portage variables at once to speedup revdep-rebuild.
 portage_settings() {
-	local results=()
+	local ORIG_SEARCH_DIRS="$SEARCH_DIRS"
+	local ORIG_SEARCH_DIRS_MASK="$SEARCH_DIRS_MASK"
+	local ORIG_LD_LIBRARY_MASK="$LD_LIBRARY_MASK"
+	unset SEARCH_DIRS
+	unset SEARCH_DIRS_MASK
+	unset LD_LIBRARY_MASK
 
-	local query_vars=(
-		ROOT
-		PORTAGE_NICENESS
-		EMERGE_DEFAULT_OPTS
-		NOCOLOR
-		SEARCH_DIRS
-		SEARCH_DIRS_MASK
-		LD_LIBRARY_MASK
-	)
+	eval $(portageq envvar -v PORTAGE_ROOT PORTAGE_NICENESS EMERGE_DEFAULT_OPTS NOCOLOR SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK)
+	export NOCOLOR
 
-	# one value per line
-	IFS=$'\n'
-	results=( $(unset SEARCH_DIRS; unset SEARCH_DIRS_MASK; unset LD_LIBRARY_MASK; portageq envvar ${query_vars[*]}) )
-	IFS=$OIFS
-
-	PORTAGE_ROOT=${results[0]}
-	PORTAGE_NICENESS=${results[1]}
-	EMERGE_DEFAULT_OPTS=${results[2]}
-	export NOCOLOR=${results[3]}
-	SEARCH_DIRS+=" "${results[4]}
-	SEARCH_DIRS_MASK+=" "${results[5]}
-	LD_LIBRARY_MASK+=" "${results[6]}
+	SEARCH_DIRS="$ORIG_SEARCH_DIRS $SEARCH_DIRS"
+	SEARCH_DIRS_MASK="$ORIG_SEARCH_DIRS_MASK $SEARCH_DIRS_MASK"
+	LD_LIBRARY_MASK="$ORIG_LD_LIBRARY_MASK $LD_LIBRARY_MASK"
 }
 
 ##
