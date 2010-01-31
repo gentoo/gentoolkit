@@ -1,3 +1,8 @@
+2010-31-01: Christian Ruppert <idl0r@gentoo.org>
+	* revdep-rebuild: Check for eerror in die() since an invalid option(long) or
+	missing arg will end up in calling die() before /etc/init.d/functions.sh
+	has been sourced.
+
 2009-01-11: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Set environment using 'portageq -v' (Bug 300229)
 
