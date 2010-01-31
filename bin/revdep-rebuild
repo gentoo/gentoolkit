@@ -241,7 +241,17 @@ clean_var() {
 die() {
 	local status=$1
 	shift
-	eerror "$@"
+
+	# Check if eerror has been loaded.
+	# Its loaded _after_ opt parsing but not before due to RC_NOCOLOR.
+	type eerror &> /dev/null
+
+	if [[ $? -eq 0 ]];
+	then
+		eerror "$@"
+	else
+		echo " * ${@}" >> /dev/stderr
+	fi
 	exit $status
 }
 ##
