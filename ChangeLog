@@ -1,3 +1,7 @@
+2010-01-02: Christian Ruppert <idl0r@gentoo.org>
+	src/echangelog/echangelog: Improve vcs detection, might fix bug 302784 as
+	well.
+
 2009-12-11: Christian Ruppert <idl0r@gentoo.org>
 	src/echangelog/test/test.sh, src/echangelog/Makefile:
 		Fix bug 292932, thanks to Alexis Ballier <aballier@gentoo.org>.

@@ -33,6 +33,7 @@ my $opt_strict = 0;
 
 my %vcs = (
 	bzr => {
+		directory => ".bzr",
 		diff => "bzr diff",
 		status => "bzr status -S .",
 		add => "bzr add",
@@ -41,6 +42,7 @@ my %vcs = (
 		regex => qr/^=== \S+ file '\S+\/\S+\/((\S+)\.ebuild)/
 	},
 	cvs => {
+		directory => "CVS",
 		diff => "cvs -f diff -U0",
 		status => "cvs -fn up",
 		add => "cvs -f add",
@@ -48,6 +50,7 @@ my %vcs = (
 		regex => qr/^Index: (([^\/]*?)\.ebuild)\s*$/
 	},
 	git => {
+		directory => ".git",
 		diff => "git diff",
 		status => "git diff-index HEAD --name-status",
 		add => "git add",
@@ -57,6 +60,7 @@ my %vcs = (
 		regex => qr/^diff \-\-git \S*\/((\S*)\.ebuild)/
 	},
 	hg => {
+		directory => ".hg",
 		diff => "hg diff",
 		status => "hg status .",
 		add => "hg add",
@@ -66,6 +70,7 @@ my %vcs = (
 		regex => qr/diff \-r \S+ \S+\/\S+\/((\S+)\.ebuild)/
 	},
 	svn => {
+		directory => ".svn",
 		diff => "svn diff -N",
 		status => "svn status",
 		add => "svn add",
@@ -175,6 +180,21 @@ sub update_cat_pn {
 	return $t;
 }
 
+# Check partent dirs recursivevly/backward
+sub check_vcs_dir {
+	my $type = shift;
+
+	my $dir = getcwd();
+	while($dir !~ /^\/$/) {
+		return 1 if -d "${dir}/${type}";
+		$dir = dirname($dir);
+	}
+	# Check / as well
+	return 1 if -d "/${type}";
+
+	return 0;
+}
+
 # Just to ensure we don't get duplicate entries.
 sub mypush(\@@) {
 	my $aref = shift;
@@ -203,32 +223,13 @@ if($opt_strict) {
 # Respect $PATH while looking for the VCS
 if (getenv("PATH")) {
 	foreach my $path ( split(":", getenv("PATH")) ) {
-		if ( -X "${path}/bzr" ) {
-			open(BZR, '-|', "${path}/bzr root 2>/dev/null");
-			$vcs = "bzr" if defined(<BZR>);
-			close(BZR);
-			last if $vcs;
+		foreach my $_vcs (keys(%vcs)) {
+			if ( -X "${path}/${_vcs}" ) {
+				$vcs = $_vcs if check_vcs_dir($vcs{$_vcs}{directory});
+				last if $vcs;
+			}
 		}
-		if ( -X "${path}/cvs" ) {
-			$vcs = "cvs" if -d "CVS";
-			last if $vcs;
-		}
-		if ( -X "${path}/git" ) {
-			open(GIT, '-|', "${path}/git rev-parse --git-dir 2>/dev/null");
-			$vcs = "git" if defined(<GIT>);
-			close(GIT);
-			last if $vcs;
-		}
-		if ( -X "${path}/hg" ) {
-			open(HG, '-|', "${path}/hg root 2>/dev/null");
-			$vcs = "hg" if defined(<HG>);
-			close(HG);
-			last if $vcs;
-		}
-		if ( -X "${path}/svn" ) {
-			$vcs = "svn" if -d ".svn";
-			last if $vcs;
-		}
+		last if $vcs;
 	}
 }
 
@@ -305,7 +306,7 @@ while (<C>) {
 		}
 	}
 	if (/^C\s+(\S+)/) {
-		# TODO: The git part here might be unused
+		# NOTE: The git part here might be unused
 		if($vcs eq "git") {
 			my $filename = $1;
 			$filename =~ /\S*\/(\S*)/;
