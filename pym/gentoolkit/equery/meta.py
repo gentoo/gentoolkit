@@ -1,4 +1,4 @@
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright 2009-2010 Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2 or higher
 #
@@ -143,8 +143,10 @@ def format_maintainers(maints):
 		maintstr = maint.email
 		if CONFIG['verbose']:
 			maintstr += " (%s)" % (maint.name,) if maint.name else ''
-			maintstr += "\n%s" % (maint.description,) \
-				if maint.description else ''
+			maintstr += " - %s" % (maint.restrict,) if maint.restrict else ''
+			maintstr += "\n%s" % (
+				(maint.description,) if maint.description else ''
+			)
 		result.append(maintstr)
 
 	return result
@@ -231,7 +233,7 @@ def format_keywords(keywords):
 def format_keywords_line(pkg, fmtd_keywords, slot, verstr_len):
 	"""Format the entire keywords line for display."""
 
-	ver = pkg.cpv.fullversion
+	ver = pkg.fullversion
 	result = "%s:%s: %s" % (ver, pp.slot(slot), fmtd_keywords)
 	if CONFIG['verbose'] and fmtd_keywords:
 		result = format_line(fmtd_keywords, "%s:%s: " % (ver, pp.slot(slot)),
@@ -249,8 +251,8 @@ def call_format_functions(matches):
 	ref_pkg = get_reference_pkg(matches)
 
 	if CONFIG['verbose']:
-		repo = ref_pkg.repo_id()
-		print " * %s [%s]" % (pp.cpv(ref_pkg.cpv.cp), pp.section(repo))
+		repo = ref_pkg.repo_name()
+		print " * %s [%s]" % (pp.cpv(ref_pkg.cp), pp.section(repo))
 
 	got_opts = False
 	if any(QUERY_OPTS.values()):
@@ -294,7 +296,7 @@ def call_format_functions(matches):
 
 		for match in matches:
 			slot = match.environment('SLOT')
-			verstr_len = len(match.cpv.fullversion) + len(slot)
+			verstr_len = len(match.fullversion) + len(slot)
 			fmtd_keywords = format_keywords(keyword_map[match])
 			keywords_line = format_keywords_line(
 				match, fmtd_keywords, slot, verstr_len

@@ -1149,7 +1149,7 @@ cleanup() {
 		if [[ -r "$OWNERS_FILE" && -s "$OWNERS_FILE" ]]; then
 			show_unowned_files
 		fi
-		[[ $KEEP_TEMP ]] || rm "${FILES[@]}"
+		[[ $KEEP_TEMP ]] || rm -f "${FILES[@]}"
 	else
 		einfo 'Now you can remove -p (or --pretend) from arguments and re-run revdep-rebuild.'
 	fi

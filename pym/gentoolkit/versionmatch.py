@@ -1,9 +1,9 @@
 #! /usr/bin/python
 #
-# Copyright(c) 2009-2010 Gentoo Foundation
+# Copyright 2009-2010 Gentoo Foundation
 # Licensed under the GNU General Public License, v2
 #
-# Copyright(c): 2005-2007 Brian Harring <ferringb@gmail.com>
+# Copyright 2005-2007 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD
 #
 # $Header$
@@ -43,8 +43,10 @@ class VersionMatch(object):
 		@keyword op: operator
 		"""
 
-		if not isinstance(cpv, CPV):
-			raise ValueError("cpv must be a gentoolkit.cpv.CPV instance")
+		if not isinstance(cpv, (CPV, self.__class__)):
+			err = "cpv must be a gentoolkit.cpv.CPV "
+			err += "or gentoolkit.versionmatch.VersionMatch instance"
+			raise ValueError(err)
 		self.cpv = cpv
 		self.operator = op
 		self.version = cpv.version

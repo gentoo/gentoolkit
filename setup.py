@@ -41,6 +41,7 @@ class set_version(core.Command):
 
 	def run(self):
 		ver = 'svn' if __version__ == '9999' else __version__
+		print "Setting version to %s" % ver
 		def sub(files, pattern):
 			for f in files:
 				updated_file = []

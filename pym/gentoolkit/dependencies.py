@@ -1,4 +1,4 @@
-# Copyright(c) 2009, Gentoo Foundation
+# Copyright 2009-2010 Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -41,12 +41,12 @@ class Dependencies(CPV):
 	"""
 	def __init__(self, cpv, op='', parser=None):
 		if isinstance(cpv, CPV):
-			self.cpv = cpv
+			self.__dict__.update(cpv.__dict__)
 		else:
-			self.cpv = CPV(cpv)
+			CPV.__init__(self, cpv)
 
 		self.operator = op
-		self.atom = self.operator + str(self.cpv)
+		self.atom = self.operator + self.cpv
 		self.use = []
 		self.depatom = str()
 
@@ -74,9 +74,9 @@ class Dependencies(CPV):
 		# Try to use the Portage tree first, since emerge only uses the tree
 		# when calculating dependencies
 		try:
-			result = PORTDB.aux_get(str(self.cpv), envvars)
+			result = PORTDB.aux_get(self.cpv, envvars)
 		except KeyError:
-			result = VARDB.aux_get(str(self.cpv), envvars)
+			result = VARDB.aux_get(self.cpv, envvars)
 		return result
 
 	def get_depend(self):
@@ -153,7 +153,7 @@ class Dependencies(CPV):
 			except KeyError:
 				pkgdep = find_best_match(dep.atom)
 				depcache[dep.atom] = pkgdep
-			if pkgdep and str(pkgdep.cpv) in seen:
+			if pkgdep and pkgdep.cpv in seen:
 				continue
 			if depth < max_depth or max_depth <= 0:
 
@@ -162,7 +162,7 @@ class Dependencies(CPV):
 				if not pkgdep:
 					continue
 
-				seen.add(str(pkgdep.cpv))
+				seen.add(pkgdep.cpv)
 				result.append((
 					depth,
 					pkgdep.deps.graph_depends(
@@ -264,11 +264,11 @@ class Dependencies(CPV):
 			# Do not call if we have already called ourselves.
 			if (
 				dep_is_displayed and not only_direct and
-				str(pkgdep.cpv) not in seen and
+				pkgdep.cpv not in seen and
 				(depth < max_depth or max_depth == -1)
 			):
 
-				seen.add(str(pkgdep.cpv))
+				seen.add(pkgdep.cpv)
 				result.append(
 					pkgdep.graph_reverse_depends(
 						pkgset=pkgset,

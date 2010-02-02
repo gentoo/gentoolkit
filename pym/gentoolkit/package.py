@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
-# Copyright(c) 2004, Karl Trygve Kalleberg <karltk@gentoo.org>
-# Copyright(c) 2004-2009, Gentoo Foundation
+# Copyright 2004, Karl Trygve Kalleberg <karltk@gentoo.org>
+# Copyright 2004-2010 Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -54,14 +54,14 @@ class Package(CPV):
 
 	def __init__(self, cpv):
 		if isinstance(cpv, CPV):
-			self.cpv = cpv
+			self.__dict__.update(cpv.__dict__)
 		else:
-			self.cpv = CPV(cpv)
+			CPV.__init__(self, cpv)
 		del cpv
 
-		if not all(getattr(self.cpv, x) for x in ('category', 'version')):
+		if not all(hasattr(self, x) for x in ('category', 'version')):
 			# CPV allows some things that Package must not
-			raise errors.GentoolkitInvalidPackage(str(self.cpv))
+			raise errors.GentoolkitInvalidPackage(self.cpv)
 
 		# Set dynamically
 		self._package_path = None
@@ -71,30 +71,16 @@ class Package(CPV):
 		self._portdir_path = None
 
 	def __repr__(self):
-		return "<%s %r>" % (self.__class__.__name__, str(self.cpv))
-
-	def __eq__(self, other):
-		if not hasattr(other, 'cpv'):
-			return False
-		return self.cpv == other.cpv
-
-	def __ne__(self, other):
-		return not self == other
-
-	def __lt__(self, other):
-		return self.cpv < other.cpv
-
-	def __gt__(self, other):
-		return self.cpv > other.cpv
+		return "<%s %r>" % (self.__class__.__name__, self.cpv)
 
 	def __hash__(self):
-		return hash(str(self.cpv))
+		return hash(self.cpv)
 
 	def __contains__(self, key):
-		return key in str(self.cpv)
+		return key in self.cpv
 
 	def __str__(self):
-		return str(self.cpv)
+		return self.cpv
 
 	@property
 	def metadata(self):
@@ -114,8 +100,8 @@ class Package(CPV):
 
 		if self._dblink is None:
 			self._dblink = portage.dblink(
-				self.cpv.category,
-				"%s-%s" % (self.cpv.name, self.cpv.fullversion),
+				self.category,
+				"%s-%s" % (self.name, self.fullversion),
 				settings["ROOT"],
 				settings
 			)
@@ -131,7 +117,7 @@ class Package(CPV):
 
 		return self._deps
 
-	def environment(self, envvars, prefer_vdb=True, no_fallback=False):
+	def environment(self, envvars, prefer_vdb=True, fallback=True):
 		"""Returns one or more of the predefined environment variables.
 
 		Available envvars are:
@@ -157,8 +143,8 @@ class Package(CPV):
 		@keyword prefer_vdb: if True, look in the vardb before portdb, else
 			reverse order. Specifically KEYWORDS will get more recent
 			information by preferring portdb.
-		@type no_fallback: bool
-		@keyword no_fallback: query only the preferred db
+		@type fallback: bool
+		@keyword fallback: query only the preferred db if False
 		@rtype: str or list
 		@return: str if envvars is str, list if envvars is array
 		@raise KeyError: if key is not found in requested db(s)
@@ -170,23 +156,23 @@ class Package(CPV):
 			envvars = (envvars,)
 		if prefer_vdb:
 			try:
-				result = VARDB.aux_get(str(self.cpv), envvars)
+				result = VARDB.aux_get(self.cpv, envvars)
 			except KeyError:
 				try:
-					if no_fallback:
+					if not fallback:
 						raise KeyError
-					result = PORTDB.aux_get(str(self.cpv), envvars)
+					result = PORTDB.aux_get(self.cpv, envvars)
 				except KeyError:
 					err = "aux_get returned unexpected results"
 					raise errors.GentoolkitFatalError(err)
 		else:
 			try:
-				result = PORTDB.aux_get(str(self.cpv), envvars)
+				result = PORTDB.aux_get(self.cpv, envvars)
 			except KeyError:
 				try:
-					if no_fallback:
+					if not fallback:
 						raise KeyError
-					result = VARDB.aux_get(str(self.cpv), envvars)
+					result = VARDB.aux_get(self.cpv, envvars)
 				except KeyError:
 					err = "aux_get returned unexpected results"
 					raise errors.GentoolkitFatalError(err)
@@ -198,7 +184,7 @@ class Package(CPV):
 	def exists(self):
 		"""Return True if package exists in the Portage tree, else False"""
 
-		return bool(PORTDB.cpv_exists(str(self.cpv)))
+		return bool(PORTDB.cpv_exists(self.cpv))
 
 	@staticmethod
 	def settings(key):
@@ -228,7 +214,7 @@ class Package(CPV):
 		if settings.locked:
 			settings.unlock()
 		try:
-			result = portage.getmaskingstatus(str(self.cpv),
+			result = portage.getmaskingstatus(self.cpv,
 				settings=settings,
 				portdb=PORTDB)
 		except KeyError:
@@ -247,7 +233,7 @@ class Package(CPV):
 		"""
 
 		try:
-			result = portage.getmaskingreason(str(self.cpv),
+			result = portage.getmaskingreason(self.cpv,
 				settings=settings,
 				portdb=PORTDB,
 				return_location=True)
@@ -271,8 +257,8 @@ class Package(CPV):
 		"""
 
 		if in_vartree:
-			return VARDB.findname(str(self.cpv))
-		return PORTDB.findname(str(self.cpv))
+			return VARDB.findname(self.cpv)
+		return PORTDB.findname(self.cpv)
 
 	def package_path(self, in_vartree=False):
 		"""Return the path to where the ebuilds and other files reside."""
@@ -281,14 +267,26 @@ class Package(CPV):
 			return self.dblink.getpath()
 		return os.sep.join(self.ebuild_path().split(os.sep)[:-1])
 
-	def repo_id(self):
-		"""Using the package path, determine the repository id.
+	def repo_name(self, fallback=True):
+		"""Determine the repository name.
 
+		@type fallback: bool
+		@param fallback: if the repo_name file does not exist, return the
+			repository name from the path
 		@rtype: str
-		@return: /usr/<THIS>portage</THIS>/category/name/
+		@return: output of the repository metadata file, which stores the 
+			repo_name variable, or try to get the name of the repo from
+			the path.
+		@raise GentoolkitFatalError: if fallback is False and repo_name is
+			not specified by the repository.
 		"""
 
-		return self.package_path().split(os.sep)[-3]
+		try:
+			return self.environment('repository')
+		except errors.GentoolkitFatalError:
+			if fallback:
+				return self.package_path().split(os.sep)[-3]
+			raise
 
 	def use(self):
 		"""Returns the USE flags active at time of installation."""
@@ -311,11 +309,15 @@ class Package(CPV):
 		@return: (size, number of files in total, number of uncounted files)
 		"""
 
-		contents = self.parsed_contents()
+		seen = set()
+		content_stats = (os.lstat(x) for x in self.parsed_contents())
+		# Remove hardlinks by checking for duplicate inodes. Bug #301026.
+		unique_file_stats = (x for x in content_stats if x.st_ino not in seen
+			and not seen.add(x.st_ino))
 		size = n_uncounted = n_files = 0
-		for cfile in contents:
+		for st in unique_file_stats:
 			try:
-				size += os.lstat(cfile).st_size
+				size += st.st_size
 				n_files += 1
 			except OSError:
 				n_uncounted += 1
@@ -329,7 +331,7 @@ class Package(CPV):
 	def is_overlay(self):
 		"""Returns True if the package is in an overlay."""
 
-		ebuild, tree = PORTDB.findname2(str(self.cpv))
+		ebuild, tree = PORTDB.findname2(self.cpv)
 		if not ebuild:
 			return None
 		if self._portdir_path is None:
@@ -341,8 +343,8 @@ class Package(CPV):
 		Note: We blindly assume that the package actually exists on disk
 		somewhere."""
 
-		unmasked = PORTDB.xmatch("match-visible", str(self.cpv))
-		return str(self.cpv) not in unmasked
+		unmasked = PORTDB.xmatch("match-visible", self.cpv)
+		return self.cpv not in unmasked
 
 
 class PackageFormatter(object):

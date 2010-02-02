@@ -21,12 +21,9 @@
  - use /etc/gentoolkit/ebump.conf
 
 equery:
-	Tests:
-		+helpers2 (FileOwner._extend_realpaths test probably doesn't clean up)
-	Run pylint and write test to run pylint
-	Write test to compile all modules (full syntax check). Take from portage.
 	Add more --debug stuff
 	Write tests for Dependencies._parser
+	Profile Dependencies._parser
 	Refactor each module to be useful for import. Done modules:
 		+depends
 		+belongs
@@ -44,7 +41,7 @@ Ebuild changes:
 
 For Next Release:
 	- write NEWS file
-    - make CPV.__init__ more strict, it allows some silly stuff
+	- make CPV.__init__ more strict, it allows some silly stuff
 	-  $ equery uses '>=sys-apps/portage-2'
 	  * Searching for >=sys-apps/portage-2 ...
 	  * Found these USE flags for sys-apps/portage-2.1.6.13:
