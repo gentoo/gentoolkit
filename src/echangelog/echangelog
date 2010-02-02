@@ -23,7 +23,7 @@ $Text::Wrap::unexpand = 0;
 # Global variables
 my (@files, @ebuilds, @conflicts, @trivial, @unknown, @new_versions, %actions);
 my ($input, $editor, $entry, $user, $date, $text, $vcs);
-my ($opt_help, $opt_nostrict, $opt_version);
+my ($opt_help, $opt_nostrict, $opt_force_vcs, $opt_version);
 
 $opt_help = 0;
 $opt_nostrict = 0;
@@ -86,7 +86,11 @@ sub usage {
 	Options:
 	    --help      err, this screen ...
 	    --no-strict do not abort on trivial/no changes
+	    --vcs <vcs> skip vcs autodetection and use the specified vcs instead      
+	                for a list of supported version control systems see below
 	    --version   show version info
+
+	Supported VCS: bzr, cvs, git, hg, svn
 	EOF
 	print $usage;
 	exit 0;
@@ -207,7 +211,8 @@ sub mypush(\@@) {
 GetOptions(
 	'help' => \$opt_help,
 	'no-strict' => \$opt_nostrict,
-	'version' => \$opt_version,
+	'vcs=s' => \$opt_force_vcs,
+	'version|v' => \$opt_version,
 	'strict' => \$opt_strict,
 );
 
@@ -221,16 +226,21 @@ if($opt_strict) {
 
 # Figure out what kind of repo we are in.
 # Respect $PATH while looking for the VCS
-if (getenv("PATH")) {
-	foreach my $path ( split(":", getenv("PATH")) ) {
-		foreach my $_vcs (keys(%vcs)) {
-			if ( -X "${path}/${_vcs}" ) {
-				$vcs = $_vcs if check_vcs_dir($vcs{$_vcs}{directory});
-				last if $vcs;
+if(! defined($opt_force_vcs)) {
+	if (getenv("PATH")) {
+		foreach my $path ( split(":", getenv("PATH")) ) {
+			foreach my $_vcs (sort(keys(%vcs))) {
+				if ( -X "${path}/${_vcs}" ) {
+					$vcs = $_vcs if check_vcs_dir($vcs{$_vcs}{directory});
+					last if $vcs;
+				}
 			}
+			last if $vcs;
 		}
-		last if $vcs;
 	}
+}
+else {
+	$vcs = $opt_force_vcs if defined $vcs{$opt_force_vcs};
 }
 
 if ( ! $vcs ) {

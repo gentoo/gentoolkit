@@ -1,3 +1,8 @@
+2010-02-02: Christian Ruppert <idl0r@gentoo.org>
+	src/echangelog/echangelog: Add --vcs switch to specify the vcs without
+		autodetection as requested per bug 302784, thanks to Martin von Gagern
+		<Martin.vGagern@gmx.net>. Sort the VCS during autodetection.
+
 2010-01-02: Christian Ruppert <idl0r@gentoo.org>
 	src/echangelog/echangelog: Improve vcs detection, might fix bug 302784 as
 	well.
