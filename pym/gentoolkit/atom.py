@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright 2009-2010 Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -27,20 +27,7 @@ from gentoolkit import errors
 # =======
 
 class Atom(portage.dep.Atom, CPV):
-	"""Portage's Atom class with an improvements from pkgcore.
-
-	Gentoolkit's Atom is not backwards compatible with Portage's because we set
-	parts and combinations of parts of cpv as attributes on Atom.cpv instead of
-	putting them directly in Atom's namespace like Portage does, for one.
-	For example:
-	Gentoolkit.Atom: str(atom.cpv)     # cpv string
-					 atom.cpv.category # category
-	Portage.Atom: atom.cpv      # cpv string
-				  atom.category # category
-
-	Also, Portage's Atom.slot is a string, whereas
-	Gentoolkit's Atom.slot is a tuple as in pkgcore, since multiple slots are
-		OK
+	"""Portage's Atom class with improvements from pkgcore.
 
 	portage.dep.Atom provides the following instance variables:
 
@@ -70,7 +57,7 @@ class Atom(portage.dep.Atom, CPV):
 		if self.operator is None:
 			self.operator = ''
 
-		self.cpv = CPV(self.cpv)
+		CPV.__init__(self, self.cpv)
 
 		# use_conditional is USE flag condition for this Atom to be required:
 		# For: !build? ( >=sys-apps/sed-4.0.5 ), use_conditional = '!build'
@@ -84,7 +71,7 @@ class Atom(portage.dep.Atom, CPV):
 		if self.operator != other.operator:
 			return False
 
-		if self.cpv != other.cpv:
+		if not CPV.__eq__(self, other):
 			return False
 
 		if bool(self.blocker) != bool(other.blocker):
@@ -112,14 +99,10 @@ class Atom(portage.dep.Atom, CPV):
 			return False
 
 		# Not supported by Portage Atom yet
-		#return cmp(self.repo_id, other.repo_id)
+		#return cmp(self.repo_name, other.repo_name)
 		return True
 
 	def __ne__(self, other):
-		if not isinstance(other, self.__class__):
-			err = "other isn't of %s type, is %s"
-			raise TypeError(err % (self.__class__, other.__class__))
-
 		return not self == other
 
 	def __lt__(self, other):
@@ -130,8 +113,8 @@ class Atom(portage.dep.Atom, CPV):
 		if self.operator != other.operator:
 			return self.operator < other.operator
 
-		if self.cpv != other.cpv:
-			return self.cpv < other.cpv
+		if not CPV.__eq__(self, other):
+			return CPV.__lt__(self, other)
 
 		if bool(self.blocker) != bool(other.blocker):
 			# We want non blockers, then blockers, so only return True
@@ -162,7 +145,7 @@ class Atom(portage.dep.Atom, CPV):
 			return this_use < that_use
 
 		# Not supported by Portage Atom yet
-		#return cmp(self.repo_id, other.repo_id)
+		#return cmp(self.repo_name, other.repo_name)
 
 		return False
 
@@ -217,15 +200,15 @@ class Atom(portage.dep.Atom, CPV):
 		@see: L{pkgcore.ebuild.atom}
 		"""
 		# Our "cp" (cat/pkg) must match exactly:
-		if self.cpv.cp != other.cpv.cp:
+		if self.cp != other.cp:
 			# Check to see if one is name only:
 			# Avoid slow partitioning if we're definitely not matching
 			# (yes, this is hackish, but it's faster):
-			if self.cpv.cp[-1:] != other.cpv.cp[-1:]:
+			if self.cp[-1:] != other.cp[-1:]:
 				return False
 
-			if ((not self.cpv.category and self.cpv.name == other.cpv.name) or
-				(not other.cpv.category and other.cpv.name == self.cpv.name)):
+			if ((not self.category and self.name == other.name) or
+				(not other.category and other.name == self.name)):
 				return True
 			return False
 
@@ -238,8 +221,8 @@ class Atom(portage.dep.Atom, CPV):
 			return False
 
 		# TODO: Uncomment when Portage's Atom supports repo
-		#if (self.repo_id is not None and other.repo_id is not None and
-		#	self.repo_id != other.repo_id):
+		#if (self.repo_name is not None and other.repo_name is not None and
+		#	self.repo_name != other.repo_name):
 		#	return False
 
 		# Use deps are similar: if one of us forces a flag on and the
@@ -273,29 +256,29 @@ class Atom(portage.dep.Atom, CPV):
 		# If one of us is an exact match we intersect if the other matches it:
 		if self.operator == '=':
 			if other.operator == '=*':
-				return self.cpv.fullversion.startswith(other.cpv.fullversion)
-			return VersionMatch(other.cpv, op=other.operator).match(self.cpv)
+				return self.fullversion.startswith(other.fullversion)
+			return VersionMatch(other, op=other.operator).match(self)
 		if other.operator == '=':
 			if self.operator == '=*':
-				return other.cpv.fullversion.startswith(self.cpv.fullversion)
-			return VersionMatch(self.cpv, op=self.operator).match(other.cpv)
+				return other.fullversion.startswith(self.fullversion)
+			return VersionMatch(self, op=self.operator).match(other)
 
 		# If we are both ~ matches we match if we are identical:
 		if self.operator == other.operator == '~':
-			return (self.cpv.version == other.cpv.version and
-				self.cpv.revision == other.cpv.revision)
+			return (self.version == other.version and
+				self.revision == other.revision)
 
 		# If we are both glob matches we match if one of us matches the other.
 		if self.operator == other.operator == '=*':
-			return (self.cpv.fullversion.startswith(other.cpv.fullversion) or
-				other.cpv.fullversion.startswith(self.cpv.fullversion))
+			return (self.fullversion.startswith(other.fullversion) or
+				other.fullversion.startswith(self.fullversion))
 
 		# If one of us is a glob match and the other a ~ we match if the glob
 		# matches the ~ (ignoring a revision on the glob):
 		if self.operator == '=*' and other.operator == '~':
-			return other.cpv.fullversion.startswith(self.cpv.version)
+			return other.fullversion.startswith(self.version)
 		if other.operator == '=*' and self.operator == '~':
-			return self.cpv.fullversion.startswith(other.cpv.version)
+			return self.fullversion.startswith(other.version)
 
 		# If we get here at least one of us is a <, <=, > or >=:
 		if self.operator in ('<', '<=', '>', '>='):
@@ -313,42 +296,42 @@ class Atom(portage.dep.Atom, CPV):
 			# match the other's endpoint (just checking one endpoint
 			# is not enough, it would give a false positive on <=2 vs >2)
 			return (
-				VersionMatch(other.cpv, op=other.operator).match(ranged.cpv) and
-				VersionMatch(ranged.cpv, op=ranged.operator).match(other.cpv)
+				VersionMatch(other, op=other.operator).match(ranged) and
+				VersionMatch(ranged, op=ranged.operator).match(other)
 			)
 
 		if other.operator == '~':
 			# Other definitely matches its own version. If ranged also
 			# does we're done:
-			if VersionMatch(ranged.cpv, op=ranged.operator).match(other.cpv):
+			if VersionMatch(ranged, op=ranged.operator).match(other):
 				return True
 			# The only other case where we intersect is if ranged is a
 			# > or >= on other's version and a nonzero revision. In
 			# that case other will match ranged. Be careful not to
 			# give a false positive for ~2 vs <2 here:
 			return (ranged.operator in ('>', '>=') and
-				VersionMatch(other.cpv, op=other.operator).match(ranged.cpv))
+				VersionMatch(other, op=other.operator).match(ranged))
 
 		if other.operator == '=*':
 			# a glob match definitely matches its own version, so if
 			# ranged does too we're done:
-			if VersionMatch(ranged.cpv, op=ranged.operator).match(other.cpv):
+			if VersionMatch(ranged, op=ranged.operator).match(other):
 				return True
 			if '<' in ranged.operator:
 				# If other.revision is not defined then other does not
 				# match anything smaller than its own fullversion:
-				if other.cpv.revision:
+				if other.revision:
 					return False
 
 				# If other.revision is defined then we can always
 				# construct a package smaller than other.fullversion by
 				# tagging e.g. an _alpha1 on.
-				return ranged.cpv.fullversion.startswith(other.cpv.version)
+				return ranged.fullversion.startswith(other.version)
 			else:
 				# Remaining cases where this intersects: there is a
 				# package greater than ranged.fullversion and
 				# other.fullversion that they both match.
-				return ranged.cpv.fullversion.startswith(other.cpv.version)
+				return ranged.fullversion.startswith(other.version)
 
 		# Handled all possible ops.
 		raise NotImplementedError(

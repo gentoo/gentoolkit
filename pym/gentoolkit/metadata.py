@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright 2009-2010 Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -64,7 +64,8 @@ class _Maintainer(object):
 	@ivar description: Description of what a maintainer does. Gentoo only.
 	@type restrict: str or None
 	@ivar restrict: e.g. &gt;=portage-2.2 means only maintains versions
-		of Portage greater than 2.2.
+		of Portage greater than 2.2. Should be DEPEND string with < and >
+		converted to &lt; and &gt; respectively. 
 	@type status: str or None
 	@ivar status: If set, either 'active' or 'inactive'. Upstream only.
 	"""
@@ -208,6 +209,7 @@ class MetaData(object):
 			try:
 				self._herdstree = etree.parse(herds_path)
 			except IOError:
+				# For some trees, herds.xml may not exist. Bug #300108.
 				return None
 
 		# Some special herds are not listed in herds.xml
@@ -224,7 +226,7 @@ class MetaData(object):
 		@type include_email: bool
 		@keyword include_email: if True, also look up the herd's email
 		@rtype: list
-		@return: if include_email is False, return a list of string;
+		@return: if include_email is False, return a list of strings;
 		         if include_email is True, return a list of tuples containing:
 					 [('herd1', 'herd1@gentoo.org'), ('no-herd', None);
 		"""

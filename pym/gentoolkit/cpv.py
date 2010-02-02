@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright 2009-2010 Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -40,7 +40,7 @@ class CPV(object):
 	"""
 
 	def __init__(self, cpv):
-		self.scpv = cpv
+		self.cpv = cpv
 
 		values = split_cpv(cpv)
 		self.category = values[0]
@@ -61,16 +61,10 @@ class CPV(object):
 
 	def __eq__(self, other):
 		if not isinstance(other, self.__class__):
-			raise TypeError("other isn't of %s type, is %s" % (
-				self.__class__, other.__class__)
-			)
-		return self.scpv == other.scpv
+			return False
+		return self.cpv == other.cpv
 
 	def __ne__(self, other):
-		if not isinstance(other, self.__class__):
-			raise TypeError("other isn't of %s type, is %s" % (
-				self.__class__, other.__class__)
-			)
 		return not self == other
 
 	def __lt__(self, other):
@@ -118,7 +112,7 @@ class CPV(object):
 		return "<%s %r>" % (self.__class__.__name__, str(self))
 
 	def __str__(self):
-		return self.scpv
+		return self.cpv
 
 
 # =========

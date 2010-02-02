@@ -1,4 +1,4 @@
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright 2009-2010 Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2 or higher
 #
@@ -114,7 +114,7 @@ class ChangeLog(object):
 		for entry_set in self.indexed_entries:
 			i, entry = entry_set
 			# VersionMatch doesn't store .cp, so we'll force it to match here:
-			i.cpv.cp = atom.cpv.cp
+			i.cp = atom.cp
 			if atom.intersects(i):
 				result.append(entry)
 
