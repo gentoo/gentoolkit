@@ -636,6 +636,25 @@ get_files() {
 		einfo "Generated new $FILES_FILE"
 	fi
 }
+parse_ld_so_conf() {
+	# FIXME: not safe for paths with spaces
+	local include
+	for path in $(sed '/^#/d;s/#.*$//' < /etc/ld.so.conf); do
+		if [[ $include = true ]]; then
+			for include_path in $(sed '/^#/d;s/#.*$//' /etc/${path}); do
+				echo $include_path
+			done
+			include=""
+			continue
+		fi
+		if [[ $path != include ]]; then
+			echo $path
+		else
+			include="true"
+			continue
+		fi
+	done
+}
 get_ldpath() {
 	local COMPLETE_LD_LIBRARY_PATH
 	[[ $SEARCH_BROKEN && $FULL_LD_PATH ]] || return
@@ -648,7 +667,7 @@ get_ldpath() {
 		COMPLETE_LD_LIBRARY_PATH=(
 			/lib*
 			/usr/lib*
-			$(sed '/^#/d;s/#.*$//' < /etc/ld.so.conf)
+			$(parse_ld_so_conf)
 			$(sed 's:/[^/]*$::' < "$FILES_FILE" | sort -ru)
 		)
 		IFS=':'
@@ -1020,7 +1039,7 @@ setup_search_paths_and_masks() {
 
 	# Get the directories from /etc/ld.so.conf
 	if [[ -r /etc/ld.so.conf && -s /etc/ld.so.conf ]]; then
-		SEARCH_DIRS+=" "$(sed '/^#/d;s/#.*$//' /etc/ld.so.conf)
+		SEARCH_DIRS+=" "$(parse_ld_so_conf)
 	fi
 
 	# Set the final variables
