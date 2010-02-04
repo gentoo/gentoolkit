@@ -1,3 +1,7 @@
+2010-02-04: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix revdep-rebuild to handle include statements in
+	/etc/ld.so.conf. (Bug 298651)
+
 2010-31-01: Christian Ruppert <idl0r@gentoo.org>
 	* revdep-rebuild: Check for eerror in die() since an invalid option(long) or
 	missing arg will end up in calling die() before /etc/init.d/functions.sh
@@ -36,10 +40,10 @@
 
 2009-08-18: Robert Buchholz <rbu@gentoo.org>
 	* glsa-check: Remove 'new' target from glsa-list, everyone
-        should use 'affected' or 'all'
+	should use 'affected' or 'all'
 	* glsa-check: fix getminupgrade API doc and TypeError (Bug 281101)
 	* glsa-check: Make --pretend output in glsa-check nicer.
-        Add colors and fix linebreaks.
+	Add colors and fix linebreaks.
 
 2009-06-22: Paul Varner <fuzzyray@gentoo.org>
 	* glsa-check: Fix traceback with glsa-check -f (Bug 275105)
