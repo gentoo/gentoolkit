@@ -705,10 +705,10 @@ main_checks() {
 				ldd_status=$? # TODO: Check this for problems with sort
 				# HACK: if LD_LIBRARY_MASK is null or undefined grep -vF doesn't work
 				if grep -vF "${LD_LIBRARY_MASK:=$'\a'}" <<< "$ldd_output" |
-					grep -q "$SONAME_SEARCH"; then
+					grep -q -E "$SONAME_SEARCH"; then
 					if [[ $SEARCH_BROKEN && $FULL_LD_PATH ]]; then
 						if LD_LIBRARY_PATH="$COMPLETE_LD_LIBRARY_PATH" ldd "$target_file" 2>/dev/null |
-							grep -vF "$LD_LIBRARY_MASK" | grep -q "$SONAME_SEARCH"; then
+							grep -vF "$LD_LIBRARY_MASK" | grep -q -E "$SONAME_SEARCH"; then
 							# FIXME: I hate duplicating code
 							# Only build missing direct dependencies
 							MISSING_LIBS=$(

@@ -1,3 +1,7 @@
+2010-02-05: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Update revdep-rebuild to use extended regular
+	expressions instead of basic regular expressions. (Bug 143498)
+
 2010-02-04: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Fix revdep-rebuild to handle include statements in
 	/etc/ld.so.conf. (Bug 298651)
