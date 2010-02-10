@@ -1,3 +1,7 @@
+2010-02-10: Christian Ruppert <idl0r@gentoo.org>
+	src/echangelog/echangelog: Fix replacement regex for TextWrap, thanks to
+	Torsten Veller <tove@gentoo.org>, bug 304249.
+
 2010-02-02: Christian Ruppert <idl0r@gentoo.org>
 	src/echangelog/echangelog: Add --vcs switch to specify the vcs without
 		autodetection as requested per bug 302784, thanks to Martin von Gagern
