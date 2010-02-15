@@ -669,7 +669,7 @@ parse_ld_so_conf() {
 	local include
 	for path in $(sed '/^#/d;s/#.*$//' < /etc/ld.so.conf); do
 		if [[ $include = true ]]; then
-			for include_path in $(sed '/^#/d;s/#.*$//' /etc/${path}); do
+			for include_path in $(sed '/^#/d;s/#.*$//' /etc/${path} 2>/dev/null); do
 				echo $include_path
 			done
 			include=""
