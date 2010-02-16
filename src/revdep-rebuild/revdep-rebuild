@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 1999-2008 Gentoo Foundation
+# Copyright 1999-2010 Gentoo Foundation
 
 # revdep-rebuild: Reverse dependency rebuilder.
 # Original Author: Stanislav Brabec
@@ -18,6 +18,7 @@ unset GREP_OPTIONS
 
 # Readonly variables:
 declare -r APP_NAME="${0##*/}" # The name of this application
+declare -r VERSION="svn"
 declare -r OIFS="$IFS"         # Save the IFS
 declare -r     ENV_FILE=0_env.rr     # Contains environment variables
 declare -r   FILES_FILE=1_files.rr   # Contains a list of files to search
@@ -89,6 +90,7 @@ declare WORKING_DIR            # Working directory where cache files are kept
 
 main() {
 	# preliminary setup
+	portage_settings
 	get_opts "$@"
 	setup_portage
 	setup_search_paths_and_masks
@@ -163,6 +165,11 @@ EW
 
 print_usage() {
 cat << EOF
+${APP_NAME}: (${VERSION})
+
+Copyright (C) 2003-2010 Gentoo Foundation, Inc.
+This is free software; see the source for copying conditions.
+
 Usage: $APP_NAME [OPTIONS] [--] [EMERGE_OPTIONS]
 
 Broken reverse dependency rebuilder.
@@ -189,6 +196,7 @@ Calls emerge, options after -- are ignored by $APP_NAME
 and passed directly to emerge.
 
 Report bugs to <http://bugs.gentoo.org>
+
 EOF
 }
 ##
@@ -233,7 +241,17 @@ clean_var() {
 die() {
 	local status=$1
 	shift
-	eerror "$@"
+
+	# Check if eerror has been loaded.
+	# Its loaded _after_ opt parsing but not before due to RC_NOCOLOR.
+	type eerror &> /dev/null
+
+	if [[ $? -eq 0 ]];
+	then
+		eerror "$@"
+	else
+		echo " * ${@}" >> /dev/stderr
+	fi
 	exit $status
 }
 ##
@@ -252,12 +270,23 @@ clean_exit() {
 }
 ##
 # Get the name of the package that owns a file or list of files given as args.
+# NOTE: depends on app-misc/realpath!
 get_file_owner() {
 	local IFS=$'\n'
-	# ${*/%/ } adds a space to the end of each object name to prevent false
+
+	rpath=$(realpath "${*}" 2>/dev/null)
+	# To ensure we always have something in rpath...
+	[[ -z $rpath ]] && rpath=${*}
+
+	# Workaround for bug 280341
+	mlib=$(echo ${*}|sed 's:/lib/:/lib64/:')
+	[[ "${*}" == "${mlib}" ]] && mlib=$(echo ${*}|sed 's:/lib64/:/lib/:')
+
+	# Add a space to the end of each object name to prevent false
 	# matches, for example /usr/bin/dia matching /usr/bin/dialog (bug #196460).
-	find -L /var/db/pkg -name CONTENTS -print0 |
-		xargs -0 grep -Fl "${*/%/ }" |
+	# The same for "${rpath} ".
+	find /var/db/pkg -type f -name CONTENTS -print0 |
+		xargs -0 grep -m 1 -Fl -e "${*} " -e "${rpath} " -e "${mlib} " |
 		sed 's:/var/db/pkg/\(.*\)/CONTENTS:\1:'
 }
 ##
@@ -273,7 +302,6 @@ normalize_emerge_opts() {
 setup_color() {
 	# This should still work if NOCOLOR is set by the -C flag or in the user's
 	# environment.
-	export NOCOLOR=$(portageq envvar NOCOLOR)
 	[[ $NOCOLOR = yes || $NOCOLOR = true ]] && export RC_NOCOLOR=yes # HACK! (grr)
 	. /etc/init.d/functions.sh
 }
@@ -641,7 +669,7 @@ parse_ld_so_conf() {
 	local include
 	for path in $(sed '/^#/d;s/#.*$//' < /etc/ld.so.conf); do
 		if [[ $include = true ]]; then
-			for include_path in $(sed '/^#/d;s/#.*$//' /etc/${path}); do
+			for include_path in $(sed '/^#/d;s/#.*$//' /etc/${path} 2>/dev/null); do
 				echo $include_path
 			done
 			include=""
@@ -983,12 +1011,27 @@ show_unowned_files() {
 		done < "$OWNERS_FILE" | gawk '!s[$0]++' # (omit dupes)
 	fi
 }
+
+# Get multiple portage variables at once to speedup revdep-rebuild.
+portage_settings() {
+	local ORIG_SEARCH_DIRS="$SEARCH_DIRS"
+	local ORIG_SEARCH_DIRS_MASK="$SEARCH_DIRS_MASK"
+	local ORIG_LD_LIBRARY_MASK="$LD_LIBRARY_MASK"
+	unset SEARCH_DIRS
+	unset SEARCH_DIRS_MASK
+	unset LD_LIBRARY_MASK
+
+	eval $(portageq envvar -v PORTAGE_ROOT PORTAGE_NICENESS EMERGE_DEFAULT_OPTS NOCOLOR SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK)
+	export NOCOLOR
+
+	SEARCH_DIRS="$ORIG_SEARCH_DIRS $SEARCH_DIRS"
+	SEARCH_DIRS_MASK="$ORIG_SEARCH_DIRS_MASK $SEARCH_DIRS_MASK"
+	LD_LIBRARY_MASK="$ORIG_LD_LIBRARY_MASK $LD_LIBRARY_MASK"
+}
+
 ##
 # Setup portage and the search paths
 setup_portage() {
-	PORTAGE_NICENESS=$(portageq envvar PORTAGE_NICENESS)
-	PORTAGE_ROOT=$(portageq envvar ROOT)
-
 	# Obey PORTAGE_NICENESS (which is incremental to the current nice value)
 	if [[ $PORTAGE_NICENESS ]]; then
 		current_niceness=$(nice)
@@ -1015,9 +1058,9 @@ setup_search_paths_and_masks() {
 	# Read the incremental variables from environment and portage
 	# Until such time as portage supports these variables as incrementals
 	# The value will be what is in /etc/make.conf
-	SEARCH_DIRS+=" "$(unset SEARCH_DIRS; portageq envvar SEARCH_DIRS)
-	SEARCH_DIRS_MASK+=" "$(unset SEARCH_DIRS_MASK; portageq envvar SEARCH_DIRS_MASK)
-	LD_LIBRARY_MASK+=" "$(unset LD_LIBRARY_MASK; portageq envvar LD_LIBRARY_MASK)
+#	SEARCH_DIRS+=" "$(unset SEARCH_DIRS; portageq envvar SEARCH_DIRS)
+#	SEARCH_DIRS_MASK+=" "$(unset SEARCH_DIRS_MASK; portageq envvar SEARCH_DIRS_MASK)
+#	LD_LIBRARY_MASK+=" "$(unset LD_LIBRARY_MASK; portageq envvar LD_LIBRARY_MASK)
 
 	# Add the defaults
 	if [[ -d /etc/revdep-rebuild ]]; then
@@ -1070,7 +1113,7 @@ rebuild() {
 	trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 
 	einfo 'All prepared. Starting rebuild'
-	echo "emerge --oneshot ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
+	echo "emerge --oneshot ${EMERGE_OPTIONS[@]} ${EMERGE_DEFAULT_OPTS} $REBUILD_LIST"
 
 	is_real_merge && countdown 10
 
@@ -1079,7 +1122,7 @@ rebuild() {
 
 	# Run in background to correctly handle Ctrl-C
 	{
-		EMERGE_DEFAULT_OPTS="--oneshot ${EMERGE_OPTIONS[@]}" emerge $REBUILD_LIST <&6
+		emerge --oneshot ${EMERGE_OPTIONS[@]} ${EMERGE_DEFAULT_OPTS} $REBUILD_LIST <&6
 		echo $? > "$STATUS_FILE"
 	} &
 	wait
@@ -1125,7 +1168,7 @@ cleanup() {
 		if [[ -r "$OWNERS_FILE" && -s "$OWNERS_FILE" ]]; then
 			show_unowned_files
 		fi
-		[[ $KEEP_TEMP ]] || rm "${FILES[@]}"
+		[[ $KEEP_TEMP ]] || rm -f "${FILES[@]}"
 	else
 		einfo 'Now you can remove -p (or --pretend) from arguments and re-run revdep-rebuild.'
 	fi

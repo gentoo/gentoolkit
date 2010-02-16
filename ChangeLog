@@ -1,3 +1,7 @@
+2010-02-16: Paul Varner <fuzzyrau@gentoo.org>
+	* revdep-rebuild: Backport revdep-rebuild from trunk for all recent
+	fixes. Bugs included in this are 143498, 280341, and 289599.
+
 2010-02-05: Paul Varner <fuzzyray@gentoo.org>
 	* revdep-rebuild: Update revdep-rebuild to use extended regular
 	expressions instead of basic regular expressions. (Bug 143498)
