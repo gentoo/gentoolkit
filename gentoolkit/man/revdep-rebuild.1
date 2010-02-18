@@ -1,0 +1,137 @@
+.TH "revdep\-rebuild" "1" "" "gentoolkit" ""
+.SH "NAME"
+revdep\-rebuild \- Gentoo: Reverse Dependency Rebuilder
+.SH "SYNOPSIS"
+.B revdep\-rebuild
+[OPTIONS] [\-\-] [EMERGE OPTIONS]
+.SH "DESCRIPTION"
+revdep\-rebuild scans libraries and binaries for missing shared library dependencies and attempts to fix them by re\-emerging those broken binaries and shared libraries.  It is useful when an upgraded package breaks other software packages that are dependent upon the upgraded package.
+.SH "OPTIONS"
+.TP 
+.B \-C | \-\-nocolor
+Turn off colored output. (This option is also passed to portage.)
+.TP
+.B \-d | \-\-debug
+Print way too much information (uses bash's set -xv)
+.TP      
+.B \-e | \-\-exact
+Emerge the most recent version of found packages, without regard to SLOT.
+.TP 
+.B \-h | \-\-help
+Print usage.
+.TP
+.B \-i | \-\-ignore
+Delete temporary files from previous runs.
+.TP
+.B \-k | \-\-keep\-temp
+Force revdep\-rebuild not to delete temporary files after it successfully rebuilds packages. This option will NOT prevent revdep\-rebuild from deleting inconsistent or out\-of\-date temporary files.
+.TP
+.B \-\-library NAME | -L NAME
+Search for reverse dependencies for a particular library or group of libraries, rather than every library on the system. Emerge packages that use the named library. NAME can be a full path to a library or basic regular expression.  (See regex(7).)
+.TP 
+.B \-l | \-\-no\-ld\-path
+Do not set LD_LIBRARY_PATH. \fBNote:\fR Using this option will cause revdep-rebuild to report some false positives.
+.TP 
+.B \-o | \-\-no-order
+Do not check the build order against the deep dependency list.  This will make revdep-rebuild faster, but it can cause emerge failures.  Please try revdep\-rebuild without \-o before reporting any bugs.
+.TP 
+.B \-p | \-\-pretend
+Do a dry-run.  Do not delete temporary files.  (\-k \-p is redundant, but harmless.)  \-\-pretend is assumed when not running revdep\-rebuild as root.
+.TP 
+.B \-P | \-\-no\-progress
+Turn off the progress meter
+.TP 
+.B \-q | \-\-quiet
+Print less output and disable the progress meter.  (This option is also passed to portage.)
+.TP
+.B \-v | \-\-verbose
+More output.  (Prints the revdep\-rebuild search environment.)
+.TP
+.B Options after -- are ignored by revdep-rebuild and passed directly to emerge.
+.SH "CONFIGURATION"
+revdep\-rebuild no longer uses hardcoded paths. To change the default behavior the following variables can be changed by the user.
+
+LD_LIBRARY_MASK \- Mask of specially evaluated libraries
+.LP 
+SEARCH_DIRS \- List of directories to search for executables and libraries
+.LP 
+SEARCH_DIRS_MASK \- List of directories to not search
+
+You can prepend to these variables by setting the variable in your environment prior to execution, by placing an entry in /etc/make.conf, or by placing a file in /etc/revdep\-rebuild containing the appropriate variables.
+
+The variables are read and set in the following order:
+
+environment settings \- one time changes by user
+.br 
+/etc/make.conf \- persistent changes by user
+.br 
+/etc/revdep\-rebuild/* \- persistent changes by ebuild authors
+
+While a user can edit and modify the files in the /etc/revdep\-rebuild directory, please be aware that the /etc/revdep\-rebuild directory is not under configuration protection and files can be removed and/or overwritten by an ebuild. To change this add /etc/revdep\-rebuild to the CONFIG_PROTECT variable in /etc/make.conf.
+
+An entry of "\-*" means to clear the variable from that point forward.
+Example: SEARCH_DIRS="/usr/bin \-*" will set SEARCH_DIRS to contain only /usr/bin
+
+revdep\-rebuild honors the NOCOLOR and PORTAGE_NICENESS variables from /etc/make.conf
+.SH "EXAMPLES"
+It is recommended that when running revdep\-rebuild that the following command be used initially:
+.br 
+\fBrevdep\-rebuild \-\-ignore \-\-pretend\fR
+
+To search the entire system, while excluding /mnt and /home:
+.br 
+\fBenv SEARCH_DIRS="/ \-*" SEARCH_DIRS_MASK="/mnt /home" revdep\-rebuild\fR
+
+To rebuild packages that depend on libkdecore.so.4 from KDE 3.3:
+.br 
+\fBrevdep\-rebuild \-\-library /usr/kde/3.3/lib/libkdecore.so.4\fR
+
+To rebuild packages that depend upon libImlib.so and libImlib2.so:
+.br 
+\fBrevdep\-rebuild \-\-library libImlib[2]*.so.*\fR
+
+.SH "FILES"
+.P
+revdep\-rebuild keeps several pseudo-temporary files in /var/cache/revdep\-rebuild/. Deleting these files can improve accuracy at the cost of speed:
+.TP 15
+.I 0_env.rr
+Contains environment variables
+.TP
+.I 1_files.rr
+Contains a list of files to search
+.TP
+.I 2_ldpath.rr
+Contains the LDPATH
+.TP
+.I 3_broken.rr
+Contains the list of broken files
+.TP
+.I 3_errors.rr
+Contains the ldd error output
+.TP
+.I 4_raw.rr
+Contains the raw list of packages
+.TP
+.I 4_owners.rr
+Contains the file owners
+.TP
+.I 4_pkgs.rr
+Contains the unsorted bare package names
+.TP
+.I 4_ebuilds.rr
+Contains the unsorted atoms
+.TP
+.I 5_order.rr
+Contains the sorted atoms
+.TP
+.I 6_status.rr
+Contains the ldd error output
+
+.SH "EXIT STATUS"
+revdep\-rebuild returns a zero exit status if it \fBand emerge\fR succeeds, and a nonzero exit status otherwise.
+.SH "BUGS"
+.LP 
+Report bugs to <http://bugs.gentoo.org>. Please do not report emerge failures caused by \-o or \-e. Please include your files from /var/cache/revdep\-rebuild/, your emerge \-\-info, and patches. ;)
+
+.SH "SEE ALSO"
+emerge(1), portage(5), regex(7)

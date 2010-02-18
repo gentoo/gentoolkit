@@ -1,0 +1,12 @@
+2004-09-10 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Fixed portage import, fixes #45079.
+	* Added all sources sync patch from Adam Ashley
+        <adam_ashley@softhome.net>, fixes #45079.
+	* Fixed config dir scanning, suggested by burrelln@colorado.edu,
+	fixes #47390.
+	* Applied config file parser fix by Mamoru KOMACHI <usata@gentoo.org>,
+	fixes #44777.
+
+2004-02-08 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Initial import
+

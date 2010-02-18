@@ -1,0 +1,13 @@
+include AUTHORS
+include ChangeLog
+include COPYING
+include CREDITS
+include DEVELOPING
+include NEWS
+include README
+include TODO
+include setup.py
+recursive-include data *
+recursive-include bin *
+recursive-include man *
+recursive-include pym *.py *.txt

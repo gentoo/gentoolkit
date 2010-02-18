@@ -1,0 +1,161 @@
+Python Code Guidelines
+----------------------
+These are a few guidelines to stick to when modifying or adding code to
+Gentoolkit. These guidelines do not apply to pym/gentoolkit/test/*.
+
+First, read Python's PEP 8: http://www.python.org/dev/peps/pep-0008/
+Next, read Portage's DEVELOPING file.
+Next, read Portage's Docstring specs:
+      http://www.gentoo.org/proj/en/portage/doc/policies/docstring-spec.xml
+
+(Portage DEVELOPING overrides PEP 8, so we use tabs instead of spaces.)
+
+Here are a few clarifications and changes to the above:
+
+Line-Wrapping
+-------------
+- Do NOT space out to an opening paren (etc). Different tab settings make this
+  difficult to read:
+
+  BAD:
+  foo = get_foo(keyword1=default,
+                keyword2=default,
+                ...)
+
+  OK:
+  foo = get_foo(keyword1=default, keyword2=default, keyword3=default,
+      keyword4=default, ...)
+
+  OK:
+  foo = get_foo(
+      keyword1=default,
+      keyword2=default,
+      ...
+  )
+
+- Preferred line length is 80 characters with a tab length of 4 characters.
+- "The preferred way of wrapping long lines is by using Python's implied line
+  continuation inside parentheses, brackets and braces" rather than using '\'
+  (PEP 8).
+  Even better than that is pre-defining a snippet of the long line in a
+  variable. So:
+
+  BAD: (too long)
+    self._descriptions = [e.text for e in self._xml_tree.findall("longdescription")]
+
+  OK:
+    self._descriptions = \
+        [e.text for e in self._xml_tree.findall("longdescription")]
+
+  OK:
+    self._descriptions = [
+        e.text for e in self._xml_tree.findall("longdescription")
+    ]
+
+  OK: (easiest to read and test)
+    long_descriptions = self._xml_tree.findall("longdescription")
+    self._descriptions = [e.text for e in long_descriptions]
+
+Imports:
+--------
+Same as PEP 8 and Portage's DEVELOPING spec, but make sure to split python
+default libraries, Gentoo system libraries (like portage) and lastly local
+modules (gentoolkit), so:
+
+  GOOD:
+    import os
+    import re
+
+    import portage
+    from portage.versions import catpkgsplit, pkgcmp
+
+    from gentoolkit import CONFIG
+    from gentoolkit import pprinter as pp
+    ...
+
+Exceptions:
+-----------
+Always raise exceptions and catch them at the last possible moment. This allows
+API consumers to catch them and decide what to do with them. Do not print an
+error to stderr from inside a consumable. Never "print" an error string, always
+write it to stderr.
+
+Lastly, if an error is fatal (should be raised all the way up), try to make
+sure it is an errors.Gentoolkit* error. That allows API consumers to catch all
+fatal errors with: except 'gentoolkit.errors.GentoolkitException'. See
+bin/equery to see how we catch those exceptions before they hit the user.
+
+  BAD:
+    try:
+        result = tree.aux_get(str(self.cpv), [var])
+    except KeyError:
+        sys.stderr.write("aux_get returned unexpected results")
+
+  BETTER:
+    # This line raises KeyError if self.cpv not found:
+    result = tree.aux_get(str(self.cpv), [var])
+
+  BEST:
+    try:
+        result = tree.aux_get(str(self.cpv), [var])
+    except KeyError:
+        err = "aux_get returned unexpected results"
+        raise errors.GentoolkitFatalError(err)
+
+Docstrings:
+-----------
+Follow this example for any complicated function or method. Don't worry about
+docstring for private methods (like _foo) or methods like __this__. It's
+definitely OK to write docstrings for these methods as well if there's
+something tricky about them, though.
+
+  def graph_reverse_depends(...):
+      # A ONE-LINE sentence describing the function in simplest terms:
+      """Graph direct reverse dependencies for self.
+
+      # An optional second paragraph to give more detailed information.
+      # Sometimes an 'Example usage' here can be worth more than a lengthy
+      # description. Examples should be an ACTUAL interpreter session:
+      Example usage:
+          >>> from gentoolkit.dependencies import Dependencies
+          >>> ffmpeg = Dependencies('media-video/ffmpeg-0.5_p20373')
+          >>> # I only care about installed packages that depend on me:
+          ... from gentoolkit.helpers import get_installed_cpvs
+          >>> # I want to pass in a sorted list. We can pass strings or
+          ... # Package or Atom types, so I'll use Package to sort:
+          ... from gentoolkit.package import Package
+          >>> installed = sorted(Package(x) for x in get_installed_cpvs())
+          >>> deptree = ffmpeg.graph_reverse_depends(
+          ...     only_direct=False,  # Include indirect revdeps
+          ...     pkgset=installed)   # from installed pkgset
+          >>> len(deptree)
+          44
+
+      # Lastly use epydoc's special fields to document further.
+      # See: http://epydoc.sourceforge.net/fields.html
+      @type pkgset: iterable
+      @keyword pkgset: sorted pkg cpv strings or anything sublassing
+          L{gentoolkit.cpv.CPV} to use for calculate our revdep graph.
+      @type max_depth: int
+      @keyword max_depth: Maximum depth to recurse if only_direct=False.
+          -1 means no maximum depth;
+           0 is the same as only_direct=True;
+          >0 means recurse only this many times;
+      @type only_direct: bool
+      @keyword only_direct: to recurse or not to recurse
+      @type printer_fn: callable
+      @keyword printer_fn: If None, no effect. If set, it will be applied to
+          each L{gentoolkit.atom.Atom} object as it is added to the results.
+      @rtype: list
+      @return: L{gentoolkit.dependencies.Dependencies} objects
+      """
+
+Other concerns:
+---------------
+- Choose names which are full, clear words (not necessary in small loops).
+- It is NEVER necessary to prefix names with "my". It adds no useful
+  information.
+- Comment and document in simple, unambiguous and non-repetitive English.
+- When adding a TODO, FIXME or XXX comment, please date it and add your name so
+  that other devs know who to ask about the proposed change.
+- Be careful of spelling.

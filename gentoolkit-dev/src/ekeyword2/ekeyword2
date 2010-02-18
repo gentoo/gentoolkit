@@ -1,0 +1,96 @@
+#!/usr/bin/python
+
+# Output like:
+# setuptools-0.6_rc9.ebuild
+# < KEYWORDS="~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~sparc-fbsd -x86 ~x86-fbsd"
+# ---
+# > KEYWORDS="~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~sparc-fbsd x86 ~x86-fbsd"
+
+from __future__ import with_statement
+from sys import argv
+from fnmatch import fnmatch
+from shutil import copyfile
+from os import environ as env
+
+import re
+import string
+
+from portage import settings
+
+STABLE_KEYWORDS = frozenset(settings["PORTAGE_ARCHLIST"].split())
+BROKEN_KEYWORDS = frozenset(['-*'] + ['-'+k for k in STABLE_KEYWORDS])
+TEST_KEYWORDS   = frozenset(['~'+k for k in STABLE_KEYWORDS])
+KNOWN_KEYWORDS  = STABLE_KEYWORDS | TEST_KEYWORDS | BROKEN_KEYWORDS
+
+argv = set(argv[1:])
+kw_re = re.compile(r'KEYWORDS="([^"]*)"')
+ebuilds = frozenset([x for x in argv if fnmatch(x, '*.ebuild')])
+pretend = bool(argv.intersection(('-p', '--pretend',)))
+keywords = argv.difference(('-p', '--pretend',)) - ebuilds
+
+if not ebuilds:
+	print 'usage: ekeyword [-p|--pretend] [^|~|-][all] [[^|~|-]arch [[^|~|-]arch]...] ebuild [ebuild...]'
+
+for e in ebuilds:
+	# TODO: error handling for file I/O
+	kw = set(keywords)
+	if not pretend:
+		try:
+			copyfile(e, e+'.orig')
+		except IOError:
+			print "Can't copy file %s. Check permissions." % e
+			exit(1)
+	try:
+		with open(e) as c:
+			ebuild = c.read()
+	except IOError:
+		print "Can't open file %s. Aborting." % e
+		exit(1)
+	
+	orig = kw_re.search(ebuild)
+	curkw = set(orig.groups()[0].split())
+
+	# ^ or ^all by itself means remove all keywords
+	# (however, other keywords established in the same args still get set.)
+	if kw.intersection(('^', '^all',)):
+		kw -= set(('^', '^all',))
+		curkw = set()
+
+	# ~ or ~all by itself means set ~keyword for all keywords
+	# since ~ expands to "$HOME" in the shell, assume the user meant ~ if we see
+	# the expansion of "$HOME". (Hope there's no user named 'all'.)
+	if kw.intersection(('~', '~all', env['HOME'],)):
+		kw -= set(('~', '~all', env['HOME'],))
+		curkw = set(['~'+k if k in STABLE_KEYWORDS else k for k in curkw])
+
+	for k in kw:
+		# Remove keywords starting with ^
+		if k[0] == '^':
+			curkw -= set((k[1:], '-'+k[1:], '~'+k[1:], ))
+		# Set ~ and - keywords to TEST and BROKEN, respectively
+		elif k[0] == '~' or k[0] == '-':
+			curkw -= set((k[1:], '-'+k[1:], '~'+k[1:], ))
+			curkw |= set((k,))
+		# Set remaining keywords to STABLE
+		else:
+			curkw -= set(('~'+k,))
+			curkw |= set((k,))
+
+	# Sort by arch, then OS (Luckily, this makes -* show up first if it's there)
+	result = 'KEYWORDS="%s"' % ' '.join(sorted(curkw,
+		key=lambda x: x.strip(string.punctuation).lower()))
+
+	if not pretend:
+		try:
+			with open(e, 'w') as rebuild:
+				rebuild.write(kw_re.sub(result, ebuild))
+		except IOError:
+			print "Can't write file %s. Aborting." % e
+			exit(1)
+
+	unknown_keywords = curkw - KNOWN_KEYWORDS
+	if unknown_keywords:
+		print "\nWarning: Unknown keywords '%s'.\n" % ', '.join(sorted(unknown_keywords))
+
+	print '<<< %s' % orig.group()
+	print '>>> %s' % result

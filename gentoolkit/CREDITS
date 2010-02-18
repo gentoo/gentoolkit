@@ -1,0 +1,16 @@
+
+	This is an incomplete list of people who have contributed non-
+	trivial patches to gentoolkit-0.3.0 and later, in the spirit of
+	the Linux kernel CREDITS file. It is sorted alphabetically by
+	name (N). Other fields are email (E) and description (D).
+	We'd like to thank:
+
+-------------------------------------------------------------------------------
+
+N: Brian Dolbec
+E: dol-sen@users.sourceforge.net
+D: Separating dependency gathering functionality from output in depends.py.
+
+
+
+# vim: set ts=8 sw=8 tw=80:

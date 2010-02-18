@@ -1,0 +1,884 @@
+2010-02-05: Paul Varner <fuzzyray@gentoo.org>
+	*revdep-rebuild: Update revdep-rebuild to use extended regular
+	expressions instead of basic regular expressions. (Bug 143498)
+
+2010-02-04: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix revdep-rebuild to handle include statements in
+	/etc/ld.so.conf. (Bug 298651)
+
+2010-31-01: Christian Ruppert <idl0r@gentoo.org>
+	* revdep-rebuild: Check for eerror in die() since an invalid option(long) or
+	missing arg will end up in calling die() before /etc/init.d/functions.sh
+	has been sourced.
+
+2009-01-11: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Set environment using 'portageq -v' (Bug 300229)
+
+2009-01-08: Paul Varner <fuzzyray@gentoo.org>
+	* epkginfo/equery: Fix expkinfo to not traceback if herds.xml is not
+	present in the tree. (Bug 300108)
+
+2009-12-17: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix revdep-rebuild to properly honor
+	PORTAGE_NICENESS as an incremental to the current nice level (Bug
+	297174).
+
+2009-12-08: Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Merge rev 113 from djanderson's genscripts repo
+
+2009-10-30: Christian Ruppert <idl0r@gentoo.org>
+	* revdep-rebuild: Speedup portageq queries. Include FuzzyRay's patch to
+		respect EMERGE_DEFAULT_OPTS.
+
+2009-10-27: Christian Ruppert <idl0r@gentoo.org>
+	* revdep-rebuild: Use realpath in get_file_owner to be able to get the
+		package containing e.g. /lib/libreadline.so.6 on amd64, fixes bug 280341.
+
+2009-10-27: Christian Ruppert <idl0r@gentoo.org>
+	* revdep-rebuild.1: Fix bug 281050, thanks to Jesús Guerrero
+		<i92guboj@gentoo.org>.
+
+2009-10-26: Christian Ruppert <idl0r@gentoo.org>
+	* euse: Don't add an additional new line at the end of file.
+	* equery.1: Fix bug 248844, thanks to J M W <ultip@ymail.com>.
+
+2009-08-18: Robert Buchholz <rbu@gentoo.org>
+	* glsa-check: Remove 'new' target from glsa-list, everyone
+	should use 'affected' or 'all'
+	* glsa-check: fix getminupgrade API doc and TypeError (Bug 281101)
+	* glsa-check: Make --pretend output in glsa-check nicer.
+	Add colors and fix linebreaks.
+
+2009-06-22: Paul Varner <fuzzyray@gentoo.org>
+	* glsa-check: Fix traceback with glsa-check -f (Bug 275105)
+
+2009-06-05: Paul Varner <fuzzyray@gentoo.org>
+	* epkginfo: Add patch from Sebastian Mingramm to Make epkginfo slot
+	aware and only print keywords for the highest visible versions in each
+	slot. (Bug 232635)
+
+2009-05-20: Paul Varner <fuzzyray@gentoo.org>
+	* All: Convert from using /etc/gentoolkit-version to
+	/usr/share/gentoolkit/VERSION
+
+2009-05-20: Paul Varner <fuzzyray@gentoo.org>
+	* glsa-check: Add patches from Robert Buchholz to do the following:
+	Handle unicode encoding better, python tweaks to speedup execution,
+	change behavior of getMinUpgrade, restructure system affection
+	detection, and do not inject GLSAs into the checkfile when fixing.
+
+2009-05-07: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Add patch from djanderson to make meta get and check package
+	dirs in a manner similar to other gentoolkit scripts and fix
+	some docstrings. (Bug 268895)
+
+2009-05-05: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Added modular rewrite from djanderson
+	* gentoolkit: Added modular rewrite from djanderson
+	* All: converted to setup.py build system
+
+2009-04-30: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Add patch from loki_val to check -l dependencies in 
+	.la files (Bug #267898)
+
+2009-04-24: Paul Varner <fuzzyray@gentoo.org>
+	* ekeyword: Fix to handle multiline KEYWORDS (Bug #267250)
+
+2009-01-08: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix package.py to account for PORTDIR being a symbolic link
+	when checking if a package is in an overlay. (Bug #253968)
+
+2008-11-25: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fixes for non-linux Gentoo systems. Add patch from
+	igli to fix find command to comply with POSIX. Change awk calls to
+	gawk.
+
+2008-11-11: Paul Varner <fuzzyray@gentoo.org>
+	* echangelog: Add --strict option (Bug 246242).
+	* echangelog: Fix processing of virtual category (Bug 179530)
+
+2008-09-17: Paul Varner <fuzzyray@gentoo.org>
+	* euse: Fix check_sanity function to use get_all_make_defaults
+	function when checking for the make.defaults files in the profile.
+	(Bug #233651)
+
+2008-09-03: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix depgraph function to print out dependencies that don't
+	resolve to a package (Bug #236492)
+
+2008-08-26: Paul Varner <fuzzyray@gentoo.org>
+	* glsa-check: Fix has_key() deprecation message. (Bug #232797)
+	* revdep-rebuild: Update fix for Bug 232270 to utilize better patch
+	from Ian Abbott.
+
+2008-08-22: Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Fix find_packages and find_installed_packages to print
+	a warning instead of a traceback when an InvalidAtom exception occurs.
+	(Bug #234358)
+	* equery: Fix equery belongs to strip multiple slashes from path
+	names. (Bug #234584)
+
+2008-07-24: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix equery check to convert mtime to an integer so that
+	comparisions always work. Thanks to Alexey Parshin for discovering the
+	problem and providing a patch. (Bug 232803)
+
+2008-07-22: Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Fix gentoolkit.split_package_name to work with
+	newer portage.catpkgsplit that now returns a tuple instead of a
+	list. (Bug 232599)
+
+2008-07-21: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix filtering of masked paths from SEARCH_DIRS
+	variable. (Bug 232270)
+
+2008-07-18: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Remove prefixed '+/-' signs from IUSE for equery uses
+	command. (Bug 232019)
+
+2008-07-09: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix revdep-rebuild to use TMPDIR instead of HOME for
+	temporary files. (Bug 203414)
+	* revdep-rebuild: Fix revdep-rebuild to not evaluate broken objects
+	multiple times. (Bug 220761)
+
+2008-07-09: Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Fix gentoolkit to work without thread support in 
+	python. (Bug 223255)
+
+2008-06-16: Marius Mauch <genone@gentoo.org>
+	* euse: Add support for multi-parent profiles, account for missing 
+	final newline in make.conf
+
+2008-03-19: Paul Varner <fuzzyray@gentoo.org>
+	* glsa-check: Fix imports so mail functionality in glsa-check works
+	with python versions less than 2.5 (Bug 211706)
+
+2008-03-13: Paul Varner <fuzzyray@gentoo.org>
+	* euse: Add --info-installed option from patch provided by Andreas
+	Waidler. (Bug 212573)
+
+2008-03-13: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix trying to emerge an empty list of packages. (Bug
+	213294)
+
+2008-02-28: Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Fix traceback when accessing the portage
+	db. (Bug #211716)
+
+2008-02-21: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: "Use /etc/init.d/functions.sh instead of
+	/sbin/functions.sh. (Bug 210940)
+
+2008-02-18: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Apply patch to allow combined short options.
+	(Bug 188343)
+	* revdep-rebuild: Don't duplicate broken file output. (Bug 201319)
+	* revdep-rebuild: unset GREP_OPTIONS to prevent problems with grep.
+	(Bug 189257)
+	* revdep-rebuild: Apply patch to prevent false matches of object names.
+	(Bug 196460)
+	* revdep-rebuild: Apply patch to better handle masked and removed
+	packages. (Bug 205227)
+	* revdep-rebuild: Filter SEARCH_DIRS_MASK paths from SEARCH_DIRS.
+	(Bug 194993)
+	* revdep-rebuild: Apply patch for revdep-rebuild portable find function.
+	(Bug 194234)
+	* equery: Fix equery list to not generate an internal portage error when
+	fed input with too many slashes. (Bug 119806)
+	* equery: Assume the -p flag when equery list -I is used by itself.
+	(Bug 106278)
+
+
+2007-10-09: Marius Mauch <genone@gentoo.org>
+	* glsa-check: Change "affected" target so it's based on "new" instead of 
+	"all" (IOW: exclude already applied/injected GLSAs).
+
+2007-10-05: Marius Mauch <genone@gentoo.org>
+	* glsa-check: Use UTF-8 strings to avoid EncodeErrors if a GLSA contains
+	non-ascii characters (bug #162493)
+
+2007-09-19: Paul Varner <fuzzyray@gentoo.org>
+	* epkginfo: Fix handling of KEYWORDS="" in an ebuild. (Bug #193108)
+	* revdep-rebuild: Fix handling of /var/db/pkg when it is a symbolic
+	link. (Bug #179392)
+
+2007-09-18: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Apply patch from Carlo Marcelo Arenas Belon to fix incorrect
+	display of masking status in list command. (Bug #188678)
+	* revdep-rebuild: Correctly handle LD_LIBRARY_MASK when checking for
+	"no version information" errors/ (Bug #182882)
+
+2007-09-12: Paul Varner <fuzzyray@gentoo.org>
+	* eclean: Fix processing of the long arguments to work correctly. (Bug
+	#192345)
+	* revdep-rebuild: Correctly handle the case where an ebuild no longer
+	exists for a package (Bug #188918)
+	* eread: Fix eread to not accept invalid input for file selection.
+	(Bug #189994)
+
+2007-08-08: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix progress bar to only update when there is a
+	change (Bug #186945)
+	* revdep-rebuild: Ensure that we source functions.sh before calling
+	ewarn, etc.
+
+2007-08-06: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix processing of .la files (Bug #187453)
+	* revdep-rebuild: Add -X option back for backwards compatibilty (Bug
+	#187366)
+
+2007-07-30: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix grepping for non-existant package-owners file
+	(Bug #187141)
+
+2007-07-05: Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Added refactored revdep-rebuild from Michael A.
+	Smith (Bug #184042)
+
+2007-05-30: Marius Mauch <genone@gentoo.org>
+	* glsa-check: check SLOT when selecting and displaying upgrades
+	* glsa-check: new --emergelike option to use the best version 
+	within the same SLOT instead of the one with the smallest delta.
+	* glsa-check: prefer visible upgrades to masked upgrades
+	* equery: check for and warn about unknown options (bug 119674)
+	* equery,eclean,glsa-check,epkginfo: Only add /usr/lib/portage/pym 
+	to python search path when necessary
+
+2007-05-21: Paul Varner <fuzzyray@gentoo.org>
+	* echangelog: Add patch from genstef to fix issues from Bug 176337
+
+2007-05-11: Paul Varner <fuzzyray@gentoo.org>
+	* eclean: Changed permission check to see if you are either root or
+	belong to the portage group (Bug #177385)
+
+2007-05-11: Paul Varner <fuzzyray@gentoo.org>
+	* eclean: Updated eclean to not delete metadata.dtd by default (Bug
+	#176951)
+
+2007-05-10: Marius Mauch <genone@gentoo.org>
+	* euse: Fix incorrect flag status display when a flag appears multiple
+	times in a single location
+
+2007-04-25: Paul Varner <fuzzyray@gentoo.org>
+	* echangelog: Re-added subversion/git support with fixes from genstef.
+	(Bug #136048)
+
+2007-04-24: Paul Varner <fuzzyray@gentoo.org>
+	* etcat: Removed from Makefile (deprecated since 04-25-2005)
+	* qpkg: Removed from Makefile (deprecated since 04-25-2005)
+
+2007-04-23: Paul Varner <fuzzyray@gentoo.org>
+	* genpkgindex, epkginfo: Move to /usr/bin from
+	/usr/lib/gentoolkit/bin (Bug #175759)
+
+2007-04-10: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Change equery uses to command to display the best matching
+	uninstalled package version if an uninstalled package is specified.
+	Changed the meaning of -a to mean display all versions. (Bug #152325)
+
+2007-04-01: Alec Warner <antarus@gentoo.org>
+	* eread: Fix path and fully qualified paths (Bug #172969)
+
+2007-03-31: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix traceback in equery which (Bug #134053)
+
+2007-03-29: Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Change package.get_???_deps() methods to try the portage
+	tree first, since emerge always uses the portage tree for dependencies.
+	(Bug #164678)
+
+2007-03-29: Paul Varner <fuzzyray@gentoo.org>
+	* equery: Convert deprecated strings functions to str methods (Bug
+	#172694)
+
+2007-03-25: Paul Varner <fuzzyray@gentoo.org>
+	* echangelog: Remove subversion/git patch due to many bugs.
+
+2007-03-18 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Change --no-color to --nocolor for consistency
+	within gentoolkit. (Bug #165165)
+
+2007-03-16 Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Fix typo in package.py (Bug #168347)
+
+2007-03-15 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix equery check to not fail for symlinks prefixed with ./
+	(Bug #170702)
+
+2007-03-14 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Trim trailing slash from query for equery belongs command
+	(Bug #170981)
+
+2007-03-13 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix bug with --package-names option not rebuilding
+	packages (Bug #169761)
+
+2007-03-10 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Add --depth option to equery depgraph to limit the depth of
+	the dependency graph. (Bug #115807)
+
+2007-03-09 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Add support to detect "no version information
+	available" message from ldd (Bug #169973)
+
+2007-03-08 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Improved handling of KeyError in equery depends command
+	(Bug #169929)
+
+2007-03-07 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Change ordering algorithm to use --deep instead of
+	--emptytree on the advice of zmedico
+
+2007-02-26 Marius Mauch <genone@gentoo.org>
+	* glsa-check: Display access information in verbose list mode (bug 168482)
+
+2007-02-19 Paul Varner <fuzzyray@gentoo.org>
+	* echangelog: Updated to support git and subversion (Bug #136048)
+
+2007-01-10 Paul Varner <fuzzyray@gentoo.org>
+	* epkgmove: removed epkgmove command due to popular demand. (Bug
+	161360)
+	* gensync: Deprecated gensync in favor of app-portage/layman (multiple
+	bugs)
+
+2007-01-02 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix equery depends --indirect command. (Bug #124552)
+
+2006-12-31 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Reworked equery depends command to be more accurate.
+
+2006-12-13 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix handling of /etc/portage/package.mask (Bug
+	#158025) Thanks to Wolfram Schlich for the patch.
+
+2006-12-12 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Add --tree option to equery files command. (Bug #62898)
+	Thanks to scope for the patch.
+
+2006-12-06 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Modify equery size command to work like the equery list
+	command for pkgspec arguments
+
+2006-11-27 Paul Varner <fuzzyray@gentoo.org>
+	* eclean: Fix typographical error in help and man page. (Bug #156243)
+
+2006-10-11 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix fileAsStr to understand device files.
+	(http://forums.gentoo.org/viewtopic-p-3639575.html)
+
+2006-10-07 Paul Varner <fuzzyray@gentoo.org>
+	* euse: Fix quoting bug in get_real_path() (Bug #150335).
+
+2006-09-21 Paul Varner <fuzzyray@gentoo.org>
+	* eread: Add eread script for reading and managing portage ELOG files.
+	Thanks to Donnie Berkholz for writing this.
+
+2006-09-03 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Remove unused environment variables before calling
+	emerge (Bug #142074). Check for permissions to write temporary files
+	(Bug #142308)
+
+2006-08-12 Marius Mauch <genone@gentoo.org>
+	* glsa-check: Add new --mail option to send out vulnerability reports
+	(output of --list plus --dump for each matched glsa as attachment),
+	using elog configuration.
+
+2006-07-31 Paul Varner <fuzzyray@gentoo.org>
+	* euse: Replace calls to readlink with bash function for Gentoo/ALT
+	compatibility. (Bugs #140477, #128960)
+
+2006-07-28 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix revdep-rebuild to correctly handle --ask being
+	passed to emerge. Thanks to Sal Gonzalez <ghostx@optonline.net> for
+	the patch. (Bug #37485)
+
+2006-07-07 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Rename --no-path to --no-ld-path and change
+	functionality to not set LD_LIBRARY_PATH.  This fixes bug #96946 as
+	well as bug #137313
+	* revdep-rebuild: Apply patch from truedfx to fix bug #38751
+
+2006-07-05 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Add --no-path option to revdep-rebuild for bug
+	#137313
+
+2006-06-25 Marius Mauch <genone@gentoo.org>
+	* glsa-check: update cve code for bug 128115
+
+2006-06-14 Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Fix package.py to honor $ROOT. (bug #136811)
+
+2006-05-22 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Use qfile to locate packages if portage-utils is
+	installed (Bug #128374). Be even more paranoid about extra slashes in
+	path names (Bug #128108). Remove unused code. Update configuration
+	section of manpage (Bug #126038).
+
+2006-04-02 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Remove double-slashes from path names (Bug #128108)
+
+2006-04-01 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Add fix so that packages no longer in the tree cause
+	errors (Bug #128174). Fix case where masked packages cause
+	revdep-rebuild to not rebuild any packages (Bug #128085)
+
+2006-03-29 Marius Mauch <genone@gentoo.org>
+	* euse: Add support for special %active argument as placeholder for
+	active use flags
+
+2006-03-26 Aron Griffis <agriffis@gentoo.org>
+	* echangelog: Don't warn about missing ebuilds when updating 
+	  copyrights #120061
+
+2006-03-25 Aron Griffis <agriffis@gentoo.org>
+	* eviewcvs: Update for sources.gentoo.org, add subversion support
+
+2006-03-21 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix to clear environment before portageq call. (Bug
+	#126038)
+
+2006-03-08 Paul Varner <fuzzyray@gentoo.org>
+	* genpkgindex: Add binary package indexing utility. (Bug 82132)
+
+2006-03-01 Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Fix depends parsing to properly handle conjunction. (bug
+	#123725). Thanks to tgl for the patch.
+	* gentoolkit: Added function to get post-merge dependencies (PDEPEND)
+	(bug #99191)
+	* gentoolkit: Change get_dependency functions to always use the
+	portage tree
+	* equery: Added post-merge dependencies to depends and depgraph
+	actions. (bug #99191)
+	* equery: Removed requirement for package to be installed to use
+	depgraph action.
+
+2006-02-16 Marius Mauch <genone@gentoo.org>
+	* euse: add/remove use flags even if there is no USE= statement in make.conf
+	(bug #95432)
+
+2006-02-16 Marius Mauch <genone@gentoo.org>
+	* glsa-check: Fix bug causing the wrong summary to be displayed 
+	for --test --verbose (bug #123084)
+
+2006-02-06 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Reset PORTAGE_NICENESS, so that emerge is not niced
+	twice. Thanks to Lukas Reck for the patch. (Bug 121482)
+
+2006-01-24 Marius Mauch <genone@gentoo.org>
+	* glsa-check: Use vbd information in verbose list mode (patch by solar)
+
+2006-01-18 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Add capability to check libtool .la files for
+	non-existant references.
+
+2006-01-06 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix revdep-rebuild to play nicely with portage-2.1
+	(Bug 118124)
+
+2005-12-28 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix to automatically determine how to call find (Bug 111203)
+
+2005-12-19 Paul Varner <fuzzyray@gentoo.org>
+	* eclean: Add regular expression matching for exclude files (Bug 114365)
+
+2005-12-13 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix USE flag parsing. (Bug 115294)
+
+2005-12-07 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix revdep-rebuild to work with findutils-4.2.27.
+	(bug 111203)
+	* equery: Added note to error message about quoting redirection
+	characters. (Bug 113423)
+	* gentoolkit: Removed python-config call from make file. (Bug 113386)
+
+2005-11-23 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Changed default behavior for equery list to search for
+	partial name matches. Added equery list examples to the equery man
+	page. (Bugs 113032, 113134)
+
+2005-11-15 Marius Mauch <genone@gentoo.org>
+	* glsa-check: Changed several messages to stderr instead of stdout
+	* glsa-check: Added new --cve option as requested by solar (bug 98589)
+	* glsa-check: Added support for a EMERGE_OPTS env variable to modify the emerge call of glsa-check --fix
+	* glsa-check: Added a new target "affected"
+	* glsa-check: Removed the warning message as it is now pretty much tested
+	* glsa-check: Show GLSA title on --test if --verbose is also used
+	
+2005-11-11 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Added sanity check to equery files (Bug 75983)
+	* equery: Fix string matching for equery depends (Bug 85653)
+	* gentoolkit: Fix package.size() to report correct size for symbolic
+	links (Bug 90384)
+	* equery: Fix equery depgraph to show all dependencies (Bug 99191)
+	* equery: Fix traceback with invalid regular expression for equery
+	list (Bug 109392)
+
+2005-11-04 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Fix equery belongs to correctly work when passed an argument
+	list of multiple files (Bug 111501)
+
+2005-11-02 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Fix to work with findutils-4.2.25 (Bug 111203)
+
+2005-10-18 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Make equery look at both DEPEND and RDEPEND for dependencies
+	* gentoolkit: Fix _parse_deps to understand || syntax (Bug 101377)
+
+2005-10-14 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Add qpkg --dups functionality to equery list command (bug
+	109156)
+
+2005-10-13 Paul Varner <fuzzyray@gentoo.org>
+	* equery: equery depgraph shows USE flags (Bug 74554)
+	* equery: equery should properly parse use.local.desc (Bug 74569)
+	* equery: equery list escapes regular expressions (Bug 77113)
+	* equery: equery uses displays flags correctly (Bug 86633)
+	* equery: equery -N option to disable pipe detection (Bug 90046)
+	* equery: equery list properly detects version string (Bug 91286)
+	* equery: equery belongs now requires a filename (Bug 94618)
+	* equery: equery files over a pipe only prints file names (Bug 100148)
+	* revdep-rebuild: Fix typo in man page (Bug 109147)
+
+2005-09-25 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Update to read configuration files from
+	/etc/revdep-rebuild
+
+2005-09-23 Paul Varner <fuzzyray@gentoo.org>
+	* equery: Sort output from equery list (bug 67152)
+	* equery: Update man page (Bugs 73893, 74944)
+	* equery: equery which returns best-visible ebuild (bug 78687)
+	* equery: equery --quiet is actually quiet (bug 78921)
+	* equery: Fixed typo in equery -h (bug 82352)
+	* gentoolkit: gentoolkit now uses a single portage.config object (bug
+	90680)
+	* equery: equery uses returns unique, sorted list (bug 91623)
+	* equery: equery always honors nocolor flag and settings (bug 98634)
+
+2005-09-08 Paul Varner <fuzzyray@gentoo.org>
+	* eclean: Inital commit of eclean 0.4.1 from Thomas de Grenier de
+	Latour (tgl) <degrenier@easyconnect.fr> (bug 33877)
+
+2005-06-28 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Revert fix for bug 93574 as it can cause packages to
+	be missed. (bug 97171)
+
+2005-06-07 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Delete temporary files if the environment does not 
+	match the previous environment (bug 95274)
+
+2005-06-05 Paul Varner <fuzzyray@gentoo.org>
+	* revdep-rebuild: Imported revdep-rebuild release from bug 62644
+	* revdep-rebuild: Major changes to the functionality when using 
+	--package-names/-X The script should now update slotted packages 
+	correctly. (bug 22161)
+	* revdep-rebuild: Customizable searching controlled through environment
+	variables.  This removes the need for end users to directly modify the
+	script. (bugs 32276, 38011, 59803)
+	* revdep-rebuild: The directories to search are no longer hard coded
+	into the script.  revdep-rebuild now determines the directories to
+	search based upon /etc/profile.env and /etc/ld.so.conf. (bugs 32276,
+	38011, 89781)
+	* revdep-rebuild: --ignore option to ignore temporary files left from
+	previous runs. Automatically ignore temporary files older than 24 hours.
+	(bug 34052)
+	* revdep-rebuild: Always return an exit status based upon success or
+	failure. (bug 38472)
+	* revdep-rebuild: Fixed to only emerge packages with direct missing
+	dependencies. (bug 38487)
+	* revdep-rebuild: New man page. (bug 40042)
+	* revdep-rebuild: emerge is no longer called with --nodeps. This allows
+	for needed dependencies to be pulled in. (bug 62893)
+	* revdep-rebuild: Cleaned up grammatical errors (bug 85278)
+	* revdep-rebuild: Added support for revdep-rebuild --soname 
+	/path/to/library.so (bug 91503)
+	* revdep-rebuild: Removed symbolically linked directories from search
+	(bug 93574)
+	* revdep-rebuild: --nocolor option to turn off colored output, the
+	script also obeys the NOCOLOR setting from /etc/make.conf.
+	* revdep-rebuild: Removed dependency on qpkg
+	* revdep-rebuild: Script uses PORTAGE_NICENESS from /etc/make.conf
+	* revdep-rebuild: Undocumented --keep-temp option.  This is primarily
+	for debugging/testing. This option prevents temporary files from being
+	deleted.
+	* revdep-rebuild: Changed --soname --soname-regexp options to --library
+	and treat all arguments as basic regular expressions. --soname and
+	--soname-regexp can still be used as options for backwards
+	compatability.
+	* revdep-rebuild: Removed requirement to keep revdep-rebuild and emerge
+	options distinct. Options that are unrecognized by revdep-rebuild are
+	passed directly to emerge.
+
+2005-04-30 Marius Mauch <genone@gentoo.org>
+	* glsa-check: add V to short option list so it actually works
+	* equery: added new option --name-only to belongs command to make it
+	"emerge-compatible"
+	
+2005-04-26 Marius Mauch <genone@gentoo.org>
+	* gentoolkit: fix broken Makefile
+	* gentoolkit: add some sticky tape to get the stupid thing working again
+	* equery: fix a few minor problems
+
+2005-04-25 Marius Mauch <genone@gentoo.org>
+	* qpkg: moving to /usr/share/doc/gentoolkit-*/deprecated
+	* etcat: moving to /usr/share/doc/gentoolkit-*/deprecated
+	* revdep-rebuild: replacing qpkg call with equivalent grep/sed call
+
+2005-04-07 Marius Mauch <genone@gentoo.org>
+	* euse: fixed bugs 74344, 75525 and 84521
+	* euse: add better support for cascaded profiles
+	* glsa-check: use --oneshot (bug 79819)
+	* glsa.py: fix stupid revision comparison bug (bug 75233)
+
+2005-03-12 Aron Griffis <agriffis@gentoo.org>
+	* Added eviewcvs to -dev, utility for generating viewcvs URLs
+
+2005-03-01 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Dropped epkgmove from the -dev
+	* Released gentoolkit-dev-0.2.3
+
+2005-03-01 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Released gentookit-dev-0.2.2
+
+2004-12-09 Marius Mauch <genone@gentoo.org>
+	* glsa.py: Another stupid bug, this time revisionMatch() broke as
+	~foobar-rN isn't valid anymore
+
+2004-12-08 Marius Mauch <genone@gentoo.org>
+	* equery: implemented the --category option
+	* glsa-check: fixed the bug where it wanted to unnecessary merge masked
+	packages
+	* glsa-check: added a check to verify that all non-option arguments are
+	valid GLSAs
+	* glsa.py: changed the outfile parameter in Glsa.dump() to outstream so
+	we don't have to open/close a file which breaks pipes
+	* glsa.py: checks now for python versions below 2.3 and throws an
+	exception
+
+2004-11-29 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* branched v0-3-0: major rework in equery is in progess. the main
+	branch is reserved for minor and incremental fixups.
+
+2004-10-20 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* release.sh: New script that automates the relase of a new gentoolkit
+	relase. Only works for gentoolkit-dev at the moment.
+	* src/echangelog/Makefile: Fixed spurious '}'
+	* Released gentoolkit-dev-0.2.1
+
+2004-10-31 Marius Mauch <genone@gentoo.org>
+	* qpkg: security fix for bug #68846
+
+2004-10-20 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* etcat: fixed get_use_vars to get_use_flags, fixes #67349.
+
+2004-10-18 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* gentoolkit: collapsed ChangeLog into base ChangeLog
+	* gentoolkit: reverted indenting back to tabs, due to loud protests
+	from Marius;)
+	* equery: collapsed ChangeLog into base ChangeLog
+	* equery: reverted indenting back to tabs, due to loud protests from
+	Marius;)
+	* equery: minor syntactical cleanups.
+	* equery: minor documentation improvements
+	* equery: added errors module that will hold various types of internal
+	errors raised.
+	* equery: added try block around on md5sum check, which fails on various
+	conditions like insufficient permission or stale temporary checksum
+	files.
+
+2004-10-17 Marius Mauch <genone@gentoo.org>
+	* equery: fix for bug #67473 (checking md5sums of prelinked binaries)
+	* equery: fix for bug #67275 (--nocolor didn't work as configure was
+	called before parsing the arguments
+	* equery: changed defaults for `equery depends` as making a depgraph for
+	the full portage tree isn't a good idea and find_all_packages() uses way
+	to much memory currently
+	* euse: replaced the old perl version with a newly written bash version.
+
+2004-10-12 Marius Mauch <genone@gentoo.org>
+	* equery: fix for bug #67210
+
+2004-10-10 Marius Mauch <genone@gentoo.org>
+	* Removed old-scripts directory from gentoolkit
+	* euse: added a errormessage that it doesn't support cascading profiles
+	* equery: small bugfixes
+	* equery: performance speedup for `equery belongs` by using portage
+	directly
+	* equery: added MD5 verification to `equery check`
+	* equery: renamed 'hasuses' to 'hasuse'
+	* equery: added filter patch for `equery files` from bug 43422, thanks
+	to degrenier@easyconnect.fr
+	* Released gentoolkit-0.2.0_pre10
+
+2004-10-10 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added unit tests for all supported commands
+	* equery: Fixed printing order and recognition of overlay, #53432.
+
+2004-10-11 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* gentoolkit: Split gentoolkit.py into helpers.py and package.py
+
+2004-10-10 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* gentoolkit: Fixed Makefiles to work with posix-compatible shells
+	* gentoolkit: Fixed is_overlay() to report properly, #53432.
+
+2004-10-06 Marius Mauch <genone@gentoo.org>
+	* glsa.py: Convert Unicode strings to ascii before passing them to
+	portage
+	* glsa.py: Some formatting fixes for dump()
+	* glsa.py: changed the matching routines so the reports are hopefully
+	more accurate
+	* glsa-check: added color support 
+	* glsa-check: added a --verbose option to show the warnings about
+	invalid GLSAs
+
+2004-09-30 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added unit tests for --help
+	* equery: Added unit tests for 'files'
+
+2004-09-27 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* gentoolkit: Added find_installed_packages
+	* equery: Added short commands
+	* equery: Fixed copyright dates
+	* equery: Fixed belongs to search only installed packages
+	* equery: Fixed reporting bug in uses command
+	* equery: Fixed reference to cppv
+	* equery: Added import of die
+	* equery: Added searching header to uses
+	* equery: Fixed hasuses to report properly
+	* Released gentoolkit-0.2.0_pre9
+	* Released gentoolkit-dev-0.2.0_pre4
+
+2004-09-08 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added man page rewrites by Katerina Barone-Adesi
+	<katerinab@gmail.com>, fixes #63045
+	* equery: Fixed spacing issues with files, fixes #63036.
+	* equery: Added depends command by Olivier Crete <tester@gentoo.org>,
+	fixes #40830.
+	* equery: Reworked output yet again.
+	* equery: Belongs handles multiple files on the command line, partially
+	fixes #62361.
+	* gentoolkit: Reworked printing functions
+
+2004-08-29 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* gentoolkit: Added printing functions
+	* equery: Added check for bad regexp in belongs, fixes #58494
+	* equery: Added proper error reporting to stderr, fixes #57580
+
+2004-08-22 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* gentoolkit: Fixed Package.get_env_var to use the correct tree db.
+	* gentoolkit: Renamed Package.get_use_vars to Package.get_use_flags
+	* equery: Searches now include masked packages, when installed.
+	* equery: Fixed output to be piping-friendly
+	* equery: Added -N option to force non-piping output
+	* equery: Added hasuses command
+
+2004-08-01 Marius Mauch <genone@gentoo.org>
+	* Fixed grep expression for `qpkg -f`
+
+2004-05-04 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added a -f/--full-regex option to belongs and some logic so
+	users can do belongs ant, belongs /usr/bin/ant and belongs -f ".*ant.*"
+	while getting sensible results. Fixes #37637.
+
+2004-04-14 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Released gentoolkit-dev-0.2.0_pre3
+
+2004-03-31 Marius Mauch <genone@gentoo.org>
+	* glsa-check: updates, fixing #45528 and #45522, adding support for rXX
+	operators and passing filenames as arguments to Glsa()
+
+2004-03-13 Marius Mauch <genone@gentoo.org>
+	* Added glsa-check and glsa.py, please note:
+		- they are only temporary for testing, so no manpage/ChangeLog
+		- their CVS home is in gentoo-projects
+	* fixed bugs #42160, #40935, #43389
+	* equery: fixing descriptions for local USE flags
+	* equery: more checking on exceptions
+
+2004-02-08 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added ebump
+	* Added gensync
+	* Added epkgmove, closes #36663.
+
+2004-02-06 Marius Mauch <genone@gentoo.org>
+	* fixed bugs #40159, #39798, #39652, #39596, #39293
+	* changed etcat and equery behavior for ambigous package names,
+		they now return values for all matching packages rather
+		than erroring out
+	* added "will be phased out" messages to etcat and qpkg
+
+2004-01-23 Marius Mauch <genone@gentoo.org>
+	* lots of bugfixes
+	* equery: now catches Exceptions thrown by portage
+	* equery: minor bugfixes
+
+2004-01-14 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added src/ego to gentoolkit-dev
+
+2004-01-12 Marius Mauch <genone@gentoo.org>
+	* equery: added mask, keyword and slot information to list command
+	* equery: fixed traceback in equery
+	* equery: added more information on "equery list"
+
+2004-01-10 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added src/ego
+
+2004-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added Makefile
+	* Added new build system
+	* Added src/old-scripts, the scripts from app-portage/gentoolkit
+	* Renamed gentool to equery
+	* Released 0.2.0_pre1
+
+2003-12-31 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added which command
+	* equery: Added check command (not finished)
+
+2003-12-12 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added size command
+	* equery: Added depgraph command
+
+2003-12-11 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added list command
+	* equery: Added uses command
+
+2003-12-08 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Removed emerge-rsync, emerge-webrsync
+	* Added moo
+	* Added skeleton man pages to all packages
+	* Added Makefile
+
+2003-10-05 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* equery: Added files command
+	* equery: Added belongs command
+
+2003-10-04 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Rewrote dep-clean to python
+
+2003-06-31 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Rewrote more of etcat; many of the functions now employ
+		gentoolkit.
+	* Replaced qpkg with stubs of a reimplementation in python.
+
+2003-06-27 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added patch to echangelog to consider PORTDIR, fixes #23881.
+
+2003-06-26 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added echangelog, by agenkin
+	* Added ekeyword, by agenkin
+	* Added gentoolkit, the common python library for all Gentoolkit tools.
+	* Revived pkg-size as a testbed for the gentoolkit library
+	* Fixed some minor issues in qpkg
+	* Added revdep-rebuild-1
+	* Added revdep-rebuild-2
+	* Restructuring etcat
+	* Fixed some minor issues in dep-clean
+
+2002-11-21 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Renamed pkg-size to gentool-package-size
+	* Renamed pst-package-count to gentool-package-count
+	* Retired rest of pst-* stuff
+
+2002-08-06 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Created separate CVS module for Gentoolkit
+	* Restructured directory hierarchy

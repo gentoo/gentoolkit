@@ -1,0 +1,16 @@
+
+Package : epkgmove
+Version : 0.5
+Author  : See AUTHORS
+
+MOTIVATION
+
+Eases moving around ebuilds in the Portage CVS tree.
+
+MECHANICS
+
+N/A
+
+IMPROVEMENTS
+
+N/A

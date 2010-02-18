@@ -1,0 +1,84 @@
+26 Mar 2006 Aron Griffis <agriffis@gentoo.org>
+	* echangelog: Don't warn about missing ebuilds when updating 
+	  copyrights #120061
+
+27 Apr 2005 Aron Griffis <agriffis@gentoo.org>
+	* more changes for #90326; report all trivial files if no significant
+	  changes can be found
+
+26 Apr 2005 Aron Griffis <agriffis@gentoo.org>
+	* detect conflicts explicitly
+	* report ChangeLog in the list of files if it's the only file that is
+	  changing #90326
+
+23 Mar 2005 Aron Griffis <agriffis@gentoo.org>
+	* handle package moves without adding new version lines
+
+08 Mar 2005 Aron Griffis <agriffis@gentoo.org>
+	* don't complain about cvs add of digests #84377
+	* use gmtime instead of localtime
+
+07 Mar 2005 Aron Griffis <agriffis@gentoo.org>
+	* report all changed versions #84332
+
+25 Feb 2005 Aron Griffis <agriffis@gentoo.org>
+	* strip GECOS #80011
+
+09 Nov 2004 Aron Griffis <agriffis@gentoo.org>
+	* change "cvs diff -fU 0" => "cvs -f diff U0" because -f is a
+	  global option, not a diff option
+
+08 Nov 2004 Aron Griffis <agriffis@gentoo.org>
+	* call cvs with -f to refrain from using .cvsrc, which might
+	  contain conflicting options
+	* fix auto-addition of ChangeLog; last attempt was broken
+
+03 Nov 2004 Aron Griffis <agriffis@gentoo.org>
+	* abort when there are unresolved files (files that aren't under
+	  revision control) just like repoman
+	* auto-add to cvs when a new ChangeLog is created
+
+15 Sep 2004 Aron Griffis <agriffis@gentoo.org>
+	* fix the wrapping to fit in 80 columns properly.  It was
+	  previously possible to get lines with 81 chars.  Thanks to
+	  ciaranm for reporting.
+
+29 Mar 2004 Aron Griffis <agriffis@gentoo.org>
+	* fix bug 46111 by testing for /<root@/ instead of / root@/
+
+28 Mar 2004 Aron Griffis <agriffis@gentoo.org>
+	* apply patch from plasmaroo, with minor modifications, to enable EDITOR
+	  and +- support
+
+27 Mar 2004 Michael Sterrett <mr_bones_@gentoo.org>
+	* don't fall out of the loop if update_copyright() didn't change
+	  anything. Just go on to the next file.
+
+21 Mar 2004 Aron Griffis <agriffis@gentoo.org>
+	* Fix typo $0 -> 0
+
+19 Mar 2004 Aron Griffis <agriffis@gentoo.org>
+	* Remove debugging output
+	* Fix $v bug introduced in last commit
+
+16 Mar 2004 Aron Griffis <agriffis@gentoo.org>
+	* Make Feb 17 behavior work without Feb 20 bug :-)
+	* Release as version 0.2.0
+
+20 Feb 2004 Aron Griffis <agriffis@gentoo.org>
+	* Only update copyrights on modified ebuilds, otherwise if you run
+	  echangelog again, it reports that all the ebuilds have been updated!
+	  The copyright year issue would be better solved on Jan 1 of each year by
+	  a separate script.
+
+17 Feb 2004 Aron Griffis <agriffis@gentoo.org>
+	* Update copyrights on all ebuilds, not just the modified ones
+
+07 Jan 2004 Aron Griffis <agriffis@gentoo.org>
+	* Updated Makefile to understand building man-page from pod
+	* Removed static man-page in favor of generated man-page from pod
+	* Added copyright year updating
+	* Allow echangelog to run even when no files have changed
+
+2004-01-07 Karl Trygve Kalleberg <karltk@gentoo.org>
+	* Added Makefile
