@@ -758,7 +758,7 @@ main_checks() {
 						# Only rebuild for direct dependencies
 						MISSING_LIBS=$(
 							expr="s/^[[:space:]]*\([^[:space:]]*\).*$/\1/p"
-							sort -u <<< "$ldd_output" | grep -E "$SONAME | sed -n "$expr"
+							sort -u <<< "$ldd_output" | grep -E "$SONAME" | sed -n "$expr"
 						)
 						REQUIRED_LIBS=$(
 							expr='s/^[[:space:]]*NEEDED[[:space:]]*\([^[:space:]]*\).*/\1/p';
