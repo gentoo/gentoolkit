@@ -1,9 +1,9 @@
 #! /usr/bin/python
 #
-# Copyright 2009-2010 Gentoo Foundation
+# Copyright(c) 2009 Gentoo Foundation
 # Licensed under the GNU General Public License, v2
 #
-# Copyright 2005-2007 Brian Harring <ferringb@gmail.com>
+# Copyright: 2005-2007 Brian Harring <ferringb@gmail.com>
 # License: GPL2/BSD
 #
 # $Header$
@@ -32,7 +32,7 @@ class VersionMatch(object):
 	_convert_op2int = {(-1,):"<", (-1, 0): "<=", (0,):"=",
 		(0, 1):">=", (1,):">"}
 
-	_convert_int2op = dict([(v, k) for k, v in _convert_op2int.iteritems()])
+	_convert_int2op = dict([(v, k) for k, v in _convert_op2int.items()])
 
 	def __init__(self, cpv, op='='):
 		"""Initialize a VersionMatch instance.

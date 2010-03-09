@@ -1,4 +1,4 @@
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -8,26 +8,29 @@
 configuration
 """
 
+from __future__ import print_function
+
 __docformat__ = 'epytext'
 
 # =======
 # Imports
 # =======
 
-import os
 import sys
 from getopt import gnu_getopt, GetoptError
+
+from portage import os
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
 from gentoolkit.equery import format_options, mod_usage
-from gentoolkit.helpers import find_packages
+from gentoolkit.query import Query
 
 # =======
 # Globals
 # =======
 
-QUERY_OPTS = {"includeMasked": False}
+QUERY_OPTS = {"include_masked": False}
 
 # =========
 # Functions
@@ -41,15 +44,15 @@ def print_help(with_description=True):
 	"""
 
 	if with_description:
-		print __doc__.strip()
-		print
-	print mod_usage(mod_name="which")
-	print
-	print pp.command("options")
-	print format_options((
+		print(__doc__.strip())
+		print()
+	print(mod_usage(mod_name="which"))
+	print()
+	print(pp.command("options"))
+	print(format_options((
 		(" -h, --help", "display this help message"),
 		(" -m, --include-masked", "return highest version ebuild available")
-	))
+	)))
 
 
 def parse_module_options(module_opts):
@@ -61,7 +64,7 @@ def parse_module_options(module_opts):
 			print_help()
 			sys.exit(0)
 		elif opt in ('-m', '--include-masked'):
-			QUERY_OPTS['includeMasked'] = True
+			QUERY_OPTS['include_masked'] = True
 
 
 def main(input_args):
@@ -72,9 +75,9 @@ def main(input_args):
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
-	except GetoptError, err:
+	except GetoptError as err:
 		sys.stderr.write(pp.error("Module %s" % err))
-		print
+		print()
 		print_help(with_description=False)
 		sys.exit(2)
 
@@ -84,17 +87,19 @@ def main(input_args):
 		print_help()
 		sys.exit(2)
 
-	for query in queries:
-
-		matches = find_packages(query, QUERY_OPTS['includeMasked'])
+	for query in (Query(x) for x in queries):
+		matches = query.find(
+			include_masked=QUERY_OPTS['include_masked'],
+			in_installed=False
+		)
 		if matches:
 			pkg = sorted(matches).pop()
 			ebuild_path = pkg.ebuild_path()
 			if ebuild_path:
-				print os.path.normpath(ebuild_path)
+				print(os.path.normpath(ebuild_path))
 			else:
 				sys.stderr.write(
-					pp.warn("No ebuilds to satisfy %s" % pkg.cpv.name)
+					pp.warn("No ebuilds to satisfy %s" % pkg.cpv)
 				)
 		else:
 			raise errors.GentoolkitNoMatches(query)

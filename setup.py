@@ -1,13 +1,18 @@
 #!/usr/bin/env python
 
-from __future__ import with_statement
+from __future__ import print_function
 
-import os
+
 import re
 import sys
 import distutils
 from distutils import core, log
 from glob import glob
+
+from portage import os
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'pym'))
+from gentoolkit.helpers import walk
 
 __version__ = os.getenv('VERSION', default='9999')
 
@@ -41,7 +46,7 @@ class set_version(core.Command):
 
 	def run(self):
 		ver = 'svn' if __version__ == '9999' else __version__
-		print "Setting version to %s" % ver
+		print("Settings version to %s" % ver)
 		def sub(files, pattern):
 			for f in files:
 				updated_file = []
@@ -83,8 +88,8 @@ def	load_test():
 
 
 packages = [
-	'.'.join(root.split(os.sep)[1:])
-	for root, dirs, files in os.walk('pym/gentoolkit')
+	str('.'.join(root.split(os.sep)[1:]))
+	for root, dirs, files in walk('pym/gentoolkit')
 	if '__init__.py' in files
 ]
 

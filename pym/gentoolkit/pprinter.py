@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # Copyright 2004 Karl Trygve Kalleberg <karltk@gentoo.org>
-# Copyright 2004-2010 Gentoo Foundation
+# Copyright 2004-2009 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 #
 # $Header$
@@ -37,6 +37,7 @@ __all__ = (
 import sys
 
 import portage.output as output
+from portage import archlist
 
 # =========
 # Functions
@@ -123,6 +124,23 @@ def keyword(string, stable=True, hard_masked=False):
 		return output.red(string)
 	# keyword masked:
 	return output.blue(string)
+
+def masking(mask):
+	"""Returns a 'masked by' string."""
+	if 'package.mask' in mask or 'profile' in mask:
+		# use porthole wrap style to help clarify meaning
+		return output.red("M["+mask[0]+"]")
+	if mask is not []:
+		for status in mask:
+			if 'keyword' in status:
+				# keyword masked | " [missing keyword] " <=looks better
+				return output.blue("["+status+"]")
+			if status in archlist:
+				return output.green(status)
+			if 'unknown' in status:
+				return output.yellow(status)
+		return output.red(status)
+	return ''
 
 def warn(string):
 	"""Returns a warning string."""

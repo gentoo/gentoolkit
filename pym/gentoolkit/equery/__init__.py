@@ -1,4 +1,4 @@
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -6,8 +6,10 @@
 
 """Gentoo package query tool"""
 
+from __future__ import print_function
+
 # Move to Imports section after Python 2.6 is stable
-from __future__ import with_statement
+
 
 __all__ = (
 	'format_options',
@@ -23,12 +25,12 @@ __version__ = "svn"
 # =======
 
 import errno
-import os
 import sys
 import time
 from getopt import getopt, GetoptError
 
 import portage
+from portage import os
 
 import gentoolkit
 from gentoolkit import CONFIG
@@ -72,20 +74,20 @@ def print_help(with_description=True):
 	"""
 
 	if with_description:
-		print __doc__
-	print main_usage()
-	print
-	print pp.globaloption("global options")
-	print format_options((
+		print(__doc__)
+	print(main_usage())
+	print()
+	print(pp.globaloption("global options"))
+	print(format_options((
 		(" -h, --help", "display this help message"),
 		(" -q, --quiet", "minimal output"),
 		(" -C, --no-color", "turn off colors"),
 		(" -N, --no-pipe", "turn off pipe detection"),
 		(" -V, --version", "display version info")
-	))
-	print
-	print pp.command("modules") + " (" + pp.command("short name") + ")"
-	print format_options((
+	)))
+	print()
+	print(pp.command("modules") + " (" + pp.command("short name") + ")")
+	print(format_options((
 		(" (b)elongs", "list what package FILES belong to"),
 		(" (c)hanges", "list changelog entries for ATOM"),
 		(" chec(k)", "verify checksums and timestamps for PKG"),
@@ -98,7 +100,7 @@ def print_help(with_description=True):
 		(" (s)ize", "display total size of all files owned by PKG"),
 		(" (u)ses", "display USE flags for PKG"),
 		(" (w)hich", "print full path to ebuild for PKG")
-	))
+	)))
 
 
 def expand_module_name(module_name):
@@ -269,7 +271,6 @@ def parse_global_options(global_opts, args):
 			pp.output.nocolor()
 		elif opt in ('-N', '--no-pipe'):
 			CONFIG['piping'] = False
-			CONFIG['verbose'] = True
 		elif opt in ('-V', '--version'):
 			print_version()
 			sys.exit(0)
@@ -282,11 +283,11 @@ def parse_global_options(global_opts, args):
 def print_version():
 	"""Print the version of this tool to the console."""
 
-	print "%(product)s (%(version)s) - %(docstring)s" % {
+	print("%(product)s (%(version)s) - %(docstring)s" % {
 		"product": pp.productname(__productname__),
 		"version": __version__,
 		"docstring": __doc__
-	}
+	})
 
 
 def split_arguments(args):
@@ -307,7 +308,7 @@ def main():
 
 	try:
 		global_opts, args = getopt(sys.argv[1:], short_opts, long_opts)
-	except GetoptError, err:
+	except GetoptError as err:
 		sys.stderr.write(pp.error("Global %s" % err))
 		print_help(with_description=False)
 		sys.exit(2)
@@ -341,9 +342,9 @@ def main():
 			expanded_module_name, globals(), locals(), [], -1
 		)
 		loaded_module.main(module_args)
-	except portage.exception.AmbiguousPackageName, err:
+	except portage.exception.AmbiguousPackageName as err:
 		raise errors.GentoolkitAmbiguousPackage(err)
-	except IOError, err:
+	except IOError as err:
 		if err.errno != errno.EPIPE:
 			raise
 

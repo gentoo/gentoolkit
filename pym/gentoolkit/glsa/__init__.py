@@ -11,16 +11,22 @@
 # - getting GLSAs from http/ftp servers (not really useful without the fixed ebuilds)
 # - GPG signing/verification (until key policy is clear)
 
+from __future__ import unicode_literals
+
 __author__ = "Marius Mauch <genone@gentoo.org>"
 
-import os
+
 import sys
-import urllib
+try:
+    from urllib import urlopen
+except ImportError:
+    from urllib.request import urlopen
 import codecs
 import re
 import operator
 import xml.dom.minidom
-from StringIO import StringIO
+from io import StringIO
+from functools import reduce
 
 if sys.version_info[0:2] < (2,3):
 	raise NotImplementedError("Python versions below 2.3 have broken XML code " \
@@ -31,6 +37,8 @@ try:
 except ImportError:
 	sys.path.insert(0, "/usr/lib/portage/pym")
 	import portage
+
+from portage import os
 
 # Note: the space for rgt and rlt is important !!
 opMapping = {"le": "<=", "lt": "<", "eq": "=", "gt": ">", "ge": ">=",
@@ -512,7 +520,7 @@ class Glsa:
 			myurl = "file://"+self.nr
 		else:
 			myurl = repository + self.config["GLSA_PREFIX"] + str(self.nr) + self.config["GLSA_SUFFIX"]
-		self.parse(urllib.urlopen(myurl))
+		self.parse(urlopen(myurl))
 		return None
 
 	def parse(self, myfile):
@@ -544,16 +552,17 @@ class Glsa:
 		self.synopsis = getText(myroot.getElementsByTagName("synopsis")[0], format="strip")
 		self.announced = format_date(getText(myroot.getElementsByTagName("announced")[0], format="strip"))
 
-		count = 1
 		# Support both formats of revised:
 		# <revised>December 30, 2007: 02</revised>
 		# <revised count="2">2007-12-30</revised>
 		revisedEl = myroot.getElementsByTagName("revised")[0]
 		self.revised = getText(revisedEl, format="strip")
-		if (revisedEl.attributes.has_key("count")):
-			count = revisedEl.getAttribute("count")
-		elif (self.revised.find(":") >= 0):
-			(self.revised, count) = self.revised.split(":")
+		count = revisedEl.attributes.get("count")
+		if count is None:
+			if self.revised.find(":") >= 0:
+				(self.revised, count) = self.revised.split(":")
+			else:
+				count = 1
 
 		self.revised = format_date(self.revised)
 
@@ -589,7 +598,7 @@ class Glsa:
 		self.packages = {}
 		for p in self.affected.getElementsByTagName("package"):
 			name = p.getAttribute("name")
-			if not self.packages.has_key(name):
+			if name not in self.packages:
 				self.packages[name] = []
 			tmp = {}
 			tmp["arch"] = p.getAttribute("arch")
@@ -638,15 +647,15 @@ class Glsa:
 			pass
 		if len(self.bugs) > 0:
 			outstream.write("\nRelated bugs:      ")
- 			outstream.write(", ".join(self.bugs))
- 			outstream.write("\n")
+			outstream.write(", ".join(self.bugs))
+			outstream.write("\n")
 		if self.background:
 			outstream.write("\n"+wrap(self.background, width, caption="Background:       "))
 		outstream.write("\n"+wrap(self.description, width, caption="Description:      "))
 		outstream.write("\n"+wrap(self.impact_text, width, caption="Impact:           "))
 		outstream.write("\n"+wrap(self.workaround, width, caption="Workaround:       "))
 		outstream.write("\n"+wrap(self.resolution, width, caption="Resolution:       "))
- 		myreferences = " ".join(r.replace(" ", SPACE_ESCAPE)+NEWLINE_ESCAPE for r in self.references)
+		myreferences = " ".join(r.replace(" ", SPACE_ESCAPE)+NEWLINE_ESCAPE for r in self.references)
 		outstream.write("\n"+wrap(myreferences, width, caption="References:       "))
 		outstream.write("\n")
 

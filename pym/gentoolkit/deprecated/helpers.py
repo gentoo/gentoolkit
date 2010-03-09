@@ -1,11 +1,13 @@
 #!/usr/bin/python2
 #
 # Copyright(c) 2004, Karl Trygve Kalleberg <karltk@gentoo.org>
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
 # $Header$
+
+from __future__ import print_function
 
 import warnings
 
@@ -29,7 +31,7 @@ def find_packages(search_key, masked=False):
 			t = portage.db["/"]["porttree"].dbapi.match(search_key)
 			t += portage.db["/"]["vartree"].dbapi.match(search_key)
 	# catch the "amgigous package" Exception
-	except ValueError, e:
+	except ValueError as e:
 		if isinstance(e[0],list):
 			t = []
 			for cp in e[0]:
@@ -41,8 +43,8 @@ def find_packages(search_key, masked=False):
 					t += portage.db["/"]["vartree"].dbapi.match(cp)
 		else:
 			raise ValueError(e)
-	except portage_exception.InvalidAtom, e:
-		print warn("Invalid Atom: '%s'" % str(e))
+	except portage_exception.InvalidAtom as e:
+		print(warn("Invalid Atom: '%s'" % str(e)))
 		return []
 	# Make the list of packages unique
 	t = unique_array(t)
@@ -56,15 +58,15 @@ def find_installed_packages(search_key, masked=False):
 	try:
 			t = portage.db["/"]["vartree"].dbapi.match(search_key)
 	# catch the "amgigous package" Exception
-	except ValueError, e:
+	except ValueError as e:
 		if isinstance(e[0],list):
 			t = []
 			for cp in e[0]:
 				t += portage.db["/"]["vartree"].dbapi.match(cp)
 		else:
 			raise ValueError(e)
-	except portage_exception.InvalidAtom, e:
-		print warn("Invalid Atom: '%s'" % str(e))
+	except portage_exception.InvalidAtom as e:
+		print(warn("Invalid Atom: '%s'" % str(e)))
 		return []
 	return [Package(x) for x in t]
 
@@ -118,7 +120,7 @@ def find_all_installed_packages(prefilter=None):
 		DeprecationWarning)
 	t = vartree.dbapi.cpv_all()
 	if prefilter:
-		t = filter(prefilter,t)
+		t = list(filter(prefilter,t))
 	return [Package(x) for x in t]
 
 def find_all_uninstalled_packages(prefilter=None):
@@ -136,7 +138,7 @@ def find_all_packages(prefilter=None):
 	t = porttree.dbapi.cp_all()
 	t += vartree.dbapi.cp_all()
 	if prefilter:
-		t = filter(prefilter,t)
+		t = list(filter(prefilter,t))
 	t = unique_array(t)
 	t2 = []
 	for x in t:
@@ -173,4 +175,4 @@ def split_package_name(name):
 #	return pkglist
 
 if __name__ == "__main__":
-	print "This module is for import only"
+	print("This module is for import only")

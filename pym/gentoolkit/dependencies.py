@@ -1,4 +1,4 @@
-# Copyright 2009-2010 Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -19,8 +19,9 @@ from portage.dep import paren_reduce
 from gentoolkit import errors
 from gentoolkit.atom import Atom
 from gentoolkit.cpv import CPV
-from gentoolkit.helpers import find_best_match, uniqify
+from gentoolkit.helpers import uniqify
 from gentoolkit.dbapi import PORTDB, VARDB
+from gentoolkit.query import Query
 
 # =======
 # Classes
@@ -84,7 +85,7 @@ class Dependencies(CPV):
 
 		try:
 			return self.parser(self.environment(('DEPEND',))[0])
-		except portage.exception.InvalidPackageName, err:
+		except portage.exception.InvalidPackageName as err:
 			raise errors.GentoolkitInvalidCPV(err)
 
 	def get_pdepend(self):
@@ -92,7 +93,7 @@ class Dependencies(CPV):
 
 		try:
 			return self.parser(self.environment(('PDEPEND',))[0])
-		except portage.exception.InvalidPackageName, err:
+		except portage.exception.InvalidPackageName as err:
 			raise errors.GentoolkitInvalidCPV(err)
 
 	def get_rdepend(self):
@@ -100,7 +101,7 @@ class Dependencies(CPV):
 
 		try:
 			return self.parser(self.environment(('RDEPEND',))[0])
-		except portage.exception.InvalidPackageName, err:
+		except portage.exception.InvalidPackageName as err:
 			raise errors.GentoolkitInvalidCPV(err)
 
 	def get_all_depends(self):
@@ -109,7 +110,7 @@ class Dependencies(CPV):
 		env_vars = ('DEPEND', 'PDEPEND', 'RDEPEND')
 		try:
 			return self.parser(' '.join(self.environment(env_vars)))
-		except portage.exception.InvalidPackageName, err:
+		except portage.exception.InvalidPackageName as err:
 			raise errors.GentoolkitInvalidCPV(err)
 
 	def graph_depends(
@@ -151,7 +152,7 @@ class Dependencies(CPV):
 			try:
 				pkgdep = depcache[dep.atom]
 			except KeyError:
-				pkgdep = find_best_match(dep.atom)
+				pkgdep = Query(dep.atom).find_best()
 				depcache[dep.atom] = pkgdep
 			if pkgdep and pkgdep.cpv in seen:
 				continue

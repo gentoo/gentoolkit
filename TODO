@@ -20,10 +20,22 @@
  - use ~/.gentoo/gentoolkit/ebump.conf
  - use /etc/gentoolkit/ebump.conf
 
-equery:
+equery (modern):
 	Add more --debug stuff
 	Write tests for Dependencies._parser
 	Profile Dependencies._parser
+	Tighten up CPV.split_cpv, it's slow and bad
+	Extend PackageFormatter usage to everything that outputs packages to
+	  allow for purvasive use of -F, --format goodness
+	Add package::repo search syntax to do_lookup
+	  _do_repository_lookup?
+	Move do_lookout and all it's silly friends into the new query module
+	  and Query class. Essentially, Query, when applied to a pkgspec input
+	  should contain most of the common 'helper' methods. So we should be
+	  be able to do:
+	    Query('portage').find_best(),
+		Query('portage').find_package(),
+		Query('portag*').is_regex() or .uses_globbing(), etc.
 	Refactor each module to be useful for import. Done modules:
 		+depends
 		+belongs

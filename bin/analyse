@@ -1,13 +1,15 @@
 #!/usr/bin/python
 #
-# Copyright 2002-2009 Gentoo Technologies, Inc.
+# Copyright 2010 Brian Dolbec <brian.dolbec@gmail.com>
+# Copyright 2002-2010 Gentoo Technologies, Inc.
 # Distributed under the terms of the GNU General Public License v2 or later
 #
 # $Header$
 
-"""equery is a flexible utility for Gentoo linux which can display various
-information about packages, such as the files they own, their USE flags,
-the MD5 sum of each file owned by a given package, and many other things.
+"""'analyse' is a flexible utility for Gentoo linux which can display various
+information about installed packages, such as the USE flags used and the
+packages that use them.  It can also be used to help rebuild /etc/portage/package.*
+files in the event of corruption, and possibly more.
 """
 
 from __future__ import print_function
@@ -31,10 +33,10 @@ except KeyboardInterrupt:
 	print()
 	sys.exit(1)
 
-from gentoolkit import equery, errors
+from gentoolkit import analyse, errors
 
 try:
-	equery.main()
+	analyse.main()
 except errors.GentoolkitException as err:
 	if '--debug' in sys.argv:
 		raise

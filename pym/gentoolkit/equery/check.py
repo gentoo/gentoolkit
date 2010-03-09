@@ -1,4 +1,4 @@
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -6,40 +6,39 @@
 
 """Checks timestamps and MD5 sums for files owned by a given installed package"""
 
+from __future__ import print_function
+
 __docformat__ = 'epytext'
 
 # =======
 # Imports
 # =======
 
-import os
 import sys
 from functools import partial
 from getopt import gnu_getopt, GetoptError
 
 import portage.checksum as checksum
+from portage import os
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
 from gentoolkit.equery import format_options, mod_usage, CONFIG
-from gentoolkit.helpers import do_lookup
+from gentoolkit.query import Query
 
 # =======
 # Globals
 # =======
 
 QUERY_OPTS = {
-	"includeInstalled": True,
-	"includeOverlayTree": False,
-	"includePortTree": False,
-	"checkMD5sum": True,
-	"checkTimestamp" : True,
-	"isRegex": False,
-	"onlyFailures": False,
-	"printMatchInfo": False,
-	"showSummary" : True,
-	"showPassedFiles" : False,
-	"showFailedFiles" : True
+	"in_installed": True,
+	"in_porttree": False,
+	"in_overlay": False,
+	"check_MD5sum": True,
+	"check_timestamp" : True,
+	"is_regex": False,
+	"only_failures": False,
+	"show_progress": False,
 }
 
 # =======
@@ -179,8 +178,8 @@ def print_help(with_description=True):
 	"""
 
 	if with_description:
-		print __doc__.strip()
-		print
+		print(__doc__.strip())
+		print()
 
 	# Deprecation warning added by djanderson, 12/2008
 	depwarning = (
@@ -191,16 +190,16 @@ def print_help(with_description=True):
 	)
 	for line in depwarning:
 		sys.stderr.write(pp.warn(line))
-	print
+	print()
 
-	print mod_usage(mod_name="check")
-	print
-	print pp.command("options")
-	print format_options((
+	print(mod_usage(mod_name="check"))
+	print()
+	print(pp.command("options"))
+	print(format_options((
 		(" -h, --help", "display this help message"),
 		(" -f, --full-regex", "query is a regular expression"),
 		(" -o, --only-failures", "only display packages that do not pass"),
-	))
+	)))
 
 
 def checks_printer(cpv, data, verbose=True, only_failures=False):
@@ -214,10 +213,10 @@ def checks_printer(cpv, data, verbose=True, only_failures=False):
 	else:
 		if verbose:
 			if not cpv in seen:
-				print "* Checking %s ..." % (pp.emph(str(cpv)))
+				print("* Checking %s ..." % (pp.emph(str(cpv))))
 				seen.append(cpv)
 		else:
-			print "%s:" % cpv,
+			print("%s:" % cpv, end=' ')
 
 	if verbose:
 		for err in errs:
@@ -227,9 +226,9 @@ def checks_printer(cpv, data, verbose=True, only_failures=False):
 		n_passed = pp.number(str(n_passed))
 		n_checked = pp.number(str(n_checked))
 		info = "   %(n_passed)s out of %(n_checked)s files passed"
-		print info % locals()
+		print(info % locals())
 	else:
-		print "failed(%s)" % n_failed
+		print("failed(%s)" % n_failed)
 
 
 def parse_module_options(module_opts):
@@ -241,9 +240,9 @@ def parse_module_options(module_opts):
 			print_help()
 			sys.exit(0)
 		elif opt in ('-f', '--full-regex'):
-			QUERY_OPTS['isRegex'] = True
+			QUERY_OPTS['is_regex'] = True
 		elif opt in ('-o', '--only-failures'):
-			QUERY_OPTS['onlyFailures'] = True
+			QUERY_OPTS['only_failures'] = True
 
 
 def main(input_args):
@@ -254,9 +253,9 @@ def main(input_args):
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
-	except GetoptError, err:
+	except GetoptError as err:
 		sys.stderr.write(pp.error("Module %s" % err))
-		print
+		print()
 		print_help(with_description=False)
 		sys.exit(2)
 
@@ -267,11 +266,11 @@ def main(input_args):
 		sys.exit(2)
 
 	first_run = True
-	for query in queries:
+	for query in (Query(x, QUERY_OPTS['is_regex']) for x in queries):
 		if not first_run:
-			print
+			print()
 
-		matches = do_lookup(query, QUERY_OPTS)
+		matches = query.smart_find(**QUERY_OPTS)
 
 		if not matches:
 			raise errors.GentoolkitNoMatches(query, in_installed=True)
@@ -281,7 +280,7 @@ def main(input_args):
 		printer = partial(
 			checks_printer,
 			verbose=CONFIG['verbose'],
-			only_failures=QUERY_OPTS['onlyFailures']
+			only_failures=QUERY_OPTS['only_failures']
 		)
 		check = VerifyContents(printer_fn=printer)
 		check(matches)

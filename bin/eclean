@@ -1,9 +1,10 @@
 #!/usr/bin/python
-# Copyright 2003-2010 Gentoo Foundation
+# Copyright 2003-2005 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
-from __future__ import with_statement
+from __future__ import print_function
+
 
 ###############################################################################
 # Meta:
@@ -18,15 +19,17 @@ __description__ = "A cleaning tool for Gentoo distfiles and binaries."
 # Python imports:
 
 import sys
-import os, stat
+import stat
 import re
 import time
 import getopt
-import fpformat
 import signal
 
 import portage
 from portage.output import *
+from portage import os
+
+from gentoolkit.helpers import walk
 
 listdir = portage.listdir
 
@@ -40,12 +43,12 @@ pkgdir = port_settings["PKGDIR"]
 ###############################################################################
 # printVersion:
 def printVersion():
-	print "%s (%s) - %s" \
-			% (__productname__, __version__, __description__)
-	print
-	print "Author: %s <%s>" % (__author__,__email__)
-	print "Copyright 2003-2010 Gentoo Foundation"
-	print "Distributed under the terms of the GNU General Public License v2"
+	print("%s (%s) - %s" \
+			% (__productname__, __version__, __description__))
+	print()
+	print("Author: %s <%s>" % (__author__,__email__))
+	print("Copyright 2003-2009 Gentoo Foundation")
+	print("Distributed under the terms of the GNU General Public License v2")
 
 
 ###############################################################################
@@ -62,112 +65,112 @@ def printUsage(error=None,help=None):
 	if not error and not help: help = 'all'
 	if error == 'time':
 		eerror("Wrong time specification")
-		print >>out, "Time specification should be an integer followed by a"+ \
-				" single letter unit."
-		print >>out, "Available units are: y (years), m (months), w (weeks), "+ \
-				"d (days) and h (hours)."
-		print >>out, "For instance: \"1y\" is \"one year\", \"2w\" is \"two"+ \
-				" weeks\", etc. "
+		print("Time specification should be an integer followed by a"+ \
+				" single letter unit.", file=out)
+		print("Available units are: y (years), m (months), w (weeks), "+ \
+				"d (days) and h (hours).", file=out)
+		print("For instance: \"1y\" is \"one year\", \"2w\" is \"two"+ \
+				" weeks\", etc. ", file=out)
 		return
 	if error == 'size':
 		eerror("Wrong size specification")
-		print >>out, "Size specification should be an integer followed by a"+ \
-				" single letter unit."
-		print >>out, "Available units are: G, M, K and B."
-		print >>out, "For instance: \"10M\" is \"ten megabytes\", \"200K\" "+ \
-				"is \"two hundreds kilobytes\", etc."
+		print("Size specification should be an integer followed by a"+ \
+				" single letter unit.", file=out)
+		print("Available units are: G, M, K and B.", file=out)
+		print("For instance: \"10M\" is \"ten megabytes\", \"200K\" "+ \
+				"is \"two hundreds kilobytes\", etc.", file=out)
 		return
 	if error in ('global-options', 'packages-options', 'distfiles-options', \
 			'merged-packages-options', 'merged-distfiles-options',):
 		eerror("Wrong option on command line.")
-		print >>out
+		print(file=out)
 	elif error == 'actions':
 		eerror("Wrong or missing action name on command line.")
-		print >>out
-	print >>out, white("Usage:")
+		print(file=out)
+	print(white("Usage:"), file=out)
 	if error in ('actions','global-options', 'packages-options', \
 	'distfiles-options') or help == 'all':
-		print >>out, " "+turquoise(__productname__), \
+		print(" "+turquoise(__productname__), \
 			yellow("[global-option] ..."), \
 			green("<action>"), \
-			yellow("[action-option] ...")
+			yellow("[action-option] ..."), file=out)
 	if error == 'merged-distfiles-options' or help in ('all','distfiles'):
-		print >>out, " "+turquoise(__productname__+'-dist'), \
-			yellow("[global-option, distfiles-option] ...")
+		print(" "+turquoise(__productname__+'-dist'), \
+			yellow("[global-option, distfiles-option] ..."), file=out)
 	if error == 'merged-packages-options' or help in ('all','packages'):
-		print >>out, " "+turquoise(__productname__+'-pkg'), \
-			yellow("[global-option, packages-option] ...")
+		print(" "+turquoise(__productname__+'-pkg'), \
+			yellow("[global-option, packages-option] ..."), file=out)
 	if error in ('global-options', 'actions'):
-		print >>out, " "+turquoise(__productname__), \
-			yellow("[--help, --version]")
+		print(" "+turquoise(__productname__), \
+			yellow("[--help, --version]"), file=out)
 	if help == 'all':
-		print >>out, " "+turquoise(__productname__+"(-dist,-pkg)"), \
-			yellow("[--help, --version]")
+		print(" "+turquoise(__productname__+"(-dist,-pkg)"), \
+			yellow("[--help, --version]"), file=out)
 	if error == 'merged-packages-options' or help == 'packages':
-		print >>out, " "+turquoise(__productname__+'-pkg'), \
-			yellow("[--help, --version]")
+		print(" "+turquoise(__productname__+'-pkg'), \
+			yellow("[--help, --version]"), file=out)
 	if error == 'merged-distfiles-options' or help == 'distfiles':
-		print >>out, " "+turquoise(__productname__+'-dist'), \
-			yellow("[--help, --version]")
-	print >>out
+		print(" "+turquoise(__productname__+'-dist'), \
+			yellow("[--help, --version]"), file=out)
+	print(file=out)
 	if error in ('global-options', 'merged-packages-options', \
 	'merged-distfiles-options') or help:
-		print >>out, "Available global", yellow("options")+":"
-		print >>out, yellow(" -C, --nocolor")+ \
-			"             - turn off colors on output"
-		print >>out, yellow(" -d, --destructive")+ \
-			"         - only keep the minimum for a reinstallation"
-		print >>out, yellow(" -e, --exclude-file=<path>")+ \
-			" - path to the exclusion file"
-		print >>out, yellow(" -i, --interactive")+ \
-			"         - ask confirmation before deletions"
-		print >>out, yellow(" -n, --package-names")+ \
-			"       - protect all versions (when --destructive)"
-		print >>out, yellow(" -p, --pretend")+ \
-			"             - only display what would be cleaned"
-		print >>out, yellow(" -q, --quiet")+ \
-			"               - be as quiet as possible"
-		print >>out, yellow(" -t, --time-limit=<time>")+ \
-			"   - don't delete files modified since "+yellow("<time>")
-		print >>out, "   "+yellow("<time>"), "is a duration: \"1y\" is"+ \
-				" \"one year\", \"2w\" is \"two weeks\", etc. "
-		print >>out, "   "+"Units are: y (years), m (months), w (weeks), "+ \
-				"d (days) and h (hours)."
-		print >>out, yellow(" -h, --help")+ \
-			"                - display the help screen"
-		print >>out, yellow(" -V, --version")+ \
-			"             - display version info"
-		print >>out
+		print("Available global", yellow("options")+":", file=out)
+		print(yellow(" -C, --nocolor")+ \
+			"             - turn off colors on output", file=out)
+		print(yellow(" -d, --destructive")+ \
+			"         - only keep the minimum for a reinstallation", file=out)
+		print(yellow(" -e, --exclude-file=<path>")+ \
+			" - path to the exclusion file", file=out)
+		print(yellow(" -i, --interactive")+ \
+			"         - ask confirmation before deletions", file=out)
+		print(yellow(" -n, --package-names")+ \
+			"       - protect all versions (when --destructive)", file=out)
+		print(yellow(" -p, --pretend")+ \
+			"             - only display what would be cleaned", file=out)
+		print(yellow(" -q, --quiet")+ \
+			"               - be as quiet as possible", file=out)
+		print(yellow(" -t, --time-limit=<time>")+ \
+			"   - don't delete files modified since "+yellow("<time>"), file=out)
+		print("   "+yellow("<time>"), "is a duration: \"1y\" is"+ \
+				" \"one year\", \"2w\" is \"two weeks\", etc. ", file=out)
+		print("   "+"Units are: y (years), m (months), w (weeks), "+ \
+				"d (days) and h (hours).", file=out)
+		print(yellow(" -h, --help")+ \
+			"                - display the help screen", file=out)
+		print(yellow(" -V, --version")+ \
+			"             - display version info", file=out)
+		print(file=out)
 	if error == 'actions' or help == 'all':
-		print >>out, "Available", green("actions")+":"
-		print >>out, green(" packages")+ \
-			"      - clean outdated binary packages from:"
-		print >>out, "                  ",teal(pkgdir)
-		print >>out, green(" distfiles")+ \
-			"     - clean outdated packages sources files from:"
-		print >>out, "                  ",teal(distdir)
-		print >>out
+		print("Available", green("actions")+":", file=out)
+		print(green(" packages")+ \
+			"      - clean outdated binary packages from:", file=out)
+		print("                  ",teal(pkgdir), file=out)
+		print(green(" distfiles")+ \
+			"     - clean outdated packages sources files from:", file=out)
+		print("                  ",teal(distdir), file=out)
+		print(file=out)
 	if error in ('packages-options','merged-packages-options') \
 	or help in ('all','packages'):
-		print >>out, "Available", yellow("options"),"for the", \
-				green("packages"),"action:"
-		print >>out, yellow(" NONE  :)")
-		print >>out
+		print("Available", yellow("options"),"for the", \
+				green("packages"),"action:", file=out)
+		print(yellow(" NONE  :)"), file=out)
+		print(file=out)
 	if error in ('distfiles-options', 'merged-distfiles-options') \
 	or help in ('all','distfiles'):
-		print >>out, "Available", yellow("options"),"for the", \
-				green("distfiles"),"action:"
-		print >>out, yellow(" -f, --fetch-restricted")+ \
-			"   - protect fetch-restricted files (when --destructive)"
-		print >>out, yellow(" -s, --size-limit=<size>")+ \
-			"  - don't delete distfiles bigger than "+yellow("<size>")
-		print >>out, "   "+yellow("<size>"), "is a size specification: "+ \
-				"\"10M\" is \"ten megabytes\", \"200K\" is"
-		print >>out, "   "+"\"two hundreds kilobytes\", etc.  Units are: "+ \
-				"G, M, K and B."
-		print >>out
-	print >>out, "More detailed instruction can be found in", \
-			turquoise("`man %s`" % __productname__)
+		print("Available", yellow("options"),"for the", \
+				green("distfiles"),"action:", file=out)
+		print(yellow(" -f, --fetch-restricted")+ \
+			"   - protect fetch-restricted files (when --destructive)", file=out)
+		print(yellow(" -s, --size-limit=<size>")+ \
+			"  - don't delete distfiles bigger than "+yellow("<size>"), file=out)
+		print("   "+yellow("<size>"), "is a size specification: "+ \
+				"\"10M\" is \"ten megabytes\", \"200K\" is", file=out)
+		print("   "+"\"two hundreds kilobytes\", etc.  Units are: "+ \
+				"G, M, K and B.", file=out)
+		print(file=out)
+	print("More detailed instruction can be found in", \
+			turquoise("`man %s`" % __productname__), file=out)
 
 
 ###############################################################################
@@ -175,7 +178,7 @@ def printUsage(error=None,help=None):
 def einfo(message="", nocolor=False):
 	if not nocolor: prefix = " "+green('*')
 	else: prefix = ">>>"
-	print prefix,message
+	print(prefix,message)
 
 
 ###############################################################################
@@ -183,7 +186,7 @@ def einfo(message="", nocolor=False):
 def eerror(message="", nocolor=False):
 	if not nocolor: prefix = " "+red('*')
 	else: prefix = "!!!"
-	print >>sys.stderr,prefix,message
+	print(prefix,message, file=sys.stderr)
 
 
 ###############################################################################
@@ -200,12 +203,12 @@ def eprompt(message, nocolor=False):
 # result. Output is a string.
 def prettySize(size,justify=False):
 	units = [" G"," M"," K"," B"]
-	approx = 0
+	fmt = "{0:.0f}"
 	while len(units) and size >= 1000:
-		approx = 1
+		fmt = "{0:.1f}"
 		size = size / 1024.
 		units.pop()
-	sizestr = fpformat.fix(size,approx)+units[-1]
+	sizestr = fmt.format(size)+units[-1]
 	if justify:
 		sizestr = " " + blue("[ ") + " "*(7-len(sizestr)) \
 		          + green(sizestr) + blue(" ]")
@@ -221,7 +224,7 @@ def yesNoAllPrompt(myoptions,message="Do you want to proceed?"):
 	user_string="xxx"
 	while not user_string.lower() in ["","y","n","a","yes","no","all"]:
 		eprompt(message+" [Y/n/a]: ", myoptions['nocolor'])
-		user_string = raw_input()
+		user_string = sys.stdin.readline()
 	if user_string.lower() in ["a","all"]:
 		myoptions['accept_all'] = True
 	myanswer = user_string.lower() in ["","y","a","yes","all"]
@@ -610,7 +613,7 @@ def findPackages( \
 		eerror("Please set PKGDIR to a sane value.", myoptions['nocolor'])
 		eerror("(Check your /etc/make.conf and environment).", myoptions['nocolor'])
 		exit(1)
-	for root, dirs, files in os.walk(pkgdir):
+	for root, dirs, files in walk(pkgdir):
 		if root[-3:] == 'All': continue
 		for file in files:
 			if not file[-5:] == ".tbz2":
@@ -661,7 +664,7 @@ def doCleanup(clean_dict,action,myoptions):
 	if action == 'distfiles': file_type = 'file'
 	else: file_type = 'binary package'
 	# sorting helps reading
-	clean_keys = clean_dict.keys()
+	clean_keys = list(clean_dict.keys())
 	clean_keys.sort()
 	clean_size = 0
 	# clean all entries one by one
@@ -676,10 +679,10 @@ def doCleanup(clean_dict,action,myoptions):
 			               myoptions['nocolor'])
 		if not myoptions['quiet']:
 			# pretty print mode
-			print prettySize(key_size,True),teal(mykey)
+			print(prettySize(key_size,True),teal(mykey))
 		elif myoptions['pretend'] or myoptions['interactive']:
 			# file list mode
-			for file in clean_dict[mykey]: print file
+			for file in clean_dict[mykey]: print(file)
 		#else: actually delete stuff, but don't print anything
 		if myoptions['pretend']: clean_size += key_size
 		elif not myoptions['interactive'] \
@@ -750,7 +753,7 @@ def doAction(action,myoptions,exclude_dict={}):
 			time_limit=myoptions['time-limit'], \
 			size_limit=myoptions['size-limit'])
 	# actually clean files if something was found
-	if len(clean_dict.keys()):
+	if clean_dict:
 		# verbose pretend message
 		if myoptions['pretend'] and not myoptions['quiet']:
 			einfo("Here are "+files_type+" that would be deleted:", \
@@ -786,7 +789,7 @@ def main():
 	# parse command line options and actions
 	try: myaction = parseArgs(myoptions)
 	# filter exception to know what message to display
-	except ParseArgsException, e:
+	except ParseArgsException as e:
 		if e.value == 'help':
 			printUsage(help='all')
 			sys.exit(0)
@@ -806,7 +809,7 @@ def main():
 			myoptions['exclude-file'] = my_exclude_file
 	if 'exclude-file' in myoptions:
 		try: exclude_dict = parseExcludeFile(myoptions['exclude-file'])
-		except ParseExcludeFileException, e:
+		except ParseExcludeFileException as e:
 			eerror(e, myoptions['nocolor'])
 			eerror("Invalid exclusion file: %s" % myoptions['exclude-file'], \
 					myoptions['nocolor'])
@@ -828,7 +831,7 @@ def main():
 if __name__ == "__main__":
 	try: main()
 	except KeyboardInterrupt:
-		print "Aborted."
+		print("Aborted.")
 		sys.exit(130)
 	sys.exit(0)
 

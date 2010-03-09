@@ -1,15 +1,19 @@
 #!/usr/bin/python
 #
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
 # $Header$
 
 import unittest
-from test import test_support
+try:
+	from test import test_support
+except ImportError:
+	from test import support as test_support
 
 from gentoolkit.cpv import *
+from gentoolkit.test import cmp
 
 class TestGentoolkitCPV(unittest.TestCase):
 
@@ -51,6 +55,28 @@ class TestGentoolkitCPV(unittest.TestCase):
 		self.assertNotEqual2(CPV('cat/pkg-2-r1'), CPV('cat/pkg-2-r10'))
 		self.assertEqual2(CPV('cat/pkg-1_rc2'), CPV('cat/pkg-1_rc2'))
 		self.assertNotEqual2(CPV('cat/pkg-2_rc2-r1'), CPV('cat/pkg-2_rc1-r1'))
+
+	def test_compare_strs(self):
+		# Test ordering of package strings, Portage has test for vercmp,
+		# so just do the rest
+		version_tests = [
+			# different categories
+			('sys-apps/portage-2.1.6.8', 'sys-auth/pambase-20080318'),
+			# different package names
+			('sys-apps/pkgcore-0.4.7.15-r1', 'sys-apps/portage-2.1.6.8'),
+			# different package versions
+			('sys-apps/portage-2.1.6.8', 'sys-apps/portage-2.2_rc25')
+		]
+		# Check less than
+		for vt in version_tests:
+			self.failUnless(compare_strs(vt[0], vt[1]) == -1)
+		# Check greater than
+		for vt in version_tests:
+			self.failUnless(compare_strs(vt[1], vt[0]) == 1)
+		# Check equal
+		vt = ('sys-auth/pambase-20080318', 'sys-auth/pambase-20080318')
+		self.failUnless(compare_strs(vt[0], vt[1]) == 0)
+
 
 def test_main():
 	test_support.run_unittest(TestGentoolkitCPV)

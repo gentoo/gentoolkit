@@ -1,35 +1,25 @@
-# Copyright 2009-2010 Gentoo Foundation
+# Copyright(c) 2009-2010, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2 or higher
 #
 # $Header$
 
-"""Improved versions of the original helpers functions.
+"""Miscellaneous helper functions and classes.
 
-As a convention, functions ending in '_packages' or '_match{es}' return
-Package objects, while functions ending in 'cpvs' return a sequence of strings.
-Functions starting with 'get_' return a set of packages by default and can be
-filtered, while functions starting with 'find_' return nothing unless the
-query matches one or more packages.
+@note: find_* functions that previously lived here have moved to
+       the query module, where they are called as: Query('portage').find_*().
 """
 
-# Move to Imports section after Python 2.6 is stable
-from __future__ import with_statement
+from __future__ import print_function
 
 __all__ = (
 	'ChangeLog',
 	'FileOwner',
-	'compare_package_strings',
-	'do_lookup',
-	'find_best_match',
-	'find_installed_packages',
-	'find_packages',
 	'get_cpvs',
 	'get_installed_cpvs',
 	'get_uninstalled_cpvs',
 	'uniqify',
-	'uses_globbing',
-	'split_cpv'
+	'walk'
 )
 __docformat__ = 'epytext'
 
@@ -37,17 +27,13 @@ __docformat__ = 'epytext'
 # Imports
 # =======
 
-import fnmatch
-import os
 import re
 from functools import partial
 from itertools import chain
 
-import portage
-from portage.versions import catpkgsplit, pkgcmp
+from portage import os, _unicode_decode, _encodings
 
 from gentoolkit import pprinter as pp
-from gentoolkit import CONFIG
 from gentoolkit import errors
 from gentoolkit.atom import Atom
 from gentoolkit.cpv import CPV
@@ -164,6 +150,7 @@ class ChangeLog(object):
 			if from_restriction and not from_restriction.match(i):
 				continue
 			if to_restriction and not to_restriction.match(i):
+				# TODO: is it safe to break here?
 				continue
 			result.append(entry)
 
@@ -262,7 +249,7 @@ class FileOwner(object):
 		query_re_string = self._prepare_search_regex(queries)
 		try:
 			query_re = re.compile(query_re_string)
-		except (TypeError, re.error), err:
+		except (TypeError, re.error) as err:
 			raise errors.GentoolkitInvalidRegex(err)
 
 		use_match = False
@@ -312,6 +299,27 @@ class FileOwner(object):
 		return results
 
 	@staticmethod
+	def expand_abspaths(paths):
+		"""Expand any relative paths (./file) to their absolute paths.
+
+		@type paths: list
+		@param paths: file path strs
+		@rtype: list
+		@return: the original list with any relative paths expanded
+		@raise AttributeError: if paths does not have attribute 'extend'
+		"""
+
+		osp = os.path
+		expanded_paths = []
+		for p in paths:
+			if p.startswith('./'):
+				expanded_paths.append(osp.abspath(p))
+			else:
+				expanded_paths.append(p)
+
+		return expanded_paths
+
+	@staticmethod
 	def extend_realpaths(paths):
 		"""Extend a list of paths with the realpaths for any symlinks.
 
@@ -339,6 +347,7 @@ class FileOwner(object):
 			result = []
 			# Trim trailing and multiple slashes from queries
 			slashes = re.compile('/+')
+			queries = self.expand_abspaths(queries)
 			queries = self.extend_realpaths(queries)
 			for query in queries:
 				query = slashes.sub('/', query).rstrip('/')
@@ -353,201 +362,6 @@ class FileOwner(object):
 # =========
 # Functions
 # =========
-
-def compare_package_strings(pkg1, pkg2):
-	"""Similar to the builtin cmp, but for package strings. Usually called
-	as: package_list.sort(compare_package_strings)
-
-	An alternative is to use the CPV descriptor from gentoolkit.cpv:
-	>>> cpvs = sorted(CPV(x) for x in package_list)
-
-	@see: >>> help(cmp)
-	"""
-
-	pkg1 = catpkgsplit(pkg1)
-	pkg2 = catpkgsplit(pkg2)
-	if pkg1[0] != pkg2[0]:
-		return cmp(pkg1[0], pkg2[0])
-	elif pkg1[1] != pkg2[1]:
-		return cmp(pkg1[1], pkg2[1])
-	else:
-		return pkgcmp(pkg1[1:], pkg2[1:])
-
-
-def do_lookup(query, query_opts):
-	"""A high-level wrapper around gentoolkit package-finder functions.
-
-	@type query: str
-	@param query: pkg, cat/pkg, pkg-ver, cat/pkg-ver, atom, glob or regex
-	@type query_opts: dict
-	@param query_opts: user-configurable options from the calling module
-		Currently supported options are:
-
-		includeInstalled   = bool
-		includePortTree    = bool
-		includeOverlayTree = bool
-		isRegex            = bool
-		printMatchInfo     = bool           # Print info about the search
-
-	@rtype: list
-	@return: Package objects matching query
-	"""
-
-	if query_opts["includeInstalled"]:
-		if query_opts["includePortTree"] or query_opts["includeOverlayTree"]:
-			simple_package_finder = partial(find_packages, include_masked=True)
-			complex_package_finder = get_cpvs
-		else:
-			simple_package_finder = find_installed_packages
-			complex_package_finder = get_installed_cpvs
-	elif query_opts["includePortTree"] or query_opts["includeOverlayTree"]:
-		simple_package_finder = partial(find_packages, include_masked=True)
-		complex_package_finder = get_uninstalled_cpvs
-	else:
-		raise errors.GentoolkitFatalError(
-			"Not searching in installed, Portage tree, or overlay. "
-			"Nothing to do."
-		)
-
-	is_simple_query = True
-	if query_opts["isRegex"] or uses_globbing(query):
-		is_simple_query = False
-
-	if is_simple_query:
-		matches = _do_simple_lookup(query, simple_package_finder, query_opts)
-	else:
-		matches = _do_complex_lookup(query, complex_package_finder, query_opts)
-
-	return matches
-
-
-def _do_complex_lookup(query, package_finder, query_opts):
-	"""Find matches for a query which is a regex or includes globbing."""
-
-	# FIXME: Remove when lazyimport supports objects:
-	from gentoolkit.package import Package
-
-	result = []
-
-	if query_opts["printMatchInfo"] and not CONFIG["piping"]:
-		print_query_info(query, query_opts)
-
-	cat = split_cpv(query)[0]
-
-	pre_filter = []
-	# The "get_" functions can pre-filter against the whole package key,
-	# but since we allow globbing now, we run into issues like:
-	# >>> portage.dep.dep_getkey("sys-apps/portage-*")
-	# 'sys-apps/portage-'
-	# So the only way to guarantee we don't overrun the key is to
-	# prefilter by cat only.
-	if cat:
-		if query_opts["isRegex"]:
-			cat_re = cat
-		else:
-			cat_re = fnmatch.translate(cat)
-			# [::-1] reverses a sequence, so we're emulating an ".rreplace()"
-			# except we have to put our "new" string on backwards
-			cat_re = cat_re[::-1].replace('$', '*./', 1)[::-1]
-		predicate = lambda x: re.match(cat_re, x)
-		pre_filter = package_finder(predicate=predicate)
-
-	# Post-filter
-	if query_opts["isRegex"]:
-		predicate = lambda x: re.search(query, x)
-	else:
-		if cat:
-			query_re = fnmatch.translate(query)
-		else:
-			query_re = fnmatch.translate("*/%s" % query)
-		predicate = lambda x: re.search(query_re, x)
-	if pre_filter:
-		result = [x for x in pre_filter if predicate(x)]
-	else:
-		result = package_finder(predicate=predicate)
-
-	return [Package(x) for x in result]
-
-
-def _do_simple_lookup(query, package_finder, query_opts):
-	"""Find matches for a query which is an atom or string."""
-
-	result = []
-
-	if query_opts["printMatchInfo"] and CONFIG['verbose']:
-		print_query_info(query, query_opts)
-
-	result = package_finder(query)
-	if not query_opts["includeInstalled"]:
-		result = [x for x in result if not x.is_installed()]
-
-	return result
-
-
-def find_best_match(query):
-	"""Return the highest unmasked version of a package matching query.
-
-	@type query: str
-	@param query: can be of the form: pkg, pkg-ver, cat/pkg, cat/pkg-ver, atom
-	@rtype: str or None
-	@raise portage.exception.InvalidAtom: if query is not valid input
-	"""
-	# FIXME: Remove when lazyimport supports objects:
-	from gentoolkit.package import Package
-
-	try:
-		match = PORTDB.xmatch("bestmatch-visible", query)
-	except portage.exception.InvalidAtom, err:
-		raise errors.GentoolkitInvalidAtom(err)
-
-	return Package(match) if match else None
-
-
-def find_installed_packages(query):
-	"""Return a list of Package objects that matched the search key."""
-	# FIXME: Remove when lazyimport supports objects:
-	from gentoolkit.package import Package
-
-	try:
-		matches = VARDB.match(query)
-	# catch the ambiguous package Exception
-	except portage.exception.AmbiguousPackageName, err:
-		matches = []
-		for pkgkey in err[0]:
-			matches.extend(VARDB.match(pkgkey))
-	except portage.exception.InvalidAtom, err:
-		raise errors.GentoolkitInvalidAtom(err)
-
-	return [Package(x) for x in matches]
-
-
-def find_packages(query, include_masked=False):
-	"""Returns a list of Package objects that matched the query.
-
-	@type query: str
-	@param query: can be of the form: pkg, pkg-ver, cat/pkg, cat/pkg-ver, atom
-	@type include_masked: bool
-	@param include_masked: include masked packages
-	@rtype: list
-	@return: matching Package objects
-	"""
-	# FIXME: Remove when lazyimport supports objects:
-	from gentoolkit.package import Package
-
-	if not query:
-		return []
-
-	try:
-		if include_masked:
-			matches = PORTDB.xmatch("match-all", query)
-		else:
-			matches = PORTDB.match(query)
-		matches.extend(VARDB.match(query))
-	except portage.exception.InvalidAtom, err:
-		raise errors.GentoolkitInvalidAtom(str(err))
-
-	return [Package(x) for x in set(matches)]
-
 
 def get_cpvs(predicate=None, include_installed=True):
 	"""Get all packages in the Portage tree and overlays. Optionally apply a
@@ -578,16 +392,18 @@ def get_cpvs(predicate=None, include_installed=True):
 		all_cps = PORTDB.cp_all()
 
 	all_cpvs = chain.from_iterable(PORTDB.cp_list(x) for x in all_cps)
-	all_installed_cpvs = get_installed_cpvs(predicate)
+	all_installed_cpvs = set(get_installed_cpvs(predicate))
 
 	if include_installed:
-		for cpv in chain(all_cpvs, all_installed_cpvs):
+		for cpv in all_cpvs:
+			if cpv in all_installed_cpvs:
+				all_installed_cpvs.remove(cpv)
+			yield cpv
+		for cpv in all_installed_cpvs:
 			yield cpv
 	else:
-		# Consume the smaller pkg set:
-		installed_cpvs = set(all_installed_cpvs)
 		for cpv in all_cpvs:
-			if cpv not in installed_cpvs:
+			if cpv not in all_installed_cpvs:
 				yield cpv
 
 
@@ -615,67 +431,19 @@ def get_installed_cpvs(predicate=None):
 		yield cpv
 
 
-def print_query_info(query, query_opts):
-	"""Print info about the query to the screen."""
-
-	cat, pkg = split_cpv(query)[:2]
-	if cat and not query_opts["isRegex"]:
-		cat_str = "in %s " % pp.emph(cat.lstrip('><=~!'))
-	else:
-		cat_str = ""
-
-	if query_opts["isRegex"]:
-		pkg_str = query
-	else:
-		pkg_str = pkg
-
-	print " * Searching for %s %s..." % (pp.emph(pkg_str), cat_str)
-
-
 def print_file(path):
 	"""Display the contents of a file."""
 
 	with open(path) as open_file:
 		lines = open_file.read()
-		print lines.strip()
+		print(lines.strip())
 
 
 def print_sequence(seq):
 	"""Print every item of a sequence."""
 
 	for item in seq:
-		print item
-
-
-def split_cpv(query):
-	"""Split a cpv into category, name, version and revision.
-
-	@type query: str
-	@param query: pkg, cat/pkg, pkg-ver, cat/pkg-ver, atom or regex
-	@rtype: tuple
-	@return: (category, pkg_name, version, revision)
-		Each tuple element is a string or empty string ("").
-	"""
-
-	result = catpkgsplit(query)
-
-	if result:
-		result = list(result)
-		if result[0] == 'null':
-			result[0] = ''
-		if result[3] == 'r0':
-			result[3] = ''
-	else:
-		result = query.split("/")
-		if len(result) == 1:
-			result = ['', query, '', '']
-		else:
-			result = result + ['', '']
-
-	if len(result) != 4:
-		raise errors.GentoolkitInvalidPackageName(query)
-
-	return tuple(result)
+		print(item)
 
 
 def uniqify(seq, preserve_order=True):
@@ -690,20 +458,19 @@ def uniqify(seq, preserve_order=True):
 	return result
 
 
-def uses_globbing(query):
-	"""Check the query to see if it is using globbing.
-
-	@type query: str
-	@param query: user input package query
-	@rtype: bool
-	@return: True if query uses globbing, else False
-	"""
-
-	if set('!*?[]').intersection(query):
-		# Is query an atom such as '=sys-apps/portage-2.2*'?
-		if query[0] != '=':
-			return True
-
-	return False
+def walk(top, topdown = True, onerror = None, followlinks = False):
+	"""Variant of os.walk that always returns unicode filenames"""
+	for root, dirs, files in os.walk(top, topdown, onerror, followlinks):
+		root = _unicode_decode(root, _encodings["fs"], errors = "strict")
+		dirs = [
+			_unicode_decode(x, _encodings["fs"], errors = "strict")
+			for x in dirs
+		]
+		files = [
+			_unicode_decode(x, _encodings["fs"], errors = "strict")
+			for x in files
+		]
+		# XXX: in contrast with os.walk we ignore modifications to dirs here
+		yield root, dirs, files
 
 # vim: set ts=4 sw=4 tw=79:

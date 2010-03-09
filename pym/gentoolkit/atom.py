@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright 2009-2010 Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -102,6 +102,9 @@ class Atom(portage.dep.Atom, CPV):
 		#return cmp(self.repo_name, other.repo_name)
 		return True
 
+	def __hash__(self):
+		return hash(self.atom)
+
 	def __ne__(self, other):
 		return not self == other
 
@@ -133,12 +136,16 @@ class Atom(portage.dep.Atom, CPV):
 		#	return c
 
 		if self.slot != other.slot:
+			if self.slot is None:
+				return False
+			elif other.slot is None:
+				return True
 			return self.slot < other.slot
 
-		this_use = None
+		this_use = []
 		if self.use is not None:
 			this_use = sorted(self.use.tokens)
-		that_use = None
+		that_use = []
 		if other.use is not None:
 			that_use = sorted(other.use.tokens)
 		if this_use != that_use:
