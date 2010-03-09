@@ -1,8 +1,12 @@
-import os
 import unittest
 import warnings
-from tempfile import NamedTemporaryFile
-from test import test_support
+from tempfile import NamedTemporaryFile, mktemp
+try:
+	from test import test_support
+except ImportError:
+	from test import support as test_support
+
+from portage import os
 
 from gentoolkit import helpers
 
@@ -60,6 +64,21 @@ class TestFileOwner(unittest.TestCase):
 	def tearDown(self):
 		pass
 
+	def test_expand_abspaths(self):
+		expand_abspaths = helpers.FileOwner.expand_abspaths
+		
+		initial_file_list = ['foo0', '/foo1', '~/foo2', './foo3']
+		# This function should only effect foo3, and not ordering:
+		
+		final_file_list = [
+			'foo0',
+			'/foo1',
+			'~/foo2',
+			os.path.join(os.getcwd(), os.path.normpath(initial_file_list[3]))
+		]
+
+		self.failUnlessEqual(expand_abspaths(initial_file_list), final_file_list)
+
 	def test_extend_realpaths(self):
 		extend_realpaths = helpers.FileOwner.extend_realpaths
 
@@ -69,9 +88,9 @@ class TestFileOwner(unittest.TestCase):
 		f3 = NamedTemporaryFile(prefix='equeryunittest')
 		with warnings.catch_warnings():
 			warnings.simplefilter("ignore")
-			sym1 = os.tmpnam()
+			sym1 = mktemp()
 			os.symlink(f1.name, sym1)
-			sym2 = os.tmpnam()
+			sym2 = mktemp()
 			os.symlink(f3.name, sym2)
 		# We've created 3 files and 2 symlinks for testing. We're going to pass
 		# in only the first two files and both symlinks. sym1 points to f1.
@@ -97,33 +116,6 @@ class TestFileOwner(unittest.TestCase):
 
 
 class TestGentoolkitHelpers(unittest.TestCase):
-
-	def test_compare_package_strings(self):
-		# Test ordering of package strings, Portage has test for vercmp,
-		# so just do the rest
-		version_tests = [
-			# different categories
-			('sys-apps/portage-2.1.6.8', 'sys-auth/pambase-20080318'),
-			# different package names
-			('sys-apps/pkgcore-0.4.7.15-r1', 'sys-apps/portage-2.1.6.8'),
-			# different package versions
-			('sys-apps/portage-2.1.6.8', 'sys-apps/portage-2.2_rc25')
-		]
-		# Check less than
-		for vt in version_tests:
-			self.failUnless(
-				helpers.compare_package_strings(vt[0], vt[1]) == -1
-			)
-		# Check greater than
-		for vt in version_tests:
-			self.failUnless(
-				helpers.compare_package_strings(vt[1], vt[0]) == 1
-			)
-		# Check equal
-		vt = ('sys-auth/pambase-20080318', 'sys-auth/pambase-20080318')
-		self.failUnless(
-			helpers.compare_package_strings(vt[0], vt[1]) == 0
-		)
 
 	def test_uses_globbing(self):
 		globbing_tests = [

@@ -1,4 +1,4 @@
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -6,8 +6,10 @@
 
 """Display USE flags for a given package"""
 
+from __future__ import print_function
+
 # Move to imports section when Python 2.6 is stable
-from __future__ import with_statement
+
 
 __docformat__ = 'epytext'
 
@@ -15,19 +17,19 @@ __docformat__ = 'epytext'
 # Imports
 # =======
 
-import os
 import sys
 from functools import partial
 from getopt import gnu_getopt, GetoptError
 from glob import glob
 
-from portage import settings
+from portage import os, settings
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
 from gentoolkit.equery import format_options, mod_usage, CONFIG
-from gentoolkit.helpers import find_best_match, find_packages, uniqify
+from gentoolkit.helpers import uniqify
 from gentoolkit.textwrap_ import TextWrapper
+from gentoolkit.query import Query
 
 # =======
 # Globals
@@ -47,15 +49,15 @@ def print_help(with_description=True):
 	"""
 
 	if with_description:
-		print __doc__.strip()
-		print
-	print mod_usage(mod_name=__name__.split('.')[-1])
-	print
-	print pp.command("options")
-	print format_options((
+		print(__doc__.strip())
+		print()
+	print(mod_usage(mod_name=__name__.split('.')[-1]))
+	print()
+	print(pp.command("options"))
+	print(format_options((
 		(" -h, --help", "display this help message"),
 		(" -a, --all", "include all package versions")
-	))
+	)))
 
 
 def display_useflags(output):
@@ -98,22 +100,22 @@ def display_useflags(output):
 				restrict = "(%s %s)" % (pp.emph("Restricted to"),
 					pp.cpv(restrict))
 				twrap.initial_indent = flag_name
-				print twrap.fill(restrict)
+				print(twrap.fill(restrict))
 				if desc:
 					twrap.initial_indent = twrap.subsequent_indent
-					print twrap.fill(desc)
+					print(twrap.fill(desc))
 				else:
-					print " : <unknown>"
+					print(" : <unknown>")
 			else:
 				if desc:
 					twrap.initial_indent = flag_name
 					desc = twrap.fill(desc)
-					print desc
+					print(desc)
 				else:
 					twrap.initial_indent = flag_name
-					print twrap.fill("<unknown>")
+					print(twrap.fill("<unknown>"))
 		else:
-			print markers[in_makeconf] + flag
+			print(markers[in_makeconf] + flag)
 
 
 def get_global_useflags():
@@ -163,24 +165,6 @@ def get_global_useflags():
 			)
 
 	return global_usedesc
-
-
-def get_matches(query):
-	"""Get packages matching query."""
-
-	if not QUERY_OPTS["allVersions"]:
-		matches = [find_best_match(query)]
-		if None in matches:
-			matches = find_packages(query, include_masked=False)
-			if matches:
-				matches.sort()
-	else:
-		matches = find_packages(query, include_masked=True)
-
-	if not matches:
-		raise errors.GentoolkitNoMatches(query)
-
-	return matches
 
 
 def get_output_descriptions(pkg, global_usedesc):
@@ -251,10 +235,10 @@ def parse_module_options(module_opts):
 def print_legend():
 	"""Print a legend to explain the output format."""
 
-	print "[ Legend : %s - flag is set in make.conf       ]" % pp.emph("U")
-	print "[        : %s - package is installed with flag ]" % pp.emph("I")
-	print "[ Colors : %s, %s                         ]" % (
-		pp.useflag("set", enabled=True), pp.useflag("unset", enabled=False))
+	print("[ Legend : %s - flag is set in make.conf       ]" % pp.emph("U"))
+	print("[        : %s - package is installed with flag ]" % pp.emph("I"))
+	print("[ Colors : %s, %s                         ]" % (
+		pp.useflag("set", enabled=True), pp.useflag("unset", enabled=False)))
 
 
 def main(input_args):
@@ -265,9 +249,9 @@ def main(input_args):
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
-	except GetoptError, err:
+	except GetoptError as err:
 		sys.stderr.write(pp.error("Module %s" % err))
-		print
+		print()
 		print_help(with_description=False)
 		sys.exit(2)
 
@@ -283,14 +267,18 @@ def main(input_args):
 
 	first_run = True
 	legend_printed = False
-	for query in queries:
+	for query in (Query(x) for x in queries):
 		if not first_run:
-			print
+			print()
 
-		if CONFIG['verbose']:
-			print " * Searching for %s ..." % pp.pkgquery(query)
+		if QUERY_OPTS["allVersions"]:
+			matches = query.find(include_masked=True)
+		else:
+			matches = [query.find_best()]
 
-		matches = get_matches(query)
+		if not matches:
+			raise errors.GentoolkitNoMatches(query)
+
 		matches.sort()
 
 		global_usedesc = get_global_useflags()
@@ -302,9 +290,9 @@ def main(input_args):
 					if not legend_printed:
 						print_legend()
 						legend_printed = True
-					print (" * Found these USE flags for %s:" %
-						pp.cpv(str(pkg.cpv)))
-					print pp.emph(" U I")
+					print((" * Found these USE flags for %s:" %
+						pp.cpv(str(pkg.cpv))))
+					print(pp.emph(" U I"))
 				display_useflags(output)
 			else:
 				if CONFIG['verbose']:

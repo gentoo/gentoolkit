@@ -548,7 +548,7 @@ verify_tmpdir() {
 get_search_env() {
 	local new_env
 	local old_env
-	local uid=$(python -c 'import os; import pwd; print pwd.getpwuid(os.getuid())[0]')
+	local uid=$(python -c 'import os; import pwd; print(pwd.getpwuid(os.getuid())[0])')
 	# Find a place to put temporary files
 	if [[ "$uid" == "root" ]]; then
 		local tmp_target="/var/cache/${APP_NAME}"

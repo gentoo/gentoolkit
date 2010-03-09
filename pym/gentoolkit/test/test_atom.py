@@ -1,4 +1,4 @@
-# Copyright(c) 2009-2010, Gentoo Foundation, Inc.
+# Copyright(c) 2009, Gentoo Foundation
 # Copyright: 2006-2008 Brian Harring <ferringb@gmail.com>
 #
 # License: GPL2/BSD
@@ -6,9 +6,13 @@
 # $Header$
 
 import unittest
-from test import test_support
+try:
+	from test import test_support
+except ImportError:
+	from test import support as test_support
 
 from gentoolkit.atom import *
+from gentoolkit.test import cmp
 
 """Atom test suite (verbatim) from pkgcore."""
 

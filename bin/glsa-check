@@ -3,12 +3,13 @@
 # $Header: $
 # This program is licensed under the GPL, version 2
 
-import os
 import sys
 import codecs
+from functools import reduce
 
 import portage
 from portage.output import *
+from portage import os
 
 from getopt import getopt, GetoptError
 
@@ -93,7 +94,7 @@ try:
 			if args in [o for o in m[:-1]]:
 				mode = m[1][2:]
 
-except GetoptError, e:
+except GetoptError as e:
 	sys.stderr.write("unknown option given: ")
 	sys.stderr.write(str(e)+"\n")
 	mode = "HELP"
@@ -178,7 +179,7 @@ if "affected" in params:
 	for x in todolist:
 		try:
 			myglsa = Glsa(x, glsaconfig)
-		except (GlsaTypeException, GlsaFormatException), e:
+		except (GlsaTypeException, GlsaFormatException) as e:
 			if verbose:
 				sys.stderr.write(("invalid GLSA: %s (error message was: %s)\n" % (x, e)))
 			continue
@@ -195,6 +196,13 @@ for p in params[:]:
 glsalist.extend([g for g in params if g not in glsalist])
 
 def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr, encoding="utf-8"):
+	# Get to the raw streams in py3k before wrapping them with an encoded writer
+	# to avoid writing bytes to a text stream (stdout/stderr are text streams
+	# by default in py3k)
+	if hasattr(fd1, "buffer"):
+		fd1 = fd1.buffer
+	if hasattr(fd2, "buffer"):
+		fd2 = fd2.buffer
 	fd1 = codecs.getwriter(encoding)(fd1)
 	fd2 = codecs.getwriter(encoding)(fd2)
 	if not quiet:
@@ -206,7 +214,7 @@ def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr, encoding="utf-8"):
 	for myid in myglsalist:
 		try:
 			myglsa = Glsa(myid, glsaconfig)
-		except (GlsaTypeException, GlsaFormatException), e:
+		except (GlsaTypeException, GlsaFormatException) as e:
 			if verbose:
 				fd2.write(("invalid GLSA: %s (error message was: %s)\n" % (myid, e)))
 			continue
@@ -227,7 +235,7 @@ def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr, encoding="utf-8"):
 
 		fd1.write(color(myglsa.nr) + " " + color(status) + " " + color(access) + myglsa.title + " (")
 		if not verbose:
-			for pkg in myglsa.packages.keys()[:3]:
+			for pkg in list(myglsa.packages.keys())[:3]:
 				fd1.write(" " + pkg + " ")
 			if len(myglsa.packages) > 3:
 				fd1.write("... ")
@@ -252,7 +260,7 @@ if mode in ["dump", "fix", "inject", "pretend"]:
 	for myid in glsalist:
 		try:
 			myglsa = Glsa(myid, glsaconfig)
-		except (GlsaTypeException, GlsaFormatException), e:
+		except (GlsaTypeException, GlsaFormatException) as e:
 			if verbose:
 				sys.stderr.write(("invalid GLSA: %s (error message was: %s)\n" % (myid, e)))
 			continue
@@ -309,7 +317,7 @@ if mode in ["dump", "fix", "inject", "pretend"]:
 				# see if anything is left that can be upgraded
 				if mergedict:
 					sys.stdout.write(">>> Updates that will be performed:\n")
-					for (upd, vuln) in mergedict.iteritems():
+					for (upd, vuln) in mergedict.items():
 						sys.stdout.write("     " + green(upd) + " (vulnerable: " + red(", ".join(vuln)) + ")\n")
 
 				if no_upgrades:
@@ -326,7 +334,7 @@ if mode == "test":
 	for myid in glsalist:
 		try:
 			myglsa = Glsa(myid, glsaconfig)
-		except (GlsaTypeException, GlsaFormatException), e:
+		except (GlsaTypeException, GlsaFormatException) as e:
 			if verbose:
 				sys.stderr.write(("invalid GLSA: %s (error message was: %s)\n" % (myid, e)))
 			continue
@@ -350,7 +358,7 @@ if mode == "mail":
 		import portage_mail
 
 	import socket
-	from StringIO import StringIO
+	from io import StringIO
 	try:
 		from email.mime.text import MIMEText
 	except ImportError:
@@ -383,7 +391,7 @@ if mode == "mail":
 	for myid in glsalist:
 		try:
 			myglsa = Glsa(myid, glsaconfig)
-		except (GlsaTypeException, GlsaFormatException), e:
+		except (GlsaTypeException, GlsaFormatException) as e:
 			if verbose:
 				sys.stderr.write(("invalid GLSA: %s (error message was: %s)\n" % (myid, e)))
 			continue
@@ -392,7 +400,7 @@ if mode == "mail":
 		myattachments.append(MIMEText(str(myfd.getvalue()), _charset="utf8"))
 		myfd.close()
 
-        if glsalist or not quiet:
+	if glsalist or not quiet:
 		mymessage = portage_mail.create_message(myfrom, myrecipient, mysubject, summary, myattachments)
 		portage_mail.send_mail(glsaconfig, mymessage)
 

@@ -1,10 +1,12 @@
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
 # $Header: $
 
-"""List files owned by a given package"""
+"""List files owned by a given package."""
+
+from __future__ import print_function
 
 __docformat__ = 'epytext'
 
@@ -12,35 +14,32 @@ __docformat__ = 'epytext'
 # Imports
 # =======
 
-import os
 import sys
 from getopt import gnu_getopt, GetoptError
 
 import portage
+from portage import os
 
 import gentoolkit.pprinter as pp
 from gentoolkit.equery import (format_filetype, format_options, mod_usage,
 	CONFIG)
-from gentoolkit.helpers import do_lookup
+from gentoolkit.query import Query
 
 # =======
 # Globals
 # =======
 
 QUERY_OPTS = {
-	"categoryFilter": None,
-	"includeInstalled": True,
-	"includePortTree": False,
-	"includeOverlayTree": False,
-	"includeMasked": True,
-	"isRegex": False,
-	"matchExact": True,
-	"outputTree": False,
-	"printMatchInfo": (not CONFIG['quiet']),
-	"showType": False,
-	"showTimestamp": False,
-	"showMD5": False,
-	"typeFilter": None
+	"in_installed": True,
+	"in_porttree": False,
+	"in_overlay": False,
+	"include_masked": True,
+	"output_tree": False,
+	"show_progress": (not CONFIG['quiet']),
+	"show_type": False,
+	"show_timestamp": False,
+	"show_MD5": False,
+	"type_filter": None
 }
 
 FILTER_RULES = (
@@ -59,12 +58,12 @@ def print_help(with_description=True):
 	"""
 
 	if with_description:
-		print __doc__.strip()
-		print
-	print mod_usage(mod_name="files")
-	print
-	print pp.command("options")
-	print format_options((
+		print(__doc__.strip())
+		print()
+	print(mod_usage(mod_name="files"))
+	print()
+	print(pp.command("options"))
+	print(format_options((
 		(" -h, --help", "display this help message"),
 		(" -m, --md5sum", "include MD5 sum in output"),
 		(" -s, --timestamp", "include timestamp in output"),
@@ -73,8 +72,8 @@ def print_help(with_description=True):
 		(" -f, --filter=RULES", "filter output by file type"),
 		("              RULES",
 			"a comma-separated list (no spaces); choose from:")
-	))
-	print " " * 24, ', '.join(pp.emph(x) for x in FILTER_RULES)
+	)))
+	print(" " * 24, ', '.join(pp.emph(x) for x in FILTER_RULES))
 
 
 # R0912: *Too many branches (%s/%s)*
@@ -87,12 +86,12 @@ def display_files(contents):
 	@param contents: {'path': ['filetype', ...], ...}
 	"""
 
-	filenames = contents.keys()
+	filenames = list(contents.keys())
 	filenames.sort()
 	last = []
 
 	for name in filenames:
-		if QUERY_OPTS["outputTree"]:
+		if QUERY_OPTS["output_tree"]:
 			dirdepth = name.count('/')
 			indent = " "
 			if dirdepth == 2:
@@ -104,7 +103,7 @@ def display_files(contents):
 			if contents[name][0] == "dir":
 				if len(last) == 0:
 					last = basename
-					print pp.path(indent + basename[0])
+					print(pp.path(indent + basename[0]))
 					continue
 				for i, directory in enumerate(basename):
 					try:
@@ -114,22 +113,22 @@ def display_files(contents):
 						pass
 					last = basename
 					if len(last) == 1:
-						print pp.path(indent + last[0])
+						print(pp.path(indent + last[0]))
 						continue
-					print pp.path(indent + "> /" + last[-1])
+					print(pp.path(indent + "> /" + last[-1]))
 			elif contents[name][0] == "sym":
-				print pp.path(indent + "+"),
-				print pp.path_symlink(basename[-1] + " -> " + contents[name][2])
+				print(pp.path(indent + "+"), end=' ')
+				print(pp.path_symlink(basename[-1] + " -> " + contents[name][2]))
 			else:
-				print pp.path(indent + "+ ") + basename[-1]
+				print(pp.path(indent + "+ ") + basename[-1])
 		else:
-			print format_filetype(
+			print(format_filetype(
 				name,
 				contents[name],
-				show_type=QUERY_OPTS["showType"],
-				show_md5=QUERY_OPTS["showMD5"],
-				show_timestamp=QUERY_OPTS["showTimestamp"]
-			)
+				show_type=QUERY_OPTS["show_type"],
+				show_md5=QUERY_OPTS["show_MD5"],
+				show_timestamp=QUERY_OPTS["show_timestamp"]
+			))
 
 
 def filter_by_doc(contents, content_filter):
@@ -209,8 +208,8 @@ def filter_contents(contents):
 	@return: contents with unrequested filetypes stripped
 	"""
 
-	if QUERY_OPTS['typeFilter']:
-		content_filter = QUERY_OPTS['typeFilter']
+	if QUERY_OPTS['type_filter']:
+		content_filter = QUERY_OPTS['type_filter']
 	else:
 		return contents
 
@@ -242,16 +241,14 @@ def parse_module_options(module_opts):
 		if opt in ('-h', '--help'):
 			print_help()
 			sys.exit(0)
-		elif opt in ('-e', '--exact-name'):
-			QUERY_OPTS["matchExact"] = True
 		elif opt in ('-m', '--md5sum'):
-			QUERY_OPTS["showMD5"] = True
+			QUERY_OPTS["show_MD5"] = True
 		elif opt in ('-s', '--timestamp'):
-			QUERY_OPTS["showTimestamp"] = True
+			QUERY_OPTS["show_timestamp"] = True
 		elif opt in ('-t', '--type'):
-			QUERY_OPTS["showType"] = True
+			QUERY_OPTS["show_type"] = True
 		elif opt in ('--tree'):
-			QUERY_OPTS["outputTree"] = True
+			QUERY_OPTS["output_tree"] = True
 		elif opt in ('-f', '--filter'):
 			f_split = posarg.split(',')
 			content_filter.extend(x.lstrip('=') for x in f_split)
@@ -260,10 +257,10 @@ def parse_module_options(module_opts):
 					sys.stderr.write(
 						pp.error("Invalid filter rule '%s'" % rule)
 					)
-					print
+					print()
 					print_help(with_description=False)
 					sys.exit(2)
-			QUERY_OPTS["typeFilter"] = content_filter
+			QUERY_OPTS["type_filter"] = content_filter
 
 
 def main(input_args):
@@ -276,9 +273,9 @@ def main(input_args):
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
-	except GetoptError, err:
+	except GetoptError as err:
 		sys.stderr.write(pp.error("Module %s" % err))
-		print
+		print()
 		print_help(with_description=False)
 		sys.exit(2)
 
@@ -289,8 +286,8 @@ def main(input_args):
 		sys.exit(2)
 
 	# Turn off filtering for tree output
-	if QUERY_OPTS["outputTree"]:
-		QUERY_OPTS["typeFilter"] = None
+	if QUERY_OPTS["output_tree"]:
+		QUERY_OPTS["type_filter"] = None
 
 	#
 	# Output files
@@ -299,18 +296,20 @@ def main(input_args):
 	first_run = True
 	for query in queries:
 		if not first_run:
-			print
+			print()
 
-		matches = do_lookup(query, QUERY_OPTS)
+		matches = Query(query).smart_find(**QUERY_OPTS)
 
 		if not matches:
 			sys.stderr.write(
 				pp.error("No matching packages found for %s" % query)
 			)
 
+		matches.sort()
+
 		for pkg in matches:
 			if CONFIG['verbose']:
-				print " * Contents of %s:" % pp.cpv(str(pkg.cpv))
+				print(" * Contents of %s:" % pp.cpv(str(pkg.cpv)))
 
 			contents = pkg.parsed_contents()
 			display_files(filter_contents(contents))

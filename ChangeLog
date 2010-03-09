@@ -1,5 +1,10 @@
+2010-03-09: Paul Varner <fuzzyray@gentoo.org>
+	* gentoolkit: Add inital py3k support.
+	* analyse: Add new analyse utility from dol-sen. This will probably
+	change to a different name for final gentoolkit-0.3.0 release.
+
 2010-02-05: Paul Varner <fuzzyray@gentoo.org>
-	*revdep-rebuild: Update revdep-rebuild to use extended regular
+	* revdep-rebuild: Update revdep-rebuild to use extended regular
 	expressions instead of basic regular expressions. (Bug 143498)
 
 2010-02-04: Paul Varner <fuzzyray@gentoo.org>

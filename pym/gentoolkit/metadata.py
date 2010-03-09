@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright 2009-2010 Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -34,7 +34,7 @@
 """
 
 # Move to Imports section after Python-2.6 is stable
-from __future__ import with_statement
+
 
 __all__ = ('MetaData',)
 __docformat__ = 'epytext'
@@ -44,10 +44,9 @@ __docformat__ = 'epytext'
 # =======
 
 import re
-import os
 import xml.etree.cElementTree as etree
 
-from portage import settings
+from portage import os, settings
 
 # =======
 # Classes

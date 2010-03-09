@@ -1,13 +1,12 @@
-# Copyright 2009-2010 Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2 or higher
 #
 # $Header: $
 
-"""Display metadata about a given package"""
+"""Display metadata about a given package."""
 
-# Move to Imports section after Python-2.6 is stable
-from __future__ import with_statement
+from __future__ import print_function
 
 __docformat__ = 'epytext'
 
@@ -15,16 +14,18 @@ __docformat__ = 'epytext'
 # Imports
 # =======
 
-import os
 import re
 import sys
 from getopt import gnu_getopt, GetoptError
 
+from portage import os
+
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
 from gentoolkit.equery import format_options, mod_usage, CONFIG
-from gentoolkit.helpers import find_packages, print_sequence, print_file
+from gentoolkit.helpers import print_sequence, print_file
 from gentoolkit.textwrap_ import TextWrapper
+from gentoolkit.query import Query
 
 # =======
 # Globals
@@ -57,13 +58,13 @@ def print_help(with_description=True, with_usage=True):
 	"""
 
 	if with_description:
-		print __doc__.strip()
-		print
+		print(__doc__.strip())
+		print()
 	if with_usage:
-		print mod_usage(mod_name="meta")
-		print
-	print pp.command("options")
-	print format_options((
+		print(mod_usage(mod_name="meta"))
+		print()
+	print(pp.command("options"))
+	print(format_options((
 		(" -h, --help", "display this help message"),
 		(" -d, --description", "show an extended package description"),
 		(" -H, --herd", "show the herd(s) for the package"),
@@ -72,7 +73,7 @@ def print_help(with_description=True, with_usage=True):
 		(" -u, --useflags", "show per-package USE flag descriptions"),
 		(" -U, --upstream", "show package's upstream information"),
 		(" -x, --xml", "show the plain metadata.xml file")
-	))
+	)))
 
 
 def filter_keywords(matches):
@@ -244,15 +245,12 @@ def format_keywords_line(pkg, fmtd_keywords, slot, verstr_len):
 
 # R0912: *Too many branches (%s/%s)*
 # pylint: disable-msg=R0912
-def call_format_functions(matches):
+def call_format_functions(best_match, matches):
 	"""Call information gathering functions and display the results."""
 
-	# Choose a good package to reference metadata from
-	ref_pkg = get_reference_pkg(matches)
-
 	if CONFIG['verbose']:
-		repo = ref_pkg.repo_name()
-		print " * %s [%s]" % (pp.cpv(ref_pkg.cp), pp.section(repo))
+		repo = best_match.repo_name()
+		print(" * %s [%s]" % (pp.cpv(best_match.cp), pp.section(repo)))
 
 	got_opts = False
 	if any(QUERY_OPTS.values()):
@@ -260,26 +258,26 @@ def call_format_functions(matches):
 		got_opts = True
 
 	if QUERY_OPTS["herd"] or not got_opts:
-		herds = format_herds(ref_pkg.metadata.herds(include_email=True))
+		herds = format_herds(best_match.metadata.herds(include_email=True))
 		if QUERY_OPTS["herd"]:
 			print_sequence(format_list(herds))
 		else:
 			for herd in herds:
-				print format_line(herd, "Herd:        ", " " * 13)
+				print(format_line(herd, "Herd:        ", " " * 13))
 
 	if QUERY_OPTS["maintainer"] or not got_opts:
-		maints = format_maintainers(ref_pkg.metadata.maintainers())
+		maints = format_maintainers(best_match.metadata.maintainers())
 		if QUERY_OPTS["maintainer"]:
 			print_sequence(format_list(maints))
 		else:
 			if not maints:
-				print format_line([], "Maintainer:  ", " " * 13)
+				print(format_line([], "Maintainer:  ", " " * 13))
 			else:
 				for maint in maints:
-					print format_line(maint, "Maintainer:  ", " " * 13)
+					print(format_line(maint, "Maintainer:  ", " " * 13))
 
 	if QUERY_OPTS["upstream"] or not got_opts:
-		upstream = format_upstream(ref_pkg.metadata.upstream())
+		upstream = format_upstream(best_match.metadata.upstream())
 		if QUERY_OPTS["upstream"]:
 			upstream = format_list(upstream)
 		else:
@@ -287,8 +285,8 @@ def call_format_functions(matches):
 		print_sequence(upstream)
 
 	if not got_opts:
-		pkg_loc = ref_pkg.package_path()
-		print format_line(pkg_loc, "Location:    ", " " * 13)
+		pkg_loc = best_match.package_path()
+		print(format_line(pkg_loc, "Location:    ", " " * 13))
 
 	if QUERY_OPTS["keywords"] or not got_opts:
 		# Get {<Package 'dev-libs/glib-2.20.5'>: [u'ia64', u'm68k', ...], ...}
@@ -302,21 +300,21 @@ def call_format_functions(matches):
 				match, fmtd_keywords, slot, verstr_len
 			)
 			if QUERY_OPTS["keywords"]:
-				print keywords_line
+				print(keywords_line)
 			else:
 				indent = " " * (16 + verstr_len)
-				print format_line(keywords_line, "Keywords:    ", indent)
+				print(format_line(keywords_line, "Keywords:    ", indent))
 
 	if QUERY_OPTS["description"]:
-		desc = ref_pkg.metadata.descriptions()
+		desc = best_match.metadata.descriptions()
 		print_sequence(format_list(desc))
 
 	if QUERY_OPTS["useflags"]:
-		useflags = format_useflags(ref_pkg.metadata.use())
+		useflags = format_useflags(best_match.metadata.use())
 		print_sequence(format_list(useflags))
 
 	if QUERY_OPTS["xml"]:
-		print_file(os.path.join(ref_pkg.package_path(), 'metadata.xml'))
+		print_file(os.path.join(best_match.package_path(), 'metadata.xml'))
 
 
 def format_line(line, first="", subsequent="", force_quiet=False):
@@ -418,19 +416,6 @@ def format_list(lst, first="", subsequent="", force_quiet=False):
 	return result
 
 
-def get_reference_pkg(matches):
-	"""Find a package in the Portage tree to reference."""
-
-	pkg = None
-	rev_matches = list(reversed(matches))
-	while rev_matches:
-		pkg = rev_matches.pop()
-		if not pkg.is_overlay():
-			break
-
-	return pkg
-
-
 def parse_module_options(module_opts):
 	"""Parse module options and update QUERY_OPTS"""
 
@@ -464,9 +449,9 @@ def main(input_args):
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
-	except GetoptError, err:
+	except GetoptError as err:
 		sys.stderr.write(pp.error("Module %s" % err))
-		print
+		print()
 		print_help(with_description=False)
 		sys.exit(2)
 
@@ -478,16 +463,17 @@ def main(input_args):
 		sys.exit(2)
 
 	first_run = True
-	for query in queries:
-		matches = find_packages(query, include_masked=True)
+	for query in (Query(x) for x in queries):
+		best_match = query.find_best()
+		matches = query.find(include_masked=True)
 		if not matches:
 			raise errors.GentoolkitNoMatches(query)
 
 		if not first_run:
-			print
+			print()
 
 		matches.sort()
-		call_format_functions(matches)
+		call_format_functions(best_match, matches)
 
 		first_run = False
 

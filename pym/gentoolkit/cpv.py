@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright 2009-2010 Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -8,13 +8,17 @@
 
 """Provides attributes and methods for a category/package-version string."""
 
-__all__ = ('CPV',)
+__all__ = (
+	'CPV',
+	'compare_strs',
+	'split_cpv'
+)
 
 # =======
 # Imports
 # =======
 
-from portage.versions import catpkgsplit, vercmp
+from portage.versions import catpkgsplit, vercmp, pkgcmp
 
 from gentoolkit import errors
 
@@ -64,6 +68,9 @@ class CPV(object):
 			return False
 		return self.cpv == other.cpv
 
+	def __hash__(self):
+		return hash(self.cpv)
+
 	def __ne__(self, other):
 		return not self == other
 
@@ -81,11 +88,7 @@ class CPV(object):
 			# FIXME: this cmp() hack is for vercmp not using -1,0,1
 			# See bug 266493; this was fixed in portage-2.2_rc31
 			#return vercmp(self.fullversion, other.fullversion)
-			result = cmp(vercmp(self.fullversion, other.fullversion), 0)
-			if result == -1:
-				return True
-			else:
-				return False
+			return vercmp(self.fullversion, other.fullversion) < 0
 
 	def __gt__(self, other):
 		if not isinstance(other, self.__class__):
@@ -118,6 +121,26 @@ class CPV(object):
 # =========
 # Functions
 # =========
+
+def compare_strs(pkg1, pkg2):
+	"""Similar to the builtin cmp, but for package strings. Usually called
+	as: package_list.sort(cpv.compare_strs)
+
+	An alternative is to use the CPV descriptor from gentoolkit.cpv:
+	>>> cpvs = sorted(CPV(x) for x in package_list)
+
+	@see: >>> help(cmp)
+	"""
+
+	pkg1 = catpkgsplit(pkg1)
+	pkg2 = catpkgsplit(pkg2)
+	if pkg1[0] != pkg2[0]:
+		return -1 if pkg1[0] < pkg2[0] else 1
+	elif pkg1[1] != pkg2[1]:
+		return -1 if pkg1[1] < pkg2[1] else 1
+	else:
+		return pkgcmp(pkg1[1:], pkg2[1:])
+
 
 def split_cpv(cpv):
 	"""Split a cpv into category, name, version and revision.

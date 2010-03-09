@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
-# Copyright 2004, Karl Trygve Kalleberg <karltk@gentoo.org>
-# Copyright 2004-2010 Gentoo Foundation
+# Copyright(c) 2004, Karl Trygve Kalleberg <karltk@gentoo.org>
+# Copyright(c) 2004-2010, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -26,24 +26,34 @@ Example usage:
 
 __all__ = (
 	'Package',
-	'PackageFormatter'
+	'PackageFormatter',
+	'FORMAT_TMPL_VARS'
 )
+
+# =======
+# Globals
+# =======
+
+FORMAT_TMPL_VARS = ( 
+	'$location', '$mask', '$cp', '$cpv', '$category', '$name', '$version', '$revision',
+	'$fullversion', '$slot', '$repo'
+) 
 
 # =======
 # Imports
 # =======
 
-import os
+from string import Template
 
 import portage
-from portage import settings
+from portage import os, settings
+from portage.util import LazyItemsDict
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
 from gentoolkit.cpv import CPV
 from gentoolkit.dbapi import PORTDB, VARDB
-from gentoolkit.dependencies import Dependencies
-from gentoolkit.metadata import MetaData
+from gentoolkit.keyword import determine_keyword
 
 # =======
 # Classes
@@ -86,6 +96,8 @@ class Package(CPV):
 	def metadata(self):
 		"""Instantiate a L{gentoolkit.metadata.MetaData} object here."""
 
+		from gentoolkit.metadata import MetaData
+
 		if self._metadata is None:
 			metadata_path = os.path.join(
 				self.package_path(), 'metadata.xml'
@@ -111,6 +123,8 @@ class Package(CPV):
 	@property
 	def deps(self):
 		"""Instantiate a L{gentoolkit.dependencies.Dependencies} object here."""
+
+		from gentoolkit.dependencies import Dependencies
 
 		if self._deps is None:
 			self._deps = Dependencies(self.cpv)
@@ -151,7 +165,7 @@ class Package(CPV):
 		"""
 
 		got_string = False
-		if isinstance(envvars, basestring):
+		if isinstance(envvars, str):
 			got_string = True
 			envvars = (envvars,)
 		if prefer_vdb:
@@ -274,7 +288,7 @@ class Package(CPV):
 		@param fallback: if the repo_name file does not exist, return the
 			repository name from the path
 		@rtype: str
-		@return: output of the repository metadata file, which stores the 
+		@return: output of the repository metadata file, which stores the
 			repo_name variable, or try to get the name of the repo from
 			the path.
 		@raise GentoolkitFatalError: if fallback is False and repo_name is
@@ -310,21 +324,29 @@ class Package(CPV):
 		"""
 
 		seen = set()
-		content_stats = (os.lstat(x) for x in self.parsed_contents())
-		# Remove hardlinks by checking for duplicate inodes. Bug #301026.
-		unique_file_stats = (x for x in content_stats if x.st_ino not in seen
-			and not seen.add(x.st_ino))
-		size = n_uncounted = n_files = 0
-		for st in unique_file_stats:
+		size = n_files = n_uncounted = 0
+		for f in self.parsed_contents():
+			try:
+				st = os.lstat(f)
+			except OSError:
+				pass
+
+			# Remove hardlinks by checking for duplicate inodes. Bug #301026.
+			file_inode = st.st_ino
+			if file_inode in seen:
+				pass
+			seen.add(file_inode)
+
 			try:
 				size += st.st_size
 				n_files += 1
 			except OSError:
 				n_uncounted += 1
+
 		return (size, n_files, n_uncounted)
 
 	def is_installed(self):
-		"""Returns True if this package is installed (merged)"""
+		"""Returns True if this package is installed (merged)."""
 
 		return self.dblink.exists()
 
@@ -339,9 +361,10 @@ class Package(CPV):
 		return (tree and tree != self._portdir_path)
 
 	def is_masked(self):
-		"""Returns true if this package is masked against installation.
-		Note: We blindly assume that the package actually exists on disk
-		somewhere."""
+		"""Returns True if this package is masked against installation.
+
+		@note: We blindly assume that the package actually exists on disk.
+		"""
 
 		unmasked = PORTDB.xmatch("match-visible", self.cpv)
 		return self.cpv not in unmasked
@@ -366,40 +389,85 @@ class PackageFormatter(object):
 
 	@type pkg: L{gentoolkit.package.Package}
 	@param pkg: package to format
-	@type format: L{bool}
-	@param format: Whether to format the package name or not.
-		Essentially C{format} should be set to False when piping or when
+	@type do_format: bool
+	@param do_format: Whether to format the package name or not.
+		Essentially C{do_format} should be set to False when piping or when
 		quiet output is desired. If C{do_format} is False, only the location
 		attribute will be created to save time.
 	"""
 
-	def __init__(self, pkg, do_format=True):
-		self.pkg = pkg
+	_tmpl_verbose = "[$location] [$mask] $cpv:$slot"
+	_tmpl_quiet = "$cpv:$slot"
+
+	def __init__(self, pkg, do_format=True, custom_format=None, fill_sizes = None):
+		self._pkg = None
 		self.do_format = do_format
-		self.location = self.format_package_location() or ''
+		self._str = None
+		self._location = None
+		if not custom_format:
+			if do_format:
+				custom_format = self._tmpl_verbose
+			else:
+				custom_format = self._tmpl_quiet
+		self.tmpl = Template(custom_format)
+		self.format_vars = LazyItemsDict()
+		self.pkg = pkg
+		if fill_sizes:
+			self.fill_sizes = fill_sizes
+		else:
+			self.fill_sizes = {
+				'cpv': 50,
+				'keyword': 10,
+				'mask': 10,
+				}
+
 
 	def __repr__(self):
 		return "<%s %s @%#8x>" % (self.__class__.__name__, self.pkg, id(self))
 
 	def __str__(self):
-		if self.do_format:
-			maskmodes = ['  ', ' ~', ' -', 'M ', 'M~', 'M-', '??']
-			maskmode = maskmodes[self.format_mask_status()[0]]
-			return "[%(location)s] [%(mask)s] %(package)s:%(slot)s" % {
-				'location': self.location,
-				'mask': pp.keyword(
-					maskmode,
-					stable=not maskmode.strip(),
-					hard_masked=set(('M', '?', '-')).intersection(maskmode)
-				),
-				'package': pp.cpv(str(self.pkg.cpv)),
-				'slot': pp.slot(self.pkg.environment("SLOT"))
-			}
-		else:
-			return str(self.pkg.cpv)
+		if self._str is None:
+			self._str = self.tmpl.safe_substitute(self.format_vars)
+		return self._str
+
+	@property
+	def location(self):
+		if self._location is None:
+			self._location = self.format_package_location()
+		return self._location
+
+	@property
+	def pkg(self):
+		"""Package to format"""
+		return self._pkg
+
+	@pkg.setter
+	def pkg(self, value):
+		if self._pkg == value:
+			return
+		self._pkg = value
+		self._location = None
+
+		fmt_vars = self.format_vars
+		self.format_vars.clear()
+		fmt_vars.addLazySingleton("location",
+			lambda: getattr(self, "location"))
+		fmt_vars.addLazySingleton("mask", self.format_mask)
+		fmt_vars.addLazySingleton("mask2", self.format_mask_status2)
+		fmt_vars.addLazySingleton("cpv", self.format_cpv)
+		fmt_vars.addLazySingleton("cpv_fill", self.format_cpv, fill=True)
+		fmt_vars.addLazySingleton("cp", self.format_cpv, "cp")
+		fmt_vars.addLazySingleton("category", self.format_cpv, "category")
+		fmt_vars.addLazySingleton("name", self.format_cpv, "name")
+		fmt_vars.addLazySingleton("version", self.format_cpv, "version")
+		fmt_vars.addLazySingleton("revision", self.format_cpv, "revision")
+		fmt_vars.addLazySingleton("fullversion", self.format_cpv,
+			"fullversion")
+		fmt_vars.addLazySingleton("slot", self.format_slot)
+		fmt_vars.addLazySingleton("repo", self.pkg.repo_name)
 
 	def format_package_location(self):
-		"""Get the install status (in /var/db/?) and origin (from and overlay
+		"""Get the install status (in /var/db/?) and origin (from an overlay
 		and the Portage tree?).
 
 		@rtype: str
@@ -456,6 +524,50 @@ class PackageFormatter(object):
 			result += 3
 
 		return (result, masking_status)
+
+	def format_mask_status2(self):
+		"""Get the mask status of a given package.
+		"""
+		mask = self.pkg.mask_status()
+		if mask:
+			return pp.masking(mask)
+		else:
+			arch = self.pkg.settings("ARCH")
+			keywords = self.pkg.environment('KEYWORDS')
+			mask =  [determine_keyword(arch,
+				portage.settings["ACCEPT_KEYWORDS"],
+				keywords)]
+		return pp.masking(mask)
+
+	def format_mask(self):
+		maskmodes = ['  ', ' ~', ' -', 'M ', 'M~', 'M-', '??']
+		maskmode = maskmodes[self.format_mask_status()[0]]
+		return pp.keyword(
+			maskmode,
+			stable=not maskmode.strip(),
+			hard_masked=set(('M', '?', '-')).intersection(maskmode)
+		)
+
+	def format_cpv(self, attr = None, fill=False):
+		if attr is None:
+			value = self.pkg.cpv
+		else:
+			value = getattr(self.pkg, attr)
+		if self.do_format:
+			if fill:
+				trail = '.'*(self.fill_sizes['cpv']-len(value))
+				return pp.cpv(value) + trail
+			else:
+				return pp.cpv(value)
+		else:
+			return value
+
+	def format_slot(self):
+		value = self.pkg.environment("SLOT")
+		if self.do_format:
+			return pp.slot(value)
+		else:
+			return value
 
 
 # vim: set ts=4 sw=4 tw=79:

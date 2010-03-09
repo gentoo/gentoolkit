@@ -1,10 +1,12 @@
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2 or higher
 #
 # $Header: $
 
 """List installed packages matching the query pattern"""
+
+from __future__ import print_function
 
 __docformat__ = 'epytext'
 
@@ -18,8 +20,9 @@ from getopt import gnu_getopt, GetoptError
 import gentoolkit
 import gentoolkit.pprinter as pp
 from gentoolkit.equery import format_options, mod_usage, CONFIG
-from gentoolkit.helpers import do_lookup, get_installed_cpvs
-from gentoolkit.package import Package, PackageFormatter
+from gentoolkit.helpers import get_installed_cpvs
+from gentoolkit.package import PackageFormatter, FORMAT_TMPL_VARS
+from gentoolkit.query import Query
 
 # =======
 # Globals
@@ -27,13 +30,13 @@ from gentoolkit.package import Package, PackageFormatter
 
 QUERY_OPTS = {
 	"duplicates": False,
-	"includeInstalled": True,
-	"includePortTree": False,
-	"includeOverlayTree": False,
-	"includeMasked": True,
-	"includeMaskReason": False,
-	"isRegex": False,
-	"printMatchInfo": (not CONFIG['quiet'])
+	"in_installed": True,
+	"in_porttree": False,
+	"in_overlay": False,
+	"include_mask_reason": False,
+	"is_regex": False,
+	"show_progress": (not CONFIG['quiet']),
+	"package_format": None
 }
 
 # =========
@@ -48,8 +51,8 @@ def print_help(with_description=True):
 	"""
 
 	if with_description:
-		print __doc__.strip()
-		print
+		print(__doc__.strip())
+		print()
 
 	# Deprecation warning added by djanderson, 12/2008
 	depwarning = (
@@ -60,12 +63,12 @@ def print_help(with_description=True):
 	)
 	for line in depwarning:
 		sys.stderr.write(pp.warn(line))
-	print
+	print()
 
-	print mod_usage(mod_name="list")
-	print
-	print pp.command("options")
-	print format_options((
+	print(mod_usage(mod_name="list"))
+	print()
+	print(pp.command("options"))
+	print(format_options((
 		(" -h, --help", "display this help message"),
 		(" -d, --duplicates", "list only installed duplicate packages"),
 		(" -f, --full-regex", "query is a regular expression"),
@@ -73,8 +76,12 @@ def print_help(with_description=True):
 		(" -I, --exclude-installed",
 			"exclude installed packages from output"),
 		(" -o, --overlay-tree", "list packages in overlays"),
-		(" -p, --portage-tree", "list packages in the main portage tree")
-	))
+		(" -p, --portage-tree", "list packages in the main portage tree"),
+		(" -F, --format=TMPL", "specify a custom output format"),
+        ("              TMPL",
+			"a format template using (see man page):")
+	)))
+	print(" " * 24, ', '.join(pp.emph(x) for x in FORMAT_TMPL_VARS))			
 
 
 def get_duplicates(matches):
@@ -83,10 +90,10 @@ def get_duplicates(matches):
 	dups = {}
 	result = []
 	for pkg in matches:
-		if pkg.cpv.cp in dups:
-			dups[pkg.cpv.cp].append(pkg)
+		if pkg.cp in dups:
+			dups[pkg.cp].append(pkg)
 		else:
-			dups[pkg.cpv.cp] = [pkg]
+			dups[pkg.cp] = [pkg]
 
 	for cpv in dups.values():
 		if len(cpv) > 1:
@@ -105,43 +112,45 @@ def parse_module_options(module_opts):
 			print_help()
 			sys.exit(0)
 		elif opt in ('-I', '--exclude-installed'):
-			QUERY_OPTS['includeInstalled'] = False
+			QUERY_OPTS['in_installed'] = False
 		elif opt in ('-p', '--portage-tree'):
-			QUERY_OPTS['includePortTree'] = True
+			QUERY_OPTS['in_porttree'] = True
 		elif opt in ('-o', '--overlay-tree'):
-			QUERY_OPTS['includeOverlayTree'] = True
+			QUERY_OPTS['in_overlay'] = True
 		elif opt in ('-f', '--full-regex'):
-			QUERY_OPTS['isRegex'] = True
+			QUERY_OPTS['is_regex'] = True
 		elif opt in ('-m', '--mask-reason'):
-			QUERY_OPTS['includeMaskReason'] = True
+			QUERY_OPTS['include_mask_reason'] = True
 		elif opt in ('-e', '--exact-name'):
 			sys.stderr.write(pp.warn("-e, --exact-name is now default."))
 			sys.stderr.write(
 				pp.warn("Use globbing to simulate the old behavior.")
 			)
-			print
+			print()
 		elif opt in ('-d', '--duplicates'):
 			QUERY_OPTS['duplicates'] = True
+		elif opt in ('-F', '--format'):
+			QUERY_OPTS["package_format"] = posarg
 
 
 def main(input_args):
 	"""Parse input and run the program"""
 
-	short_opts = "hdefiImop" # -i, -e were options for default actions
+	short_opts = "hdefiImopF:" # -i, -e were options for default actions
 
 	# 04/09: djanderson
 	# --all is no longer needed. Kept for compatibility.
 	# --installed is no longer needed. Kept for compatibility.
 	# --exact-name is no longer needed. Kept for compatibility.
 	long_opts = ('help', 'all', 'installed', 'exclude-installed',
-	'mask-reason', 'portage-tree', 'overlay-tree', 'full-regex', 'exact-name',
-	'duplicates')
+		'mask-reason', 'portage-tree', 'overlay-tree', 'format=', 'full-regex',
+		'exact-name', 'duplicates')
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
-	except GetoptError, err:
+	except GetoptError as err:
 		sys.stderr.write(pp.error("Module %s" % err))
-		print
+		print()
 		print_help(with_description=False)
 		sys.exit(2)
 
@@ -149,21 +158,21 @@ def main(input_args):
 
 	# Only search installed packages when listing duplicate packages
 	if QUERY_OPTS["duplicates"]:
-		QUERY_OPTS["includeInstalled"] = True
-		QUERY_OPTS["includePortTree"] = False
-		QUERY_OPTS["includeOverlayTree"] = False
-		QUERY_OPTS["includeMaskReason"] = False
+		QUERY_OPTS["in_installed"] = True
+		QUERY_OPTS["in_porttree"] = False
+		QUERY_OPTS["in_overlay"] = False
+		QUERY_OPTS["include_mask_reason"] = False
 
 	if not queries:
 		print_help()
 		sys.exit(2)
 
 	first_run = True
-	for query in queries:
+	for query in (Query(x, QUERY_OPTS['is_regex']) for x in queries):
 		if not first_run:
-			print
+			print()
 
-		matches = do_lookup(query, QUERY_OPTS)
+		matches = query.smart_find(**QUERY_OPTS)
 
 		# Find duplicate packages
 		if QUERY_OPTS["duplicates"]:
@@ -177,26 +186,34 @@ def main(input_args):
 
 		for pkg in matches:
 			if CONFIG['verbose']:
-				pkgstr = PackageFormatter(pkg, do_format=True)
+				pkgstr = PackageFormatter(
+					pkg,
+					do_format=True,
+					custom_format=QUERY_OPTS["package_format"]
+				)
 			else:
-				pkgstr = PackageFormatter(pkg, do_format=False)
+				pkgstr = PackageFormatter(
+					pkg,
+					do_format=False,
+					custom_format=QUERY_OPTS["package_format"]
+				)
 
-			if (QUERY_OPTS["includeInstalled"] and
-				not QUERY_OPTS["includePortTree"] and
-				not QUERY_OPTS["includeOverlayTree"]):
+			if (QUERY_OPTS["in_installed"] and
+				not QUERY_OPTS["in_porttree"] and
+				not QUERY_OPTS["in_overlay"]):
 				if not 'I' in pkgstr.location:
 					continue
-			if (QUERY_OPTS["includePortTree"] and
-				not QUERY_OPTS["includeOverlayTree"]):
+			if (QUERY_OPTS["in_porttree"] and
+				not QUERY_OPTS["in_overlay"]):
 				if not 'P' in pkgstr.location:
 					continue
-			if (QUERY_OPTS["includeOverlayTree"] and
-				not QUERY_OPTS["includePortTree"]):
+			if (QUERY_OPTS["in_overlay"] and
+				not QUERY_OPTS["in_porttree"]):
 				if not 'O' in pkgstr.location:
 					continue
-			print pkgstr
+			print(pkgstr)
 
-			if QUERY_OPTS["includeMaskReason"]:
+			if QUERY_OPTS["include_mask_reason"]:
 				ms_int, ms_orig = pkgstr.format_mask_status()
 				if not ms_int > 2:
 					# ms_int is a number representation of mask level.
@@ -207,17 +224,17 @@ def main(input_args):
 					# Package not on system or not masked
 					continue
 				elif not any(mask_reason):
-					print " * No mask reason given"
+					print(" * No mask reason given")
 				else:
 					status = ', '.join(ms_orig)
 					explanation = mask_reason[0]
 					mask_location = mask_reason[1]
-					print " * Masked by %r" % status
-					print " * %s:" % mask_location
-					print '\n'.join(
+					print(" * Masked by %r" % status)
+					print(" * %s:" % mask_location)
+					print('\n'.join(
 						[' * %s' % line.lstrip(' #')
 							for line in explanation.splitlines()]
-						)
+						))
 
 		first_run = False
 

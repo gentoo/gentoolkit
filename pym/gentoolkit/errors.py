@@ -1,4 +1,4 @@
-# Copyright(c) 2004-2010, Gentoo Foundation
+# Copyright(c) 2004-2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2 or later
 
@@ -14,7 +14,9 @@ __all__ = (
 	'GentoolkitInvalidCPV',
 	'GentoolkitInvalidRegex',
 	'GentoolkitInvalidVersion',
-	'GentoolkitNoMatches'
+	'GentoolkitNoMatches',
+	'GentoolkitSetNotFound',
+	'GentoolkitUnknownKeyword'
 )
 
 # ==========
@@ -53,6 +55,15 @@ class GentoolkitInvalidAtom(GentoolkitException):
 
 	def __str__(self):
 		return "Invalid atom: '%s'" % self.atom
+
+
+class GentoolkitSetNotFound(GentoolkitException):
+	"""Got unknown set."""
+	def __init__(self, setname):
+		self.setname = setname
+
+	def __str__(self):
+		return "Unknown set: '%s'" % self.setname
 
 
 class GentoolkitInvalidCategory(GentoolkitException):
@@ -110,5 +121,17 @@ class GentoolkitNoMatches(GentoolkitException):
 		inst = 'installed ' if self.in_installed else ''
 		return "No %spackages matching '%s'" % (inst, self.query)
 
+
+class GentoolkitUnknownKeyword(GentoolkitException):
+	"""No packages were found matching the search query."""
+	def __init__(self, query, keywords, use):
+		self.query = query
+		self.keywords = keywords
+		self.use = use
+
+	def __str__(self):
+		return ("Unable to determine the install keyword for:\n" +
+			"'%s', KEYWORDS = '%s'\nUSE flags = '%s'"
+			% (self.query, self.keywords, self.use))
 
 # vim: set ts=4 sw=4 tw=79:

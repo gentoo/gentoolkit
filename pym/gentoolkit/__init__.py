@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # Copyright 2003-2004 Karl Trygve Kalleberg
-# Copyright 2003-2010 Gentoo Foundation
+# Copyright 2003-2009 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 #
 # $Header$
@@ -17,6 +17,8 @@ CONFIG = {
     'piping': False if sys.stdout.isatty() else True,
     # Set some defaults:
     'quiet': False,
+    # verbose is True if not quiet and not piping
+    'verbose': True,
     'debug': False
 }
 

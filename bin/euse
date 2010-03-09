@@ -116,7 +116,7 @@ cat << VER
 ${PROGRAM_NAME} (${VERSION})
 Written by Marius Mauch
 
-Copyright (C) 2004-2010 Gentoo Foundation, Inc.
+Copyright (C) 2004-2009 Gentoo Foundation, Inc.
 This is free software; see the source for copying conditions.
 VER
 }

@@ -1,4 +1,4 @@
-# Copyright(c) 2009-2010, Gentoo Foundation
+# Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
 #
@@ -9,6 +9,8 @@
 Note: Normally, only one package will own a file. If multiple packages own
       the same file, it usually constitutes a problem, and should be reported.
 """
+
+from __future__ import print_function
 
 __docformat__ = 'epytext'
 
@@ -57,19 +59,19 @@ class BelongsPrinter(object):
 	def print_quiet(self, pkg, cfile):
 		"Format for minimal output."
 		if self.name_only:
-			name = pkg.cpv.cp
+			name = pkg.cp
 		else:
 			name = str(pkg.cpv)
-		print name
+		print(name)
 
 	def print_verbose(self, pkg, cfile):
 		"Format for full output."
 		file_str = pp.path(format_filetype(cfile, pkg.parsed_contents()[cfile]))
 		if self.name_only:
-			name = pkg.cpv.cp
+			name = pkg.cp
 		else:
 			name = str(pkg.cpv)
-		print pp.cpv(name), "(" + file_str + ")"
+		print(pp.cpv(name), "(" + file_str + ")")
 
 
 # =========
@@ -88,7 +90,7 @@ def parse_module_options(module_opts):
 			if opt == '--earlyout':
 				sys.stderr.write(pp.warn("Use of --earlyout is deprecated."))
 				sys.stderr.write(pp.warn("Please use --early-out."))
-				print
+				print()
 			QUERY_OPTS['earlyOut'] = True
 		elif opt in ('-f', '--full-regex'):
 			QUERY_OPTS['fullRegex'] = True
@@ -104,17 +106,17 @@ def print_help(with_description=True):
 	"""
 
 	if with_description:
-		print __doc__.strip()
-		print
-	print mod_usage(mod_name="belongs", arg="filename")
-	print
-	print pp.command("options")
-	print format_options((
+		print(__doc__.strip())
+		print()
+	print(mod_usage(mod_name="belongs", arg="filename"))
+	print()
+	print(pp.command("options"))
+	print(format_options((
 		(" -h, --help", "display this help message"),
 		(" -f, --full-regex", "supplied query is a regex" ),
 		(" -e, --early-out", "stop when first match is found"),
 		(" -n, --name-only", "don't print the version")
-	))
+	)))
 
 
 def main(input_args):
@@ -126,9 +128,9 @@ def main(input_args):
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
-	except GetoptError, err:
+	except GetoptError as err:
 		sys.stderr.write(pp.error("Module %s" % err))
-		print
+		print()
 		print_help(with_description=False)
 		sys.exit(2)
 
@@ -139,7 +141,7 @@ def main(input_args):
 		sys.exit(2)
 
 	if CONFIG['verbose']:
-		print " * Searching for %s ... " % (pp.regexpquery(",".join(queries)))
+		print(" * Searching for %s ... " % (pp.regexpquery(",".join(queries))))
 
 	printer_fn = BelongsPrinter(
 		verbose=CONFIG['verbose'], name_only=QUERY_OPTS['nameOnly']
