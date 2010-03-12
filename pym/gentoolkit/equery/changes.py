@@ -101,8 +101,7 @@ def print_entries(entries):
 	"""Print entries and strip trailing whitespace from the last entry."""
 
 	len_entries = len(entries)
-	for i, entry in enumerate(entries):    # , start=1): in py2.6
-		i += 1
+	for i, entry in enumerate(entries, start=1):
 		if i < len_entries:
 			print(entry)
 		else:

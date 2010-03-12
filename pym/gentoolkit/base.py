@@ -1,12 +1,11 @@
-# Copyright(c) 2009, Gentoo Foundation
+#!/usr/bin/python
 #
-# Copyright 2010 Brian Dolbec <brian.dolbec@gmail.com>
-# Copyright(c) 2010, Gentoo Foundation
+# Copyright(c) 2009 - 2010, Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 #
 # $Header: $
 
-"""Analyse Base Module class to hold common module operation functions
+"""Gentoolkit Base Module class to hold common module operation functions
 """
 
 from __future__ import print_function

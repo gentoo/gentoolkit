@@ -16,12 +16,15 @@ __docformat__ = 'epytext'
 
 import re
 import sys
+import codecs
 from getopt import gnu_getopt, GetoptError
+from functools import partial
 
 from portage import os
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
+from gentoolkit import keyword
 from gentoolkit.equery import format_options, mod_usage, CONFIG
 from gentoolkit.helpers import print_sequence, print_file
 from gentoolkit.textwrap_ import TextWrapper
@@ -216,7 +219,7 @@ def format_keywords(keywords):
 
 	result = []
 
-	for kw in sorted(keywords):
+	for kw in sorted(keywords, cmp=keyword.compare_strs):
 		if kw.startswith('-'):
 			# arch masked
 			kw = pp.keyword(kw, stable=False, hard_masked=True)
@@ -248,9 +251,15 @@ def format_keywords_line(pkg, fmtd_keywords, slot, verstr_len):
 def call_format_functions(best_match, matches):
 	"""Call information gathering functions and display the results."""
 
+	if hasattr(sys.stdout, "buffer"):
+		utf8_stdout = codecs.getwriter("utf-8")(sys.stdout.buffer)
+	else:
+		utf8_stdout = codecs.getwriter("utf-8")(sys.stdout)
+	uprint = partial(print, file=utf8_stdout)
+
 	if CONFIG['verbose']:
 		repo = best_match.repo_name()
-		print(" * %s [%s]" % (pp.cpv(best_match.cp), pp.section(repo)))
+		uprint(" * %s [%s]" % (pp.cpv(best_match.cp), pp.section(repo)))
 
 	got_opts = False
 	if any(QUERY_OPTS.values()):
@@ -258,12 +267,17 @@ def call_format_functions(best_match, matches):
 		got_opts = True
 
 	if QUERY_OPTS["herd"] or not got_opts:
-		herds = format_herds(best_match.metadata.herds(include_email=True))
+		herds = best_match.metadata.herds(include_email=True)
+		if any(not h[0] for h in herds):
+			print(pp.warn("The packages metadata.xml has an empty <herd> tag"),
+				file = sys.stderr)
+			herds = [x for x in herds if x[0]]
+		herds = format_herds(herds)
 		if QUERY_OPTS["herd"]:
 			print_sequence(format_list(herds))
 		else:
 			for herd in herds:
-				print(format_line(herd, "Herd:        ", " " * 13))
+				uprint(format_line(herd, "Herd:        ", " " * 13))
 
 	if QUERY_OPTS["maintainer"] or not got_opts:
 		maints = format_maintainers(best_match.metadata.maintainers())
@@ -271,10 +285,10 @@ def call_format_functions(best_match, matches):
 			print_sequence(format_list(maints))
 		else:
 			if not maints:
-				print(format_line([], "Maintainer:  ", " " * 13))
+				uprint(format_line([], "Maintainer:  ", " " * 13))
 			else:
 				for maint in maints:
-					print(format_line(maint, "Maintainer:  ", " " * 13))
+					uprint(format_line(maint, "Maintainer:  ", " " * 13))
 
 	if QUERY_OPTS["upstream"] or not got_opts:
 		upstream = format_upstream(best_match.metadata.upstream())
@@ -282,11 +296,11 @@ def call_format_functions(best_match, matches):
 			upstream = format_list(upstream)
 		else:
 			upstream = format_list(upstream, "Upstream:    ", " " * 13)
-		print_sequence(upstream)
+		print_sequence(upstream, file = utf8_stdout)
 
 	if not got_opts:
 		pkg_loc = best_match.package_path()
-		print(format_line(pkg_loc, "Location:    ", " " * 13))
+		uprint(format_line(pkg_loc, "Location:    ", " " * 13))
 
 	if QUERY_OPTS["keywords"] or not got_opts:
 		# Get {<Package 'dev-libs/glib-2.20.5'>: [u'ia64', u'm68k', ...], ...}
@@ -300,18 +314,18 @@ def call_format_functions(best_match, matches):
 				match, fmtd_keywords, slot, verstr_len
 			)
 			if QUERY_OPTS["keywords"]:
-				print(keywords_line)
+				uprint(keywords_line)
 			else:
 				indent = " " * (16 + verstr_len)
-				print(format_line(keywords_line, "Keywords:    ", indent))
+				uprint(format_line(keywords_line, "Keywords:    ", indent))
 
 	if QUERY_OPTS["description"]:
 		desc = best_match.metadata.descriptions()
-		print_sequence(format_list(desc))
+		print_sequence(format_list(desc), file = utf8_stdout)
 
 	if QUERY_OPTS["useflags"]:
 		useflags = format_useflags(best_match.metadata.use())
-		print_sequence(format_list(useflags))
+		print_sequence(format_list(useflags), file = utf8_stdout)
 
 	if QUERY_OPTS["xml"]:
 		print_file(os.path.join(best_match.package_path(), 'metadata.xml'))
@@ -375,7 +389,7 @@ def format_line(line, first="", subsequent="", force_quiet=False):
 
 		result = "".join(line)
 
-	return result.encode("utf-8")
+	return result
 
 
 def format_list(lst, first="", subsequent="", force_quiet=False):
@@ -466,8 +480,14 @@ def main(input_args):
 	for query in (Query(x) for x in queries):
 		best_match = query.find_best()
 		matches = query.find(include_masked=True)
-		if not matches:
+		if best_match is None or not matches:
 			raise errors.GentoolkitNoMatches(query)
+
+		if best_match.metadata is None:
+			print(pp.warn("Package {0} is missing "
+				"metadata.xml".format(best_match.cpv)),
+				file = sys.stderr)
+			continue
 
 		if not first_run:
 			print()

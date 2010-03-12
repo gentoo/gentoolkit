@@ -25,13 +25,14 @@ __all__ = (
 
 class GentoolkitException(Exception):
 	"""Base class for gentoolkit exceptions."""
-	def __init__(self):
-		pass
+	def __init__(self, is_serious=True):
+		self.is_serious = is_serious
 
 
 class GentoolkitFatalError(GentoolkitException):
 	"""A fatal error occurred. Usually used to catch Portage exceptions."""
-	def __init__(self, err):
+	def __init__(self, err, is_serious=True):
+		GentoolkitException.__init__(self, is_serious=is_serious)
 		self.err = err
 
 	def __str__(self):
@@ -40,7 +41,8 @@ class GentoolkitFatalError(GentoolkitException):
 
 class GentoolkitAmbiguousPackage(GentoolkitException):
 	"""Got an ambiguous package name."""
-	def __init__(self, choices):
+	def __init__(self, choices, is_serious=False):
+		GentoolkitException.__init__(self, is_serious=is_serious)
 		self.choices = choices
 
 	def __str__(self):
@@ -50,7 +52,8 @@ class GentoolkitAmbiguousPackage(GentoolkitException):
 
 class GentoolkitInvalidAtom(GentoolkitException):
 	"""Got a malformed package atom."""
-	def __init__(self, atom):
+	def __init__(self, atom, is_serious=False):
+		GentoolkitException.__init__(self, is_serious=is_serious)
 		self.atom = atom
 
 	def __str__(self):
@@ -59,7 +62,8 @@ class GentoolkitInvalidAtom(GentoolkitException):
 
 class GentoolkitSetNotFound(GentoolkitException):
 	"""Got unknown set."""
-	def __init__(self, setname):
+	def __init__(self, setname, is_serious=False):
+		GentoolkitException.__init__(self, is_serious=is_serious)
 		self.setname = setname
 
 	def __str__(self):
@@ -68,7 +72,8 @@ class GentoolkitSetNotFound(GentoolkitException):
 
 class GentoolkitInvalidCategory(GentoolkitException):
 	"""The category was not listed in portage.settings.categories."""
-	def __init__(self, category):
+	def __init__(self, category, is_serious=False):
+		GentoolkitException.__init__(self, is_serious=is_serious)
 		self.category = category
 
 	def __str__(self):
@@ -77,7 +82,8 @@ class GentoolkitInvalidCategory(GentoolkitException):
 
 class GentoolkitInvalidPackage(GentoolkitException):
 	"""Got an unknown or invalid package."""
-	def __init__(self, package):
+	def __init__(self, package, is_serious=False):
+		GentoolkitException.__init__(self, is_serious=is_serious)
 		self.package = package
 
 	def __str__(self):
@@ -86,7 +92,8 @@ class GentoolkitInvalidPackage(GentoolkitException):
 
 class GentoolkitInvalidCPV(GentoolkitException):
 	"""Got an invalid category/package-ver string."""
-	def __init__(self, cpv):
+	def __init__(self, cpv, is_serious=False):
+		GentoolkitException.__init__(self, is_serious=is_serious)
 		self.cpv = cpv
 
 	def __str__(self):
@@ -95,7 +102,8 @@ class GentoolkitInvalidCPV(GentoolkitException):
 
 class GentoolkitInvalidRegex(GentoolkitException):
 	"""The regex could not be compiled."""
-	def __init__(self, regex):
+	def __init__(self, regex, is_serious=False):
+		GentoolkitException.__init__(self, is_serious=is_serious)
 		self.regex = regex
 
 	def __str__(self):
@@ -104,7 +112,8 @@ class GentoolkitInvalidRegex(GentoolkitException):
 
 class GentoolkitInvalidVersion(GentoolkitException):
 	"""Got a malformed version."""
-	def __init__(self, version):
+	def __init__(self, version, is_serious=False):
+		GentoolkitException.__init__(self, is_serious=is_serious)
 		self.version = version
 
 	def __str__(self):
@@ -113,7 +122,8 @@ class GentoolkitInvalidVersion(GentoolkitException):
 
 class GentoolkitNoMatches(GentoolkitException):
 	"""No packages were found matching the search query."""
-	def __init__(self, query, in_installed=False):
+	def __init__(self, query, in_installed=False, is_serious=False):
+		GentoolkitException.__init__(self, is_serious=is_serious)
 		self.query = query
 		self.in_installed = in_installed
 
@@ -124,7 +134,8 @@ class GentoolkitNoMatches(GentoolkitException):
 
 class GentoolkitUnknownKeyword(GentoolkitException):
 	"""No packages were found matching the search query."""
-	def __init__(self, query, keywords, use):
+	def __init__(self, query, keywords, use, is_serious=True):
+		GentoolkitException.__init__(self, is_serious=is_serious)
 		self.query = query
 		self.keywords = keywords
 		self.use = use

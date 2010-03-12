@@ -12,6 +12,7 @@ the MD5 sum of each file owned by a given package, and many other things.
 
 from __future__ import print_function
 
+import os
 import sys
 # This block ensures that ^C interrupts are handled quietly.
 try:
@@ -36,11 +37,12 @@ from gentoolkit import equery, errors
 try:
 	equery.main()
 except errors.GentoolkitException as err:
-	if '--debug' in sys.argv:
+	if '--debug' in sys.argv or bool(os.getenv('DEBUG', False)):
 		raise
 	else:
 		from gentoolkit import pprinter as pp
 		sys.stderr.write(pp.error(str(err)))
-		print()
-		print("Add '--debug' to global options for traceback.")
+		if err.is_serious:
+			print()
+			print("Add '--debug' to global options for traceback.")
 		sys.exit(1)

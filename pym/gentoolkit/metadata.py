@@ -232,11 +232,14 @@ class MetaData(object):
 
 		result = []
 		for elem in self._xml_tree.findall('herd'):
+			text = elem.text
+			if text is None:
+				text = ''
 			if include_email:
-				herd_mail = self._get_herd_email(elem.text)
-				result.append((elem.text, herd_mail))
+				herd_mail = self._get_herd_email(text)
+				result.append((text, herd_mail))
 			else:
-				result.append(elem.text)
+				result.append(text)
 
 		return result
 

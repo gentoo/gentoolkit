@@ -9,15 +9,11 @@
 """Provides a rebuild file of USE flags or keywords used and by
 what packages according to the Installed package database"""
 
+
 from __future__ import print_function
 
 
-# Move to Imports section after Python 2.6 is stable
-
-
 import sys
-
-from portage import os
 
 import gentoolkit
 from gentoolkit.dbapi import PORTDB, VARDB
@@ -28,6 +24,7 @@ from gentoolkit.analyse.lib import (get_installed_use, get_flags,
 from gentoolkit.analyse.output import RebuildPrinter
 
 import portage
+from portage import os
 
 
 def cpv_all_diff_use(
@@ -37,12 +34,31 @@ def cpv_all_diff_use(
 		_get_flags=get_flags,
 		_get_used=get_installed_use
 		):
+	"""Data gathering and analysis function determines
+	the difference between the current default USE flag settings
+	and the currently installed pkgs recorded USE flag settings
+
+	@type cpvs: list
+	@param cpvs: optional list of [cat/pkg-ver,...] to analyse or
+			defaults to entire installed pkg db
+	@type: system_flags: list
+	@param system_flags: the current default USE flags as defined
+			by portage.settings["USE"].split()
+	@type _get_flags: function
+	@param _get_flags: ovride-able for testing,
+			defaults to gentoolkit.analyse.lib.get_flags
+	@param _get_used: ovride-able for testing,
+			defaults to gentoolkit.analyse.lib.get_installed_use
+	@rtype dict. {cpv:['flag1', '-flag2',...]}
+	"""
 	if cpvs is None:
 		cpvs = VARDB.cpv_all()
 	cpvs.sort()
 	data = {}
 	# pass them in to override for tests
 	flags = FlagAnalyzer(system_flags,
+		filter_defaults=True,
+		target="USE",
 		_get_flags=_get_flags,
 		_get_used=get_installed_use
 	)
@@ -59,7 +75,7 @@ class Rebuild(ModuleBase):
 	"""Installed db analysis tool to query the installed databse
 	and produce/output stats for USE flags or keywords/mask.
 	The 'rebuild' action output is in the form suitable for file type output
-	to create a new package.use, package.keywords, package.unmask 
+	to create a new package.use, package.keywords, package.unmask
 	type files in the event of needing to rebuild the
 	/etc/portage/* user configs
 	"""
@@ -92,7 +108,7 @@ class Rebuild(ModuleBase):
 			("  ", "leading '=' and include the version")
 		]
 		self.formatted_args = [
-			("    use", 
+			("    use",
 			"causes the action to analyse the installed packages USE flags"),
 			("    keywords",
 			"causes the action to analyse the installed packages keywords"),
@@ -106,12 +122,18 @@ class Rebuild(ModuleBase):
 		self.arg_spec = "TargetSpec"
 		self.arg_options = ['use', 'keywords', 'unmask']
 		self.arg_option = False
+		self.warning = (
+			"     CAUTION",
+			"This is beta software and some features/options are incomplete,",
+			"some features may change in future releases includig its name.",
+			"The file generated is saved in your home directory",
+			"Feedback will be appreciated, http://bugs.gentoo.org")
 
 
 
 	def run(self, input_args, quiet=False):
 		"""runs the module
-		
+
 		@param input_args: input arguments to be parsed
 		"""
 		self.options['quiet'] = quiet
@@ -121,8 +143,8 @@ class Rebuild(ModuleBase):
 			self.rebuild_use()
 		elif query in ["keywords"]:
 			self.rebuild_keywords()
-		elif query in ["mask"]:
-			self.rebuild_mask()
+		elif query in ["unmask"]:
+			self.rebuild_unmask()
 
 
 	def rebuild_use(self):
@@ -140,11 +162,10 @@ class Rebuild(ModuleBase):
 				pp.emph(" packages that need entries")))
 			#print pp.emph("     package.use to maintain their current setting")
 		if pkgs:
-			pkg_keys = list(pkgs.keys())
-			pkg_keys.sort()
+			pkg_keys = sorted(pkgs)
 			#print len(pkgs)
 			if self.options["pretend"] and not self.options["quiet"]:
-				print() 
+				print()
 				print(pp.globaloption(
 					"  -- These are the installed packages & flags " +
 					"that were detected"))
@@ -183,29 +204,28 @@ class Rebuild(ModuleBase):
 		print("Module action not yet available")
 		print()
 
-	def rebuild_mask(self):
+	def rebuild_unmask(self):
 		print("Module action not yet available")
 		print()
 
 
 	def save_file(self, filepath, data):
 		"""Writes the data to the file determined by filepath
-		
+
 		@param filepath: string. eg. '/path/to/filename'
 		@param data: list of lines to write to filepath
 		"""
 		if  not self.options["quiet"]:
 			print('   - Saving file: %s' %filepath)
-		#print "Just kidding :)  I haven't codded it yet"
 		with open(filepath, "w") as output:
 			output.write('\n'.join(data))
 		print("   - Done")
 
 
 def main(input_args):
-	"""Common starting method by the analyse master 
+	"""Common starting method by the analyse master
 	unless all modules are converted to this class method.
-	
+
 	@param input_args: input args as supplied by equery master module.
 	"""
 	query_module = Rebuild()

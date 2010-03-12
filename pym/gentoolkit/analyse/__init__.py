@@ -19,7 +19,7 @@ __version__ = "svn"
 __productname__ = "analyse"
 __authors__ = (
 	'Brian Dolbec, <brian.dolbec@gmail.com>'
-	
+
 )
 
 # make an exportable copy of the info for help output
@@ -29,7 +29,7 @@ MODULE_INFO = {
 	"__version__": __version__,
 	"__productname__": __productname__,
 	"__authors__": __authors__
-	
+
 }
 
 import errno
@@ -54,7 +54,7 @@ NAME_MAP = {
 }
 
 FORMATTED_OPTIONS = (
-		("    (a)nalyse", 
+		("    (a)nalyse",
 		"analyses the installed PKG database USE flag or keyword useage"),
 		("    (r)ebuild",
 		"analyses the Installed PKG database and generates files suitable"),

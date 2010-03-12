@@ -22,7 +22,9 @@ class TestGentoolkitKeyword(unittest.TestCase):
 			# stable vs. unstable
 			('amd64-linux', '~amd64-linux'),
 			# different OSes
-			('~x86-linux', '~x86-solaris')
+			('~x86-linux', '~x86-solaris'),
+			# OS vs. no OS
+			('x86', '~amd64-linux')
 		]
 		# Check less than
 		for vt in version_tests:
@@ -33,6 +35,16 @@ class TestGentoolkitKeyword(unittest.TestCase):
 		# Check equal
 		vt = ('~amd64-linux', '~amd64-linux')
 		self.failUnless(compare_strs(vt[0], vt[1]) == 0)
+
+		kwds_presort = [
+			'~amd64', '~amd64-linux', '~ppc', '~ppc-macos', '~x86',
+			'~x86-linux', '~x86-macos', '~x86-solaris'
+		]
+		kwds_postsort = [
+			'~amd64', '~ppc', '~x86', '~amd64-linux', '~x86-linux',
+			'~ppc-macos', '~x86-macos', '~x86-solaris'
+		]
+		self.failUnlessEqual(sorted(kwds_presort, cmp=compare_strs), kwds_postsort)
 
 
 def test_main():

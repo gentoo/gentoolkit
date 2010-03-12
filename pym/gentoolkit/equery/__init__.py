@@ -218,7 +218,10 @@ def initialize_configuration():
 		os.getenv("NOCOLOR") in ("yes", "true")) or CONFIG['color'] == 0):
 		pp.output.nocolor()
 
-	CONFIG['verbose'] = not CONFIG['piping']
+	if CONFIG['piping']:
+		CONFIG['verbose'] = False
+
+	CONFIG['debug'] = bool(os.getenv('DEBUG', False))
 
 
 def main_usage():
@@ -316,10 +319,11 @@ def main():
 	# Parse global options
 	need_help = parse_global_options(global_opts, args)
 
-	# FIXME: There are a few places that make use of both quiet and verbose.
-	#        Consider combining.
-	if CONFIG['quiet']:
+	# verbose is shorthand for the very common 'not quiet or piping'
+	if CONFIG['quiet'] or CONFIG['piping']:
 		CONFIG['verbose'] = False
+	else:
+		CONFIG['verbose'] = True
 
 	try:
 		module_name, module_args = split_arguments(args)
