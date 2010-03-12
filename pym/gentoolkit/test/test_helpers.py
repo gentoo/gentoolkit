@@ -115,27 +115,6 @@ class TestFileOwner(unittest.TestCase):
 		self.failUnlessRaises(AttributeError, extend_realpaths, set())
 
 
-class TestGentoolkitHelpers(unittest.TestCase):
-
-	def test_uses_globbing(self):
-		globbing_tests = [
-			('sys-apps/portage-2.1.6.13', False),
-			('>=sys-apps/portage-2.1.6.13', False),
-			('<=sys-apps/portage-2.1.6.13', False),
-			('~sys-apps/portage-2.1.6.13', False),
-			('=sys-apps/portage-2*', False),
-			('sys-*/*-2.1.6.13', True),
-			('sys-app?/portage-2.1.6.13', True),
-			('sys-apps/[bp]ortage-2.1.6.13', True),
-			('sys-apps/[!p]ortage*', True)
-		]
-
-		for gt in globbing_tests:
-			self.failUnless(
-				helpers.uses_globbing(gt[0]) == gt[1]
-			)
-
-
 def test_main():
 	test_support.run_unittest(TestGentoolkitHelpers2)
 

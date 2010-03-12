@@ -185,24 +185,12 @@ def main(input_args):
 		#
 
 		for pkg in matches:
-			if CONFIG['verbose']:
-				pkgstr = PackageFormatter(
-					pkg,
-					do_format=True,
-					custom_format=QUERY_OPTS["package_format"]
-				)
-			else:
-				pkgstr = PackageFormatter(
-					pkg,
-					do_format=False,
-					custom_format=QUERY_OPTS["package_format"]
-				)
+			pkgstr = PackageFormatter(
+				pkg,
+				do_format=CONFIG['verbose'],
+				custom_format=QUERY_OPTS["package_format"]
+			)
 
-			if (QUERY_OPTS["in_installed"] and
-				not QUERY_OPTS["in_porttree"] and
-				not QUERY_OPTS["in_overlay"]):
-				if not 'I' in pkgstr.location:
-					continue
 			if (QUERY_OPTS["in_porttree"] and
 				not QUERY_OPTS["in_overlay"]):
 				if not 'P' in pkgstr.location:
@@ -215,7 +203,7 @@ def main(input_args):
 
 			if QUERY_OPTS["include_mask_reason"]:
 				ms_int, ms_orig = pkgstr.format_mask_status()
-				if not ms_int > 2:
+				if ms_int < 3:
 					# ms_int is a number representation of mask level.
 					# Only 2 and above are "hard masked" and have reasons.
 					continue

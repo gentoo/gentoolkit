@@ -20,7 +20,7 @@ import portage
 
 def get_installed_use(cpv, use="USE"):
 	"""Gets the installed USE flags from the VARDB
-	
+
 	@type: cpv: string
 	@param cpv: cat/pkg-ver
 	@type use: string
@@ -33,7 +33,7 @@ def get_installed_use(cpv, use="USE"):
 
 def get_iuse(cpv):
 	"""Gets the current IUSE flags from the tree
-	
+
 	@type: cpv: string
 	@param cpv: cat/pkg-ver
 	@rtype list
@@ -47,7 +47,7 @@ def get_iuse(cpv):
 
 def abs_flag(flag):
 	"""Absolute value function for a USE flag
-	
+
 	@type flag: string
 	@param flag: the use flag to absolute.
 	@rtype: string
@@ -61,7 +61,7 @@ def abs_flag(flag):
 
 def abs_list(the_list):
 	"""Absolute value function for a USE flag list
-	
+
 	@type the_list: list
 	@param the_list: the use flags to absolute.
 	@rtype: list
@@ -76,7 +76,7 @@ def abs_list(the_list):
 def filter_flags(use, use_expand_hidden, usemasked, useforced):
 	"""Filter function to remove hidden or otherwise not normally
 	visible USE flags from a list.
-	
+
 	@type use: list
 	@param use: the USE flag list to be filtered.
 	@type use_expand_hidden: list
@@ -110,7 +110,7 @@ def filter_flags(use, use_expand_hidden, usemasked, useforced):
 
 def get_all_cpv_use(cpv):
 	"""Uses portage to determine final USE flags and settings for an emerge
-	
+
 	@type cpv: string
 	@param cpv: eg cat/pkg-ver
 	@rtype: lists
@@ -137,7 +137,7 @@ def get_all_cpv_use(cpv):
 def get_flags(cpv, final_setting=False):
 	"""Retrieves all information needed to filter out hidded, masked, etc.
 	USE flags for a given package.
-	
+
 	@type cpv: string
 	@param cpv: eg. cat/pkg-ver
 	@type final_setting: boolean
@@ -158,7 +158,7 @@ class FlagAnalyzer(object):
 	"""Specialty functions for analysing an installed package's
 	USE flags.  Can be used for single or mulitple use without
 	needing to be reset unless the system USE flags are changed.
-	
+
 	@type system: list or set
 	@param system: the default system USE flags.
 	@type _get_flags: function
@@ -168,17 +168,21 @@ class FlagAnalyzer(object):
 		"""
 	def __init__(self,
 		system,
+		filter_defaults=False,
+		target="USE",
 		_get_flags=get_flags,
 		_get_used=get_installed_use
 	):
 		self.get_flags = _get_flags
 		self.get_used = _get_used
+		self.filter_defaults = filter_defaults
+		self.target = target
 		self.reset(system)
 
 	def reset(self, system):
 		"""Resets the internal system USE flags and use_expand variables
 		to the new setting. The use_expand variable is handled internally.
-		
+
 		@type system: list or set
 		@param system: the default system USE flags.
 		"""
@@ -189,19 +193,19 @@ class FlagAnalyzer(object):
 		"""Gets all relavent USE flag info for a cpv and breaks them down
 		into 3 sets, plus (package.use enabled), minus ( package.use disabled),
 		unset.
-		
+
 		@param cpv: string. 'cat/pkg-ver'
 		@rtype tuple of sets
 		@return (plus, minus, unset) sets of USE flags
 		"""
-		installed = set(self.get_used(cpv, "USE"))
+		installed = set(self.get_used(cpv, self.target))
 		iuse =  set(abs_list(self.get_flags(cpv)))
 		return self._analyse(installed, iuse)
 
 	def _analyse(self, installed, iuse):
 		"""Analyses the supplied info and returns the flag settings
 		that differ from the defaults
-		
+
 		@type installed: set
 		@param installed: the installed with use flags
 		@type iuse: set
@@ -209,7 +213,10 @@ class FlagAnalyzer(object):
 		"""
 		defaults = self.system.intersection(iuse)
 		usedflags = iuse.intersection(set(installed))
-		plus = usedflags.difference(defaults)
+		if self.filter_defaults:
+			plus = usedflags.difference(defaults)
+		else:
+			plus = usedflags
 		minus = defaults.difference(usedflags)
 		unset = iuse.difference(defaults, plus, minus)
 		cleaned = self.remove_expanding(unset)
@@ -219,7 +226,7 @@ class FlagAnalyzer(object):
 		"""Gets all relevent USE flag info for a pkg and breaks them down
 		into 3 sets, plus (package.use enabled), minus ( package.use disabled),
 		unset.
-		
+
 		@param pkg: gentoolkit.package.Package object
 		@rtype tuple of sets
 		@return (plus, minus, unset) sets of USE flags
@@ -229,7 +236,9 @@ class FlagAnalyzer(object):
 		return self._analyse(installed, iuse)
 
 	def pkg_used(self, pkg):
-		return pkg.use().split()
+		if self.target == "USE":
+			return pkg.use().split()
+		return pkg.environment(self.target).split()
 
 	def pkg_flags(self, pkg):
 		final_use, use_expand_hidden, usemasked, useforced = \
@@ -246,7 +255,7 @@ class FlagAnalyzer(object):
 	def remove_expanding(self, flags):
 		"""Remove unwanted USE_EXPAND flags
 		from unset IUSE sets
-		
+
 		@param flags: short list or set of USE flags
 		@rtype set
 		@return USE flags
@@ -264,12 +273,12 @@ class FlagAnalyzer(object):
 class KeywordAnalyser(object):
 	"""Specialty functions for analysing the installed package db for
 	keyword useage and the packages that used them.
-	
+
 	Note: should be initialized with the internal set_order() before use.
 	See internal set_order() for more details.
 	This class of functions can be used for single cpv checks or
 	used repeatedly for an entire package db.
-	
+
 	@type  arch: string
 	@param arch: the system ARCH setting
 	@type  accept_keywords: list
@@ -302,9 +311,9 @@ class KeywordAnalyser(object):
 		self.mismatched = []
 
 	def determine_keyword(self, keywords, used, cpv):
-		"""Determine the keyword from the installed USE flags and 
+		"""Determine the keyword from the installed USE flags and
 		the KEYWORDS that was used to install a package.
-		
+
 		@param keywords: list of keywords available to install a pkg
 		@param used: list of USE flalgs recorded for the installed pkg
 		@rtype: string
@@ -396,7 +405,7 @@ class KeywordAnalyser(object):
 
 	def get_inst_keyword_cpv(self, cpv):
 		"""Determines the installed with keyword for cpv
-		
+
 		@type cpv: string
 		@param cpv: an installed CAT/PKG-VER
 		@rtype: string
@@ -409,7 +418,7 @@ class KeywordAnalyser(object):
 
 	def get_inst_keyword_pkg(self, pkg):
 		"""Determines the installed with keyword for cpv
-		
+
 		@param pkg: gentoolkit.package.Package object
 		@rtype: string
 		@returns a keyword determined to have been used to install cpv
@@ -447,11 +456,11 @@ class KeywordAnalyser(object):
 	def set_order(self, used):
 		"""Used to set the parsing order to determine a keyword
 		used for installation.
-		
+
 		This is needed due to the way prefix arch's and keywords
 		work with portage.  It looks for the 'prefix' flag. A positive result
 		sets it to the prefix order and keyword.
-		
+
 		@type used: list
 		@param used: a list of pkg USE flags or the system USE flags"""
 		if 'prefix' in used:

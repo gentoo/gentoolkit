@@ -51,7 +51,13 @@ def compare_strs(kw1, kw2):
 	@see: >>> help(cmp)
 	"""
 
-	pass
+	kw1_arch, sep, kw1_os = kw1.partition('-')
+	kw2_arch, sep, kw2_os = kw2.partition('-')
+	if kw1_arch != kw2_arch:
+		if kw1_os != kw2_os:
+			return cmp(kw1_os, kw2_os)
+		return cmp(kw1_arch, kw2_arch)
+	return cmp(kw1_os, kw2_os)
 
 
 def reduce_keywords(keywords):

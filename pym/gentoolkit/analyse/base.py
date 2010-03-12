@@ -28,7 +28,7 @@ from gentoolkit.base import mod_usage
 
 class ModuleBase(object):
 	"""Analyse base module class to parse module options print module help, etc.."""
-	
+
 	def __init__(self):
 		self.module_name = None
 		self.options = {}
@@ -36,7 +36,7 @@ class ModuleBase(object):
 		self.short_opts = None
 		self.long_opts = None
 		self.module_opts = {}
-		self.depwarning = None
+		self.warning = None
 		self.need_queries = True
 
 
@@ -51,9 +51,9 @@ class ModuleBase(object):
 			print()
 			print(__doc__.strip())
 			print()
-		if self.depwarning:
+		if self.warning:
 			print()
-			for line in self.depwarning:
+			for line in self.warning:
 				sys.stderr.write(pp.warn(line))
 			print()
 		print(mod_usage(mod_name=self.module_name, arg=self.arg_spec, optional=self.arg_option))

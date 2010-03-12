@@ -9,7 +9,7 @@ import distutils
 from distutils import core, log
 from glob import glob
 
-from portage import os
+import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'pym'))
 from gentoolkit.helpers import walk
@@ -29,6 +29,8 @@ python_scripts = [os.path.join(cwd, path) for path in (
 	'bin/eclean',
 	'bin/epkginfo',
 	'bin/glsa-check',
+	'pym/gentoolkit/eclean/cli.py',
+	'pym/gentoolkit/analyse/__init__.py',
 	'pym/gentoolkit/equery/__init__.py'
 )]
 

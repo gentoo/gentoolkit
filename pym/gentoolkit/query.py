@@ -19,6 +19,7 @@ __all__ = (
 import fnmatch
 import re
 from functools import partial
+from string import ascii_letters
 
 import portage
 
@@ -30,7 +31,6 @@ from gentoolkit.cpv import CPV
 from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit.package import Package
 from gentoolkit.sets import get_set_atoms, SETPREFIX
-#from gentoolkit.helpers import *
 
 # =======
 # Classes
@@ -45,6 +45,11 @@ class Query(object):
 		@type is_regex: bool
 		@param is_regex: query is a regular expression
 		"""
+
+		# We need at least one of these chars for a valid query
+		needed_chars = ascii_letters + '*'
+		if not set(query).intersection(needed_chars):
+			raise errors.GentoolkitInvalidPackage(query)
 
 		# Separate repository
 		repository = None
@@ -95,6 +100,7 @@ class Query(object):
 		in_overlay=True,
 		include_masked=True,
 		show_progress=True,
+		no_matches_fatal=True,
 		**kwargs
 	):
 		"""A high-level wrapper around gentoolkit package-finder functions.
@@ -107,6 +113,8 @@ class Query(object):
 		@param in_overlay: search for query in overlays
 		@type show_progress: bool
 		@param show_progress: output search progress
+		@type no_matches_fatal: bool
+		@param no_matches_fatal: raise errors.GentoolkitNoMatches
 		@rtype: list
 		@return: Package objects matching query
 		"""
@@ -123,8 +131,9 @@ class Query(object):
 				complex_package_finder = helpers.get_installed_cpvs
 		elif in_porttree or in_overlay:
 			simple_package_finder = partial(
-				helpers.find_packages,
-				include_masked=include_masked
+				self.find,
+				include_masked=include_masked,
+				in_installed=False
 			)
 			complex_package_finder = helpers.get_uninstalled_cpvs
 		else:
@@ -149,6 +158,9 @@ class Query(object):
 		if self.repo_filter is not None:
 			matches = self._filter_by_repository(matches)
 
+		if no_matches_fatal and not matches:
+			ii = in_installed and not (in_porttree or in_overlay)
+			raise errors.GentoolkitNoMatches(self.query, in_installed=ii)
 		return matches
 
 	def find(self, in_installed=True, include_masked=True):
@@ -208,7 +220,7 @@ class Query(object):
 			raise errors.GentoolkitInvalidAtom(err)
 		# xmatch can return an empty string, so checking for None is not enough
 		if not best:
-			if not include_keyworded or include_masked:
+			if not (include_keyworded or include_masked):
 				return None
 			try:
 				matches = PORTDB.xmatch("match-all", self.query)
@@ -351,4 +363,3 @@ class Query(object):
 		elif self.is_regex or self.uses_globbing():
 			return "complex"
 		return "simple"
-

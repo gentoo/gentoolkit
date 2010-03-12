@@ -27,7 +27,9 @@ __docformat__ = 'epytext'
 # Imports
 # =======
 
+import sys
 import re
+import codecs
 from functools import partial
 from itertools import chain
 
@@ -195,7 +197,8 @@ class ChangeLog(object):
 
 		result = []
 		partial_entries = []
-		with open(self.changelog_path) as log:
+		with codecs.open(self.changelog_path, encoding="utf-8",
+			errors="replace") as log:
 			for line in log:
 				if line.startswith('#'):
 					continue
@@ -434,16 +437,20 @@ def get_installed_cpvs(predicate=None):
 def print_file(path):
 	"""Display the contents of a file."""
 
-	with open(path) as open_file:
+	out = sys.stdout
+	if hasattr(out, "buffer"):
+		out = out.buffer
+
+	with open(path, "rb") as open_file:
 		lines = open_file.read()
-		print(lines.strip())
+		print(lines.strip(), file = out)
 
 
-def print_sequence(seq):
+def print_sequence(seq, file = sys.stdout):
 	"""Print every item of a sequence."""
 
 	for item in seq:
-		print(item)
+		print(item, file = file)
 
 
 def uniqify(seq, preserve_order=True):

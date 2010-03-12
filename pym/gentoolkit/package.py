@@ -62,14 +62,15 @@ from gentoolkit.keyword import determine_keyword
 class Package(CPV):
 	"""Exposes the state of a given CPV."""
 
-	def __init__(self, cpv):
+	def __init__(self, cpv, validate=False):
 		if isinstance(cpv, CPV):
 			self.__dict__.update(cpv.__dict__)
 		else:
-			CPV.__init__(self, cpv)
-		del cpv
+			CPV.__init__(self, cpv, validate=validate)
 
-		if not all(hasattr(self, x) for x in ('category', 'version')):
+		if validate and not all(
+			hasattr(self, x) for x in ('category', 'version')
+		):
 			# CPV allows some things that Package must not
 			raise errors.GentoolkitInvalidPackage(self.cpv)
 
@@ -102,7 +103,13 @@ class Package(CPV):
 			metadata_path = os.path.join(
 				self.package_path(), 'metadata.xml'
 			)
-			self._metadata = MetaData(metadata_path)
+			try:
+				self._metadata = MetaData(metadata_path)
+			except IOError as e:
+				import errno
+				if e.errno != errno.ENOENT:
+					raise
+				return None
 
 		return self._metadata
 
@@ -397,11 +404,11 @@ class PackageFormatter(object):
 	"""
 
 	_tmpl_verbose = "[$location] [$mask] $cpv:$slot"
-	_tmpl_quiet = "$cpv:$slot"
+	_tmpl_quiet = "$cpv"
 
-	def __init__(self, pkg, do_format=True, custom_format=None, fill_sizes = None):
+	def __init__(self, pkg, do_format=True, custom_format=None):
 		self._pkg = None
-		self.do_format = do_format
+		self._do_format = do_format
 		self._str = None
 		self._location = None
 		if not custom_format:
@@ -412,15 +419,6 @@ class PackageFormatter(object):
 		self.tmpl = Template(custom_format)
 		self.format_vars = LazyItemsDict()
 		self.pkg = pkg
-		if fill_sizes:
-			self.fill_sizes = fill_sizes
-		else:
-			self.fill_sizes = {
-				'cpv': 50,
-				'keyword': 10,
-				'mask': 10,
-				}
-
 
 	def __repr__(self):
 		return "<%s %s @%#8x>" % (self.__class__.__name__, self.pkg, id(self))
@@ -455,7 +453,6 @@ class PackageFormatter(object):
 		fmt_vars.addLazySingleton("mask", self.format_mask)
 		fmt_vars.addLazySingleton("mask2", self.format_mask_status2)
 		fmt_vars.addLazySingleton("cpv", self.format_cpv)
-		fmt_vars.addLazySingleton("cpv_fill", self.format_cpv, fill=True)
 		fmt_vars.addLazySingleton("cp", self.format_cpv, "cp")
 		fmt_vars.addLazySingleton("category", self.format_cpv, "category")
 		fmt_vars.addLazySingleton("name", self.format_cpv, "name")
@@ -548,23 +545,19 @@ class PackageFormatter(object):
 			hard_masked=set(('M', '?', '-')).intersection(maskmode)
 		)
 
-	def format_cpv(self, attr = None, fill=False):
+	def format_cpv(self, attr=None):
 		if attr is None:
 			value = self.pkg.cpv
 		else:
 			value = getattr(self.pkg, attr)
-		if self.do_format:
-			if fill:
-				trail = '.'*(self.fill_sizes['cpv']-len(value))
-				return pp.cpv(value) + trail
-			else:
-				return pp.cpv(value)
+		if self._do_format:
+			return pp.cpv(value)
 		else:
 			return value
 
 	def format_slot(self):
 		value = self.pkg.environment("SLOT")
-		if self.do_format:
+		if self._do_format:
 			return pp.slot(value)
 		else:
 			return value

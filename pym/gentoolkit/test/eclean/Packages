@@ -1,0 +1,1017 @@
+ACCEPT_KEYWORDS: amd64 ~amd64
+ACCEPT_LICENSE: *
+ACCEPT_PROPERTIES: *
+CBUILD: x86_64-pc-linux-gnu
+CHOST: x86_64-pc-linux-gnu
+CONFIG_PROTECT: /etc /usr/share/X11/xkb /var/lib/hsqldb
+CONFIG_PROTECT_MASK: /etc/ca-certificates.conf /etc/env.d /etc/env.d/java/ /etc/fonts/fonts.conf /etc/gconf /etc/gentoo-release /etc/revdep-rebuild /etc/sandbox.d /etc/terminfo
+FEATURES: assume-digests buildpkg ccache distlocks fixpackages news parallel-fetch parralell-fetch preserve-libs protect-owned sandbox sfperms strict unmerge-logs unmerge-orphans userfetch
+GENTOO_MIRRORS: http://gentoo.osuosl.org/ 
+PACKAGES: 73
+PROFILE: default/linux/amd64/10.0/desktop
+SYNC: rsync://rsync.namerica.gentoo.org/gentoo-portage
+TIMESTAMP: 1264301192
+USE: X a52 aac aalib acl acpi adns alsa alsa_cards_ali5451 alsa_cards_als4000 alsa_cards_atiixp alsa_cards_atiixp-modem alsa_cards_bt87x alsa_cards_ca0106 alsa_cards_cmipci alsa_cards_emu10k1x alsa_cards_ens1370 alsa_cards_ens1371 alsa_cards_es1938 alsa_cards_es1968 alsa_cards_fm801 alsa_cards_hda-intel alsa_cards_intel8x0 alsa_cards_intel8x0m alsa_cards_maestro3 alsa_cards_trident alsa_cards_usb-audio alsa_cards_via82xx alsa_cards_via82xx-modem alsa_cards_ymfpci alsa_pcm_plugins_adpcm alsa_pcm_plugins_alaw alsa_pcm_plugins_asym alsa_pcm_plugins_copy alsa_pcm_plugins_dmix alsa_pcm_plugins_dshare alsa_pcm_plugins_dsnoop alsa_pcm_plugins_empty alsa_pcm_plugins_extplug alsa_pcm_plugins_file alsa_pcm_plugins_hooks alsa_pcm_plugins_iec958 alsa_pcm_plugins_ioplug alsa_pcm_plugins_ladspa alsa_pcm_plugins_lfloat alsa_pcm_plugins_linear alsa_pcm_plugins_meter alsa_pcm_plugins_mmap_emul alsa_pcm_plugins_mulaw alsa_pcm_plugins_multi alsa_pcm_plugins_null alsa_pcm_plugins_plug alsa_pcm_plugins_rate alsa_pcm_plugins_route alsa_pcm_plugins_share alsa_pcm_plugins_shm alsa_pcm_plugins_softvol amd64 apache2_modules_actions apache2_modules_alias apache2_modules_auth_basic apache2_modules_authn_alias apache2_modules_authn_anon apache2_modules_authn_dbm apache2_modules_authn_default apache2_modules_authn_file apache2_modules_authz_dbm apache2_modules_authz_default apache2_modules_authz_groupfile apache2_modules_authz_host apache2_modules_authz_owner apache2_modules_authz_user apache2_modules_autoindex apache2_modules_cache apache2_modules_dav apache2_modules_dav_fs apache2_modules_dav_lock apache2_modules_deflate apache2_modules_dir apache2_modules_disk_cache apache2_modules_env apache2_modules_expires apache2_modules_ext_filter apache2_modules_file_cache apache2_modules_filter apache2_modules_headers apache2_modules_include apache2_modules_info apache2_modules_log_config apache2_modules_logio apache2_modules_mem_cache apache2_modules_mime apache2_modules_mime_magic apache2_modules_negotiation apache2_modules_rewrite apache2_modules_setenvif apache2_modules_speling apache2_modules_status apache2_modules_unique_id apache2_modules_userdir apache2_modules_usertrack apache2_modules_vhost_alias avahi berkdb bidi bluetooth bonobo branding bzip2 cairo cddb cdr cleartype cli consolekit cracklib crypt css cups curl cxx dbus dlloader dri dts dv dvd dvdr dvdread eds elibc_glibc emboss encode evo fam fame fbcon ffmpeg flac fortran ftp gconf gdbm gecko gif gimpprint gnome gnutls gpm gs gstreamer gtk gtk2 gtkhtml h323 hal howl iconv imagemagic imap imlib2 innodb input_devices_evdev ipv6 java javascript jikes joystick jpeg kernel_linux lcd_devices_bayrad lcd_devices_cfontz lcd_devices_cfontz633 lcd_devices_glk lcd_devices_hd44780 lcd_devices_lb216 lcd_devices_lcdm001 lcd_devices_mtxorb lcd_devices_ncurses lcd_devices_text lcms ldap libnotify lm_sensors mad md5sum messages mikmod mime mmx mng modules moxnomail mozdevelop mp3 mp4 mpeg mpi mplayer mudflap multilib mysql nautilus ncurses nfs nls no-old-linux nptl nptlonly nptonly numeric nvidia ogg opengl openmp pam pcre pda pdf perl plugin png policykit posix ppds pppd python qt3support quicktime readline reflection rtc ruby_targets_ruby18 samba sdl session shm sndfile sox speex spell spl sqlite sqlite3 sse sse2 sse3 ssl startup-notification svg swat sysfs syslog tcpd threadsonly thumbnail thunar thunar-vfs tiff tk transcode truetype unicode usb userland_GNU utf8 v4l v4l2 vcd vdpau video_cards_nvidia vorbis x264 xine xml xorg xosd xpm xulrunner xv xvid xvmc zlib zvbi
+VERSION: 0
+
+CPV: app-arch/bzip2-1.0.5-r1
+DESC: A high-quality data compressor used extensively by Gentoo Linux
+IUSE: static
+KEYWORDS: alpha amd64 arm hppa ia64 m68k ~mips ppc ppc64 s390 sh sparc ~sparc-fbsd x86 ~x86-fbsd
+LICENSE: BZIP2
+MD5: ab8f256048b0167c0628f850f7187981
+MTIME: 1264262577
+SHA1: 576df7f5f21f87a3b41b99e282e5eec09a5f4325
+SIZE: 584218
+REPO: gentoo
+
+CPV: app-arch/cpio-2.10
+DESC: A file archival tool which can also read and write tar files
+IUSE: nls
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~sparc-fbsd ~x86 ~x86-fbsd
+LICENSE: GPL-3
+MD5: fd8328657cab407fd99306713187c7aa
+MTIME: 1264264179
+SHA1: f35d72268d1c7333c885454f774ce3acd14cc493
+SIZE: 196505
+USE: nls
+REPO: gentoo
+
+CPV: app-arch/cpio-2.10-r1
+DESC: A file archival tool which can also read and write tar files
+EAPI: 2
+IUSE: nls
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~sparc-fbsd ~x86 ~x86-fbsd
+LICENSE: GPL-3
+MD5: 5e69ec6d2493761c32744eca27e19009
+MTIME: 1264301003
+SHA1: 99715c7646655dc6627ec4433cefaabc9fba0076
+SIZE: 208357
+USE: nls
+REPO: gentoo
+
+CPV: app-arch/cpio-2.9-r2
+DESC: A file archival tool which can also read and write tar files
+IUSE: nls
+KEYWORDS: alpha amd64 arm hppa ia64 m68k ~mips ppc ppc64 s390 sh sparc ~sparc-fbsd x86 ~x86-fbsd
+LICENSE: GPL-3
+MD5: 55e4f7bc94b03cafce4b1afb6295c1ab
+MTIME: 1264264294
+SHA1: 3becefc751c6316966d2b7a6404c0785434e5368
+SIZE: 174202
+USE: nls
+REPO: gentoo
+
+CPV: app-arch/cpio-2.9-r3
+DESC: A file archival tool which can also read and write tar files
+IUSE: nls
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~sparc-fbsd ~x86 ~x86-fbsd
+LICENSE: GPL-3
+MD5: a947348c332c75683d66663928bbe45b
+MTIME: 1264264353
+SHA1: 6a48fb69f046e16b3c59f3b21129909d31026818
+SIZE: 174361
+USE: nls
+REPO: gentoo
+
+CPV: app-arch/file-roller-2.24.3
+DEPEND: >=dev-libs/glib-2.16.0 >=x11-libs/gtk+-2.13 >=gnome-base/libgnome-2.6 >=gnome-base/libgnomeui-2.6 >=gnome-base/libglade-2.4 >=gnome-base/gconf-2.6 >=gnome-base/nautilus-2.22.2 gnome-base/gnome-common sys-devel/gettext >=dev-util/intltool-0.35 >=dev-util/pkgconfig-0.19 >=app-text/gnome-doc-utils-0.3.2 >=sys-apps/sed-4
+DESC: archive manager for GNOME
+IUSE: nautilus
+KEYWORDS: alpha amd64 hppa ia64 ppc ppc64 sparc x86 ~x86-fbsd
+LICENSE: GPL-2
+MD5: 730b91a73bce36f7145de7dd1dc6c701
+MTIME: 1264264717
+RDEPEND: >=dev-libs/glib-2.16.0 >=x11-libs/gtk+-2.13 >=gnome-base/libgnome-2.6 >=gnome-base/libgnomeui-2.6 >=gnome-base/libglade-2.4 >=gnome-base/gconf-2.6 >=gnome-base/nautilus-2.22.2
+SHA1: df43031484955ee09402b53651d89cf3765315c3
+SIZE: 1151945
+USE: nautilus
+REPO: gentoo
+
+CPV: app-arch/file-roller-2.26.3
+DEPEND: >=dev-libs/glib-2.16.0 >=x11-libs/gtk+-2.13 gnome-base/gconf gnome-base/nautilus gnome-base/gnome-common sys-devel/gettext dev-util/intltool dev-util/pkgconfig app-text/gnome-doc-utils >=sys-apps/sed-4
+DESC: archive manager for GNOME
+EAPI: 2
+IUSE: nautilus
+KEYWORDS: alpha amd64 ~hppa ia64 ppc ppc64 sparc x86 ~x86-fbsd
+LICENSE: GPL-2
+MD5: 154f28c22b3f1c5836ba06b8f671f718
+MTIME: 1264264651
+RDEPEND: >=dev-libs/glib-2.16.0 >=x11-libs/gtk+-2.13 gnome-base/gconf gnome-base/nautilus
+SHA1: 035a1130cbd602e5872abe45e96d5f901a3de1f3
+SIZE: 1101683
+USE: nautilus
+REPO: gentoo
+
+CPV: app-arch/file-roller-2.28.1
+DEPEND: >=dev-libs/glib-2.16.0 >=x11-libs/gtk+-2.16 gnome-base/gconf gnome-base/nautilus gnome-base/gnome-common sys-devel/gettext dev-util/intltool dev-util/pkgconfig app-text/gnome-doc-utils >=sys-apps/sed-4
+DESC: archive manager for GNOME
+EAPI: 2
+IUSE: nautilus
+KEYWORDS: ~alpha ~amd64 ~hppa ~ia64 ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd
+LICENSE: GPL-2
+MD5: 7f1154b8d357400206873187603b6e10
+MTIME: 1264264576
+RDEPEND: >=dev-libs/glib-2.16.0 >=x11-libs/gtk+-2.16 gnome-base/gconf gnome-base/nautilus
+SHA1: 43142dd2566cd1018e0f416da474b7bb441a96cb
+SIZE: 1313333
+USE: nautilus
+REPO: gentoo
+
+CPV: app-arch/file-roller-2.28.2
+DEPEND: >=dev-libs/glib-2.16.0 >=x11-libs/gtk+-2.16 gnome-base/gconf gnome-base/nautilus gnome-base/gnome-common sys-devel/gettext dev-util/intltool dev-util/pkgconfig app-text/gnome-doc-utils >=sys-apps/sed-4
+DESC: archive manager for GNOME
+EAPI: 2
+IUSE: nautilus
+KEYWORDS: ~alpha ~amd64 ~hppa ~ia64 ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd ~x86-freebsd ~amd64-linux ~x86-linux
+LICENSE: GPL-2
+MD5: ae10bc3d791c59af92f39d4a7fd87871
+MTIME: 1264301192
+RDEPEND: >=dev-libs/glib-2.16.0 >=x11-libs/gtk+-2.16 gnome-base/gconf gnome-base/nautilus
+SHA1: 3959f6022e38afd113beabff5102e500c353cf45
+SIZE: 1318363
+USE: nautilus
+REPO: gentoo
+
+CPV: app-arch/gzip-1.4
+DEPEND: sys-devel/gettext
+DESC: Standard GNU compressor
+IUSE: nls pic static
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd
+LICENSE: GPL-2
+MD5: 32ac853a6792046bda7f88767e5260db
+MTIME: 1264300929
+PROVIDE: virtual/gzip
+SHA1: eaf1de2ae3f1bc0e9c4e91c3da03e91de92e4e6b
+SIZE: 142419
+USE: nls
+REPO: gentoo
+
+CPV: app-arch/p7zip-4.57
+DESC: Port of 7-Zip archiver for Unix
+IUSE: static doc
+KEYWORDS: ~alpha amd64 hppa ~ia64 ppc ppc64 sparc x86 ~x86-fbsd
+LICENSE: LGPL-2.1
+MD5: 9ce142c7ffa21b85d5a877bb69e28677
+MTIME: 1264264235
+SHA1: 488fca992e2da7c51cb8f8325d996507f0f61b0a
+SIZE: 1533328
+REPO: gentoo
+
+CPV: app-arch/p7zip-4.58
+DESC: Port of 7-Zip archiver for Unix
+IUSE: static doc
+KEYWORDS: ~alpha amd64 hppa ~ia64 ppc ppc64 sparc x86 ~x86-fbsd
+LICENSE: LGPL-2.1
+MD5: 79249e03c6ff6c961627d65c68120e37
+MTIME: 1264264131
+SHA1: af33c7a2153e9c6acb914b8a0ed0e5c74bedfc9e
+SIZE: 1564378
+REPO: gentoo
+
+CPV: app-arch/p7zip-4.65
+DEPEND: x11-libs/wxGTK:2.8[X,-odbc]
+DESC: Port of 7-Zip archiver for Unix
+EAPI: 2
+IUSE: doc kde rar static wxwidgets
+KEYWORDS: ~alpha ~amd64 ~hppa ~ia64 ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd ~x86-freebsd ~x86-interix ~amd64-linux ~x86-linux ~ppc-macos ~x86-macos
+LICENSE: LGPL-2.1
+MD5: 95d47a6dd8feff8c0b84f997927a25b0
+MTIME: 1264301127
+RDEPEND: x11-libs/wxGTK:2.8[X,-odbc]
+SHA1: 82dcf81c00866f120bc35a3b8fb2237c8067df57
+SIZE: 2278496
+USE: wxwidgets
+REPO: gentoo
+
+CPV: app-arch/rar-3.9.0
+DESC: RAR compressor/uncompressor
+KEYWORDS: -* ~amd64 ~x86
+LICENSE: RAR
+MD5: c1de3dade9c34089da431aa69497dcb1
+MTIME: 1264262625
+RDEPEND: >=sys-libs/glibc-2.4
+SHA1: 83ba223e351dfaeac9a107f062ec55298b27615f
+SIZE: 308490
+REPO: gentoo
+
+CPV: app-arch/tar-1.20
+DEPEND: >=sys-devel/gettext-0.10.35
+DESC: Use this to make tarballs :)
+IUSE: nls static userland_GNU
+KEYWORDS: alpha amd64 arm hppa ia64 m68k ~mips ppc ppc64 s390 sh sparc x86 ~x86-fbsd
+LICENSE: GPL-3
+MD5: 887e5c0a8bf38f63546c8f0c80b57e49
+MTIME: 1264264511
+SHA1: 8f8d4305745b14d5ed2cd42fabc512775db3d7c4
+SIZE: 785279
+USE: nls userland_GNU
+REPO: gentoo
+
+CPV: app-arch/tar-1.21-r1
+DEPEND: >=sys-devel/gettext-0.10.35
+DESC: Use this to make tarballs :)
+IUSE: nls static userland_GNU
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~x86-fbsd
+LICENSE: GPL-3
+MD5: 9ebea4a9c24d8c26270d41c6adc6771e
+MTIME: 1264264431
+SHA1: be19702b47d2aa00d51c8ed6889bcc0593edc556
+SIZE: 810009
+USE: nls userland_GNU
+REPO: gentoo
+
+CPV: app-arch/tar-1.22
+DEPEND: >=sys-devel/gettext-0.10.35
+DESC: Use this to make tarballs :)
+IUSE: nls static userland_GNU
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~x86-fbsd
+LICENSE: GPL-3
+MD5: 3c302c5355d5f12f3809ccad18db7e0d
+MTIME: 1264300860
+SHA1: 0fac4f3d391d30fbedb36447c286fa54fc249cda
+SIZE: 813235
+USE: nls userland_GNU
+REPO: gentoo
+
+CPV: app-editors/nano-2.0.9
+DEPEND: >=sys-libs/ncurses-5.2 sys-devel/gettext
+DESC: GNU GPL'd Pico clone with more functionality
+IUSE: debug justify minimal ncurses nls slang spell unicode
+KEYWORDS: alpha amd64 arm hppa ia64 m68k ~mips ppc ppc64 s390 sh sparc ~sparc-fbsd x86 ~x86-fbsd
+LICENSE: GPL-3
+MD5: 274550c29c9b263296dbfdd5f544b94b
+MTIME: 1264265176
+RDEPEND: >=sys-libs/ncurses-5.2 sys-devel/gettext
+SHA1: 0f7ad9888b1df320dde6499548b868b7a89c2361
+SIZE: 454616
+USE: ncurses nls spell unicode
+REPO: gentoo
+
+CPV: app-editors/nano-2.1.10
+DEPEND: >=sys-libs/ncurses-5.2[unicode?] sys-devel/gettext
+DESC: GNU GPL'd Pico clone with more functionality
+EAPI: 2
+IUSE: debug justify minimal ncurses nls slang spell unicode
+KEYWORDS: alpha amd64 arm hppa ia64 m68k ~mips ppc ppc64 s390 sh sparc x86 ~sparc-fbsd ~x86-fbsd
+LICENSE: GPL-3
+MD5: 5e2fdcc73fd3731aaf1bbd79a2c69635
+MTIME: 1264265216
+RDEPEND: >=sys-libs/ncurses-5.2[unicode?] sys-devel/gettext
+SHA1: 8b2a8e6bd12573fdaf89b03199caca9ea819e6e9
+SIZE: 448975
+USE: ncurses nls spell unicode
+REPO: gentoo
+
+CPV: app-editors/nano-2.2.0
+DEPEND: >=sys-libs/ncurses-5.2[unicode?] sys-devel/gettext
+DESC: GNU GPL'd Pico clone with more functionality
+EAPI: 2
+IUSE: debug justify minimal ncurses nls slang spell unicode
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd
+LICENSE: GPL-3
+MD5: 6d27422ba5aa436bdf05ee0dcad06bf9
+MTIME: 1264265255
+RDEPEND: >=sys-libs/ncurses-5.2[unicode?] sys-devel/gettext
+SHA1: 4c563f227bb0962f8c77e83f3472f3c466247451
+SIZE: 465543
+USE: ncurses nls spell unicode
+REPO: gentoo
+
+CPV: app-editors/nano-2.2.2
+DEPEND: >=sys-libs/ncurses-5.2[unicode?] sys-devel/gettext
+DESC: GNU GPL'd Pico clone with more functionality
+EAPI: 2
+IUSE: debug justify minimal ncurses nls slang spell unicode
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd
+LICENSE: GPL-3
+MD5: e2c33dd669b4380180cae217f772c472
+MTIME: 1264300332
+RDEPEND: >=sys-libs/ncurses-5.2[unicode?] sys-devel/gettext
+SHA1: dd374677cf847a53c36d4d34a9e4b7ca1b92e44c
+SIZE: 472482
+USE: ncurses nls spell unicode
+REPO: gentoo
+
+CPV: app-emulation/emul-linux-x86-compat-20091231-r1
+DEPEND: >=sys-apps/findutils-4.2.26
+DESC: 32 bit lib-compat, and also libgcc_s and libstdc++ from gcc 3.3 and 3.4 for non-multilib systems
+IUSE: multilib
+KEYWORDS: -* ~amd64 ~amd64-linux
+LICENSE: GPL-2
+MD5: b44ea7e3867b8bc5195044d6c5167edb
+MTIME: 1264300253
+RDEPEND: sys-libs/libstdc++-v3
+SHA1: 752218fa71c89932f50e9a487ce7034d2c89c019
+SIZE: 673489
+USE: multilib
+REPO: gentoo
+
+CPV: app-misc/gtypist-2.8.3
+DEPEND: >=sys-libs/ncurses-5.2
+DESC: Universal typing tutor
+IUSE: nls emacs xemacs
+KEYWORDS: ~amd64 ~ppc ~x86
+LICENSE: GPL-2
+MD5: 9cdee43a070f7f1a04048574f5d1df4d
+MTIME: 1264299719
+RDEPEND: >=sys-libs/ncurses-5.2
+SHA1: 0da2fef7e609a2de5c3ba62193421f0b55fbf1ef
+SIZE: 517754
+USE: nls
+REPO: gentoo
+
+CPV: app-portage/layman-1.2.3
+DEPEND: || ( dev-lang/python[xml] ( dev-lang/python dev-python/pyxml ) ) >=dev-lang/python-2.5 >=app-admin/eselect-python-20090804 virtual/python
+DESC: A python script for retrieving gentoo overlays.
+EAPI: 2
+IUSE: git subversion test
+KEYWORDS: alpha amd64 arm hppa ia64 ~mips ppc ppc64 sparc x86 ~x86-fbsd
+LICENSE: GPL-2
+MD5: 525788d2c144d63f93b70c3cb396ffd1
+MTIME: 1264265280
+RDEPEND: || ( dev-lang/python[xml] ( dev-lang/python dev-python/pyxml ) ) >=dev-lang/python-2.5 virtual/python
+SHA1: e69c712bf3d2decc6f2d591e5065fa9c32d268c4
+SIZE: 63035
+REPO: gentoo
+
+CPV: app-portage/layman-1.2.4-r3
+DEPEND: || ( dev-lang/python[xml] ( dev-lang/python dev-python/pyxml ) ) >=dev-lang/python-2.5 >=app-admin/eselect-python-20090804 virtual/python
+DESC: A python script for retrieving gentoo overlays.
+EAPI: 2
+IUSE: git subversion test
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd
+LICENSE: GPL-2
+MD5: b16542f9539cb5c6648d165fa888ae25
+MTIME: 1264265308
+RDEPEND: || ( dev-lang/python[xml] ( dev-lang/python dev-python/pyxml ) ) >=dev-lang/python-2.5 virtual/python
+SHA1: 311bb22ceccd382fdf79d62708d586547e3d793c
+SIZE: 64942
+REPO: gentoo
+
+CPV: app-portage/layman-1.2.6
+DEPEND: dev-lang/python[xml] >=dev-lang/python-2.5 >=app-admin/eselect-python-20090804 virtual/python
+DESC: A python script for retrieving gentoo overlays.
+EAPI: 2
+IUSE: git subversion test
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd
+LICENSE: GPL-2
+MD5: b3f903c492df0c2f8c82225f784b0d64
+MTIME: 1264265336
+RDEPEND: dev-lang/python[xml] >=dev-lang/python-2.5 virtual/python
+SHA1: c86bef390dbcb765f4d96d2affacedc072333074
+SIZE: 64924
+REPO: gentoo
+
+CPV: app-portage/layman-1.3.0
+DEPEND: dev-lang/python[xml] >=dev-lang/python-2.5 >=app-admin/eselect-python-20090804 virtual/python
+DESC: A python script for retrieving gentoo overlays.
+EAPI: 2
+IUSE: git subversion test
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd
+LICENSE: GPL-2
+MD5: 9d79d89f556f51e6d6221d72a59f7927
+MTIME: 1264299669
+RDEPEND: dev-lang/python[xml] >=dev-lang/python-2.5 virtual/python
+SHA1: 4034c89723eb6f20a52ca432507f449d6963d4c3
+SIZE: 66077
+REPO: gentoo
+
+CPV: app-portage/layman-1.3.0_rc1
+DEPEND: dev-lang/python[xml] >=dev-lang/python-2.5 >=app-admin/eselect-python-20090804 virtual/python
+DESC: A python script for retrieving gentoo overlays.
+EAPI: 2
+IUSE: git subversion test
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd
+LICENSE: GPL-2
+MD5: 9cabc319559778c6a59d11f325dba3d9
+MTIME: 1264265170
+RDEPEND: dev-lang/python[xml] >=dev-lang/python-2.5 virtual/python
+SHA1: 1e53103e6d204479add69fe73c2e35bb9aceb487
+SIZE: 68734
+REPO: gentoo
+
+CPV: app-portage/layman-1.3.0_rc1-r3
+DEPEND: dev-lang/python[xml] >=dev-lang/python-2.5 >=app-admin/eselect-python-20090804 virtual/python
+DESC: A python script for retrieving gentoo overlays.
+EAPI: 2
+IUSE: git subversion test
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd
+LICENSE: GPL-2
+MD5: fc330556091381a323703a5c1392395c
+MTIME: 1264265364
+RDEPEND: dev-lang/python[xml] >=dev-lang/python-2.5 virtual/python
+SHA1: 07c7c177b1772663852b678d6afd2ba75a7c7200
+SIZE: 66374
+REPO: gentoo
+
+CPV: app-portage/portage-utils-0.3.1
+DESC: small and fast portage helper tools written in C
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd
+LICENSE: GPL-2
+MD5: 79c4da94810df0f3034fe30c26c05003
+MTIME: 1264299639
+SHA1: 06738d79cf54f92ee61e534fa730f3ca3ff8951f
+SIZE: 105322
+REPO: gentoo
+
+CPV: app-shells/bash-4.0_p37
+DEPEND: >=sys-libs/ncurses-5.2-r2 virtual/libintl
+DESC: The standard GNU Bourne again shell
+EAPI: 1
+IUSE: afs bashlogger examples mem-scramble +net nls plugins vanilla
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd
+LICENSE: GPL-3
+MD5: 1f6a93554c485d8025d98c9a4a8fa006
+MTIME: 1264300780
+RDEPEND: >=sys-libs/ncurses-5.2-r2 virtual/libintl !<sys-apps/portage-2.1.5 !<sys-apps/paludis-0.26.0_alpha5
+SHA1: b751ddb741a1581bf1e17867ca94df764fdf4ecc
+SIZE: 1013849
+USE: net nls
+REPO: gentoo
+
+CPV: dev-db/sqlite-3.6.22-r1
+DEPEND: dev-libs/icu sys-libs/readline dev-lang/tcl =sys-devel/automake-1.10* >=sys-devel/autoconf-2.61 sys-devel/libtool
+DESC: A SQL Database Engine in a C Library
+EAPI: 2
+IUSE: debug doc extensions +fts3 icu +readline soundex tcl +threadsafe test
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~ppc-aix ~sparc-fbsd ~x86-fbsd ~x86-freebsd ~hppa-hpux ~ia64-hpux ~x86-interix ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~m68k-mint ~sparc-solaris ~sparc64-solaris ~x64-solaris ~x86-solaris
+LICENSE: as-is
+MD5: 312fb5844ea57184e849aa51e180016e
+MTIME: 1264299603
+RDEPEND: dev-libs/icu sys-libs/readline dev-lang/tcl
+SHA1: 0abb9db0dc6a29207e2d3e0579a5715c77f1d3d2
+SIZE: 712591
+SLOT: 3
+USE: fts3 icu readline tcl threadsafe
+REPO: gentoo
+
+CPV: dev-java/icedtea6-bin-1.6.2-r2
+DEPEND: =dev-java/java-config-2* >=sys-apps/portage-2.1
+DESC: A Gentoo-made binary build of the icedtea6 JDK
+EAPI: 1
+IUSE: X alsa doc examples nsplugin source
+KEYWORDS: ~amd64 ~x86
+LICENSE: GPL-2-with-linking-exception
+MD5: 596d044b5894588a97eae356d2d05f02
+MTIME: 1264299533
+RDEPEND: >=sys-devel/gcc-4.3 >=sys-libs/glibc-2.9 >=media-libs/giflib-4.1.6-r1 =media-libs/jpeg-8* >=media-libs/libpng-1.2.38 >=sys-libs/zlib-1.2.3-r1 >=media-libs/alsa-lib-1.0.20 >=media-libs/freetype-2.3.9:2 >=media-libs/fontconfig-2.6.0-r2:1.0 >=x11-libs/libXext-1.0.5 >=x11-libs/libXi-1.2.1 >=x11-libs/libXtst-1.0.3 >=x11-libs/libX11-1.2.2 x11-libs/libXt =dev-java/java-config-2*
+SHA1: 75bd18425582a774d6f5544b73399fac3fe2b417
+SIZE: 35258682
+USE: X alsa
+REPO: gentoo
+
+CPV: dev-java/sun-jdk-1.6.0.18
+DEPEND: =dev-java/java-config-2* >=sys-apps/portage-2.1
+DESC: Sun's Java SE Development Kit
+IUSE: X alsa derby doc examples jce nsplugin odbc
+KEYWORDS: ~amd64 ~x86
+LICENSE: dlj-1.1
+MD5: f6898e4601bbefce5011e4506870250f
+MTIME: 1264299356
+RDEPEND: sys-libs/glibc media-libs/alsa-lib x11-libs/libXext x11-libs/libXi x11-libs/libXp x11-libs/libXtst x11-libs/libXt x11-libs/libX11 =dev-java/java-config-2*
+SHA1: 9263959ac184d2643518ed3ba36a40e4f7be92f9
+SIZE: 65027860
+SLOT: 1.6
+USE: X alsa nsplugin
+REPO: gentoo
+
+CPV: dev-libs/DirectFB-1.4.3
+DEPEND: media-libs/libsdl media-libs/giflib media-libs/libpng media-libs/jpeg sys-fs/sysfsutils sys-libs/zlib >=media-libs/freetype-2.0.1 x11-libs/libXext x11-libs/libX11 x11-proto/xextproto x11-proto/xproto
+DESC: Thin library on top of the Linux framebuffer devices
+IUSE: debug fbcon fusion gif jpeg mmx png sdl sse sysfs truetype v4l v4l2 X zlib video_cards_intel video_cards_mach64 video_cards_mga video_cards_neomagic video_cards_nsc video_cards_nvidia video_cards_r128 video_cards_radeon video_cards_s3 video_cards_savage video_cards_sis video_cards_tdfx video_cards_via video_cards_vmware input_devices_dynapro input_devices_elo2300 input_devices_evdev input_devices_joystick input_devices_keyboard input_devices_lirc input_devices_mouse input_devices_mutouch input_devices_tslib
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 -mips ~ppc ~ppc64 ~sh -sparc ~x86
+LICENSE: LGPL-2.1
+MD5: 0d62fd95d45383be9de1d3d63a8b687e
+MTIME: 1264299004
+RDEPEND: media-libs/libsdl media-libs/giflib media-libs/libpng media-libs/jpeg sys-fs/sysfsutils sys-libs/zlib >=media-libs/freetype-2.0.1 x11-libs/libXext x11-libs/libX11
+SHA1: f9ffc4909669626a3eb99c5f850a2f50790d4b69
+SIZE: 1594011
+USE: X fbcon gif input_devices_evdev jpeg mmx png sdl sse sysfs truetype v4l v4l2 video_cards_nvidia zlib
+REPO: gentoo
+
+CPV: dev-libs/dbus-glib-0.82-r1
+DEPEND: >=sys-apps/dbus-1.1 >=dev-libs/glib-2.10 >=dev-libs/expat-1.95.8 dev-util/pkgconfig sys-devel/gettext
+DESC: D-Bus bindings for glib
+EAPI: 2
+IUSE: bash-completion debug doc test bash-completion
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~x86-fbsd
+LICENSE: || ( GPL-2 AFL-2.1 )
+MD5: 414b1ca40951ec482c454896953a6b49
+MTIME: 1264298849
+RDEPEND: >=sys-apps/dbus-1.1 >=dev-libs/glib-2.10 >=dev-libs/expat-1.95.8
+SHA1: 9ac0d74ce34ddb83f6a25c6b1b64449b0769ccdc
+SIZE: 241344
+REPO: gentoo
+
+CPV: dev-libs/fribidi-0.19.2
+DESC: A free implementation of the unicode bidirectional algorithm
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sh ~sparc ~x86 ~x86-fbsd ~amd64-linux ~x86-linux ~ppc-macos ~x64-solaris ~x86-solaris
+LICENSE: LGPL-2.1
+MD5: 897e5a3a7d4d003dab4f3e74b32ed8e4
+MTIME: 1264298806
+SHA1: fcfc11f2cc834580f6d95e64dcdb7f4755e2a9fb
+SIZE: 107278
+REPO: gentoo
+
+CPV: dev-libs/gmime-2.4.13
+DEPEND: >=dev-libs/glib-2.12 sys-libs/zlib dev-util/pkgconfig >=sys-apps/sed-4
+DESC: Utilities for creating and parsing messages using MIME
+IUSE: doc mono debug
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd
+LICENSE: LGPL-2.1
+MD5: 09a3282f2061022a0ab844c13a192cf7
+MTIME: 1264298765
+RDEPEND: >=dev-libs/glib-2.12 sys-libs/zlib
+SHA1: c79a707cad05d18b183829890ebe23ea21efd4d8
+SIZE: 431050
+SLOT: 2.4
+REPO: gentoo
+
+CPV: dev-libs/libisofs-0.6.26
+DEPEND: virtual/acl sys-libs/zlib dev-util/pkgconfig
+DESC: libisofs is an open-source library for reading, mastering and writing optical discs.
+EAPI: 2
+IUSE: acl xattr zlib
+KEYWORDS: ~alpha ~amd64 ~hppa ~ppc ~ppc64 ~x86
+LICENSE: GPL-2
+MD5: 37ad8de72ab38bbd89c7641a20ac2b11
+MTIME: 1264298707
+RDEPEND: virtual/acl sys-libs/zlib
+SHA1: eed462d17ae2a2006dbc80437414054d51c69473
+SIZE: 199818
+USE: acl zlib
+REPO: gentoo
+
+CPV: dev-libs/libtasn1-2.4
+DEPEND: >=dev-lang/perl-5.6 sys-devel/bison
+DESC: provides ASN.1 structures parsing capabilities for use with GNUTLS
+IUSE: doc
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd
+LICENSE: GPL-3 LGPL-2.1
+MD5: 94c40f06b2028421eb318b320e7e1c79
+MTIME: 1264298652
+SHA1: 9f819c2613324c31d736affa6e4ee1dd5bc2a3aa
+SIZE: 149335
+REPO: gentoo
+
+CPV: dev-util/git-1.6.6.1
+DEPEND: sys-libs/zlib dev-lang/perl dev-lang/tk net-misc/curl dev-libs/expat app-arch/cpio dev-lang/perl[-build]
+DESC: GIT - the stupid content tracker, the revision control system heavily used by the Linux kernel team
+EAPI: 2
+IUSE: +blksha1 +curl cgi doc emacs gtk iconv +perl ppcsha1 tk +threads +webdav xinetd cvs subversion bash-completion
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd
+LICENSE: GPL-2
+MD5: 0d010cb874ae0fe8bdfedc383725bdc6
+MTIME: 1264298591
+RDEPEND: sys-libs/zlib dev-lang/perl dev-lang/tk net-misc/curl dev-libs/expat dev-perl/Error dev-perl/Net-SMTP-SSL dev-perl/Authen-SASL >=dev-python/pygtk-2.8 || ( dev-python/pygtksourceview:2 dev-python/gtksourceview-python ) dev-lang/perl[-build]
+SHA1: 528c6eefe610e85d3b81e12367f53fca5c13ca7b
+SIZE: 6604580
+USE: blksha1 curl gtk iconv perl threads tk webdav
+REPO: gentoo
+
+CPV: gnome-base/gdm-2.20.10-r3
+DEPEND: >=dev-libs/glib-2.12 >=x11-libs/gtk+-2.6 >=x11-libs/pango-1.3 >=gnome-base/libglade-2 >=gnome-base/libgnomecanvas-2 >=gnome-base/librsvg-1.1.1 >=dev-libs/libxml2-2.4.12 >=media-libs/libart_lgpl-2.3.11 x11-libs/gksu x11-libs/libXi x11-libs/libXau x11-libs/libX11 x11-libs/libXext x11-apps/sessreg x11-libs/libXdmcp sys-auth/consolekit dev-libs/dbus-glib virtual/pam >=sys-apps/tcp-wrappers-7.6 >=x11-misc/xdg-utils-1.0.2-r3 sys-devel/gettext x11-proto/inputproto >=dev-util/intltool-0.35 >=dev-util/pkgconfig-0.19 >=app-text/scrollkeeper-0.1.4 >=app-text/gnome-doc-utils-0.3.2 >=sys-apps/sed-4
+DESC: GNOME Display Manager
+EAPI: 2
+IUSE: accessibility afs branding +consolekit dmx ipv6 gnome-keyring pam remote selinux tcpd xinerama elibc_glibc debug
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~ppc ~ppc64 ~sh ~sparc ~x86 ~x86-fbsd
+LICENSE: GPL-2
+MD5: dfe36693471fa40134f834ccd696f25e
+MTIME: 1264298505
+PDEPEND: >=sys-auth/pambase-20090430[consolekit=,gnome-keyring=]
+RDEPEND: >=dev-libs/glib-2.12 >=x11-libs/gtk+-2.6 >=x11-libs/pango-1.3 >=gnome-base/libglade-2 >=gnome-base/libgnomecanvas-2 >=gnome-base/librsvg-1.1.1 >=dev-libs/libxml2-2.4.12 >=media-libs/libart_lgpl-2.3.11 x11-libs/gksu x11-libs/libXi x11-libs/libXau x11-libs/libX11 x11-libs/libXext x11-apps/sessreg x11-libs/libXdmcp sys-auth/consolekit dev-libs/dbus-glib virtual/pam >=sys-apps/tcp-wrappers-7.6 >=x11-misc/xdg-utils-1.0.2-r3
+SHA1: 0f712fa78540566dc2b33252e8e00476546ecaa7
+SIZE: 3687872
+USE: branding consolekit elibc_glibc ipv6 pam tcpd
+REPO: gentoo
+
+CPV: gnome-extra/gnome-screensaver-2.28.0-r1
+DEPEND: >=gnome-base/gconf-2.6.1 >=x11-libs/gtk+-2.14.0 >=gnome-base/gnome-desktop-2.23.2 >=gnome-base/gnome-menus-2.12 >=dev-libs/glib-2.15 >=gnome-base/libgnomekbd-0.1 >=dev-libs/dbus-glib-0.71 x11-libs/libnotify virtual/opengl virtual/pam x11-libs/libX11 x11-libs/libXext x11-libs/libXrandr x11-libs/libXScrnSaver x11-libs/libXxf86misc x11-libs/libXxf86vm >=dev-util/pkgconfig-0.9 >=dev-util/intltool-0.40 x11-proto/xextproto x11-proto/randrproto x11-proto/scrnsaverproto x11-proto/xf86miscproto >=sys-apps/sed-4
+DESC: Replaces xscreensaver, integrating with the desktop.
+EAPI: 2
+IUSE: debug doc libnotify opengl pam kernel_linux debug
+KEYWORDS: ~alpha ~amd64 ~hppa ~ia64 ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd
+LICENSE: GPL-2
+MD5: 79e247b6b43668c3e49ff706d47ea577
+MTIME: 1264298398
+RDEPEND: >=gnome-base/gconf-2.6.1 >=x11-libs/gtk+-2.14.0 >=gnome-base/gnome-desktop-2.23.2 >=gnome-base/gnome-menus-2.12 >=dev-libs/glib-2.15 >=gnome-base/libgnomekbd-0.1 >=dev-libs/dbus-glib-0.71 x11-libs/libnotify virtual/opengl virtual/pam x11-libs/libX11 x11-libs/libXext x11-libs/libXrandr x11-libs/libXScrnSaver x11-libs/libXxf86misc x11-libs/libXxf86vm
+SHA1: 9143a14b6736643bbb5aee20c8cdd6510dc7876f
+SIZE: 4621029
+USE: kernel_linux libnotify opengl pam
+REPO: gentoo
+
+CPV: gnome-extra/gnome-utils-2.28.3
+DEPEND: >=dev-libs/glib-2.20.0 >=x11-libs/gtk+-2.18.0 >=gnome-base/gnome-panel-2.13.4 >=gnome-base/libgtop-2.12 >=gnome-base/gconf-2 >=media-libs/libcanberra-0.4[gtk] x11-libs/libXext x11-proto/xextproto app-text/gnome-doc-utils app-text/scrollkeeper >=dev-util/intltool-0.40 >=dev-util/pkgconfig-0.9 >=sys-apps/sed-4
+DESC: Utilities for the Gnome2 desktop
+EAPI: 2
+IUSE: doc ipv6 test debug
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~ppc ~ppc64 ~sh ~sparc ~x86 ~x86-fbsd ~x86-freebsd ~amd64-linux ~x86-linux
+LICENSE: GPL-2
+MD5: 486f6257e2c76a6ddfbaea60cd8d9ae3
+MTIME: 1264298299
+RDEPEND: >=dev-libs/glib-2.20.0 >=x11-libs/gtk+-2.18.0 >=gnome-base/gnome-panel-2.13.4 >=gnome-base/libgtop-2.12 >=gnome-base/gconf-2 >=media-libs/libcanberra-0.4[gtk] x11-libs/libXext
+SHA1: df3899a81734cd33de0288d391328f682b858319
+SIZE: 6282009
+USE: ipv6
+REPO: gentoo
+
+CPV: media-libs/alsa-lib-1.0.22
+DEPEND: dev-lang/python >=media-sound/alsa-headers-1.0.22
+DESC: Advanced Linux Sound Architecture Library
+IUSE: doc debug alisp python alsa_pcm_plugins_copy alsa_pcm_plugins_linear alsa_pcm_plugins_route alsa_pcm_plugins_mulaw alsa_pcm_plugins_alaw alsa_pcm_plugins_adpcm alsa_pcm_plugins_rate alsa_pcm_plugins_plug alsa_pcm_plugins_multi alsa_pcm_plugins_shm alsa_pcm_plugins_file alsa_pcm_plugins_null alsa_pcm_plugins_empty alsa_pcm_plugins_share alsa_pcm_plugins_meter alsa_pcm_plugins_mmap_emul alsa_pcm_plugins_hooks alsa_pcm_plugins_lfloat alsa_pcm_plugins_ladspa alsa_pcm_plugins_dmix alsa_pcm_plugins_dshare alsa_pcm_plugins_dsnoop alsa_pcm_plugins_asym alsa_pcm_plugins_iec958 alsa_pcm_plugins_softvol alsa_pcm_plugins_extplug alsa_pcm_plugins_ioplug
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sh ~sparc ~x86 ~amd64-linux ~x86-linux
+LICENSE: LGPL-2.1
+MD5: 94b646ca40670aec529e2fb1b49b36df
+MTIME: 1264298087
+RDEPEND: dev-lang/python
+SHA1: 43ef8b55737d77122ac2373e13a3cf9e95486be3
+SIZE: 817219
+USE: alsa_pcm_plugins_adpcm alsa_pcm_plugins_alaw alsa_pcm_plugins_asym alsa_pcm_plugins_copy alsa_pcm_plugins_dmix alsa_pcm_plugins_dshare alsa_pcm_plugins_dsnoop alsa_pcm_plugins_empty alsa_pcm_plugins_extplug alsa_pcm_plugins_file alsa_pcm_plugins_hooks alsa_pcm_plugins_iec958 alsa_pcm_plugins_ioplug alsa_pcm_plugins_ladspa alsa_pcm_plugins_lfloat alsa_pcm_plugins_linear alsa_pcm_plugins_meter alsa_pcm_plugins_mmap_emul alsa_pcm_plugins_mulaw alsa_pcm_plugins_multi alsa_pcm_plugins_null alsa_pcm_plugins_plug alsa_pcm_plugins_rate alsa_pcm_plugins_route alsa_pcm_plugins_share alsa_pcm_plugins_shm alsa_pcm_plugins_softvol python
+REPO: gentoo
+
+CPV: media-libs/jpeg-8
+DESC: Library to load, handle and manipulate images in the JPEG format
+EAPI: 2
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd ~x64-freebsd ~x86-freebsd ~x86-interix ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~sparc-solaris ~sparc64-solaris ~x64-solaris ~x86-solaris
+LICENSE: as-is
+MD5: bc17f6bbd3fe11172bbd524a1101c671
+MTIME: 1264298168
+SHA1: fb72dde71839e9368c81fa54a468a8dab9c94608
+SIZE: 397321
+REPO: gentoo
+
+CPV: media-sound/alsa-headers-1.0.22
+DESC: Header files for Advanced Linux Sound Architecture kernel modules
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sh ~sparc ~x86
+LICENSE: GPL-2
+MD5: 9ac32ab8b9ed4a675fb4987a144dbf25
+MTIME: 1264298022
+SHA1: 728ba7f1e1a3b56a17b486aa95002d391022a131
+SIZE: 166783
+REPO: gentoo
+
+CPV: media-sound/alsa-utils-1.0.22-r1
+DEPEND: >=sys-libs/ncurses-5.1 dev-util/dialog >=media-libs/alsa-lib-1.0.22
+DESC: Advanced Linux Sound Architecture Utils (alsactl, alsamixer, etc.)
+EAPI: 2
+IUSE: doc nls minimal
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sh ~sparc ~x86
+LICENSE: GPL-2
+MD5: de6300fd679058a875d7a0963620f05c
+MTIME: 1264298123
+RDEPEND: >=sys-libs/ncurses-5.1 dev-util/dialog >=media-libs/alsa-lib-1.0.22 virtual/modutils sys-apps/pciutils
+SHA1: 47574253fa21e2d0c44323b2983e2558abc49fed
+SIZE: 991245
+SLOT: 0.9
+USE: nls
+REPO: gentoo
+
+CPV: media-video/mjpegtools-1.9.0-r1
+DEPEND: media-libs/jpeg:0 x11-libs/gtk+:2 >=media-libs/libdv-0.99 virtual/quicktime media-libs/libpng >=media-libs/libsdl-1.2.7-r3 x11-libs/libX11 x11-libs/libXt dev-lang/nasm >=sys-apps/sed-4 dev-util/pkgconfig
+DESC: Tools for MJPEG video
+EAPI: 1
+IUSE: gtk dv quicktime sdl X yv12 v4l dga png mmx
+KEYWORDS: ~alpha ~amd64 ~ppc ~ppc64 ~sparc ~x86
+LICENSE: as-is
+MD5: 0f8d14bb49c7452144f9f42da59df67d
+MTIME: 1264297981
+RDEPEND: media-libs/jpeg:0 x11-libs/gtk+:2 >=media-libs/libdv-0.99 virtual/quicktime media-libs/libpng >=media-libs/libsdl-1.2.7-r3 x11-libs/libX11 x11-libs/libXt
+SHA1: 6eea5264c255be8aed69533455e5ad313506ff32
+SIZE: 1184020
+SLOT: 1
+USE: X dv gtk mmx png quicktime sdl v4l
+REPO: gentoo
+
+CPV: net-fs/samba-3.4.5
+DESC: Meta package for samba-{libs,client,server}
+EAPI: 2
+IUSE: +client +server
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86
+LICENSE: GPL-3
+MD5: ff6e613b5a052817e38edeea74296ae9
+MTIME: 1264297884
+RDEPEND: ~net-fs/samba-libs-3.4.5 ~net-fs/samba-client-3.4.5 ~net-fs/samba-server-3.4.5
+SHA1: a4d1669379c6727533b1c92725ef4fd7004e3d33
+SIZE: 4841
+USE: client server
+REPO: gentoo
+
+CPV: net-fs/samba-client-3.4.5
+DEPEND: !<net-fs/samba-3.3 !net-fs/mount-cifs dev-libs/popt dev-libs/iniparser virtual/libiconv net-print/cups net-nds/openldap virtual/logger sys-libs/tdb sys-libs/talloc ~net-fs/samba-libs-3.4.5[caps?,cups?,ldap?,syslog?,winbind?,ads?,samba4?,netapi] =sys-devel/automake-1.10* >=sys-devel/autoconf-2.61 sys-devel/libtool
+DESC: Client bits of the samba network filesystem
+EAPI: 2
+IUSE: samba4 ads aio avahi caps cluster cups debug ldap minimal syslog winbind zeroconf
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86
+LICENSE: GPL-3
+MD5: f63cbda580c8e3cab3274e7899024ffa
+MTIME: 1264297864
+RDEPEND: !<net-fs/samba-3.3 !net-fs/mount-cifs dev-libs/popt dev-libs/iniparser virtual/libiconv net-print/cups net-nds/openldap virtual/logger sys-libs/tdb sys-libs/talloc ~net-fs/samba-libs-3.4.5[caps?,cups?,ldap?,syslog?,winbind?,ads?,samba4?,netapi]
+SHA1: 40a7f84d99285356d73969c51d34a2b03370c749
+SIZE: 16387850
+USE: avahi cups ldap syslog
+REPO: gentoo
+
+CPV: net-fs/samba-libs-3.4.5
+DEPEND: dev-libs/popt sys-libs/talloc sys-libs/tdb virtual/libiconv virtual/krb5 sys-fs/e2fsprogs sys-libs/libcap net-print/cups net-nds/openldap virtual/pam virtual/logger !<net-fs/samba-3.3 !=net-fs/samba-server-3.4.3[tools] =sys-devel/automake-1.10* >=sys-devel/autoconf-2.61 sys-devel/libtool
+DESC: Library bits of the samba network filesystem
+EAPI: 2
+IUSE: samba4 ads aio caps cluster cups debug examples ldap pam syslog winbind ldb +netapi +smbclient smbsharemodes addns tools
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86
+LICENSE: GPL-3
+MD5: 9be0477a3595631183d8e9542ec9b7d8
+MTIME: 1264297437
+RDEPEND: dev-libs/popt sys-libs/talloc sys-libs/tdb virtual/libiconv virtual/krb5 sys-fs/e2fsprogs sys-libs/libcap net-print/cups net-nds/openldap virtual/pam virtual/logger !<net-fs/samba-3.3 !=net-fs/samba-server-3.4.3[tools]
+SHA1: e0a1459615d016fe5609546736c6fc5ea6089ba2
+SIZE: 3958751
+USE: ads caps cups ldap netapi pam smbclient syslog
+REPO: gentoo
+
+CPV: net-fs/samba-server-3.4.5
+DEPEND: !<net-fs/samba-3.3 dev-libs/popt virtual/libiconv net-dns/avahi sys-libs/libcap net-print/cups dev-libs/libgamin net-nds/openldap sys-libs/pam virtual/logger sys-libs/tdb sys-libs/talloc ~net-fs/samba-libs-3.4.5[caps?,cluster?,cups?,ldap?,syslog?,winbind?,ads?,samba4?] =sys-devel/automake-1.10* >=sys-devel/autoconf-2.61 sys-devel/libtool
+DESC: Samba Server component
+EAPI: 2
+IUSE: samba4 acl ads aio avahi caps cluster cups debug doc examples fam ldap pam quota swat syslog winbind zeroconf
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86
+LICENSE: GPL-3
+MD5: a6a7786994543a7c7b4701c6e2b5176e
+MTIME: 1264297656
+RDEPEND: !<net-fs/samba-3.3 dev-libs/popt virtual/libiconv net-dns/avahi sys-libs/libcap net-print/cups dev-libs/libgamin net-nds/openldap sys-libs/pam virtual/logger sys-libs/tdb sys-libs/talloc ~net-fs/samba-libs-3.4.5[caps?,cluster?,cups?,ldap?,syslog?,winbind?,ads?,samba4?]
+SHA1: e1b9416b6ab579d126bd89e4a58298ec4be5282f
+SIZE: 16226041
+USE: avahi caps cups fam ldap pam swat syslog
+REPO: gentoo
+
+CPV: net-misc/rsync-3.0.7
+DEPEND: >=dev-libs/popt-1.5 virtual/acl virtual/libiconv
+DESC: File transfer program to keep remote files into sync
+IUSE: acl iconv ipv6 static xattr
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd
+LICENSE: GPL-3
+MD5: 49d5d5cc5d5b18eb811e3544114afe19
+MTIME: 1264300657
+RDEPEND: >=dev-libs/popt-1.5 virtual/acl virtual/libiconv
+SHA1: 6d018cbcef3e17d669a29789ed5ff0eb15cdd694
+SIZE: 335209
+USE: acl iconv ipv6
+REPO: gentoo
+
+CPV: net-misc/wget-1.12-r1
+DEPEND: >=dev-libs/openssl-0.9.6b sys-devel/gettext
+DESC: Network utility to retrieve files from the WWW
+IUSE: debug idn ipv6 nls ntlm ssl static
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd
+LICENSE: GPL-3
+MD5: 258c0fb155252501c242d52bf2215f25
+MTIME: 1264300596
+RDEPEND: >=dev-libs/openssl-0.9.6b
+SHA1: 09324271a9897a3709b79a8f9e93e8abc19cae6c
+SIZE: 561460
+USE: ipv6 nls ssl
+REPO: gentoo
+
+CPV: perl-core/Module-Build-0.36.03
+DEPEND: dev-perl/YAML-Tiny >=virtual/perl-ExtUtils-CBuilder-0.27 >=virtual/perl-Archive-Tar-1.09 >=virtual/perl-Test-Harness-3.16 dev-lang/perl[-build]
+DESC: Build and install Perl modules
+EAPI: 2
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd ~x86-freebsd ~x86-interix ~amd64-linux ~ia64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~m68k-mint ~sparc-solaris ~sparc64-solaris ~x64-solaris ~x86-solaris
+LICENSE: || ( Artistic GPL-2 )
+MD5: c23f38d6da0a2a5bbd0cee762ce75bee
+MTIME: 1264296675
+PDEPEND: >=virtual/perl-ExtUtils-ParseXS-2.21
+RDEPEND: dev-perl/YAML-Tiny >=virtual/perl-ExtUtils-CBuilder-0.27 >=virtual/perl-Archive-Tar-1.09 >=virtual/perl-Test-Harness-3.16 dev-lang/perl[-build]
+SHA1: a348aea68a6d91432da625ef421ccc8ae9c2b74a
+SIZE: 186756
+REPO: gentoo
+
+CPV: perl-core/Test-Harness-3.20
+DEPEND: dev-lang/perl
+DESC: Runs perl standard test scripts with statistics
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~ppc-aix ~sparc-fbsd ~x86-fbsd ~x64-freebsd ~x86-freebsd ~hppa-hpux ~ia64-hpux ~x86-interix ~amd64-linux ~ia64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~m68k-mint ~sparc-solaris ~sparc64-solaris ~x64-solaris ~x86-solaris
+LICENSE: || ( Artistic GPL-2 )
+MD5: 5585c6a28745f6a59bc477f74293d117
+MTIME: 1264296640
+RDEPEND: dev-lang/perl
+SHA1: fb3f4d9701a38bf199386e427473c5a501a13ff7
+SIZE: 129603
+REPO: gentoo
+
+CPV: sys-apps/openrc-0.6.0-r1
+DEPEND: virtual/init >=sys-libs/glibc-2.5 sys-libs/ncurses virtual/pam >=sys-apps/baselayout-2.0.0 !<sys-apps/module-init-tools-3.2.2-r2 !<sys-fs/udev-133 !<sys-apps/sysvinit-2.86-r11 virtual/os-headers
+DESC: OpenRC manages the services, startup and shutdown of a host
+EAPI: 1
+IUSE: debug elibc_glibc ncurses pam unicode kernel_linux kernel_FreeBSD
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~sparc-fbsd ~x86 ~x86-fbsd
+LICENSE: BSD-2
+MD5: 3cf179b08d4afaa8e36f12758c8ea19a
+MTIME: 1264297118
+RDEPEND: virtual/init >=sys-libs/glibc-2.5 sys-libs/ncurses virtual/pam >=sys-apps/baselayout-2.0.0 !<sys-apps/module-init-tools-3.2.2-r2 !<sys-fs/udev-133 !<sys-apps/sysvinit-2.86-r11
+SHA1: e88777495cef17c213c7935e2d50a08eecd1dfab
+SIZE: 229060
+USE: elibc_glibc kernel_linux ncurses pam unicode
+REPO: gentoo
+
+CPV: sys-apps/shadow-4.0.18.2
+DEPEND: >=sys-libs/cracklib-2.7-r3 >=sys-libs/pam-0.99 !sys-apps/pam-login !app-admin/nologin virtual/libintl sys-devel/gettext =sys-devel/automake-1.10* >=sys-devel/autoconf-2.61 sys-devel/libtool
+DESC: Utilities to deal with user accounts
+IUSE: nls pam selinux skey nousuid cracklib
+KEYWORDS: alpha amd64 arm hppa ia64 m68k ~mips ppc ppc64 s390 sh sparc x86
+LICENSE: BSD GPL-2
+MD5: fcbd34cfbcb0e3399c2f3fa47938f90f
+MTIME: 1264265029
+RDEPEND: >=sys-libs/cracklib-2.7-r3 >=sys-libs/pam-0.99 !sys-apps/pam-login !app-admin/nologin virtual/libintl
+SHA1: 8c3bcdb01ae7be7ce50951cc94c80b57839a39f3
+SIZE: 1176337
+USE: cracklib nls pam
+REPO: gentoo
+
+CPV: sys-apps/shadow-4.1.2.2
+DEPEND: >=sys-libs/cracklib-2.7-r3 virtual/pam !sys-apps/pam-login !app-admin/nologin virtual/libintl sys-devel/gettext =sys-devel/automake-1.10* >=sys-devel/autoconf-2.61 sys-devel/libtool
+DESC: Utilities to deal with user accounts
+IUSE: audit cracklib nls pam selinux skey
+KEYWORDS: alpha amd64 arm hppa ia64 m68k ~mips ppc ppc64 s390 sh sparc x86
+LICENSE: BSD GPL-2
+MD5: 0d1635fe78adf406111df9b0e7c711fb
+MTIME: 1264265117
+RDEPEND: >=sys-libs/cracklib-2.7-r3 virtual/pam !sys-apps/pam-login !app-admin/nologin virtual/libintl >=sys-auth/pambase-20080219.1
+SHA1: 7915518b563eeadb03eea21d56e6e9a1dd181e15
+SIZE: 1338463
+USE: cracklib nls pam
+REPO: gentoo
+
+CPV: sys-apps/shadow-4.1.4.2-r1
+DEPEND: >=sys-libs/cracklib-2.7-r3 virtual/pam !sys-apps/pam-login !app-admin/nologin virtual/libintl sys-devel/gettext
+DESC: Utilities to deal with user accounts
+IUSE: audit nls skey selinux pam cracklib
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86
+LICENSE: BSD GPL-2
+MD5: e96104ddb3a926dc483ffb5ddb1765b3
+MTIME: 1264264912
+RDEPEND: >=sys-libs/cracklib-2.7-r3 virtual/pam !sys-apps/pam-login !app-admin/nologin virtual/libintl >=sys-auth/pambase-20080219.1
+SHA1: 9ffc5e5b6711c65aef3b09de1cf543f713aae14d
+SIZE: 1465224
+USE: cracklib nls pam
+
+CPV: sys-apps/shadow-4.1.4.2-r2
+DEPEND: >=sys-libs/cracklib-2.7-r3 virtual/pam !sys-apps/pam-login !app-admin/nologin virtual/libintl sys-devel/gettext
+DESC: Utilities to deal with user accounts
+IUSE: audit cracklib nls pam selinux skey
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86
+LICENSE: BSD GPL-2
+MD5: d979450afe73a2f884e88249d515b359
+MTIME: 1264300537
+RDEPEND: >=sys-libs/cracklib-2.7-r3 virtual/pam !sys-apps/pam-login !app-admin/nologin virtual/libintl >=sys-auth/pambase-20080219.1
+SHA1: 7da596c64d4afcb33aa4b4fc221a3c0e2f3eb661
+SIZE: 1379534
+USE: cracklib nls pam
+REPO: gentoo
+
+CPV: sys-cluster/openmpi-1.4.1
+DEPEND: !sys-cluster/mpich !sys-cluster/lam-mpi !sys-cluster/mpich2 !sys-cluster/mpiexec =sys-devel/automake-1.10* >=sys-devel/autoconf-2.61 sys-devel/libtool
+DESC: A high-performance message passing library (MPI)
+EAPI: 2
+IUSE: +cxx elibc_FreeBSD fortran heterogeneous ipv6 mpi-threads pbs romio threads vt debug
+KEYWORDS: ~alpha ~amd64 ~ppc ~ppc64 ~sparc ~x86 ~x86-fbsd
+LICENSE: BSD
+MD5: 89e732e99246058f5e2c165c3e0ac2e4
+MTIME: 1264297088
+RDEPEND: !sys-cluster/mpich !sys-cluster/lam-mpi !sys-cluster/mpich2 !sys-cluster/mpiexec
+SHA1: 095fa67854378fb6411a2d1f16fd1baea50f05e7
+SIZE: 1698447
+USE: cxx fortran ipv6
+REPO: gentoo
+
+CPV: sys-devel/make-3.81-r1
+DEPEND: sys-devel/gettext
+DESC: Standard tool to compile source trees
+IUSE: nls static
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd
+LICENSE: GPL-2
+MD5: dee4cc30ddd4572bfbf86006fad9f8ac
+MTIME: 1264300445
+RDEPEND: virtual/libintl
+SHA1: cd51781fb655f615ae6ceedbbc98a22dacf335c6
+SIZE: 480846
+USE: nls
+REPO: gentoo
+
+CPV: sys-fs/udev-150
+DEPEND: sys-apps/acl >=sys-apps/usbutils-0.82 virtual/libusb:0 sys-apps/pciutils dev-libs/glib:2 >=sys-apps/util-linux-2.16 >=sys-libs/glibc-2.9 dev-util/gperf >=sys-kernel/linux-headers-2.6.29
+DESC: Linux dynamic and persistent device naming support (aka userspace devfs)
+EAPI: 1
+IUSE: selinux +devfs-compat -extras test
+KEYWORDS: -alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 -sh ~sparc ~x86
+LICENSE: GPL-2
+MD5: 7c0af29d69df731992e14ec3c180f699
+MTIME: 1264300392
+PROVIDE: virtual/dev-manager
+RDEPEND: sys-apps/acl >=sys-apps/usbutils-0.82 virtual/libusb:0 sys-apps/pciutils dev-libs/glib:2 >=sys-apps/util-linux-2.16 >=sys-libs/glibc-2.9 !sys-apps/coldplug !<sys-fs/lvm2-2.02.45 !sys-fs/device-mapper >=sys-apps/baselayout-1.12.5
+SHA1: 817a08f5ea7fe1e2b0d5a24c9f7f217893247443
+SIZE: 411550
+USE: devfs-compat extras
+REPO: gentoo
+
+CPV: sys-libs/libstdc++-v3-3.3.6
+DESC: Compatibility package for running binaries linked against a pre gcc 3.4 libstdc++
+IUSE: multilib nls
+KEYWORDS: amd64 hppa ~mips ppc -ppc64 sparc x86 ~x86-fbsd
+LICENSE: GPL-2 LGPL-2.1
+MD5: bbd30835e34931e5cfbcf71fd552dcb3
+MTIME: 1264300213
+SHA1: 4aa8ec56fc28a78ab08f18ca9359cc3dce38395c
+SIZE: 515790
+SLOT: 5
+USE: multilib nls
+REPO: gentoo
+
+CPV: sys-libs/timezone-data-2010a
+DESC: Timezone data (/usr/share/zoneinfo) and utilities (tzselect/zic/zdump)
+IUSE: nls elibc_FreeBSD elibc_glibc
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd
+LICENSE: BSD public-domain
+MD5: 7d66db70226aafae9de4f3a2c0828d3d
+MTIME: 1264296710
+RDEPEND: !<sys-libs/glibc-2.3.5
+SHA1: 185776f76ed6ac0d877fbf656081fa0d7953da80
+SIZE: 596093
+USE: elibc_glibc nls
+REPO: gentoo
+
+CPV: virtual/perl-Module-Build-0.36.03
+DESC: Build and install Perl modules
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~ppc64 ~s390 ~sh ~sparc ~x86 ~sparc-fbsd ~x86-fbsd ~x86-freebsd ~x86-interix ~amd64-linux ~ia64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~m68k-mint ~sparc-solaris ~sparc64-solaris ~x64-solaris ~x86-solaris
+MD5: df63da5a04fff3934bd802441cdd4b78
+MTIME: 1264296690
+RDEPEND: ~perl-core/Module-Build-0.36.03
+SHA1: b50f0dfdef8a7459657d614c4ac82529437fc641
+SIZE: 4921
+REPO: gentoo
+
+CPV: virtual/perl-Test-Harness-3.20
+DESC: Virtual for Test-Harness
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~m68k ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~ppc-aix ~sparc-fbsd ~x86-fbsd ~x64-freebsd ~x86-freebsd ~hppa-hpux ~ia64-hpux ~x86-interix ~amd64-linux ~ia64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~m68k-mint ~sparc-solaris ~sparc64-solaris ~x64-solaris ~x86-solaris
+MD5: e5f9572a047b55e74178b3904cc07893
+MTIME: 1264296653
+RDEPEND: ~perl-core/Test-Harness-3.20
+SHA1: 868ab70f38449b6909b6f90fcba633943465d01e
+SIZE: 5019
+REPO: gentoo
+
+CPV: x11-libs/libX11-1.3.3
+DEPEND: >=x11-libs/xtrans-1.2.3 x11-proto/kbproto >=x11-proto/xproto-7.0.13 >=x11-libs/libxcb-1.1.92 x11-proto/xf86bigfontproto x11-proto/inputproto x11-proto/xextproto =sys-devel/automake-1.10* >=sys-devel/autoconf-2.61 sys-devel/libtool >=sys-devel/libtool-1.5 >=sys-devel/m4-1.4 >=dev-util/pkgconfig-0.18 >=x11-misc/util-macros-1.3.0 sys-devel/binutils
+DESC: X.Org X11 library
+EAPI: 1
+IUSE: doc ipv6 +xcb debug
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~x86-fbsd
+LICENSE: MIT
+MD5: e85bbc11b6eb49ea21291d8087069a18
+MTIME: 1264296590
+RDEPEND: >=x11-libs/xtrans-1.2.3 x11-proto/kbproto >=x11-proto/xproto-7.0.13 >=x11-libs/libxcb-1.1.92 !<=x11-base/xorg-x11-6.9
+SHA1: 0049699510acc9fa961429a87b2076800513897a
+SIZE: 2716558
+USE: ipv6 xcb
+REPO: gentoo
+
+CPV: x11-libs/pixman-0.17.4
+DEPEND: =sys-devel/automake-1.10* >=sys-devel/autoconf-2.61 sys-devel/libtool >=sys-devel/libtool-1.5 >=sys-devel/m4-1.4 >=dev-util/pkgconfig-0.18 >=x11-misc/util-macros-1.3.0 sys-devel/binutils
+DESC: Low-level pixel manipulation routines
+IUSE: altivec mmx sse2 debug
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~x86-fbsd
+LICENSE: MIT
+MD5: e41323dc2670f013788f2cd6a0b2238e
+MTIME: 1264296471
+RDEPEND: !<=x11-base/xorg-x11-6.9
+SHA1: b5c213200abcbae0fd474ca18ee367ec12824117
+SIZE: 265452
+USE: mmx sse2
+REPO: gentoo
+
+CPV: x11-libs/wxGTK-2.8.10.1-r4
+DEPEND: dev-libs/expat media-libs/libsdl >=x11-libs/gtk+-2.4 >=dev-libs/glib-2.4 media-libs/jpeg media-libs/tiff x11-libs/libSM x11-libs/libXinerama x11-libs/libXxf86vm gnome-base/libgnomeprintui >=gnome-base/gconf-2.0 >=media-libs/gstreamer-0.10 virtual/opengl dev-util/pkgconfig x11-proto/xproto x11-proto/xineramaproto x11-proto/xf86vidmodeproto
+DESC: GTK+ version of wxWidgets, a cross-platform C++ GUI toolkit.
+EAPI: 2
+IUSE: X doc debug gnome gstreamer odbc opengl pch sdl
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~sh ~sparc ~x86 ~x86-fbsd
+LICENSE: wxWinLL-3 GPL-2
+MD5: b4c3f83df18f8775816bb0849aeab73f
+MTIME: 1264296353
+PDEPEND: >=app-admin/eselect-wxwidgets-0.7
+RDEPEND: dev-libs/expat media-libs/libsdl >=x11-libs/gtk+-2.4 >=dev-libs/glib-2.4 media-libs/jpeg media-libs/tiff x11-libs/libSM x11-libs/libXinerama x11-libs/libXxf86vm gnome-base/libgnomeprintui >=gnome-base/gconf-2.0 >=media-libs/gstreamer-0.10 virtual/opengl
+SHA1: 67137d092bc59524eb26434fa49e60f0d6112dd3
+SIZE: 5349784
+SLOT: 2.8
+USE: X gnome gstreamer opengl sdl
+REPO: gentoo
+
+CPV: x11-misc/util-macros-1.5.0
+DEPEND: =sys-devel/automake-1.10* >=sys-devel/autoconf-2.61 sys-devel/libtool >=sys-devel/libtool-1.5 >=sys-devel/m4-1.4 >=dev-util/pkgconfig-0.18
+DESC: X.Org autotools utility macros
+KEYWORDS: ~alpha ~amd64 ~arm ~hppa ~ia64 ~mips ~ppc ~ppc64 ~s390 ~sh ~sparc ~x86 ~ppc-aix ~x86-fbsd ~x64-freebsd ~x86-freebsd ~hppa-hpux ~ia64-hpux ~x86-interix ~amd64-linux ~x86-linux ~ppc-macos ~x64-macos ~x86-macos ~sparc-solaris ~sparc64-solaris ~x64-solaris ~x86-solaris
+LICENSE: MIT
+MD5: 89e9ed49ae7e8ce4fbf90fda82010dff
+MTIME: 1264296041
+RDEPEND: !<=x11-base/xorg-x11-6.9
+SHA1: e732842c14219ce7f03186c8ac1e15ca45269eb2
+SIZE: 49929
+REPO: gentoo
+

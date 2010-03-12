@@ -8,9 +8,6 @@
 
 from __future__ import print_function
 
-# Move to imports section when Python 2.6 is stable
-
-
 __docformat__ = 'epytext'
 
 # =======
@@ -35,7 +32,7 @@ from gentoolkit.query import Query
 # Globals
 # =======
 
-QUERY_OPTS = {"allVersions" : False}
+QUERY_OPTS = {"all_versions" : False}
 
 # =========
 # Functions
@@ -170,7 +167,10 @@ def get_global_useflags():
 def get_output_descriptions(pkg, global_usedesc):
 	"""Prepare descriptions and usage information for each USE flag."""
 
-	local_usedesc = pkg.metadata.use()
+	if pkg.metadata is None:
+		local_usedesc = []
+	else:
+		local_usedesc = pkg.metadata.use()
 	iuse = pkg.environment("IUSE")
 
 	if iuse:
@@ -229,7 +229,7 @@ def parse_module_options(module_opts):
 			print_help()
 			sys.exit(0)
 		elif opt in ('-a', '--all'):
-			QUERY_OPTS['allVersions'] = True
+			QUERY_OPTS['all_versions'] = True
 
 
 def print_legend():
@@ -271,12 +271,12 @@ def main(input_args):
 		if not first_run:
 			print()
 
-		if QUERY_OPTS["allVersions"]:
+		if QUERY_OPTS["all_versions"]:
 			matches = query.find(include_masked=True)
 		else:
 			matches = [query.find_best()]
 
-		if not matches:
+		if not any(matches):
 			raise errors.GentoolkitNoMatches(query)
 
 		matches.sort()
