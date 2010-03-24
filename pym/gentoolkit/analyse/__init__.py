@@ -38,7 +38,6 @@ import time
 from getopt import getopt, GetoptError
 
 import portage
-from portage import os
 
 import gentoolkit as gen
 from gentoolkit import errors
@@ -120,7 +119,7 @@ def main():
 		)
 		loaded_module.main(module_args)
 	except portage.exception.AmbiguousPackageName as err:
-		raise errors.GentoolkitAmbiguousPackage(err)
+		raise errors.GentoolkitAmbiguousPackage(err.args[0])
 	except IOError as err:
 		if err.errno != errno.EPIPE:
 			raise

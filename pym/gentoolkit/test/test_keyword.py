@@ -1,3 +1,4 @@
+import sys
 import unittest
 import warnings
 from tempfile import NamedTemporaryFile
@@ -6,9 +7,8 @@ try:
 except ImportError:
 	from test import support as test_support
 
-from portage import os
-
 from gentoolkit import keyword
+from gentoolkit.test import cmp
 
 class TestGentoolkitKeyword(unittest.TestCase):
 
@@ -44,7 +44,9 @@ class TestGentoolkitKeyword(unittest.TestCase):
 			'~amd64', '~ppc', '~x86', '~amd64-linux', '~x86-linux',
 			'~ppc-macos', '~x86-macos', '~x86-solaris'
 		]
-		self.failUnlessEqual(sorted(kwds_presort, cmp=compare_strs), kwds_postsort)
+		if sys.hexversion < 0x3000000:
+			self.failUnlessEqual(sorted(kwds_presort, cmp=compare_strs), kwds_postsort)
+		self.failUnlessEqual(sorted(kwds_presort, key = keyword.Keyword), kwds_postsort)
 
 
 def test_main():

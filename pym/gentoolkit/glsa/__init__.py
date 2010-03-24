@@ -17,6 +17,7 @@ __author__ = "Marius Mauch <genone@gentoo.org>"
 
 
 import sys
+import os
 try:
     from urllib import urlopen
 except ImportError:
@@ -38,7 +39,6 @@ except ImportError:
 	sys.path.insert(0, "/usr/lib/portage/pym")
 	import portage
 
-from portage import os
 
 # Note: the space for rgt and rlt is important !!
 opMapping = {"le": "<=", "lt": "<", "eq": "=", "gt": ">", "ge": ">=",

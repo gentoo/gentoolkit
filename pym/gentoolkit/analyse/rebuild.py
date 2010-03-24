@@ -13,6 +13,7 @@ what packages according to the Installed package database"""
 from __future__ import print_function
 
 
+import os
 import sys
 
 import gentoolkit
@@ -24,7 +25,6 @@ from gentoolkit.analyse.lib import (get_installed_use, get_flags,
 from gentoolkit.analyse.output import RebuildPrinter
 
 import portage
-from portage import os
 
 
 def cpv_all_diff_use(

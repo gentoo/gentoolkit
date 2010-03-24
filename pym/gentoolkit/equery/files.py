@@ -14,11 +14,11 @@ __docformat__ = 'epytext'
 # Imports
 # =======
 
+import os
 import sys
 from getopt import gnu_getopt, GetoptError
 
 import portage
-from portage import os
 
 import gentoolkit.pprinter as pp
 from gentoolkit.equery import (format_filetype, format_options, mod_usage,
@@ -103,7 +103,7 @@ def display_files(contents):
 			if contents[name][0] == "dir":
 				if len(last) == 0:
 					last = basename
-					print(pp.path(indent + basename[0]))
+					pp.uprint(pp.path(indent + basename[0]))
 					continue
 				for i, directory in enumerate(basename):
 					try:
@@ -113,16 +113,17 @@ def display_files(contents):
 						pass
 					last = basename
 					if len(last) == 1:
-						print(pp.path(indent + last[0]))
+						pp.uprint(pp.path(indent + last[0]))
 						continue
-					print(pp.path(indent + "> /" + last[-1]))
+					pp.uprint(pp.path(indent + "> /" + last[-1]))
 			elif contents[name][0] == "sym":
-				print(pp.path(indent + "+"), end=' ')
-				print(pp.path_symlink(basename[-1] + " -> " + contents[name][2]))
+				pp.uprint(pp.path(indent + "+"), end=' ')
+				pp.uprint(pp.path_symlink(basename[-1] + " -> " +
+					contents[name][2]))
 			else:
-				print(pp.path(indent + "+ ") + basename[-1])
+				pp.uprint(pp.path(indent + "+ ") + basename[-1])
 		else:
-			print(format_filetype(
+			pp.uprint(format_filetype(
 				name,
 				contents[name],
 				show_type=QUERY_OPTS["show_type"],
@@ -309,7 +310,7 @@ def main(input_args):
 
 		for pkg in matches:
 			if CONFIG['verbose']:
-				print(" * Contents of %s:" % pp.cpv(str(pkg.cpv)))
+				pp.uprint(" * Contents of %s:" % pp.cpv(str(pkg.cpv)))
 
 			contents = pkg.parsed_contents()
 			display_files(filter_contents(contents))

@@ -7,19 +7,18 @@
 from __future__ import print_function
 
 
+import os
 import re
 import stat
 import sys
+from functools import partial
 
 import portage
-from portage import os
 
 import gentoolkit
 import gentoolkit.pprinter as pp
 from gentoolkit.eclean.exclude import (exclDictMatchCP, exclDictExpand,
 	exclDictExpandPkgname, exclMatchFilename)
-#from gentoolkit.package import Package
-from gentoolkit.helpers import walk
 
 
 # Misc. shortcuts to some portage stuff:
@@ -28,7 +27,7 @@ pkgdir = port_settings["PKGDIR"]
 
 err = sys.stderr
 deprecated_message=""""Deprecation Warning: Installed package: %s
-        Is no longer in the tree or an installed overlay"""
+	Is no longer in the tree or an installed overlay"""
 DEPRECATED = pp.warn(deprecated_message)
 
 debug_modules = []
@@ -80,7 +79,8 @@ class DistfilesSearch(object):
 			time_limit=0,
 			size_limit=0,
 			_distdir=distdir,
-			deprecate=False
+			deprecate=False,
+			extra_checks=()
 			):
 		"""Find all obsolete distfiles.
 
@@ -121,8 +121,10 @@ class DistfilesSearch(object):
 		# gather the files to be cleaned
 		self.output("...checking limits for %d ebuild sources"
 				%len(pkgs))
-		clean_me = self._check_limits(_distdir,
-				size_limit, time_limit, exclude)
+
+		checks = self._get_default_checks(size_limit, time_limit, exclude)
+		checks.extend(extra_checks)
+		clean_me = self._check_limits(_distdir, checks, clean_me)
 		# remove any protected files from the list
 		self.output("...removing protected sources from %s candidates to clean"
 				%len(clean_me))
@@ -136,89 +138,104 @@ class DistfilesSearch(object):
 
 ####################### begin _check_limits code block
 
-	def _check_limits(self,
-			_distdir,
-			size_limit,
-			time_limit,
-			exclude,
-			clean_me={}
-			):
-		"""Checks files if they exceed size and/or time_limits, etc.
-		"""
-		checks = [self._isreg_limit_]
+	def _get_default_checks(self, size_limit, time_limit, excludes):
+		#checks =[(self._isreg_check_, "is_reg_check")]
+		checks =[self._isreg_check_]
+		if 'filenames' in excludes:
+			#checks.append((partial(self._filenames_check_, excludes), "Filenames_check"))
+			checks.append(partial(self._filenames_check_, excludes))
+		else:
+			self.output("   - skipping exclude filenames check")
 		if size_limit:
-			checks.append(self._size_limit_)
-			self.size_limit = size_limit
+			#checks.append((partial(self._size_check_, size_limit), "size_check"))
+			checks.append(partial(self._size_check_, size_limit))
 		else:
 			self.output("   - skipping size limit check")
 		if time_limit:
-			checks.append(self._time_limit_)
-			self.time_limit = time_limit
+			#print("time_limit = ", time_limit/1000000,"M sec")
+			#checks.append((partial(self._time_check_, time_limit), "time_check"))
+			checks.append(partial(self._time_check_, time_limit))
 		else:
 			self.output("   - skipping time limit check")
-		if 'filenames' in exclude:
-			checks.append(self._filenames_limit_)
-			self.exclude = exclude
-		else:
-			self.output("   - skipping exclude filenames check")
-		max_index = len(checks)
+		return checks
+
+
+	def _check_limits(self,
+			_distdir,
+			checks,
+			clean_me=None
+			):
+		"""Checks files if they exceed size and/or time_limits, etc.
+
+		To start with everything is considered dirty and is excluded
+		only if it matches some condition.
+		"""
+		if clean_me is None:
+			clean_me = {}
 		for file in os.listdir(_distdir):
 			filepath = os.path.join(_distdir, file)
 			try:
-				file_stat = os.stat(filepath)
-			except:
+				file_stat = os.lstat(filepath)
+			except EnvironmentError:
 				continue
-			_index = 0
-			next = True
-			skip_file = False
-			while _index<max_index and next:
-				next, skip_file = checks[_index](file_stat, file)
-				_index +=1
-			if skip_file:
-				continue
-			# this is a candidate for cleaning
-			#print( "Adding file to clean_list:", file)
-			clean_me[file]=[filepath]
+			is_dirty = False
+			#for check, check_name in checks:
+			for check in checks:
+				should_break, is_dirty = check(file_stat, file)
+				if should_break:
+					break
+
+			if is_dirty:
+				#print( "%s Adding file to clean_list:" %check_name, file)
+				clean_me[file]=[filepath]
 		return clean_me
 
-	def _isreg_limit_(self, file_stat, file):
+	@staticmethod
+	def _isreg_check_(file_stat, file):
 		"""check if file is a regular file."""
 		is_reg_file = stat.S_ISREG(file_stat[stat.ST_MODE])
-		return  is_reg_file, not is_reg_file
+		return  not is_reg_file, is_reg_file
 
-	def _size_limit_(self, file_stat, file):
+	@staticmethod
+	def _size_check_(size_limit, file_stat, file):
 		"""checks if the file size exceeds the size_limit"""
-		if (file_stat[stat.ST_SIZE] >= self.size_limit):
-			#print( "size match ", file, file_stat[stat.ST_SIZE])
-			return False, True
-		return True, False
+		if (file_stat[stat.ST_SIZE] >= size_limit):
+			#print( "size mismatch ", file, file_stat[stat.ST_SIZE])
+			return True, False
+		return False, True
 
-	def _time_limit_(self, file_stat, file):
-		"""checks if the file exceeds the time_limit"""
-		if (file_stat[stat.ST_MTIME] >= self.time_limit):
-			#print( "time match ", file, file_stat[stat.ST_MTIME])
-			return False, True
-		return True,False
+	@staticmethod
+	def _time_check_(time_limit, file_stat, file):
+		"""checks if the file exceeds the time_limit
+		(think forward, not back, time keeps increasing)"""
+		if (file_stat[stat.ST_MTIME] >= time_limit):
+			#print( "time match too young ", file, file_stat[stat.ST_MTIME]/1000000,"M sec.")
+			return True, False
+		#print( "time match too old", file, file_stat[stat.ST_MTIME]/1000000,"M sec.")
+		return False, True
 
-	def _filenames_limit_(self, file_stat, file):
+	@staticmethod
+	def _filenames_check_(exclude, file_stat, file):
 		"""checks if the file matches an exclusion file listing"""
 		# Try to match file name directly
-		if file in self.exclude['filenames']:
-			return False, True
+		if file in exclude['filenames']:
+			return True, False
 		# See if file matches via regular expression matching
 		else:
 			file_match = False
-			for file_entry in self.exclude['filenames']:
-				if self.exclude['filenames'][file_entry].match(file):
+			for file_entry in exclude['filenames']:
+				if exclude['filenames'][file_entry].match(file):
 					file_match = True
 					break
 		if file_match:
-			return False, True
-		return True, False
+			#print( "filename match ", file)
+			return True, False
+		return False, True
 
 ####################### end _check_limits code block
 
-	def _remove_protected(self,
+	@staticmethod
+	def _remove_protected(
 			pkgs,
 			clean_me
 			):
@@ -242,8 +259,8 @@ class DistfilesSearch(object):
 	def _non_destructive(self,
 			destructive,
 			fetch_restricted,
-			pkgs_ = {},
-			exclude={}
+			pkgs_ = None,
+			exclude=None
 			):
 		"""performs the non-destructive checks
 
@@ -254,7 +271,12 @@ class DistfilesSearch(object):
 		@returns packages and thier SRC_URI's: {cpv: src_uri,}
 		@rtype: dictionary
 		"""
-		pkgs = pkgs_.copy()
+		if pkgs_ is None:
+			pkgs = {}
+		else:
+			pkgs = pkgs_.copy()
+		if exclude is None:
+			exclude = {}
 		deprecated = {}
 		# the following code block was split to optimize for speed
 		# list all CPV from portree (yeah, that takes time...)
@@ -272,7 +294,7 @@ class DistfilesSearch(object):
 			cpvs.difference_update(installed_cpvs)
 			self.output("   - getting fetch-restricted source file names " +
 				"for %d remaining ebuilds" %len(cpvs))
-			pkgs, _deprecated = self._fetch_restricted(destructive, pkgs, cpvs)
+			pkgs, _deprecated = self._fetch_restricted(pkgs, cpvs)
 			deprecated.update(_deprecated)
 		else:
 			self.output("   - getting source file names " +
@@ -281,18 +303,20 @@ class DistfilesSearch(object):
 			deprecated.update(_deprecated)
 		return pkgs, deprecated
 
-	def _fetch_restricted(self, destructive, pkgs_, cpvs):
+	def _fetch_restricted(self, pkgs_, cpvs):
 		"""perform fetch restricted non-destructive source
 		filename lookups
 
-		@param destructive: boolean
 		@param pkgs_: starting dictionary to add to
 		@param cpvs: set of (cat/pkg-ver, ...) identifiers
 
 		@return a new pkg dictionary
 		@rtype: dictionary
 		"""
-		pkgs = pkgs_.copy()
+		if pkgs_ is None:
+			pkgs = {}
+		else:
+			pkgs = pkgs_.copy()
 		deprecated = {}
 		for cpv in cpvs:
 			# get SRC_URI and RESTRICT from aux_get
@@ -326,7 +350,10 @@ class DistfilesSearch(object):
 		@return a new pkg dictionary
 		@rtype: dictionary
 		"""
-		pkgs = pkgs_.copy()
+		if pkgs_ is None:
+			pkgs = {}
+		else:
+			pkgs = pkgs_.copy()
 		deprecated = {}
 		for cpv in cpvs:
 			# get SRC_URI from aux_get
@@ -344,7 +371,7 @@ class DistfilesSearch(object):
 	def _destructive(self,
 			package_names,
 			exclude,
-			pkgs_={},
+			pkgs_=None,
 			installed_included=False
 			):
 		"""Builds on pkgs according to input options
@@ -359,7 +386,10 @@ class DistfilesSearch(object):
 
 		@returns pkgs: {cpv: src_uri,}
 		"""
-		pkgs = pkgs_.copy()
+		if pkgs_ is None:
+			pkgs = {}
+		else:
+			pkgs = pkgs_.copy()
 		deprecated = {}
 		pkgset = set()
 		if not installed_included:
@@ -390,7 +420,8 @@ class DistfilesSearch(object):
 		#self.output("   - done...")
 		return pkgs, deprecated
 
-	def _get_excludes(self, exclude):
+	@staticmethod
+	def _get_excludes(exclude):
 		"""Expands the exclude dictionary into a set of
 		CPV's
 
@@ -433,7 +464,7 @@ class DistfilesSearch(object):
 
 def findPackages(
 		options,
-		exclude={},
+		exclude=None,
 		destructive=False,
 		time_limit=0,
 		package_names=False,
@@ -463,6 +494,8 @@ def findPackages(
 	@rtype: dict
 	@return clean_me i.e. {'cat/pkg-ver.tbz2': [filepath],}
 	"""
+	if exclude is None:
+		exclude = {}
 	clean_me = {}
 	# create a full package dictionary
 
@@ -475,7 +508,7 @@ def findPackages(
 		print( pp.error("(Check your /etc/make.conf and environment)."), file=sys.stderr)
 		print( pp.error("Error: %s" %str(er)), file=sys.stderr)
 		exit(1)
-	for root, dirs, files in walk(pkgdir):
+	for root, dirs, files in os.walk(pkgdir):
 		if root[-3:] == 'All':
 			continue
 		for file in files:

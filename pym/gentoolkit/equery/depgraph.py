@@ -155,21 +155,23 @@ def depgraph_printer(
 				pkg.environment('KEYWORDS'))]
 		mask = pp.masking(mask)
 	try:
-		print(' '.join((indent, decorator, pp.cpv(str(pkg.cpv)), atom, mask, use)))
+		pp.uprint(' '.join(
+			(indent, decorator, pp.cpv(str(pkg.cpv)), atom, mask, use)
+			))
 	except AttributeError:
 		# 'NoneType' object has no attribute 'cpv'
-		print(''.join((indent, decorator, "(no match for %r)" % dep.atom)))
+		pp.uprint(''.join((indent, decorator, "(no match for %r)" % dep.atom)))
 
 
 def make_depgraph(pkg, printer_fn):
 	"""Create and display depgraph for each package."""
 
+	print()
 	if CONFIG['verbose']:
-		print()   # blank line improves readability & package version separation
-		print(" * " + pp.subsection("dependency graph for ") + pp.cpv(str(pkg.cpv)))
+		pp.uprint(" * " + pp.subsection("dependency graph for ") +
+			pp.cpv(str(pkg.cpv)))
 	else:
-		print()
-		print("%s:" % pkg.cpv)
+		pp.uprint("%s:" % pkg.cpv)
 
 	# Print out the first package
 	printer_fn(0, pkg, None, initial_pkg=True)
@@ -186,7 +188,7 @@ def make_depgraph(pkg, printer_fn):
 		n_packages = pp.number(str(len(deps)))
 		max_seen = pp.number(str(max(x[0] for x in deps)))
 		info = "[ %s stats: packages (%s), max depth (%s) ]"
-		print(info % (pkgname, n_packages, max_seen))
+		pp.uprint(info % (pkgname, n_packages, max_seen))
 
 
 def main(input_args):

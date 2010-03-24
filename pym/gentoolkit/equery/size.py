@@ -82,7 +82,7 @@ def display_size(match_set):
 		size, files, uncounted = pkg.size()
 
 		if CONFIG['verbose']:
-			print(" * %s" % pp.cpv(str(pkg.cpv)))
+			pp.uprint(" * %s" % pp.cpv(str(pkg.cpv)))
 			print("Total files : %s".rjust(25) % pp.number(str(files)))
 
 			if uncounted:
@@ -97,7 +97,7 @@ def display_size(match_set):
 			print("Total size  : %s".rjust(25) % size_str)
 		else:
 			info = "%s: total(%d), inaccessible(%d), size(%s)"
-			print(info % (str(pkg.cpv), files, uncounted, size))
+			pp.uprint(info % (str(pkg.cpv), files, uncounted, size))
 
 
 def format_bytes(bytes_, precision=2):

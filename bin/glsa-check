@@ -4,12 +4,12 @@
 # This program is licensed under the GPL, version 2
 
 import sys
+import os
 import codecs
 from functools import reduce
 
 import portage
 from portage.output import *
-from portage import os
 
 from getopt import getopt, GetoptError
 

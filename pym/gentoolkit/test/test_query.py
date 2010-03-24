@@ -6,8 +6,6 @@ try:
 except ImportError:
 	from test import support as test_support
 
-from portage import os
-
 from gentoolkit import query
 from gentoolkit import errors
 

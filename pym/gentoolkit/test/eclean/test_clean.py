@@ -6,7 +6,7 @@
 #
 # $Header$
 
-from __future__ import with_statement
+from __future__ import print_function
 
 __version__= "0.0.1"
 __author__ = "Brian Dolbec"
@@ -19,7 +19,10 @@ import os
 import sys
 
 import gentoolkit.pprinter as pp
-from test import test_support
+try:
+	from test import test_support
+except ImportError:
+	from test import support as test_support
 
 from gentoolkit.eclean.clean import CleanUp
 
@@ -94,23 +97,23 @@ class Controllers(object):
 
 def useage():
 	"""output run options"""
-	print "Useage: test_clean [OPTONS] path=test-dir"
-	print " where test-dir is the location to create and populate"
-	print "the testing distfiles and packages directories."
-	print "All tests in this module test only the clean.py module functions"
-	print
-	print "OPTIONS:"
-	print " -a, --all         run all tests"
-	print " -c, --clean       clean up any previous test dirs & files"
-	print " -D, --distfiles   run the distfiles cleaning test"
-	print " -k, --keep-dirs   keep the test directories and files after the test"
-	print " -p, --pretend     run the test in pretend mode only"
-	print " -P, --packages    run the packages cleaning test"
-	print " -S, --symlinks    run the symlinks test"
-	print " --path            the location to create the temporary distfiles"
-	print "                   and packages directories that will be test cleaned"
-	print " --version         test module version"
-	print
+	print("Useage: test_clean [OPTONS] path=test-dir")
+	print(" where test-dir is the location to create and populate")
+	print("the testing distfiles and packages directories.")
+	print("All tests in this module test only the clean.py module functions")
+	print()
+	print("OPTIONS:")
+	print(" -a, --all         run all tests")
+	print(" -c, --clean       clean up any previous test dirs & files")
+	print(" -D, --distfiles   run the distfiles cleaning test")
+	print(" -k, --keep-dirs   keep the test directories and files after the test")
+	print(" -p, --pretend     run the test in pretend mode only")
+	print(" -P, --packages    run the packages cleaning test")
+	print(" -S, --symlinks    run the symlinks test")
+	print(" --path            the location to create the temporary distfiles")
+	print("                   and packages directories that will be test cleaned")
+	print(" --version         test module version")
+	print()
 
 
 def parse_opts():
@@ -123,8 +126,8 @@ def parse_opts():
 			"pretend", "symlinks", "keep-dirs", "clean"])
 		#print opts
 		#print args
-	except GetoptError, e:
-		print >> sys.stderr, e.msg
+	except GetoptError as e:
+		print(e.msg, file=sys.stderr)
 		usage()
 		sys.exit(1)
 
@@ -142,7 +145,7 @@ if __name__ == "__main__":
 	try:
 		main(True)
 	except KeyboardInterrupt:
-		print "Aborted."
+		print("Aborted.")
 		sys.exit(130)
 	sys.exit(0)
 

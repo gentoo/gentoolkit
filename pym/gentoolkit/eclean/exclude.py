@@ -7,11 +7,11 @@
 from __future__ import print_function
 
 
+import os
 import sys
 import re
 import portage
 
-from portage import os
 from gentoolkit.pprinter import warn
 
 # Misc. shortcuts to some portage stuff:

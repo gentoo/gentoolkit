@@ -43,10 +43,11 @@ __docformat__ = 'epytext'
 # Imports
 # =======
 
+import os
 import re
 import xml.etree.cElementTree as etree
 
-from portage import os, settings
+from portage import settings
 
 # =======
 # Classes

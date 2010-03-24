@@ -16,10 +16,10 @@ __docformat__ = 'epytext'
 # Imports
 # =======
 
+import os
 import sys
 from getopt import gnu_getopt, GetoptError
 
-from portage import os
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
@@ -96,7 +96,7 @@ def main(input_args):
 			pkg = sorted(matches).pop()
 			ebuild_path = pkg.ebuild_path()
 			if ebuild_path:
-				print(os.path.normpath(ebuild_path))
+				pp.uprint(os.path.normpath(ebuild_path))
 			else:
 				sys.stderr.write(
 					pp.warn("No ebuilds to satisfy %s" % pkg.cpv)

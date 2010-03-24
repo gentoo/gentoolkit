@@ -16,6 +16,11 @@ Note: We are using VERSION="0.3.0" simply as an example.
 
 - Run Gentoolkit's test suite, make sure it passes:
 Note: requires dev-python/snakeoil
+
+Note: If running from the gentoolkit repository, please grab the eclean test file from:
+http://code.google.com/p/genscripts/source/browse/trunk/gentoolkit/pym/gentoolkit/test/eclean/testdistfiles.tar.gz
+Please do not add/commit the test file to the gentoolkit repository
+
 ./setup.py test
 
 - Create a tag for the release

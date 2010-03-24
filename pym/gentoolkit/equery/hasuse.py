@@ -104,7 +104,7 @@ def display_useflags(query, pkg):
 		not QUERY_OPTS["in_porttree"]):
 		if not 'O' in  pkgstr.location:
 			return
-	print(pkgstr)
+	pp.uprint(pkgstr)
 
 
 
@@ -163,7 +163,7 @@ def main(input_args):
 			print()
 
 		if CONFIG['verbose']:
-			print(" * Searching for USE flag %s ... " % pp.emph(query))
+			pp.uprint(" * Searching for USE flag %s ... " % pp.emph(query))
 
 		for pkg in matches:
 			display_useflags(query, pkg)

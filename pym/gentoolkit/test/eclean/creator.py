@@ -6,10 +6,6 @@
 #
 # $Header$
 
-__version__= "0.0.1"
-__author__ = "Brian Dolbec"
-__email__ = "brian.dolbec@gmail.com"
-
 from __future__ import with_statement
 from __future__ import print_function
 
@@ -20,10 +16,13 @@ import random
 
 import gentoolkit.pprinter as pp
 
+__version__= "0.0.1"
+__author__ = "Brian Dolbec"
+__email__ = "brian.dolbec@gmail.com"
 
 
-dir_mode = 0774
-file_mode = 0644
+dir_mode = int('0774', 8)
+file_mode = int('0644', 8)
 
 
 def make_dir(path):
@@ -34,9 +33,9 @@ def make_dir(path):
 	Will Error and exit if the target dir already exits"""
 	try:
 		os.makedirs(path, dir_mode)
-	except EnvironmentError, er:
+	except EnvironmentError as er:
 		print( pp.error("Error creating path:%s" %path), file=sys.stderr)
-		print( pp.error("Error: %s" %str(er), file=sys.stderr)
+		print( pp.error("Error: %s" %str(er), file=sys.stderr))
 		sys.exit(1)
 
 
@@ -60,7 +59,7 @@ def make_dist(path, files, clean_dict=None):
 		if file_ not in clean_dict:
 			# it is included in a multifile target
 			continue
-		elif clean_dict[file_] = []:
+		elif clean_dict[file_] == []:
 			clean_dict[file_] = filepath
 		else:
 			file_list = clean_dict[file_]
@@ -174,7 +173,7 @@ class TestDirCreation(object):
         'xine-lib-1.1.15-textrel-fix.patch': [],
         'xine-lib-1.1.16.3.tar.bz2': [],
         'xorg-server-1.5.3.tar.bz2': ['xorg-server-1.5.3.tar.bz2',
-            'xorg-server-1.5.3-gentoo-patches-08.tar.bz2']
+            'xorg-server-1.5.3-gentoo-patches-08.tar.bz2'],
         'symlink-test-1.2.3.tar.bz2': distfile_symlink
     }
 
@@ -234,10 +233,10 @@ class TestDirCreation(object):
         # add some symlinks to it
         path = os.path.join(self.options['target_path'], 'distfiles')
         make_symlinks(path, distfile_symlink,
-            dist_clean['symlink-test-1.2.3.tar.bz2']):
+            dist_clean['symlink-test-1.2.3.tar.bz2'])
         # create the packages dir and populate it
         path = os.path.join(self.options['target_path'], 'packages')
-        make_pkgs(path, self.package_dict, self.pkg_clean):
+        make_pkgs(path, self.package_dict, self.pkg_clean)
         self.targets_init = True
 
-    def get_
+    #def get_

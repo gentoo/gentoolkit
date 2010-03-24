@@ -35,6 +35,7 @@ __all__ = (
 # =======
 
 import sys
+import locale
 
 import portage.output as output
 from portage import archlist
@@ -145,5 +146,40 @@ def masking(mask):
 def warn(string):
 	"""Returns a warning string."""
 	return "!!! " + string + "\n"
+
+try:
+	unicode
+except NameError:
+	unicode = str
+
+def uprint(*args, **kw):
+	"""Replacement for the builtin print function.
+	
+	This version gracefully handles characters not representable in the 
+	user's current locale (through the errors='replace' handler).
+
+	@see: >>> help(print)
+	"""
+
+	sep = kw.pop('sep', ' ')
+	end = kw.pop('end', '\n')
+	file = kw.pop("file", sys.stdout)
+	if kw:
+		raise TypeError("got invalid keyword arguments: {0}".format(list(kw)))
+	file = getattr(file, 'buffer', file)
+
+	encoding = locale.getpreferredencoding()
+
+	def encoded_args():
+		for arg in args:
+			if isinstance(arg, bytes):
+				yield arg
+			else:
+				yield unicode(arg).encode(encoding, 'replace')
+
+	sep = sep.encode(encoding, 'replace')
+	end = end.encode(encoding, 'replace')
+	text = sep.join(encoded_args())
+	file.write(text + end)
 
 # vim: set ts=4 sw=4 tw=79:

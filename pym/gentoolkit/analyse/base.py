@@ -19,8 +19,6 @@ import sys
 import time
 from getopt import gnu_getopt, GetoptError
 
-from portage import os
-
 import gentoolkit.pprinter as pp
 from gentoolkit.formatters import format_options
 from gentoolkit.base import mod_usage

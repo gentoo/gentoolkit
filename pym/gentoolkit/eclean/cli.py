@@ -16,13 +16,13 @@ __productname__ = "eclean"
 __description__ = "A cleaning tool for Gentoo distfiles and binaries."
 
 
+import os
 import sys
 import re
 import time
 import getopt
 
 import portage
-from portage import os
 from portage.output import white, yellow, turquoise, green, teal, red
 
 import gentoolkit.pprinter as pp
