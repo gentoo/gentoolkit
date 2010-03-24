@@ -7,9 +7,9 @@
 from __future__ import print_function
 
 
+import os
 import sys
 
-from portage import os
 import gentoolkit.pprinter as pp
 from gentoolkit.eclean.pkgindex import PkgIndex
 

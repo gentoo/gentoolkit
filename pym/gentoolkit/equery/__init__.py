@@ -8,9 +8,6 @@
 
 from __future__ import print_function
 
-# Move to Imports section after Python 2.6 is stable
-
-
 __all__ = (
 	'format_options',
 	'format_package_names',
@@ -25,12 +22,12 @@ __version__ = "svn"
 # =======
 
 import errno
+import os
 import sys
 import time
 from getopt import getopt, GetoptError
 
 import portage
-from portage import os
 
 import gentoolkit
 from gentoolkit import CONFIG
@@ -347,7 +344,7 @@ def main():
 		)
 		loaded_module.main(module_args)
 	except portage.exception.AmbiguousPackageName as err:
-		raise errors.GentoolkitAmbiguousPackage(err)
+		raise errors.GentoolkitAmbiguousPackage(err.args[0])
 	except IOError as err:
 		if err.errno != errno.EPIPE:
 			raise

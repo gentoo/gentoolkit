@@ -1,3 +1,4 @@
+import os
 import unittest
 import warnings
 from tempfile import NamedTemporaryFile, mktemp
@@ -5,8 +6,6 @@ try:
 	from test import test_support
 except ImportError:
 	from test import support as test_support
-
-from portage import os
 
 from gentoolkit import helpers
 

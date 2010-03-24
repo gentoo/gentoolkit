@@ -14,12 +14,12 @@ __docformat__ = 'epytext'
 # Imports
 # =======
 
+import os
 import sys
 from functools import partial
 from getopt import gnu_getopt, GetoptError
 
 import portage.checksum as checksum
-from portage import os
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
@@ -213,10 +213,10 @@ def checks_printer(cpv, data, verbose=True, only_failures=False):
 	else:
 		if verbose:
 			if not cpv in seen:
-				print("* Checking %s ..." % (pp.emph(str(cpv))))
+				pp.uprint("* Checking %s ..." % (pp.emph(str(cpv))))
 				seen.append(cpv)
 		else:
-			print("%s:" % cpv, end=' ')
+			pp.uprint("%s:" % cpv, end=' ')
 
 	if verbose:
 		for err in errs:

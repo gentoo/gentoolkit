@@ -8,9 +8,6 @@
 
 from __future__ import print_function
 
-# Move to Imports sections when Python 2.6 is stable
-
-
 __docformat__ = 'epytext'
 
 # =======
@@ -18,9 +15,8 @@ __docformat__ = 'epytext'
 # =======
 
 import sys
+import os
 from getopt import gnu_getopt, GetoptError
-
-from portage import os
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
@@ -34,8 +30,8 @@ from gentoolkit.query import Query
 # =======
 
 QUERY_OPTS = {
-	'onlyLatest': False,
-	'showFullLog': False,
+	'only_latest': False,
+	'show_full_log': False,
 	'limit': None,
 	'from': None,
 	'to': None
@@ -86,9 +82,9 @@ def parse_module_options(module_opts):
 			print_help()
 			sys.exit(0)
 		elif opt in ('-f', '--full'):
-			QUERY_OPTS['showFullLog'] = True
+			QUERY_OPTS['show_full_log'] = True
 		elif opt in ('-l', '--latest'):
-			QUERY_OPTS['onlyLatest'] = True
+			QUERY_OPTS['only_latest'] = True
 		elif opt in ('--limit',):
 			set_limit(posarg)
 		elif opt in ('--from',):
@@ -103,9 +99,9 @@ def print_entries(entries):
 	len_entries = len(entries)
 	for i, entry in enumerate(entries, start=1):
 		if i < len_entries:
-			print(entry)
+			pp.uprint(entry)
 		else:
-			print(entry.strip())
+			pp.uprint(entry.strip())
 
 
 def set_limit(posarg):
@@ -157,10 +153,10 @@ def main(input_args):
 		# Output
 		#
 
-		if (QUERY_OPTS['onlyLatest'] or (
+		if (QUERY_OPTS['only_latest'] or (
 			changelog.entries and not changelog.indexed_entries
 		)):
-			print(changelog.latest.strip())
+			pp.uprint(changelog.latest.strip())
 		else:
 			end = QUERY_OPTS['limit'] or len(changelog.indexed_entries)
 			if QUERY_OPTS['to'] or QUERY_OPTS['from']:
@@ -170,7 +166,7 @@ def main(input_args):
 						to_ver=QUERY_OPTS['to']
 					)[:end]
 				)
-			elif QUERY_OPTS['showFullLog']:
+			elif QUERY_OPTS['show_full_log']:
 				print_entries(changelog.full[:end])
 			else:
 				# Raises GentoolkitInvalidAtom here if invalid

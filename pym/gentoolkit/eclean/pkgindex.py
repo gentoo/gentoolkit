@@ -7,12 +7,12 @@ from __future__ import print_function
 
 
 import subprocess
+import os
 import sys
 
 import gentoolkit.pprinter as pp
 
 import portage
-from portage import os
 
 
 class PkgIndex(object):

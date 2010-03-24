@@ -12,7 +12,6 @@ from glob import glob
 import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'pym'))
-from gentoolkit.helpers import walk
 
 __version__ = os.getenv('VERSION', default='9999')
 
@@ -91,7 +90,7 @@ def	load_test():
 
 packages = [
 	str('.'.join(root.split(os.sep)[1:]))
-	for root, dirs, files in walk('pym/gentoolkit')
+	for root, dirs, files in os.walk('pym/gentoolkit')
 	if '__init__.py' in files
 ]
 

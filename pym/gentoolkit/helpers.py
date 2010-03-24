@@ -10,8 +10,6 @@
        the query module, where they are called as: Query('portage').find_*().
 """
 
-from __future__ import print_function
-
 __all__ = (
 	'ChangeLog',
 	'FileOwner',
@@ -19,7 +17,6 @@ __all__ = (
 	'get_installed_cpvs',
 	'get_uninstalled_cpvs',
 	'uniqify',
-	'walk'
 )
 __docformat__ = 'epytext'
 
@@ -27,13 +24,12 @@ __docformat__ = 'epytext'
 # Imports
 # =======
 
+import os
 import sys
 import re
 import codecs
 from functools import partial
 from itertools import chain
-
-from portage import os, _unicode_decode, _encodings
 
 from gentoolkit import pprinter as pp
 from gentoolkit import errors
@@ -437,20 +433,16 @@ def get_installed_cpvs(predicate=None):
 def print_file(path):
 	"""Display the contents of a file."""
 
-	out = sys.stdout
-	if hasattr(out, "buffer"):
-		out = out.buffer
-
 	with open(path, "rb") as open_file:
 		lines = open_file.read()
-		print(lines.strip(), file = out)
+		pp.uprint(lines.strip())
 
 
-def print_sequence(seq, file = sys.stdout):
+def print_sequence(seq):
 	"""Print every item of a sequence."""
 
 	for item in seq:
-		print(item, file = file)
+		pp.uprint(item)
 
 
 def uniqify(seq, preserve_order=True):
@@ -463,21 +455,5 @@ def uniqify(seq, preserve_order=True):
 		result = list(set(seq))
 
 	return result
-
-
-def walk(top, topdown = True, onerror = None, followlinks = False):
-	"""Variant of os.walk that always returns unicode filenames"""
-	for root, dirs, files in os.walk(top, topdown, onerror, followlinks):
-		root = _unicode_decode(root, _encodings["fs"], errors = "strict")
-		dirs = [
-			_unicode_decode(x, _encodings["fs"], errors = "strict")
-			for x in dirs
-		]
-		files = [
-			_unicode_decode(x, _encodings["fs"], errors = "strict")
-			for x in files
-		]
-		# XXX: in contrast with os.walk we ignore modifications to dirs here
-		yield root, dirs, files
 
 # vim: set ts=4 sw=4 tw=79:

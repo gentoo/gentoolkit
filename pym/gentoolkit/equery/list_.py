@@ -199,7 +199,7 @@ def main(input_args):
 				not QUERY_OPTS["in_porttree"]):
 				if not 'O' in pkgstr.location:
 					continue
-			print(pkgstr)
+			pp.uprint(pkgstr)
 
 			if QUERY_OPTS["include_mask_reason"]:
 				ms_int, ms_orig = pkgstr.format_mask_status()
@@ -217,9 +217,9 @@ def main(input_args):
 					status = ', '.join(ms_orig)
 					explanation = mask_reason[0]
 					mask_location = mask_reason[1]
-					print(" * Masked by %r" % status)
-					print(" * %s:" % mask_location)
-					print('\n'.join(
+					pp.uprint(" * Masked by %r" % status)
+					pp.uprint(" * %s:" % mask_location)
+					pp.uprint('\n'.join(
 						[' * %s' % line.lstrip(' #')
 							for line in explanation.splitlines()]
 						))

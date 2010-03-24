@@ -30,6 +30,35 @@ class Keyword(object):
 
 	def __init__(self, keyword):
 		self.keyword = keyword
+		arch, sep, os = keyword.partition('-')
+		self.arch = arch
+		self.os = os
+
+	def __eq__(self, other):
+		if not isinstance(other, self.__class__):
+			return False
+		return self.keyword == other.keyword
+
+	def __ne__(self, other):
+		return not self == other
+
+	def __lt__(self, other):
+		if not isinstance(other, self.__class__):
+			raise TypeError("other isn't of %s type, is %s" % (
+				self.__class__, other.__class__)
+			)
+		if self.os < other.os:
+			return True
+		return self.arch < other.arch
+
+	def __le__(self, other):
+		return self == other or self < other
+
+	def __gt__(self, other):
+		return not self <= other
+
+	def __ge__(self, other):
+		return self == other or self > other
 
 	def __str__(self):
 		return self.keyword
@@ -55,9 +84,11 @@ def compare_strs(kw1, kw2):
 	kw2_arch, sep, kw2_os = kw2.partition('-')
 	if kw1_arch != kw2_arch:
 		if kw1_os != kw2_os:
-			return cmp(kw1_os, kw2_os)
-		return cmp(kw1_arch, kw2_arch)
-	return cmp(kw1_os, kw2_os)
+			return -1 if kw1_os < kw2_os else 1
+		return -1 if kw1_arch < kw2_arch else 1
+	if kw1_os == kw2_os:
+		return 0
+	return -1 if kw1_os < kw2_os else 1
 
 
 def reduce_keywords(keywords):

@@ -75,23 +75,27 @@ class Query(object):
 	def print_summary(self):
 		"""Print a summary of the query."""
 
-		cpv = CPV(self.query)
-		cat, pkg = cpv.category, cpv.name + cpv.fullversion
-		if cat and not self.is_regex:
-			cat_str = "in %s " % pp.emph(cat.lstrip('><=~!'))
-		else:
+		if self.query_type == "set":
 			cat_str = ""
-
-		if self.is_regex:
 			pkg_str = pp.emph(self.query)
 		else:
-			pkg_str = pp.emph(pkg)
+			cpv = CPV(self.query)
+			cat, pkg = cpv.category, cpv.name + cpv.fullversion
+			if cat and not self.is_regex:
+				cat_str = "in %s " % pp.emph(cat.lstrip('><=~!'))
+			else:
+				cat_str = ""
+
+			if self.is_regex:
+				pkg_str = pp.emph(self.query)
+			else:
+				pkg_str = pp.emph(pkg)
 
 		repo = ''
 		if self.repo_filter is not None:
 			repo = ' %s' % pp.section(self.repo_filter)
 
-		print(" * Searching%s for %s %s..." % (repo, pkg_str, cat_str))
+		pp.uprint(" * Searching%s for %s %s..." % (repo, pkg_str, cat_str))
 
 	def smart_find(
 		self,
@@ -193,7 +197,7 @@ class Query(object):
 		# catch the ambiguous package Exception
 		except portage.exception.AmbiguousPackageName as err:
 			matches = []
-			for pkgkey in err[0]:
+			for pkgkey in err.args[0]:
 				matches.extend(VARDB.match(pkgkey))
 		except portage.exception.InvalidAtom as err:
 			raise errors.GentoolkitInvalidAtom(err)

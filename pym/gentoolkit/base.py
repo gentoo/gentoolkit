@@ -14,11 +14,10 @@ __docformat__ = 'epytext'
 
 
 import errno
+import os
 import sys
 import time
 from getopt import gnu_getopt, GetoptError
-
-from portage import os
 
 import gentoolkit
 from gentoolkit import errors

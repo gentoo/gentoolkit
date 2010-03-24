@@ -31,9 +31,9 @@ from gentoolkit.helpers import FileOwner
 # =======
 
 QUERY_OPTS = {
-	"fullRegex": False,
-	"earlyOut": False,
-	"nameOnly": False
+	"full_regex": False,
+	"early_out": False,
+	"name_only": False
 }
 
 # =======
@@ -62,7 +62,7 @@ class BelongsPrinter(object):
 			name = pkg.cp
 		else:
 			name = str(pkg.cpv)
-		print(name)
+		pp.uprint(name)
 
 	def print_verbose(self, pkg, cfile):
 		"Format for full output."
@@ -71,8 +71,7 @@ class BelongsPrinter(object):
 			name = pkg.cp
 		else:
 			name = str(pkg.cpv)
-		print(pp.cpv(name), "(" + file_str + ")")
-
+		pp.uprint(pp.cpv(name), "(" + file_str + ")")
 
 # =========
 # Functions
@@ -91,11 +90,11 @@ def parse_module_options(module_opts):
 				sys.stderr.write(pp.warn("Use of --earlyout is deprecated."))
 				sys.stderr.write(pp.warn("Please use --early-out."))
 				print()
-			QUERY_OPTS['earlyOut'] = True
+			QUERY_OPTS['early_out'] = True
 		elif opt in ('-f', '--full-regex'):
-			QUERY_OPTS['fullRegex'] = True
+			QUERY_OPTS['full_regex'] = True
 		elif opt in ('-n', '--name-only'):
-			QUERY_OPTS['nameOnly'] = True
+			QUERY_OPTS['name_only'] = True
 
 
 def print_help(with_description=True):
@@ -141,15 +140,17 @@ def main(input_args):
 		sys.exit(2)
 
 	if CONFIG['verbose']:
-		print(" * Searching for %s ... " % (pp.regexpquery(",".join(queries))))
+		pp.uprint(" * Searching for %s ... " % (
+			pp.regexpquery(",".join(queries)))
+		)
 
 	printer_fn = BelongsPrinter(
-		verbose=CONFIG['verbose'], name_only=QUERY_OPTS['nameOnly']
+		verbose=CONFIG['verbose'], name_only=QUERY_OPTS['name_only']
 	)
 
 	find_owner = FileOwner(
-		is_regex=QUERY_OPTS['fullRegex'],
-		early_out=QUERY_OPTS['earlyOut'],
+		is_regex=QUERY_OPTS['full_regex'],
+		early_out=QUERY_OPTS['early_out'],
 		printer_fn=printer_fn
 	)
 

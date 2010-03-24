@@ -14,12 +14,13 @@ __docformat__ = 'epytext'
 # Imports
 # =======
 
+import os
 import sys
 from functools import partial
 from getopt import gnu_getopt, GetoptError
 from glob import glob
 
-from portage import os, settings
+from portage import settings
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
@@ -97,22 +98,22 @@ def display_useflags(output):
 				restrict = "(%s %s)" % (pp.emph("Restricted to"),
 					pp.cpv(restrict))
 				twrap.initial_indent = flag_name
-				print(twrap.fill(restrict))
+				pp.uprint(twrap.fill(restrict))
 				if desc:
 					twrap.initial_indent = twrap.subsequent_indent
-					print(twrap.fill(desc))
+					pp.uprint(twrap.fill(desc))
 				else:
 					print(" : <unknown>")
 			else:
 				if desc:
 					twrap.initial_indent = flag_name
 					desc = twrap.fill(desc)
-					print(desc)
+					pp.uprint(desc)
 				else:
 					twrap.initial_indent = flag_name
 					print(twrap.fill("<unknown>"))
 		else:
-			print(markers[in_makeconf] + flag)
+			pp.uprint(markers[in_makeconf] + flag)
 
 
 def get_global_useflags():

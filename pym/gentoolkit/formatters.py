@@ -10,8 +10,6 @@ import errno
 import sys
 import time
 
-from portage import os
-
 import gentoolkit
 from gentoolkit.textwrap_ import TextWrapper
 import gentoolkit.pprinter as pp

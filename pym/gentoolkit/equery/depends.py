@@ -28,9 +28,9 @@ from gentoolkit.cpv import CPV
 # =======
 
 QUERY_OPTS = {
-	"includeMasked": False,
-	"onlyDirect": True,
-	"maxDepth": -1,
+	"include_masked": False,
+	"only_direct": True,
+	"max_depth": -1,
 }
 
 # =======
@@ -53,7 +53,8 @@ class DependPrinter(object):
 		"""Verbosely prints a set of dep strings."""
 
 		sep = ' ? ' if (depatom and use_conditional) else ''
-		print(indent + pp.cpv(cpv), "(" + use_conditional + sep + depatom + ")")
+		pp.uprint(indent + pp.cpv(cpv), "(" + use_conditional +
+			sep + depatom + ")")
 
 	# W0613: *Unused argument %r*
 	# pylint: disable-msg=W0613
@@ -61,7 +62,7 @@ class DependPrinter(object):
 	def print_quiet(indent, cpv, use_conditional, depatom):
 		"""Quietly prints a subset set of dep strings."""
 
-		print(indent + pp.cpv(cpv))
+		pp.uprint(indent + pp.cpv(cpv))
 
 	def format_depend(self, dep, dep_is_displayed):
 		"""Format a dependency for printing.
@@ -131,9 +132,9 @@ def parse_module_options(module_opts):
 			print_help()
 			sys.exit(0)
 		elif opt in ('-a', '--all-packages'):
-			QUERY_OPTS['includeMasked'] = True
+			QUERY_OPTS['include_masked'] = True
 		elif opt in ('-D', '--indirect'):
-			QUERY_OPTS['onlyDirect'] = False
+			QUERY_OPTS['only_direct'] = False
 		elif opt in ('--depth'):
 			if posarg.isdigit():
 				depth = int(posarg)
@@ -143,7 +144,7 @@ def parse_module_options(module_opts):
 				print()
 				print_help(with_description=False)
 				sys.exit(2)
-			QUERY_OPTS["maxDepth"] = depth
+			QUERY_OPTS["max_depth"] = depth
 
 
 def main(input_args):
@@ -176,7 +177,7 @@ def main(input_args):
 			print()
 
 		pkg = Dependencies(query)
-		if QUERY_OPTS['includeMasked']:
+		if QUERY_OPTS['include_masked']:
 			pkggetter = get_cpvs
 		else:
 			pkggetter = get_installed_cpvs
@@ -184,9 +185,9 @@ def main(input_args):
 		if CONFIG['verbose']:
 			print(" * These packages depend on %s:" % pp.emph(pkg.cpv))
 		pkg.graph_reverse_depends(
-			pkgset=sorted(pkggetter(), key = CPV),
-			max_depth=QUERY_OPTS["maxDepth"],
-			only_direct=QUERY_OPTS["onlyDirect"],
+			pkgset=sorted(pkggetter(), key=CPV),
+			max_depth=QUERY_OPTS["max_depth"],
+			only_direct=QUERY_OPTS["only_direct"],
 			printer_fn=dep_print
 		)
 

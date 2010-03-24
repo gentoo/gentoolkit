@@ -43,10 +43,11 @@ FORMAT_TMPL_VARS = (
 # Imports
 # =======
 
+import os
 from string import Template
 
 import portage
-from portage import os, settings
+from portage import settings
 from portage.util import LazyItemsDict
 
 import gentoolkit.pprinter as pp
