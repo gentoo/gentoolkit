@@ -146,7 +146,7 @@ def parseExcludeFile(filepath, output):
 	#print()
 	return exclude
 
-def cp_all(categories):
+def cp_all(categories, portdb=portage.portdb ):
 		"""temp function until the new portdb.cp_all([cat,...])
 		behaviour is fully available.
 
@@ -155,7 +155,7 @@ def cp_all(categories):
 		@rtype: list of cat/pkg's  ['foo/bar', 'foo/baz']
 		"""
 		try:
-			cps = portage.portdb.cp_all(categories)
+			cps = portdb.cp_all(categories)
 			message = "Deprication Warning: eclean.exclude.cp_all()\n" + \
 				"New portage functionality is available " +\
 				"Please migrate code permanently"
@@ -167,7 +167,7 @@ def cp_all(categories):
 			cps = []
 			# XXX: i smell an access to something which is really out of API...
 			_pkg_dir_name_re = re.compile(r'^\w[-+\w]*$')
-			for tree in portage.portdb.porttrees:
+			for tree in portdb.porttrees:
 				for cat in categories:
 					for pkg in listdir(os.path.join(tree,cat),
 								EmptyOnError=1, ignorecvs=1, dirsonly=1):

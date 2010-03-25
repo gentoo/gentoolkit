@@ -8,46 +8,316 @@
 
 from __future__ import print_function
 
+import re
 import os
 import unittest
 from tempfile import NamedTemporaryFile, mkdtemp
 import subprocess
+import portage
 
 
+dir_mode = 0o774
 
-dir_mode = 0774
-
-CPVS = [u'sys-auth/consolekit-0.4.1', u'sys-apps/devicekit-power-014',
-	u'media-libs/sdl-pango-0.1.2', u'sys-apps/help2man-1.37.1',
-	u'app-emulation/emul-linux-x86-baselibs-20100220'
-]
+CPVS = [
+	'sys-auth/consolekit-0.4.1',
+	'sys-apps/devicekit-power-014',
+	'media-libs/sdl-pango-0.1.2',
+	'sys-apps/help2man-1.37.1',
+	'app-emulation/emul-linux-x86-baselibs-20100220'
+	]
 
 PROPS = {
-	u'sys-apps/devicekit-power-014': {u'SRC_URI':
-		u'http://hal.freedesktop.org/releases/DeviceKit-power-014.tar.gz',
-		u"RESTRICT": u''},
-	u'sys-apps/help2man-1.37.1': {u"SRC_URI": u'mirror://gnu/help2man/help2man-1.37.1.tar.gz',
-		u"RESTRICT": u''},
-	u'sys-auth/consolekit-0.4.1': { u"SRC_URI":
-		u'http://www.freedesktop.org/software/ConsoleKit/dist/ConsoleKit-0.4.1.tar.bz2',
-		u"RESTRICT": u''},
-	u'app-emulation/emul-linux-x86-baselibs-20100220': {
-		u"SRC_URI": u'mirror://gentoo/emul-linux-x86-baselibs-20100220.tar.gz',
-		u"RESTRICT": u'strip'},
-	u'media-libs/sdl-pango-0.1.2': {
-		u"SRC_URI": u'mirror://sourceforge/sdlpango/SDL_Pango-0.1.2.tar.gz http://zarb.org/~gc/t/SDL_Pango-0.1.2-API-adds.patch',
-		u"RESTRICT": u''}
+	'sys-apps/devicekit-power-014': {'SRC_URI':
+		'http://hal.freedesktop.org/releases/DeviceKit-power-014.tar.gz',
+		"RESTRICT": ''},
+	'sys-apps/help2man-1.37.1': {"SRC_URI": 'mirror://gnu/help2man/help2man-1.37.1.tar.gz',
+		"RESTRICT": ''},
+	'sys-auth/consolekit-0.4.1': { "SRC_URI":
+		'http://www.freedesktop.org/software/ConsoleKit/dist/ConsoleKit-0.4.1.tar.bz2',
+		"RESTRICT": ''},
+	'app-emulation/emul-linux-x86-baselibs-20100220': {
+		"SRC_URI": 'mirror://gentoo/emul-linux-x86-baselibs-20100220.tar.gz',
+		"RESTRICT": 'strip'},
+	'media-libs/sdl-pango-0.1.2': {
+		"SRC_URI": 'mirror://sourceforge/sdlpango/SDL_Pango-0.1.2.tar.gz http://zarb.org/~gc/t/SDL_Pango-0.1.2-API-adds.patch',
+		"RESTRICT": ''},
+	'x11-base/xorg-server-1.6.5-r1': { 
+		"SRC_URI": 'http://xorg.freedesktop.org/releases/individual/xserver/xorg-server-1.6.5.tar.bz2 mirror://gentoo/xorg-server-1.6.5-gentoo-patches-01.tar.bz2',
+		"RESTRICT": ''},
+	'perl-core/ExtUtils-ParseXS-2.20.0401': {
+		"SRC_URI": 'mirror://cpan/authors/id/D/DA/DAGOLDEN//ExtUtils-ParseXS-2.200401.tar.gz',
+		"RESTRICT": ''},
+	'x11-misc/util-macros-1.3.0': { 
+		"SRC_URI": 'http://xorg.freedesktop.org/releases/individual/util/util-macros-1.3.0.tar.bz2',
+		"RESTRICT": ''},
+	'x11-base/xorg-server-1.7.5': {
+		"SRC_URI": 'http://xorg.freedesktop.org/releases/individual/xserver/xorg-server-1.7.5.tar.bz2',
+		"RESTRICT": ''},
+	'app-portage/portage-utils-0.3.1': {
+		"SRC_URI": 'mirror://gentoo/portage-utils-0.3.1.tar.bz2',
+		"RESTRICT": ''},
+	'x11-misc/util-macros-1.5.0': {
+		"SRC_URI": 'http://xorg.freedesktop.org/releases/individual/util/util-macros-1.5.0.tar.bz2',
+		"RESTRICT": ''},
+	'perl-core/Module-Build-0.35': {
+		"SRC_URI": 'mirror://cpan/authors/id/D/DA/DAGOLDEN//Module-Build-0.35.tar.gz',
+		"RESTRICT": ''},
+	'perl-core/ExtUtils-ParseXS-2.22.02': { 
+		"SRC_URI": 'mirror://cpan/authors/id/D/DA/DAGOLDEN//ExtUtils-ParseXS-2.2202.tar.gz',
+		"RESTRICT": ''},
+	'perl-core/ExtUtils-ParseXS-2.22.03': {
+		"SRC_URI": 'mirror://cpan/authors/id/D/DA/DAGOLDEN//ExtUtils-ParseXS-2.2203.tar.gz',
+		"RESTRICT": ''},
+	'perl-core/ExtUtils-ParseXS-2.22.01': {
+		"SRC_URI": 'mirror://cpan/authors/id/D/DA/DAGOLDEN//ExtUtils-ParseXS-2.2201.tar.gz',
+		"RESTRICT": ''},
+	'perl-core/Archive-Tar-1.38': {
+		"SRC_URI": 'mirror://cpan/authors/id/K/KA/KANE/Archive-Tar-1.38.tar.gz',
+		"RESTRICT": ''},
+	'perl-core/Archive-Tar-1.58': {
+		"SRC_URI": 'mirror://cpan/authors/id/B/BI/BINGOS//Archive-Tar-1.58.tar.gz',
+		"RESTRICT": ''},
+	'perl-core/Archive-Tar-1.54': { 
+		"SRC_URI": 'mirror://cpan/authors/id/B/BI/BINGOS//Archive-Tar-1.54.tar.gz',
+		"RESTRICT": ''},
+	'perl-core/Archive-Tar-1.56': { 
+		"SRC_URI": 'mirror://cpan/authors/id/B/BI/BINGOS//Archive-Tar-1.56.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/portage-utils-0.2.1': {
+		"SRC_URI": 'mirror://gentoo/portage-utils-0.2.1.tar.bz2',
+		"RESTRICT": ''},
+	'dev-libs/libisofs-0.6.20-r1': {
+		"SRC_URI": 'http://files.libburnia-project.org/releases/libisofs-0.6.20.tar.gz',
+		"RESTRICT": ''},
+	'perl-core/ExtUtils-ParseXS-2.22.02-r1': {
+		"SRC_URI": 'mirror://cpan/authors/id/D/DA/DAGOLDEN//ExtUtils-ParseXS-2.2202.tar.gz',
+		"RESTRICT": ''},
+	'x11-misc/util-macros-1.6.0': {
+		"SRC_URI": 'http://xorg.freedesktop.org/releases/individual/util/util-macros-1.6.0.tar.bz2',
+		"RESTRICT": ''},
+	'x11-libs/pixman-0.16.0': { 
+		"SRC_URI": 'http://xorg.freedesktop.org/releases/individual/lib/pixman-0.16.0.tar.bz2',
+		"RESTRICT": ''},
+	'x11-libs/pixman-0.16.4': {
+		"SRC_URI": 'http://xorg.freedesktop.org/releases/individual/lib/pixman-0.16.4.tar.bz2',
+		"RESTRICT": ''},
+	'x11-libs/pixman-0.17.4': {
+		"SRC_URI": 'http://xorg.freedesktop.org/releases/individual/lib/pixman-0.17.4.tar.bz2',
+		"RESTRICT": ''},
+	'x11-libs/pixman-0.17.2': {
+		"SRC_URI": 'http://xorg.freedesktop.org/releases/individual/lib/pixman-0.17.2.tar.bz2',
+		"RESTRICT": ''},
+	'dev-libs/libburn-0.7.6-r1': {
+		"SRC_URI": 'http://files.libburnia-project.org/releases/libburn-0.7.6.pl00.tar.gz',
+		"RESTRICT": ''},
+	'dev-libs/libburn-0.7.0': {
+		"SRC_URI": 'http://files.libburnia-project.org/releases/libburn-0.7.0.pl00.tar.gz',
+		"RESTRICT": ''},
+	'perl-core/Module-Build-0.34.0201': {
+		"SRC_URI": 'mirror://cpan/authors/id/D/DA/DAGOLDEN//Module-Build-0.340201.tar.gz',
+		"RESTRICT": ''},
+	'dev-libs/libburn-0.6.8': {
+		"SRC_URI": 'http://files.libburnia-project.org/releases/libburn-0.6.8.pl00.tar.gz',
+		"RESTRICT": ''},
+	'dev-libs/libburn-0.7.4': {
+		"SRC_URI": 'http://files.libburnia-project.org/releases/libburn-0.7.4.pl00.tar.gz',
+		"RESTRICT": ''},
+	'perl-core/Module-Build-0.36.03': {
+		"SRC_URI": 'mirror://cpan/authors/id/D/DA/DAGOLDEN//Module-Build-0.3603.tar.gz',
+		"RESTRICT": ''},
+	'perl-core/Module-Build-0.36.01': {
+		"SRC_URI": 'mirror://cpan/authors/id/D/DA/DAGOLDEN//Module-Build-0.3601.tar.gz',
+		"RESTRICT": ''},
+	'x11-base/xorg-server-1.5.3-r6': {
+		"SRC_URI": 'http://xorg.freedesktop.org/releases/individual/xserver/xorg-server-1.5.3.tar.bz2 http://xorg.freedesktop.org/releases/individual/xserver/xorg-server-1.5.3.tar.bz2 mirror://gentoo/xorg-server-1.5.3-gentoo-patches-08.tar.bz2',
+		"RESTRICT": ''},
+	'dev-libs/libisofs-0.6.28': {
+		"SRC_URI": 'http://files.libburnia-project.org/releases/libisofs-0.6.28.tar.gz',
+		"RESTRICT": ''},
+	'media-libs/xine-lib-1.1.17': {
+		"SRC_URI": 'mirror://sourceforge/xine/xine-lib-1.1.17.tar.bz2 mirror://gentoo/xine-lib-1.1.15-textrel-fix.patch',
+		"RESTRICT": ''},
+	'media-libs/xine-lib-1.1.18': {
+		"SRC_URI": 'mirror://sourceforge/xine/xine-lib-1.1.18.tar.xz mirror://gentoo/xine-lib-1.1.15-textrel-fix.patch mirror://gentoo/xine-lib-1.1.18-compat.c.tbz2',
+		"RESTRICT": ''},
+	'perl-core/ExtUtils-ParseXS-2.22': {
+		"SRC_URI": 'mirror://cpan/authors/id/D/DA/DAGOLDEN//ExtUtils-ParseXS-2.22.tar.gz',
+		"RESTRICT": ''},
+	'perl-core/ExtUtils-ParseXS-2.21': {
+		"SRC_URI": 'mirror://cpan/authors/id/D/DA/DAGOLDEN//ExtUtils-ParseXS-2.21.tar.gz',
+		"RESTRICT": ''},
+	'x11-base/xorg-server-1.7.5.901': {
+		"SRC_URI": 'http://xorg.freedesktop.org/releases/individual/xserver/xorg-server-1.7.5.901.tar.bz2',
+		"RESTRICT": ''},
+	'dev-libs/libisofs-0.6.24': { 
+		"SRC_URI": 'http://files.libburnia-project.org/releases/libisofs-0.6.24.tar.gz',
+		"RESTRICT": ''},
+	'dev-libs/libisofs-0.6.26': {
+		"SRC_URI": 'http://files.libburnia-project.org/releases/libisofs-0.6.26.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/portage-utils-0.3.1': {
+		"SRC_URI": 'mirror://gentoo/portage-utils-0.3.1.tar.bz2',
+		"RESTRICT": ''},
+	'app-portage/gentoolkit-0.3.0_rc8-r1': { 
+		"SRC_URI": 'mirror://gentoo/gentoolkit-0.3.0_rc8.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc8.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/gentoolkit-0.2.4.6-r1': { 
+		"SRC_URI": 'mirror://gentoo/gentoolkit-0.2.4.6.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.2.4.6.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/eix-0.20.2': { 
+		"SRC_URI": 'mirror://berlios/eix/eix-0.20.2.tar.xz',
+		"RESTRICT": ''},
+	'app-portage/gentoolkit-0.2.4.5': {
+		"SRC_URI": 'mirror://gentoo/gentoolkit-0.2.4.5.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.2.4.5.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/portage-utils-0.2.1': {
+		"SRC_URI": 'mirror://gentoo/portage-utils-0.2.1.tar.bz2',
+		"RESTRICT": ''},
+	'app-portage/gentoolkit-0.3.0_rc8': {
+		"SRC_URI": 'mirror://gentoo/gentoolkit-0.3.0_rc8.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc8.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/gentoolkit-0.2.4.6': { 
+		"SRC_URI": 'mirror://gentoo/gentoolkit-0.2.4.6.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.2.4.6.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/layman-1.3.0-r1': {
+		"SRC_URI": 'mirror://sourceforge/layman/layman-1.3.0.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/gentoolkit-0.3.0_rc7': {
+		"SRC_URI": 'mirror://gentoo/gentoolkit-0.3.0_rc7.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc7.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/layman-1.3.0': { 
+		"SRC_URI": 'mirror://sourceforge/layman/layman-1.3.0.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/layman-1.3.1': {
+		"SRC_URI": 'mirror://sourceforge/layman/layman-1.3.1.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/layman-1.2.6': {
+		"SRC_URI": 'mirror://sourceforge/layman/layman-1.2.6.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/layman-9999': {
+		"SRC_URI": '',
+		"RESTRICT": ''},
+	'app-portage/layman-1.2.5': { 
+		"SRC_URI": 'mirror://sourceforge/layman/layman-1.2.5.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/layman-1.3.0_rc1-r3': { 
+		"SRC_URI": 'mirror://sourceforge/layman/layman-1.3.0_rc1.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/gentoolkit-0.3.0_rc9': {
+		"SRC_URI": 'mirror://gentoo/gentoolkit-0.3.0_rc9.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc9.tar.gz',
+		"RESTRICT": ''},
+	'app-portage/eix-0.20.1': { 
+		"SRC_URI": 'mirror://sourceforge/eix/eix-0.20.1.tar.xz',
+		"RESTRICT": ''},
+	'app-portage/eix-0.19.2': {
+		"SRC_URI": 'mirror://sourceforge/eix/eix-0.19.2.tar.xz',
+		"RESTRICT": ''},
+	'app-portage/layman-1.3.2-r1': {
+		"SRC_URI": 'mirror://sourceforge/layman/layman-1.3.2.tar.gz',
+		"RESTRICT": ''},
 }
 
 FILES = [
-	u'DeviceKit-power-014.tar.gz',
-	u'help2man-1.37.1.tar.gz',
-	u'ConsoleKit-0.4.1.tar.bz2',
-	u'emul-linux-x86-baselibs-20100220.tar.gz',
-	u'SDL_Pango-0.1.2.tar.gz',
-	u'SDL_Pango-0.1.2-API-adds.patch'
+	'DeviceKit-power-014.tar.gz',
+	'help2man-1.37.1.tar.gz',
+	'ConsoleKit-0.4.1.tar.bz2',
+	'emul-linux-x86-baselibs-20100220.tar.gz',
+	'SDL_Pango-0.1.2.tar.gz',
+	'SDL_Pango-0.1.2-API-adds.patch'
 ]
 
+CPVS2 = [
+	'perl-core/Archive-Tar-1.38',
+	'perl-core/Archive-Tar-1.54',
+	'perl-core/Archive-Tar-1.56',
+	'perl-core/Archive-Tar-1.58',
+	'perl-core/ExtUtils-ParseXS-2.20.0401',
+	'perl-core/ExtUtils-ParseXS-2.21',
+	 'perl-core/ExtUtils-ParseXS-2.22',
+	 'perl-core/ExtUtils-ParseXS-2.22.01',
+	'perl-core/ExtUtils-ParseXS-2.22.02',
+	'perl-core/ExtUtils-ParseXS-2.22.02-r1',
+	'perl-core/ExtUtils-ParseXS-2.22.03',
+	'perl-core/Module-Build-0.34.0201',
+	'perl-core/Module-Build-0.35',
+	'perl-core/Module-Build-0.36.01',
+	'perl-core/Module-Build-0.36.03',
+	'dev-libs/libburn-0.6.8',
+	'dev-libs/libburn-0.7.0',
+	'dev-libs/libburn-0.7.4',
+	'dev-libs/libburn-0.7.6-r1',
+	'dev-libs/libisofs-0.6.20-r1',
+	'dev-libs/libisofs-0.6.24',
+	'dev-libs/libisofs-0.6.26',
+	'dev-libs/libisofs-0.6.28',
+	'x11-libs/pixman-0.16.0',
+	'x11-libs/pixman-0.16.4',
+	'x11-libs/pixman-0.17.2',
+	'x11-libs/pixman-0.17.4',
+	'app-portage/portage-utils-0.2.1',
+	'app-portage/portage-utils-0.3.1',
+	'x11-misc/util-macros-1.3.0',
+	'x11-misc/util-macros-1.5.0',
+	'x11-misc/util-macros-1.6.0',
+	'media-libs/xine-lib-1.1.17',
+	'media-libs/xine-lib-1.1.18',
+	'x11-base/xorg-server-1.5.3-r6',
+	'x11-base/xorg-server-1.6.5-r1',
+	'x11-base/xorg-server-1.7.5',
+	'x11-base/xorg-server-1.7.5.901',
+	'app-portage/layman-1.2.5',
+	'app-portage/layman-1.2.6',
+	'app-portage/layman-1.3.0_rc1-r3',
+	'app-portage/layman-1.3.0',
+	'app-portage/layman-1.3.0-r1',
+	'app-portage/layman-1.3.1',
+	'app-portage/layman-1.3.2-r1',
+	'app-portage/layman-9999',
+	'app-portage/eix-0.19.2',
+	'app-portage/eix-0.20.1',
+	'app-portage/eix-0.20.2',
+	'app-portage/gentoolkit-0.2.4.5',
+	'app-portage/gentoolkit-0.2.4.6',
+	'app-portage/gentoolkit-0.2.4.6-r1',
+	'app-portage/gentoolkit-0.3.0_rc7',
+	'app-portage/gentoolkit-0.3.0_rc8',
+	'app-portage/gentoolkit-0.3.0_rc8-r1',
+	'app-portage/gentoolkit-0.3.0_rc9',
+	'app-portage/portage-utils-0.2.1',
+	'app-portage/portage-utils-0.3.1'
+	]
+
+CPVS3 = [
+	'x11-base/xorg-server-1.6.5-r1',
+	'x11-misc/util-macros-1.6.0',
+	'x11-libs/pixman-0.16.4',
+	#'dev-libs/libisofs-0.6.28',
+	#'perl-core/Module-Build-0.36.03',
+	#'perl-core/ExtUtils-ParseXS-2.22.02-r1',
+	#'perl-core/Archive-Tar-1.56',
+	#'app-portage/gentoolkit-0.3.0_rc8-r1',
+	#'app-portage/layman-1.3.1',
+	#'app-portage/eix-0.20.1',
+	]
+
+
+Exclude= {'packages': {
+		'media-libs/sdl-pango': None,
+		 },
+	'anti-packages': {'app-emulation/emul-linux-x86-baselibs': None},
+	'categories': {'app-portage': None,
+		'app-portage/gentoolkit': None
+		},
+	'filenames': {'sys-auth/consolekit-0.4.1': re.compile('sys-auth/consolekit-0.4.1')       
+		}
+	}
+
+
+def get_props(cpvs):
+	props = {}
+	for cpv in cpvs:
+		props[cpv] = PROPS[cpv]
+	return props
 
 class Dbapi(object):
 	"""Fake portage dbapi class used to return
@@ -77,11 +347,21 @@ class Dbapi(object):
 		return self._cp_all[:]
 
 	def cp_list(self, package):
-		#need to determine the data to return
-		# and gather some from a live system to use for testing
-		pass
+		print(self._cp_list)
+		if self._cp_list is None or self._cp_list==[]:
+			cplist = []
+			for cpv in self._cpv_all:
+				parts = portage.catpkgsplit(cpv)
+				cp='/'.join(parts[:2])
+				print(package, cp)
+				if cp == package:
+					cplist.append(cpv)
+			return cplist
+		else:
+			return self._cp_list
 
 	def cpv_all(self):
+		#print(self.name, type(self._cpv_all), self._cpv_all)
 		return self._cpv_all
 
 	def cpv_exists(self, cpv):
@@ -96,7 +376,7 @@ class Dbapi(object):
 			if cpv in self._props:
 				props.append(self._props[cpv][prop])
 			else:
-				raise KeyError, self.name
+				raise KeyError(self.name)
 		return props
 
 
