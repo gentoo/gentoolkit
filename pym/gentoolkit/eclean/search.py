@@ -70,6 +70,7 @@ class DistfilesSearch(object):
 		self.vardb =vardb
 		self.portdb = portdb
 		self.output = output
+		self.installed_cpvs = None
 
 	def findDistfiles(self,
 			exclude={},
@@ -109,8 +110,7 @@ class DistfilesSearch(object):
 		# whose distfiles should be kept
 		if (not destructive) or fetch_restricted:
 			self.output("...non-destructive type search")
-			# TODO fix fetch_restricted to save the installed packges filenames while processing
-			pkgs, _deprecated = self._non_destructive(destructive, fetch_restricted, exclude=exclude)
+			pkgs, _deprecated = self._non_destructive(destructive, fetch_restricted)
 			deprecated.update(_deprecated)
 			installed_included = True
 		if destructive:
@@ -260,7 +260,7 @@ class DistfilesSearch(object):
 			destructive,
 			fetch_restricted,
 			pkgs_ = None,
-			exclude=None
+			hosts_cpvs=None
 			):
 		"""performs the non-destructive checks
 
@@ -275,16 +275,18 @@ class DistfilesSearch(object):
 			pkgs = {}
 		else:
 			pkgs = pkgs_.copy()
-		if exclude is None:
-			exclude = {}
 		deprecated = {}
 		# the following code block was split to optimize for speed
 		# list all CPV from portree (yeah, that takes time...)
 		self.output("   - getting complete ebuild list")
 		cpvs = set(self.portdb.cpv_all())
+		installed_cpvs = set(self.vardb.cpv_all())
 		# now add any installed cpv's that are not in the tree or overlays
-		installed_cpvs = self.vardb.cpv_all()
 		cpvs.update(installed_cpvs)
+		# Add any installed cpvs from hosts on the network, if any
+		if hosts_cpvs:
+			cpvs.update(hosts_cpvs)
+			installed_cpvs.update(hosts_cpvs)
 		if fetch_restricted and destructive:
 			self.output("   - getting source file names " +
 				"for %d installed ebuilds" %len(installed_cpvs))
@@ -296,6 +298,8 @@ class DistfilesSearch(object):
 				"for %d remaining ebuilds" %len(cpvs))
 			pkgs, _deprecated = self._fetch_restricted(pkgs, cpvs)
 			deprecated.update(_deprecated)
+			# save the installed cpv list to re-use in _destructive()
+			self.installed_cpvs = installed_cpvs.copy()
 		else:
 			self.output("   - getting source file names " +
 				"for %d ebuilds" %len(cpvs))
@@ -396,7 +400,10 @@ class DistfilesSearch(object):
 			if not package_names:
 				# list all installed CPV's from vartree
 				#print( "_destructive: getting vardb.cpv_all")
-				pkgset.update(self.vardb.cpv_all())
+				if not self.installed_cpvs:
+					pkgset.update(self.vardb.cpv_all())
+				else:
+					pkgset.update(self.installed_cpvs)
 				self.output("   - processing %s installed ebuilds" % len(pkgset))
 			elif package_names:
 				# list all CPV's from portree for CP's in vartree
@@ -408,6 +415,7 @@ class DistfilesSearch(object):
 		self.output("   - processing excluded")
 		excludes = self._get_excludes(exclude)
 		excludes_length = len(excludes)
+		dprint("excludes", "EXCLUDES LENGTH =", excludes_length)
 		pkgset.update(excludes)
 		pkgs_done = set(list(pkgs))
 		pkgset.difference_update(pkgs_done)
@@ -420,8 +428,7 @@ class DistfilesSearch(object):
 		#self.output("   - done...")
 		return pkgs, deprecated
 
-	@staticmethod
-	def _get_excludes(exclude):
+	def _get_excludes(self, exclude):
 		"""Expands the exclude dictionary into a set of
 		CPV's
 
@@ -434,6 +441,8 @@ class DistfilesSearch(object):
 		pkgset = set()
 		for cp in exclDictExpand(exclude):
 			# add packages from the exclude file
+			dprint("excludes", "_GET_EXCLUDES, cp=" + \
+				cp+", "+str(self.portdb.cp_list(cp)))
 			pkgset.update(self.portdb.cp_list(cp))
 		return pkgset
 
