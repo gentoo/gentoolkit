@@ -401,30 +401,21 @@ class TestNonDestructive(unittest.TestCase):
 					'deprecated':{
 						},
 					'pkgs': {
-						'app-portage/portage-utils-0.3.1': 'mirror://gentoo/portage-utils-0.3.1.tar.bz2',
-						'app-portage/gentoolkit-0.2.4.5': 'mirror://gentoo/gentoolkit-0.2.4.5.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.2.4.5.tar.gz',
 						'app-portage/gentoolkit-0.3.0_rc8-r1': 'mirror://gentoo/gentoolkit-0.3.0_rc8.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc8.tar.gz',
-						'app-portage/gentoolkit-0.2.4.6-r1': 'mirror://gentoo/gentoolkit-0.2.4.6.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.2.4.6.tar.gz',
-						'app-portage/eix-0.20.2': 'mirror://berlios/eix/eix-0.20.2.tar.xz',
-						'sys-apps/devicekit-power-014': {'SRC_URI': 'http://hal.freedesktop.org/releases/DeviceKit-power-014.tar.gz'},
-						'app-portage/portage-utils-0.2.1': 'mirror://gentoo/portage-utils-0.2.1.tar.bz2',
-						'app-portage/eix-0.20.1': 'mirror://sourceforge/eix/eix-0.20.1.tar.xz',
-						'app-portage/layman-1.2.5': 'mirror://sourceforge/layman/layman-1.2.5.tar.gz',
-						'app-portage/layman-1.3.0-r1': 'mirror://sourceforge/layman/layman-1.3.0.tar.gz',
-						'app-portage/gentoolkit-0.3.0_rc7': 'mirror://gentoo/gentoolkit-0.3.0_rc7.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc7.tar.gz',
-						'app-portage/layman-1.3.0': 'mirror://sourceforge/layman/layman-1.3.0.tar.gz',
-						'app-portage/layman-1.3.1': 'mirror://sourceforge/layman/layman-1.3.1.tar.gz',
-						'app-portage/layman-1.2.6': 'mirror://sourceforge/layman/layman-1.2.6.tar.gz',
-						'app-portage/layman-9999': '',
-						'app-portage/gentoolkit-0.2.4.6': 'mirror://gentoo/gentoolkit-0.2.4.6.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.2.4.6.tar.gz',
-						'app-portage/layman-1.3.0_rc1-r3': 'mirror://sourceforge/layman/layman-1.3.0_rc1.tar.gz',
-						'app-portage/gentoolkit-0.3.0_rc9': 'mirror://gentoo/gentoolkit-0.3.0_rc9.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc9.tar.gz',
+						'sys-apps/devicekit-power-014': 'http://hal.freedesktop.org/releases/DeviceKit-power-014.tar.gz',
 						'app-portage/gentoolkit-0.3.0_rc8': 'mirror://gentoo/gentoolkit-0.3.0_rc8.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc8.tar.gz',
-						'app-portage/eix-0.19.2': 'mirror://sourceforge/eix/eix-0.19.2.tar.xz', 'app-portage/layman-1.3.2-r1': 'mirror://sourceforge/layman/layman-1.3.2.tar.gz'
+						'app-portage/gentoolkit-0.2.4.6-r1': 'mirror://gentoo/gentoolkit-0.2.4.6.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.2.4.6.tar.gz',
+						'app-portage/gentoolkit-0.3.0_rc7': 'mirror://gentoo/gentoolkit-0.3.0_rc7.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc7.tar.gz',
+						'app-portage/gentoolkit-0.2.4.6': 'mirror://gentoo/gentoolkit-0.2.4.6.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.2.4.6.tar.gz',
+						'app-portage/eix-0.19.2': 'mirror://sourceforge/eix/eix-0.19.2.tar.xz',
+						'app-portage/gentoolkit-0.2.4.5': 'mirror://gentoo/gentoolkit-0.2.4.5.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.2.4.5.tar.gz',
+						'app-portage/gentoolkit-0.3.0_rc9': 'mirror://gentoo/gentoolkit-0.3.0_rc9.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc9.tar.gz',
+						'app-portage/eix-0.20.1': 'mirror://sourceforge/eix/eix-0.20.1.tar.xz',
+						'app-portage/eix-0.20.2': 'mirror://berlios/eix/eix-0.20.2.tar.xz'
 						},
 					'output': [
 						'   - processing excluded',
-						'   - (20 of 20 total) additional excluded packages to get source filenames for'
+						'   - (10 of 10 total) additional excluded packages to get source filenames for'
 						]
 					},
 			'destructive4':{
@@ -446,32 +437,29 @@ class TestNonDestructive(unittest.TestCase):
 					},
 			'destructive5':{
 					'deprecated':{
-						'x11-base/xorg-server-1.6.5-r1': 'http://xorg.freedesktop.org/releases/individual/xserver/xorg-server-1.6.5.tar.bz2 mirror://gentoo/xorg-server-1.6.5-gentoo-patches-01.tar.bz2',
-						'x11-misc/util-macros-1.6.0': 'http://xorg.freedesktop.org/releases/individual/util/util-macros-1.6.0.tar.bz2',
-						'x11-libs/pixman-0.16.4': 'http://xorg.freedesktop.org/releases/individual/lib/pixman-0.16.4.tar.bz2'
 						},
 					'pkgs': {
+						'x11-base/xorg-server-1.7.5': 'http://xorg.freedesktop.org/releases/individual/xserver/xorg-server-1.7.5.tar.bz2',
+						'app-portage/gentoolkit-0.3.0_rc8-r1': 'mirror://gentoo/gentoolkit-0.3.0_rc8.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc8.tar.gz',
 						'sys-apps/devicekit-power-014': 'http://hal.freedesktop.org/releases/DeviceKit-power-014.tar.gz',
-						'dev-libs/libisofs-0.6.28': 'http://files.libburnia-project.org/releases/libisofs-0.6.28.tar.gz',
-						'perl-core/Module-Build-0.36.03': 'mirror://cpan/authors/id/D/DA/DAGOLDEN//Module-Build-0.3603.tar.gz',
-						'x11-base/xorg-server-1.6.5-r1': 'http://xorg.freedesktop.org/releases/individual/xserver/xorg-server-1.6.5.tar.bz2 mirror://gentoo/xorg-server-1.6.5-gentoo-patches-01.tar.bz2',
-						'perl-core/Archive-Tar-1.56': 'mirror://cpan/authors/id/B/BI/BINGOS//Archive-Tar-1.56.tar.gz',
-						'perl-core/ExtUtils-ParseXS-2.22.02-r1': 'mirror://cpan/authors/id/D/DA/DAGOLDEN//ExtUtils-ParseXS-2.2202.tar.gz',
 						'x11-misc/util-macros-1.6.0': 'http://xorg.freedesktop.org/releases/individual/util/util-macros-1.6.0.tar.bz2',
+						'app-portage/eix-0.19.2': 'mirror://sourceforge/eix/eix-0.19.2.tar.xz',
+						'app-portage/gentoolkit-0.3.0_rc8': 'mirror://gentoo/gentoolkit-0.3.0_rc8.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc8.tar.gz',
+						'app-portage/gentoolkit-0.2.4.6-r1': 'mirror://gentoo/gentoolkit-0.2.4.6.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.2.4.6.tar.gz',
+						'app-portage/gentoolkit-0.3.0_rc7': 'mirror://gentoo/gentoolkit-0.3.0_rc7.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc7.tar.gz',
 						'sys-auth/consolekit-0.4.1': 'http://www.freedesktop.org/software/ConsoleKit/dist/ConsoleKit-0.4.1.tar.bz2',
+						'app-portage/gentoolkit-0.2.4.6': 'mirror://gentoo/gentoolkit-0.2.4.6.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.2.4.6.tar.gz',
 						'media-libs/sdl-pango-0.1.2': 'mirror://sourceforge/sdlpango/SDL_Pango-0.1.2.tar.gz http://zarb.org/~gc/t/SDL_Pango-0.1.2-API-adds.patch',
-						'x11-libs/pixman-0.16.4': 'http://xorg.freedesktop.org/releases/individual/lib/pixman-0.16.4.tar.bz2'
+						'x11-libs/pixman-0.16.4': 'http://xorg.freedesktop.org/releases/individual/lib/pixman-0.16.4.tar.bz2',
+						'app-portage/gentoolkit-0.2.4.5': 'mirror://gentoo/gentoolkit-0.2.4.5.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.2.4.5.tar.gz',
+						'app-portage/gentoolkit-0.3.0_rc9': 'mirror://gentoo/gentoolkit-0.3.0_rc9.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc9.tar.gz',
+						'app-portage/eix-0.20.1': 'mirror://sourceforge/eix/eix-0.20.1.tar.xz',
+						'app-portage/eix-0.20.2': 'mirror://berlios/eix/eix-0.20.2.tar.xz'
 						},
-					'output': ['   - processing 10 installed ebuilds',
+					'output': [
+						'   - processing 6 installed ebuilds',
 						'   - processing excluded',
-						'   - (10 of 0 total) additional excluded packages to get source filenames for',
-						'!!! "Deprecation Warning: Installed package: perl-core/Archive-Tar-1.56\n\tIs no longer in the tree or an installed overlay\n',
-						'!!! "Deprecation Warning: Installed package: perl-core/ExtUtils-ParseXS-2.22.02-r1\n\tIs no longer in the tree or an installed overlay\n',
-						'!!! "Deprecation Warning: Installed package: perl-core/Module-Build-0.36.03\n\tIs no longer in the tree or an installed overlay\n',
-						'!!! "Deprecation Warning: Installed package: x11-base/xorg-server-1.6.5-r1\n\tIs no longer in the tree or an installed overlay\n',
-						'!!! "Deprecation Warning: Installed package: dev-libs/libisofs-0.6.28\n\tIs no longer in the tree or an installed overlay\n',
-						'!!! "Deprecation Warning: Installed package: x11-misc/util-macros-1.6.0\n\tIs no longer in the tree or an installed overlay\n',
-						'!!! "Deprecation Warning: Installed package: x11-libs/pixman-0.16.4\n\tIs no longer in the tree or an installed overlay\n'
+						'   - (16 of 10 total) additional excluded packages to get source filenames for'
 						]
 					}
 			}
@@ -482,12 +470,12 @@ class TestNonDestructive(unittest.TestCase):
 
 
 	def exclDictExpand(self, exclude):
-		print("Testing exclDictExpand()")
+		#print("Using Fake Testing exclDictExpand()")
 		return [
-			'app-portage/layman',
+			#'app-portage/layman',
 			'app-portage/eix',
 			'app-portage/gentoolkit',
-			'app-portage/portage-utils',
+			#app-portage/portage-utils',
 			]
 
 
@@ -513,9 +501,7 @@ class TestNonDestructive(unittest.TestCase):
 		self.portdb._props=get_props(CPVS)
 		# set a fetch restricted pkg
 		self.portdb._props[CPVS[4]]["RESTRICT"] = 'fetch'
-		pkgs = {'sys-apps/devicekit-power-014': {'SRC_URI':
-			'http://hal.freedesktop.org/releases/DeviceKit-power-014.tar.gz'}
-			}
+		pkgs = {'sys-apps/devicekit-power-014': 'http://hal.freedesktop.org/releases/DeviceKit-power-014.tar.gz'}
 		pkgs, deprecated = self.target_class._non_destructive(destructive=True,
 			fetch_restricted=True, pkgs_=pkgs)
 		self.record_results('non_destructive3', pkgs, deprecated)
@@ -564,9 +550,7 @@ class TestNonDestructive(unittest.TestCase):
 		self.portdb._props=get_props(CPVS+CPVS2)
 		# set a fetch restricted pkg
 		self.portdb._props[CPVS[4]]["RESTRICT"] = 'fetch'
-		pkgs = {'sys-apps/devicekit-power-014': {'SRC_URI':
-			'http://hal.freedesktop.org/releases/DeviceKit-power-014.tar.gz'}
-			}
+		pkgs = {'sys-apps/devicekit-power-014': 'http://hal.freedesktop.org/releases/DeviceKit-power-014.tar.gz'}
 		pkgs, deprecated = self.target_class._destructive(package_names=True,
 			exclude={}, pkgs_=pkgs, installed_included=True )
 		self.record_results('destructive3', pkgs, deprecated)
@@ -585,14 +569,28 @@ class TestNonDestructive(unittest.TestCase):
 		self.vardb._cpv_all=CPVS[:3]
 		self.vardb._cpv_all.extend(CPVS3)
 		self.vardb._props=get_props(self.vardb._cpv_all)
-		self.portdb._cpv_all=CPVS[:]
-		self.portdb._cpv_all.extend(CPVS2)
-		self.portdb._props=get_props(CPVS)
+		self.portdb._cpv_all=CPVS2
+		#self.portdb._cpv_all.extend(CPVS2)
+		self.portdb._props=PROPS
 		pkgs, deprecated = self.target_class._destructive(package_names=False,
 			exclude=self.exclude, pkgs_=None, installed_included=False )
 		self.record_results('destructive5', pkgs, deprecated)
 		self.test_results("test_destructive")
 
+
+class TestRemoveProtected(unittest.TestCase):
+	"""tests the  eclean.search.DistfilesSearch._remove_protected()
+	"""
+
+	def setUp(self):
+		self.target_class = DistfilesSearch(lambda x: None)
+		self.results = {'layman-1.2.5.tar.gz': '/path/to/some/where/layman-1.2.5.tar.gz'}
+
+	def test_remove_protected(self):
+		results = self.target_class._remove_protected(PKGS, CLEAN_ME)
+		self.failUnlessEqual(results, self.results,
+			"\ntest_remove_protected: data does not match\nresult=" +\
+			str(results) + "\ntestdata=" + str(self.results))
 
 
 def test_main():
@@ -602,7 +600,8 @@ def test_main():
 	test_support.run_unittest( TestFetchRestricted('test__fetch_restricted'))
 	test_support.run_unittest( TestFetchRestricted('test_unrestricted'))
 	test_support.run_unittest( TestNonDestructive('test_non_destructive'))
-	#test_support.run_unittest( TestNonDestructive('test_destructive'))
+	test_support.run_unittest( TestNonDestructive('test_destructive'))
+	test_support.run_unittest( TestRemoveProtected('test_remove_protected'))
 
 
 if __name__ == '__main__':
