@@ -73,7 +73,7 @@ class DistfilesSearch(object):
 		self.installed_cpvs = None
 
 	def findDistfiles(self,
-			exclude={},
+			exclude=None,
 			destructive=False,
 			fetch_restricted=False,
 			package_names=False,
@@ -101,6 +101,8 @@ class DistfilesSearch(object):
 		@rtype: dict
 		@return dict. of package files to clean i.e. {'cat/pkg-ver.tbz2': [filename],}
 		"""
+		if exclude is None:
+			exclude = {}
 		clean_me = {}
 		pkgs = {}
 		saved = {}
@@ -415,7 +417,7 @@ class DistfilesSearch(object):
 		self.output("   - processing excluded")
 		excludes = self._get_excludes(exclude)
 		excludes_length = len(excludes)
-		dprint("excludes", "EXCLUDES LENGTH =", excludes_length)
+		dprint("excludes", "EXCLUDES LENGTH =%d" %excludes_length)
 		pkgset.update(excludes)
 		pkgs_done = set(list(pkgs))
 		pkgset.difference_update(pkgs_done)
