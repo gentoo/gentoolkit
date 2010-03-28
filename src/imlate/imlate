@@ -1,12 +1,13 @@
 #!/usr/bin/python
-
-# Copyright 1999-2009 Gentoo Foundation
+# Copyright 1999-2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: $
+# $Id: $
+# Author: Christian Ruppert <idl0r@gentoo.org>
 
-# author: Christian Ruppert <idl0r@gentoo.org>
+# Python 2.6 compatibility
+from __future__ import print_function
 
-VERSION = "0.0.4"
+VERSION = "1.0.0"
 
 # works just with stable keywords!
 MAIN_ARCH = "auto" # can be overridden by -m ARCH
@@ -27,21 +28,13 @@ from os import stat
 from time import time
 from xml.dom import minidom, NotFoundErr
 from xml.parsers.expat import ExpatError
-# TODO: just import needed stuff to safe memory and maybe use "as foo"
+# TODO: just import needed stuff to safe memory/time and maybe use "as foo"
 import portage
 import portage.versions
 
 if __name__ == "__main__":
 	from optparse import OptionParser
 	from time import gmtime, strftime
-
-# portage < 2.1.6 needs portage_const instead of portage.const,
-# which is not the problem...
-# the problem is the keyword handling (ACCEPT_KEYWORDS)
-# portage < 2.1.6 does not support -*
-# but -* is needed to ensure that we just check for arch
-if portage.versions.vercmp(portage.VERSION, "2.1.6") < 0:
-	raise StandardError, "imlate requires portage >=2.1.6"
 
 # override/change portage module settings
 def _portage_settings( var, value, settings = None ):
@@ -57,9 +50,9 @@ def _portage_settings( var, value, settings = None ):
 
 # add stuff to our imlate dict
 def _add_ent( imlate, cat, pkg, ver, our_ver ):
-	if not cat in imlate.keys():
+	if not cat in list(imlate.keys()):
 		imlate[cat] = {}
-	if not pkg in imlate[cat].keys():
+	if not pkg in list(imlate[cat].keys()):
 		imlate[cat][pkg] = []
 
 	imlate[cat][pkg].append( ver )
@@ -100,21 +93,21 @@ def show_result( conf, pkgs ):
 
 	header = _header % ( _cand, conf["MAIN_ARCH"] )
 
-	print >> out, "Generated on: %s" % conf["TIME"]
-	print >> out, _fill( len( header ), "", "=" )
-	print >> out, header
-	print >> out, _fill( len( header ), "", "=" )
-	print >> out
+	print("Generated on: %s" % conf["TIME"], file=out)
+	print(_fill( len( header ), "", "=" ), file=out)
+	print(header, file=out)
+	print(_fill( len( header ), "", "=" ), file=out)
+	print(file=out)
 
-	print >> out, _helper
-	print >> out, _fill( len( _helper ), "", "-" )
+	print(_helper, file=out)
+	print(_fill( len( _helper ), "", "-" ), file=out)
 
 	for cat in sorted( pkgs.keys() ):
-		print >> out, "%s/" % cat
+		print("%s/" % cat, file=out)
 		for pkg in sorted( pkgs[cat].keys() ):
-			print >> out, "%s%s%s" % ( _fill( col1, ( "  %s" % pkg ) ),
+			print("%s%s%s" % ( _fill( col1, ( "  %s" % pkg ) ),
 									_fill( col2, pkgs[cat][pkg][1] ),
-									pkgs[cat][pkg][0] )
+									pkgs[cat][pkg][0] ), file=out)
 
 	if conf["FILE"] != "stdout":
 		out.close()
@@ -124,7 +117,7 @@ def _get_metadata(metadata, element, tag):
 
 	try:
 		metadatadom = minidom.parse(metadata)
-	except ExpatError, e:
+	except ExpatError as e:
 		raise ExpatError("%s: %s" % (metadata, e,))
 
 	try:
@@ -236,9 +229,9 @@ def get_packages( conf ):
 			if cpvr:
 				( cat, pkg, ver, rev ) = portage.versions.catpkgsplit( cpvr )
 
-				if not cat in _pkgs.keys():
+				if not cat in list(_pkgs.keys()):
 					_pkgs[cat] = {}
-				if not pkg in _pkgs[cat].keys():
+				if not pkg in list(_pkgs[cat].keys()):
 					_pkgs[cat][pkg] = []
 
 				if rev != "r0":
@@ -348,7 +341,7 @@ def get_imlate( conf, pkgs ):
 # fetch portage related settings
 def get_settings( conf = None ):
 	if not isinstance( conf, dict ) and conf:
-		raise TypeError, "conf must be dict() or None"
+		raise TypeError("conf must be dict() or None")
 	if not conf:
 		conf = {}
 
@@ -367,7 +360,7 @@ def get_settings( conf = None ):
 			_cat = _cat.strip()
 			_mycats.append(_cat )
 			if _cat not in mysettings.categories:
-				raise ValueError, "invalid category for -C switch '%s'" % _cat
+				raise ValueError("invalid category for -C switch '%s'" % _cat)
 		mysettings.categories = _mycats
 
 	# maybe thats not necessary because we override porttrees below..
@@ -375,7 +368,7 @@ def get_settings( conf = None ):
 	trees = portage.create_trees()
 	trees["/"]["porttree"].settings = mysettings
 	portdb = trees["/"]["porttree"]
-	portdb.dbapi.mysettings = mysettings
+	portdb.dbapi.settings = mysettings
 	portdb.dbapi.porttrees = [portage.portdb.porttree_root]
 	# does it make sense to remove _all_ useless stuff or just leave it as it is?
 	#portdb.dbapi._aux_cache_keys.clear()
@@ -449,9 +442,9 @@ def main():
 	conf["STABLE_SUM"] = 0
 
 	if not options.main_arch in portage.archlist and options.main_arch != "auto":
-		raise ValueError, "invalid MAIN ARCH defined!"
+		raise ValueError("invalid MAIN ARCH defined!")
 	if not options.target_arch in portage.archlist and options.target_arch != "auto":
-		raise ValueError, "invalid TARGET ARCH defined!"
+		raise ValueError("invalid TARGET ARCH defined!")
 
 	conf["MAIN_ARCH"] = options.main_arch
 	conf["TARGET_ARCH"] = options.target_arch

@@ -1,3 +1,9 @@
+2010-03-28: Christian Ruppert <idl0r@gentoo.org>
+	src/imlate/imlate, src/imlate/imlate.1: Made imlate python 2.6/3 compatible.
+	Fixed deprecated portdb.dbapi.mysettings to portdb.dbapi.settings.
+	Removed portage check to ensure at least portage 2.1.6 has been installed.
+	Bumped version to 1.0.0, in imlate manpage as well.
+
 2010-02-10: Christian Ruppert <idl0r@gentoo.org>
 	src/echangelog/echangelog: Fix replacement regex for TextWrap, thanks to
 	Torsten Veller <tove@gentoo.org>, bug 304249.
