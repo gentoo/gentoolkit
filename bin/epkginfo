@@ -21,6 +21,7 @@ import sys
 from gentoolkit import equery, errors
 from gentoolkit.equery import mod_usage
 from gentoolkit.equery.meta import main, print_help
+from portage.exception import AmbiguousPackageName
 
 def print_epkginfo_help():
 	print(mod_usage(mod_name="epkginfo"))
@@ -34,6 +35,18 @@ if not args or set(('-h', '--help')).intersection(args):
 else:
 	try:
 		main(args)
+	except AmbiguousPackageName as e:
+		pkgs = e.args[0]
+		for candidate in pkgs:
+			print(candidate)
+
+		from gentoolkit import pprinter as pp
+		from os.path import basename # To get the short name
+
+		print(file=sys.stderr)
+		print(pp.error("The short ebuild name '%s' is ambiguous. Please specify" % basename(pkgs[0])),
+				file=sys.stderr, end="")
+		pp.die(1, "one of the above fully-qualified ebuild names instead.")
 	except errors.GentoolkitException as err:
 		from gentoolkit import pprinter as pp
 		pp.die(1, str(err))
