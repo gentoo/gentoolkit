@@ -1,5 +1,6 @@
 2010-03-31: Christian Ruppert <idl0r@gentoo.org>
 	* epkginfo: Fix epkginfo to handle ambiguous package names.
+	* revdep-rebuild: Check if $ERRORS_FILE exist before running gawk on it.
 
 2010-03-09: Paul Varner <fuzzyray@gentoo.org>
 	* gentoolkit: Add inital py3k support.

@@ -815,7 +815,7 @@ main_checks() {
 				progress $((++i)) $numFiles $target_file ||
 				progress $((++i)) $numFiles
 		done
-		if [[ $SEARCH_BROKEN ]]; then
+		if [[ $SEARCH_BROKEN && -f $ERRORS_FILE ]]; then
 			# Look for missing version
 			while read target_file; do
 				echo "obj $target_file" >> "$BROKEN_FILE"
