@@ -1,3 +1,6 @@
+2010-03-31: Christian Ruppert <idl0r@gentoo.org>
+	* epkginfo: Fix epkginfo to handle ambiguous package names.
+
 2010-03-09: Paul Varner <fuzzyray@gentoo.org>
 	* gentoolkit: Add inital py3k support.
 	* analyse: Add new analyse utility from dol-sen. This will probably
