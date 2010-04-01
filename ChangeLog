@@ -1,3 +1,7 @@
+2010-04-01: Christian Ruppert <idl0r@gentoo.org>
+	* revdep-rebuild: Use EMERGE_OPTIONS _after_ EMERGE_DEFAULT_OPTS,
+	bug 307023, thanks to Albert W. Hopkins <marduk@python.net>.
+
 2010-03-31: Christian Ruppert <idl0r@gentoo.org>
 	* epkginfo: Fix epkginfo to handle ambiguous package names.
 	* revdep-rebuild: Check if $ERRORS_FILE exist before running gawk on it.

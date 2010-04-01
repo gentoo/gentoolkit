@@ -1113,7 +1113,7 @@ rebuild() {
 	trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 
 	einfo 'All prepared. Starting rebuild'
-	echo "emerge --oneshot ${EMERGE_OPTIONS[@]} ${EMERGE_DEFAULT_OPTS} $REBUILD_LIST"
+	echo "emerge --oneshot ${EMERGE_DEFAULT_OPTS} ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
 
 	is_real_merge && countdown 10
 
@@ -1122,7 +1122,7 @@ rebuild() {
 
 	# Run in background to correctly handle Ctrl-C
 	{
-		emerge --oneshot ${EMERGE_OPTIONS[@]} ${EMERGE_DEFAULT_OPTS} $REBUILD_LIST <&6
+		emerge --oneshot ${EMERGE_DEFAULT_OPTS} ${EMERGE_OPTIONS[@]} $REBUILD_LIST <&6
 		echo $? > "$STATUS_FILE"
 	} &
 	wait
