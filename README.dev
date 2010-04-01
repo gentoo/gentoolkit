@@ -18,7 +18,7 @@ Note: We are using VERSION="0.3.0" simply as an example.
 Note: requires dev-python/snakeoil
 
 Note: If running from the gentoolkit repository, please grab the eclean test file from:
-http://code.google.com/p/genscripts/source/browse/trunk/gentoolkit/pym/gentoolkit/test/eclean/testdistfiles.tar.gz
+http://genscripts.googlecode.com/svn/trunk/gentoolkit/pym/gentoolkit/test/eclean/testdistfiles.tar.gz
 Please do not add/commit the test file to the gentoolkit repository
 
 ./setup.py test
