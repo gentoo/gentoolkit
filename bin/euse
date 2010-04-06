@@ -176,7 +176,7 @@ get_useflags() {
 
 	# get the currently active USE flags as seen by portage, this has to be after
 	# restoring USE or portage won't see the original environment
-	ACTIVE_FLAGS[9]="$(emerge --info | grep 'USE=' | cut -b 5- | sed -e 's:"::g')" #'
+	ACTIVE_FLAGS[9]="$(portageq envvar USE)" #'
 	USE_FLAGS_CALCULATED=1
 }
 
