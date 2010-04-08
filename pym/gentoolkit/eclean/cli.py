@@ -33,6 +33,7 @@ from gentoolkit.eclean.exclude import (parseExcludeFile,
 from gentoolkit.eclean.clean import CleanUp
 from gentoolkit.eclean.output import OutputControl
 #from gentoolkit.eclean.dbapi import Dbapi
+from gentoolkit.eprefix import EPREFIX
 
 def printVersion():
 	"""Output the version info."""
@@ -253,6 +254,7 @@ def parseArgs(options={}):
 			elif o in ("-t", "--time-limit"):
 				options['time-limit'] = parseTime(a)
 			elif o in ("-e", "--exclude-file"):
+				print("cli --exclude option")
 				options['exclude-file'] = a
 			elif o in ("-n", "--package-names"):
 				options['package-names'] = True
@@ -463,6 +465,14 @@ def main():
 		if options['verbose']:
 			options['verbose-output'] = output.einfo
 	# parse the exclusion file
+	#print("MAIN(), CHecking exclude-file")
+	if not 'exclude-file' in options:
+		# set it to the default exclude file if it exists
+		exclude_file = "%s/etc/%s/%s.exclude" % (EPREFIX,__productname__ , action)
+		#print("MAIN(), EXCLUDE FILE name=", exclude_file)
+		if os.path.isfile(exclude_file):
+			#print("MAIN(), setting default exclude-file")
+			options['exclude-file'] = exclude_file
 	if 'exclude-file' in options:
 		try:
 			exclude = parseExcludeFile(options['exclude-file'],
@@ -475,10 +485,7 @@ def main():
 				"See format of this file in `man %s`" % __productname__), file=sys.stderr)
 			sys.exit(1)
 	else:
-		exclude_file = "/etc/%s/%s.exclude" % (__productname__ , action)
-		if os.path.isfile(exclude_file):
-			options['exclude-file'] = exclude_file
-		exclude={}
+			exclude = {}
 	# security check for non-pretend mode
 	if not options['pretend'] and portage.secpass == 0:
 		print( pp.error(

@@ -16,8 +16,8 @@ import gentoolkit
 from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit.analyse.base import ModuleBase
 from gentoolkit import pprinter as pp
-from gentoolkit.analyse.lib import (get_installed_use,  get_iuse, abs_flag,
-	abs_list, get_all_cpv_use, get_flags, FlagAnalyzer, KeywordAnalyser)
+from gentoolkit.flag import get_installed_use, get_flags
+from gentoolkit.analyse.lib import FlagAnalyzer, KeywordAnalyser
 from gentoolkit.analyse.output import nl, AnalysisPrinter
 from gentoolkit.package import Package
 from gentoolkit.helpers import get_installed_cpvs

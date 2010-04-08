@@ -13,7 +13,9 @@ http://www.gentoo.org/proj/en/glep/glep-0053.html
 
 __all__ = (
 	'Keyword',
-	'compare_strs'
+	'compare_strs',
+	'reduce_keywords',
+	'determine_keywords'
 )
 
 # =======

@@ -1,0 +1,11 @@
+# test exclude file
+
+app-portage
+
+media-libs/sdl-pango
+
+sys-auth/consolekit-0.4.1
+
+!app-emulation/emul-linux-x86-baselibs
+
+help2man-1.37.1.tar.gz

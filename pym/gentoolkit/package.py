@@ -55,6 +55,7 @@ from gentoolkit import errors
 from gentoolkit.cpv import CPV
 from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit.keyword import determine_keyword
+from gentoolkit.flag import get_flags
 
 # =======
 # Classes
@@ -314,6 +315,12 @@ class Package(CPV):
 		"""Returns the USE flags active at time of installation."""
 
 		return self.dblink.getstring("USE")
+
+	def use_status(self):
+		"""Returns the USE flags active for installation."""
+
+		iuse, final_flags = get_flags(slef.cpv, final_setting=True)
+		return final_flags
 
 	def parsed_contents(self):
 		"""Returns the parsed CONTENTS file.

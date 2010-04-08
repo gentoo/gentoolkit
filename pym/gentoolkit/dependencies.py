@@ -77,7 +77,10 @@ class Dependencies(CPV):
 		try:
 			result = PORTDB.aux_get(self.cpv, envvars)
 		except KeyError:
-			result = VARDB.aux_get(self.cpv, envvars)
+			try:
+				result = VARDB.aux_get(self.cpv, envvars)
+			except KeyError:
+				return []
 		return result
 
 	def get_depend(self):

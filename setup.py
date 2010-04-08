@@ -17,6 +17,13 @@ __version__ = os.getenv('VERSION', default='9999')
 
 cwd = os.getcwd()
 
+# Load EPREFIX from Portage, fall back to the empty string if it fails 
+	try: 
+		from portage.const import EPREFIX 
+	except AttributeError: 
+		EPREFIX='' 
+
+
 # Bash files that need `VERSION=""` subbed, relative to this dir:
 bash_scripts = [os.path.join(cwd, path) for path in (
 	'bin/euse',
@@ -109,10 +116,10 @@ core.setup(
 	packages=packages,
 	scripts=(glob('bin/*')),
 	data_files=(
-		('/etc/env.d', ['data/99gentoolkit-env']),
-		('/etc/revdep-rebuild', ['data/revdep-rebuild/99revdep-rebuild']),
-		('/etc/eclean', glob('data/eclean/*')),
-		('/usr/share/man/man1', glob('man/*'))
+		(EPREFIX + '/etc/env.d', ['data/99gentoolkit-env']),
+		(EPREFIX + '/etc/revdep-rebuild', ['data/revdep-rebuild/99revdep-rebuild']),
+		(EPREFIX + '/etc/eclean', glob('data/eclean/*')),
+		(EPREFIX + '/usr/share/man/man1', glob('man/*'))
 	),
 	cmdclass={
 		'test': load_test(),
