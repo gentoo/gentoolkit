@@ -28,6 +28,7 @@ from gentoolkit.equery import format_options, mod_usage, CONFIG
 from gentoolkit.helpers import uniqify
 from gentoolkit.textwrap_ import TextWrapper
 from gentoolkit.query import Query
+from gentoolkit.flag import get_flags, reduce_flags
 
 # =======
 # Globals
@@ -172,13 +173,11 @@ def get_output_descriptions(pkg, global_usedesc):
 		local_usedesc = []
 	else:
 		local_usedesc = pkg.metadata.use()
-	iuse = pkg.environment("IUSE")
 
-	if iuse:
-		usevar = uniqify([x.lstrip('+-') for x in iuse.split()])
-		usevar.sort()
-	else:
-		usevar = []
+	iuse, final_use = get_flags(pkg.cpv, final_setting=True)
+	usevar = reduce_flags(iuse)
+	usevar.sort()
+	
 
 	if pkg.is_installed():
 		used_flags = pkg.use().split()
@@ -211,7 +210,7 @@ def get_output_descriptions(pkg, global_usedesc):
 		except AttributeError:
 			restrict = ""
 
-		if flag in pkg.settings("USE").split():
+		if flag in final_use:
 			inuse = True
 		if flag in used_flags:
 			inused = True
@@ -236,9 +235,9 @@ def parse_module_options(module_opts):
 def print_legend():
 	"""Print a legend to explain the output format."""
 
-	print("[ Legend : %s - flag is set in make.conf       ]" % pp.emph("U"))
-	print("[        : %s - package is installed with flag ]" % pp.emph("I"))
-	print("[ Colors : %s, %s                         ]" % (
+	print("[ Legend : %s - final flag setting for installation]" % pp.emph("U"))
+	print("[        : %s - package is installed with flag     ]" % pp.emph("I"))
+	print("[ Colors : %s, %s                             ]" % (
 		pp.useflag("set", enabled=True), pp.useflag("unset", enabled=False)))
 
 

@@ -223,6 +223,7 @@ def exclDictExpandPkgname(exclude):
 			pkgname = cp.split('/')[1]
 			p.add(pkgname)
 	if 'packages' in exclude:
+		for cp in exclude['packages']:
 			pkgname = cp.split('/')[1]
 			p.add(pkgname)
 	if 'anti-packages' in exclude:
