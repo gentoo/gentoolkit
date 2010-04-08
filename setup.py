@@ -18,10 +18,10 @@ __version__ = os.getenv('VERSION', default='9999')
 cwd = os.getcwd()
 
 # Load EPREFIX from Portage, fall back to the empty string if it fails 
-	try: 
-		from portage.const import EPREFIX 
-	except AttributeError: 
-		EPREFIX='' 
+try: 
+	from portage.const import EPREFIX 
+except AttributeError: 
+	EPREFIX='' 
 
 
 # Bash files that need `VERSION=""` subbed, relative to this dir:
