@@ -20,7 +20,7 @@ cwd = os.getcwd()
 # Load EPREFIX from Portage, fall back to the empty string if it fails 
 try: 
 	from portage.const import EPREFIX 
-except AttributeError: 
+except ImportError: 
 	EPREFIX='' 
 
 
