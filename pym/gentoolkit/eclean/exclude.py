@@ -156,7 +156,7 @@ def cp_all(categories, portdb=portage.portdb ):
 		"""
 		try:
 			cps = portdb.cp_all(categories)
-			message = "Deprication Warning: eclean.exclude.cp_all()\n" + \
+			message = "Deprecation Warning: eclean.exclude.cp_all()\n" + \
 				"New portage functionality is available " +\
 				"Please migrate code permanently"
 			print( warn(message), file=sys.stderr)
