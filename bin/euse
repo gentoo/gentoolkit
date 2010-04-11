@@ -68,11 +68,12 @@ check_sanity() {
 	local descdir
 	local make_defaults
 
+	[[ ! -d "${MAKE_PROFILE_PATH}" || ! -r "${MAKE_PROFILE_PATH}" ]] && error "${MAKE_PROFILE_PATH} is not readable"
+
 	descdir="$(get_portdir)/profiles"
 
 	[ ! -r "${MAKE_CONF_PATH}" ] && error "${MAKE_CONF_PATH} is not readable"
 	[ ! -r "${MAKE_GLOBALS_PATH}" ] && error "${MAKE_GLOBALS_PATH} is not readable"
-	[ ! -h "${MAKE_PROFILE_PATH}" ] && error "${MAKE_PROFILE_PATH} is not a symlink"
 	[ -z "$(get_portdir)" ] && error "\$PORTDIR couldn't be determined"
 	[ ! -d "${descdir}" ] && error "${descdir} does not exist or is not a directory"
 	[ ! -r "${descdir}/use.desc" ] && error "${descdir}/use.desc is not readable"
