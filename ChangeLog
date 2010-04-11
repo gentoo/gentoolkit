@@ -1,3 +1,8 @@
+2010-04-11: Christian Ruppert <idl0r@gentoo.org>
+	* euse: Fix check for /etc/make.profile, check if its readable and a
+	directory instead of checking if its a link. Thanks to Phillip Brink
+	(ohnobinki) <ohnobinki@ohnopublishing.net>.
+
 2010-04-06: Christian Ruppert <idl0r@gentoo.org>
 	* euse: Fix query to get USE, bug 181309, thanks to Jean-Baptiste Rouault
 	<jbrouault@gmail.com>.
