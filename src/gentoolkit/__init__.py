@@ -46,7 +46,6 @@ try:
 	settings = portage.config(clone=portage.settings)
 	porttree = portage.db[portage.root]["porttree"]
 	vartree  = portage.db[portage.root]["vartree"]
-	virtuals = portage.db[portage.root]["virtuals"]
 except portage_exception.PermissionDenied, e:
 	sys.stderr.write("Permission denied: '%s'\n" % str(e))
 	sys.exit(e.errno)
