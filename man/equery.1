@@ -288,6 +288,10 @@ Include package from overlays in the search path.
 .B \-p, \-\-portage-tree
 .br
 Include all packages from the Portage tree in the search path. Use this option to search through all standard Gentoo packages, including those that are not installed.
+.HP
+.B \-F, \-\-format=\fITMPL\fP
+.br 
+Customize the output format of the matched packages using the template string \fITMPL\fP. See the \fB\-\-format\fP option for \fBlist\fP below for a description of the \fITMPL\fP argument.
 .P
 .IR "OUTPUT" ":"
 .HP
@@ -336,6 +340,40 @@ Include package from overlays in the search path.
 .B \-p, \-\-portage-tree
 .br
 Include all packages from the Portage tree in the search path. Use this option to search through all standard Gentoo packages, including those that are not installed.
+.HP
+.B \-F, \-\-format=\fITMPL\fP
+.br 
+Customize the output format of the matched packages using the template string \fITMPL\fP. \fITMPL\fP can contain the following placeholders:
+.RS
+.TP
+\fB$cp\fP \- Contains the category and the package name only (e.g 'app\-portage/gentoolkit').
+.TP
+\fB$cpv\fP \- Contains the category, the package name and the full version (e.g. 'app\-portage/gentoolkit\-0.3.0_rc10\-r1').
+.TP
+\fB$category\fP \- Contains just the category (e.g. 'app\-portage').
+.TP
+\fB$name\fP \- Contains just the package name (e.g. 'gentoolkit').
+.TP
+\fB$version\fP \- Contains the package version (without the revision) (e.g. '0.3.0_rc10').
+.TP
+\fB$revision\fP \- Contains the package revision (e.g. 'r1').
+.TP
+\fB$fullversion\fP \- Contains the package version including its revision (e.g. '0.3.0_rc10\-r1').
+.TP
+\fB$slot\fP \- Contains the package's slot.
+.TP
+\fB$repo\fP \- Contains the name of the package's repository (e.g. 'gentoo').
+.TP
+\fB$mask\fP \- The Mask\-status field (\fB~M\-??\fP), see \fIOUTPUT\fP below for an explanation.
+.TP
+\fB$mask2\fP \- Contains a verbose description of the packages masking status.
+.TP
+\fB$location\fP \- The Location field (\fBIPO\-\fP), see \fIOUTPUT\fP below for an explanation.
+.P
+Apart from the above placeholders the template string can contain arbitrary
+text as desired. Similar to bash variables, curly braces can be used to
+disambiguate the variable names from the enclosing text.
+.RE
 .P
 .IR "OUTPUT" ":"
 
@@ -396,6 +434,18 @@ equery list --duplicates '*'
 .EE
 .br
 List all packages with more than one version installed. This is equivalent to '\fBequery list --duplicates\fP' in \fBGentoolkit\fP versions prior to 0.3.0.
+.EX
+.HP
+equery list -F '$cp:$slot' '*'
+.EE
+.br
+Get a list of slotted atoms for all installed packages.
+.EX
+.HP
+equery list -po -F '[$location] [$mask] $cpv:$slot [$repo]' '*'
+.EE
+.br
+Show all packages in the default (verbose) output format but also include their repository name.
 
 .SS
 .BI "meta (m) [OPTIONS] " "PKG"
