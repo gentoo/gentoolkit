@@ -34,9 +34,9 @@ __all__ = (
 # Globals
 # =======
 
-FORMAT_TMPL_VARS = ( 
-	'$location', '$mask', '$cp', '$cpv', '$category', '$name', '$version', '$revision',
-	'$fullversion', '$slot', '$repo'
+FORMAT_TMPL_VARS = (
+	'$location', '$mask', '$mask2', '$cp', '$cpv', '$category', '$name',
+	'$version', '$revision', '$fullversion', '$slot', '$repo'
 ) 
 
 # =======
