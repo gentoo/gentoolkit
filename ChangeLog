@@ -1,3 +1,7 @@
+2010-04-17: Christian Ruppert <idl0r@gentoo.org>
+	* euse: Make python code of euse python-3 compatible, thanks to Arfrever
+	Frehtes Taifersar Arahesis <arfrever@gentoo.org>.
+
 2010-04-11: Christian Ruppert <idl0r@gentoo.org>
 	* euse: Fix check for /etc/make.profile, check if its readable and a
 	directory instead of checking if its a link. Thanks to Phillip Brink

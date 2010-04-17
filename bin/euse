@@ -145,7 +145,7 @@ for x in sys.stdin.read().split():
 		r.append(x)
 	elif x not in r:
 		r.append(x)
-print ' '.join(r)"
+print(' '.join(r))"
 }
 
 # the following function creates a bash array ACTIVE_FLAGS that contains the
