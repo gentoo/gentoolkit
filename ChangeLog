@@ -1,3 +1,7 @@
+2010-04-18: Christian Ruppert <idl0r@gentoo.org>
+	src/echangelog/echangelog: Fix bazaar MOVED/MODIFIED, thanks to Serkan
+	Kaba <serkan@gentoo.org>, bug 315931.
+
 2010-03-28: Christian Ruppert <idl0r@gentoo.org>
 	src/imlate/imlate, src/imlate/imlate.1: Made imlate python 2.6/3 compatible.
 	Fixed deprecated portdb.dbapi.mysettings to portdb.dbapi.settings.

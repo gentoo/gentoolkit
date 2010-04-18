@@ -299,8 +299,8 @@ while (<C>) {
 			push(@files, $filename);
 			next;
 			}
-		# RENAMED/MOVED
-		elsif (/^R\s+(\S+) => (\S+)/) {
+		# RENAMED/MOVED/MODIFIED
+		elsif (/^RM?\s+(\S+) => (\S+)/) {
 			my ($old, $new) = ($1, $2);
 			$old =~ s/^([^\/]+\/){2}//;
 			$new =~ s/^([^\/]+\/){2}//;
