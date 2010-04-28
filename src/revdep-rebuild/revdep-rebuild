@@ -285,7 +285,7 @@ get_file_owner() {
 	# Add a space to the end of each object name to prevent false
 	# matches, for example /usr/bin/dia matching /usr/bin/dialog (bug #196460).
 	# The same for "${rpath} ".
-	find /var/db/pkg -type f -name CONTENTS -print0 |
+	find -L /var/db/pkg -type f -name CONTENTS -print0 |
 		xargs -0 grep -m 1 -Fl -e "${*} " -e "${rpath} " -e "${mlib} " |
 		sed 's:/var/db/pkg/\(.*\)/CONTENTS:\1:'
 }
@@ -548,7 +548,7 @@ verify_tmpdir() {
 get_search_env() {
 	local new_env
 	local old_env
-	local uid=$(python -c 'import os; import pwd; print pwd.getpwuid(os.getuid())[0]')
+	local uid=$(python -c 'import os; import pwd; print(pwd.getpwuid(os.getuid())[0])')
 	# Find a place to put temporary files
 	if [[ "$uid" == "root" ]]; then
 		local tmp_target="/var/cache/${APP_NAME}"
@@ -815,7 +815,7 @@ main_checks() {
 				progress $((++i)) $numFiles $target_file ||
 				progress $((++i)) $numFiles
 		done
-		if [[ $SEARCH_BROKEN ]]; then
+		if [[ $SEARCH_BROKEN && -f $ERRORS_FILE ]]; then
 			# Look for missing version
 			while read target_file; do
 				echo "obj $target_file" >> "$BROKEN_FILE"
@@ -1113,7 +1113,7 @@ rebuild() {
 	trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 
 	einfo 'All prepared. Starting rebuild'
-	echo "emerge --oneshot ${EMERGE_OPTIONS[@]} ${EMERGE_DEFAULT_OPTS} $REBUILD_LIST"
+	echo "emerge --oneshot ${EMERGE_DEFAULT_OPTS} ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
 
 	is_real_merge && countdown 10
 
@@ -1122,7 +1122,7 @@ rebuild() {
 
 	# Run in background to correctly handle Ctrl-C
 	{
-		emerge --oneshot ${EMERGE_OPTIONS[@]} ${EMERGE_DEFAULT_OPTS} $REBUILD_LIST <&6
+		emerge --oneshot ${EMERGE_DEFAULT_OPTS} ${EMERGE_OPTIONS[@]} $REBUILD_LIST <&6
 		echo $? > "$STATUS_FILE"
 	} &
 	wait
