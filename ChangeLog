@@ -1,3 +1,7 @@
+2010-05-06: Christian Ruppert <idl0r@gentoo.org>
+	* revdep-rebuild: Make revdep-rebuild more quiet, bug 97073. We might
+	improve that a bit more in the future.
+
 2010-04-17: Christian Ruppert <idl0r@gentoo.org>
 	* euse: Make python code of euse python-3 compatible, thanks to Arfrever
 	Frehtes Taifersar Arahesis <arfrever@gentoo.org>.
