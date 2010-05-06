@@ -95,7 +95,7 @@ main() {
 	setup_portage
 	setup_search_paths_and_masks
 	get_search_env
-	echo
+	[[ $QUIET -ne 1 ]] && echo
 
 	# Search for broken binaries
 	get_files
@@ -264,8 +264,11 @@ clean_exit() {
 			builtin cd; rmdir "$WORKING_DIR"
 		fi
 	fi
-	echo
-	einfo "$OK_TEXT... All done. "
+	if [[ $QUIET -ne 1 ]];
+	then
+		echo
+		einfo "$OK_TEXT... All done. "
+	fi
 	exit 0
 }
 ##
@@ -370,10 +373,10 @@ get_longopts() {
 		                            --no-ld-path) unset FULL_LD_PATH;;
 		                              --no-order) unset ORDER_PKGS;;
 		                           --no-progress) progress() { :; };;
-		                               --pretend) EMERGE_OPTIONS+=("--pretend");;
-		                                 --quiet) echo_v() { :; }
-		                                          progress() { :; }
-		                                          quiet=1
+		                               --pretend) EMERGE_OPTIONS+=("--pretend")
+		                                          PRETEND=1;;
+		                                 --quiet) progress() { :; }
+		                                          QUIET=1
 		                                          EMERGE_OPTIONS+=($1);;
 		                               --verbose) VERBOSE=1
 		                                          EMERGE_OPTIONS+=("--verbose");;
@@ -409,10 +412,10 @@ get_shortopts() {
 			l) unset FULL_LD_PATH;;
 			o) unset ORDER_PKGS;;
 			P) progress() { :; };;
-			p) EMERGE_OPTIONS+=("--pretend");;
-			q) echo_v() { :; }
-			   progress() { :; }
-			   quiet=1
+			p) EMERGE_OPTIONS+=("--pretend")
+			   PRETEND=1;;
+			q) progress() { :; }
+			   QUIET=1
 			   EMERGE_OPTIONS+=("--quiet");;
 			v) VERBOSE=1
 			   EMERGE_OPTIONS+=("--verbose");;
@@ -634,16 +637,19 @@ get_search_env() {
 
 	[[ $VERBOSE ]] && echo $'\n'"$APP_NAME environment:"$'\n'"$new_env"
 
-	echo
-	einfo "Checking reverse dependencies"
-	einfo "Packages containing binaries and libraries $HEAD_TEXT"
-	einfo "will be emerged."
+	if [[ $QUIET -ne 1 ]];
+	then
+		echo
+		einfo "Checking reverse dependencies"
+		einfo "Packages containing binaries and libraries $HEAD_TEXT"
+		einfo "will be emerged."
+	fi
 }
 
 get_files() {
-	einfo "Collecting system binaries and libraries"
+	[[ $QUIET -ne 1 ]] && einfo "Collecting system binaries and libraries"
 	if [[ -r "$FILES_FILE" && -s "$FILES_FILE" ]]; then
-		einfo "Found existing $FILES_FILE"
+		[[ $QUIET -ne 1 ]] && einfo "Found existing $FILES_FILE"
 	else
 		# Be safe and remove any extraneous temporary files
 		# Don't remove 0_env.rr - The first file in the array
@@ -661,7 +667,7 @@ get_files() {
 			-name '*.so' -o -name '*.so.*' -o -name '*.la' \) -print 2> /dev/null |
 			sort -u > "$FILES_FILE" ||
 			die $? "find failed to list binary files (This is a bug.)"
-		einfo "Generated new $FILES_FILE"
+		[[ $QUIET -ne 1 ]] && einfo "Generated new $FILES_FILE"
 	fi
 }
 parse_ld_so_conf() {
@@ -686,9 +692,9 @@ parse_ld_so_conf() {
 get_ldpath() {
 	local COMPLETE_LD_LIBRARY_PATH
 	[[ $SEARCH_BROKEN && $FULL_LD_PATH ]] || return
-	einfo 'Collecting complete LD_LIBRARY_PATH'
+	[[ $QUIET -ne 1 ]] && einfo 'Collecting complete LD_LIBRARY_PATH'
 	if [[ -r "$LDPATH_FILE" && -s "$LDPATH_FILE" ]]; then
-		einfo "Found existing $LDPATH_FILE."
+		[[ $QUIET -ne 1 ]] && einfo "Found existing $LDPATH_FILE."
 	else
 		clean_trap "$LDPATH_FILE"
 		# Ensure that the "trusted" lib directories are at the start of the path
@@ -702,7 +708,7 @@ get_ldpath() {
 		COMPLETE_LD_LIBRARY_PATH="${COMPLETE_LD_LIBRARY_PATH[*]}"
 		IFS="$OIFS"
 		echo "$COMPLETE_LD_LIBRARY_PATH" > "$LDPATH_FILE"
-		einfo "Generated new $LDPATH_FILE"
+		[[ $QUIET -ne 1 ]] && einfo "Generated new $LDPATH_FILE"
 	fi
 }
 main_checks() {
@@ -718,9 +724,9 @@ main_checks() {
 			die 1 "Unable to find $LDPATH_FILE"
 		COMPLETE_LD_LIBRARY_PATH=$(<"$LDPATH_FILE")
 	fi
-	einfo "Checking dynamic linking $WORKING_TEXT"
+	[[ $QUIET -ne 1 ]] && einfo "Checking dynamic linking $WORKING_TEXT"
 	if [[ -r "$BROKEN_FILE" && -s "$BROKEN_FILE" ]]; then
-		einfo "Found existing $BROKEN_FILE."
+		[[ $QUIET -ne 1 ]] && einfo "Found existing $BROKEN_FILE."
 	else
 		clean_trap "$BROKEN_FILE" "$ERRORS_FILE"
 		files=($(<"$FILES_FILE"))
@@ -833,7 +839,7 @@ main_checks() {
 		fi
 		[[ -r "$BROKEN_FILE" && -s "$BROKEN_FILE" ]] || clean_exit
 		sort -u "$BROKEN_FILE" -o "$BROKEN_FILE"
-		einfo "Generated new $BROKEN_FILE"
+		[[ $QUIET -ne 1 ]] && einfo "Generated new $BROKEN_FILE"
 	fi
 }
 get_packages() {
@@ -861,7 +867,7 @@ get_packages() {
 				echo_v "  $target_file -> (none)"
 			fi
 		done < "$BROKEN_FILE"
-		einfo "Generated new $RAW_FILE and $OWNERS_FILE"
+		[[ $QUIET -ne 1 ]] && einfo "Generated new $RAW_FILE and $OWNERS_FILE"
 	fi
 	# if we find '(none)' on every line, exit out
 	if ! grep -qvF '(none)' "$OWNERS_FILE"; then
@@ -878,12 +884,12 @@ get_packages() {
 	fi
 }
 clean_packages() {
-	einfo 'Cleaning list of packages to rebuild'
+	[[ $QUIET -ne 1 ]] && einfo 'Cleaning list of packages to rebuild'
 	if [[ -r "$PKGS_FILE" && -s "$PKGS_FILE" ]]; then
-		einfo "Found existing $PKGS_FILE"
+		[[ $QUIET -ne 1 ]] && einfo "Found existing $PKGS_FILE"
 	else
 		sort -u "$RAW_FILE" > "$PKGS_FILE"
-		einfo "Generated new $PKGS_FILE"
+		[[ $QUIET -ne 1 ]] && einfo "Generated new $PKGS_FILE"
 	fi
 }
 assign_packages_to_ebuilds() {
@@ -902,7 +908,7 @@ assign_packages_to_ebuilds() {
 				SLOT=$(</var/db/pkg/$EXACT_PKG/SLOT)
 				echo "$PKG:$SLOT"
 			done < "$PKGS_FILE" > "$EBUILDS_FILE"
-			einfo "Generated new $EBUILDS_FILE"
+			[[ $QUIET -ne 1 ]] && einfo "Generated new $EBUILDS_FILE"
 	else
 		einfo 'Nothing to rebuild.'
 		die 1 '(The program should have already quit, so this is a minor bug.)'
@@ -916,7 +922,7 @@ get_exact_ebuilds() {
 		rebuildList=" $(<"$BROKEN_FILE") "
 		rebuildList=(${rebuildList//[[:space:]]obj[[:space:]]/ })
 		get_file_owner "${rebuildList[@]}" | sed 's/^/=/' > "$EBUILDS_FILE"
-		einfo "Generated new $EBUILDS_FILE"
+		[[ $QUIET -ne 1 ]] && einfo "Generated new $EBUILDS_FILE"
 	else
 		einfo 'Nothing to rebuild.'
 		die 1 '(The program should have already quit, so this is a minor bug.)'
@@ -940,7 +946,7 @@ get_build_order() {
 		einfo 'Skipping package ordering'
 		return
 	fi
-	einfo 'Evaluating package order'
+	[[ $QUIET -ne 1 ]] && einfo 'Evaluating package order'
 	if [[ -r "$ORDER_FILE" && -s "$ORDER_FILE" ]]; then
 		einfo "Found existing $ORDER_FILE"
 	else
@@ -999,7 +1005,7 @@ get_build_order() {
 			die 1 '(The program should have already quit, so this is a minor bug.)'
 		fi
 	fi
-	[[ -r "$ORDER_FILE" && -s "$ORDER_FILE" ]] && einfo "Generated new $ORDER_FILE"
+	[[ -r "$ORDER_FILE" && -s "$ORDER_FILE" && $QUIET -ne 1 ]] && einfo "Generated new $ORDER_FILE"
 }
 
 show_unowned_files() {
@@ -1050,7 +1056,7 @@ setup_portage() {
 setup_search_paths_and_masks() {
 	local configfile sdir mdir skip_me filter_SEARCH_DIRS
 
-	einfo "Configuring search environment for $APP_NAME"
+	[[ $QUIET -ne 1 ]] && einfo "Configuring search environment for $APP_NAME"
 
 	# Update the incremental variables using /etc/profile.env, /etc/ld.so.conf,
 	# portage, and the environment
@@ -1112,7 +1118,7 @@ rebuild() {
 
 	trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 
-	einfo 'All prepared. Starting rebuild'
+	[[ $QUIET -ne 1 ]] && einfo 'All prepared. Starting rebuild'
 	echo "emerge --oneshot ${EMERGE_DEFAULT_OPTS} ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
 
 	is_real_merge && countdown 10
@@ -1133,7 +1139,7 @@ rebuild() {
 ##
 # Finish up
 cleanup() {
-	if (( $(<"$STATUS_FILE") != 0 )); then
+	if [[ (( $(<"$STATUS_FILE") != 0 )) && ! is_real_merge ]]; then
 		ewarn
 		ewarn "$APP_NAME failed to emerge all packages."
 		ewarn 'you have the following choices:'
