@@ -25,22 +25,22 @@ def find_packages(search_key, masked=False):
 	warnings.warn("Deprecated. Use helpers2.find_packages.", DeprecationWarning)
 	try:
 		if masked:
-			t = portage.db["/"]["porttree"].dbapi.xmatch("match-all", search_key)
-			t += portage.db["/"]["vartree"].dbapi.match(search_key)
+			t = portage.db[portage.root]["porttree"].dbapi.xmatch("match-all", search_key)
+			t += portage.db[portage.root]["vartree"].dbapi.match(search_key)
 		else:
-			t = portage.db["/"]["porttree"].dbapi.match(search_key)
-			t += portage.db["/"]["vartree"].dbapi.match(search_key)
+			t = portage.db[portage.root]["porttree"].dbapi.match(search_key)
+			t += portage.db[portage.root]["vartree"].dbapi.match(search_key)
 	# catch the "amgigous package" Exception
 	except ValueError as e:
 		if isinstance(e[0],list):
 			t = []
 			for cp in e[0]:
 				if masked:
-					t += portage.db["/"]["porttree"].dbapi.xmatch("match-all", cp)
-					t += portage.db["/"]["vartree"].dbapi.match(cp)
+					t += portage.db[portage.root]["porttree"].dbapi.xmatch("match-all", cp)
+					t += portage.db[portage.root]["vartree"].dbapi.match(cp)
 				else:
-					t += portage.db["/"]["porttree"].dbapi.match(cp)
-					t += portage.db["/"]["vartree"].dbapi.match(cp)
+					t += portage.db[portage.root]["porttree"].dbapi.match(cp)
+					t += portage.db[portage.root]["vartree"].dbapi.match(cp)
 		else:
 			raise ValueError(e)
 	except portage_exception.InvalidAtom as e:
@@ -56,13 +56,13 @@ def find_installed_packages(search_key, masked=False):
 	warnings.warn("Deprecated. Use helpers2.find_installed_packages.",
 		DeprecationWarning)
 	try:
-			t = portage.db["/"]["vartree"].dbapi.match(search_key)
+			t = portage.db[portage.root]["vartree"].dbapi.match(search_key)
 	# catch the "amgigous package" Exception
 	except ValueError as e:
 		if isinstance(e[0],list):
 			t = []
 			for cp in e[0]:
-				t += portage.db["/"]["vartree"].dbapi.match(cp)
+				t += portage.db[portage.root]["vartree"].dbapi.match(cp)
 		else:
 			raise ValueError(e)
 	except portage_exception.InvalidAtom as e:
@@ -75,7 +75,7 @@ def find_best_match(search_key):
 	matched the search key."""
 	warnings.warn("Deprecated. Use helpers2.find_best_match.",
 		DeprecationWarning)
-	t = portage.db["/"]["porttree"].dep_bestmatch(search_key)
+	t = portage.db[portage.root]["porttree"].dep_bestmatch(search_key)
 	if t:
 		return Package(t)
 	return None
