@@ -336,7 +336,7 @@ def match(atom, portdbname, match_type="default"):
 	@rtype:		list of strings
 	@return:	a list with the matching versions
 	"""
-	db = portage.db["/"][portdbname].dbapi
+	db = portage.db[portage.root][portdbname].dbapi
 	if atom[2] == "~":
 		return revisionMatch(atom, db, match_type=match_type)
 	elif match_type == "default" or not hasattr(db, "xmatch"):
@@ -430,7 +430,7 @@ def getMinUpgrade(vulnerableList, unaffectedList, minimize=True):
 			if portage.pkgcmp(c_pv[1:], i_pv[1:]) > 0 \
 					and (update == "" \
 						or (minimize ^ (portage.pkgcmp(c_pv[1:], portage.catpkgsplit(update)[1:]) > 0))) \
-					and portage.db["/"]["porttree"].dbapi.aux_get(c, ["SLOT"]) == portage.db["/"]["vartree"].dbapi.aux_get(vuln, ["SLOT"]):
+					and portage.db[portage.root]["porttree"].dbapi.aux_get(c, ["SLOT"]) == portage.db[portage.root]["vartree"].dbapi.aux_get(vuln, ["SLOT"]):
 				update = c_pv[0]+"/"+c_pv[1]+"-"+c_pv[2]
 				if c_pv[3] != "r0":		# we don't like -r0 for display
 					update += "-"+c_pv[3]

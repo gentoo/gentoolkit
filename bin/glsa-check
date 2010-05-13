@@ -148,8 +148,8 @@ glsaconfig = checkconfig(portage.config(clone=portage.settings))
 if quiet:
     glsaconfig["EMERGE_OPTS"] += " --quiet"
 
-vardb = portage.db["/"]["vartree"].dbapi
-portdb = portage.db["/"]["porttree"].dbapi
+vardb = portage.db[portage.root]["vartree"].dbapi
+portdb = portage.db[portage.root]["porttree"].dbapi
 
 # Check that we really have a glsa dir to work on
 if not (os.path.exists(glsaconfig["GLSA_DIR"]) and os.path.isdir(glsaconfig["GLSA_DIR"])):
