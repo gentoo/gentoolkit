@@ -208,6 +208,16 @@ sub mypush(\@@) {
 	}
 }
 
+sub update_copyright {
+	my ($t) = @_;
+	(my $year = $date) =~ s/.* //;
+
+	$t =~ s/^# Copyright \d+(?= )/$&-$year/m or
+	$t =~ s/^(# Copyright) \d+-(\d+)/$1 1999-$year/m;
+
+	return $t;
+}
+
 GetOptions(
 	'help' => \$opt_help,
 	'no-strict' => \$opt_nostrict,
@@ -733,16 +743,6 @@ if (grep(/\.ebuild$/, @files)) {
 	$text = update_cat_pn($text);
 }
 
-sub update_copyright {
-	my ($t) = @_;
-	(my $year = $date) =~ s/.* //;
-
-	$t =~ s/^# Copyright \d+(?= )/$&-$year/m or
-	$t =~ s/^(# Copyright) \d+-(\d+)/$1 1999-$year/m;
-
-	return $t;
-}
-
 # Update the copyright year in the ChangeLog
 $text = update_copyright($text);
 
@@ -751,11 +751,12 @@ open O, '>ChangeLog.new' or die "Can't open ChangeLog.new for output: $!\n";
 print O $text            or die "Can't write ChangeLog.new: $!\n";
 close O                  or die "Can't close ChangeLog.new: $!\n";
 
-# Update affected ebuild copyright dates.  There is no reason to update the
-# copyright lines on ebuilds that haven't changed.  I verified this with an IP
-# lawyer.
-for my $e (grep /\.ebuild$/, @files) {
-	if (-s $e) {
+
+# Update affected ebuilds and some other files copyright dates.  There is no reason to update the
+# copyright lines on ebuilds that haven't changed. I verified this with an IP
+# lawyer. (patches/diffs and binary files are excluded)
+for my $e (grep(!/\.(patch|diff)$/, @files)) {
+	if (-s $e && ! -B $e) {
 		my ($etext, $netext);
 
 		open E, "<$e" or warn("Can't read $e to update copyright year\n"), next;

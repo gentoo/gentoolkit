@@ -1,3 +1,7 @@
+2010-05-17: Christian Ruppert <idl0r@gentoo.org>
+	* echangelog: Update copyright in other files too (except binaries and
+			diff/patches), bug 285520.
+
 2010-04-18: Christian Ruppert <idl0r@gentoo.org>
 	src/echangelog/echangelog: Fix bazaar MOVED/MODIFIED, thanks to Serkan
 	Kaba <serkan@gentoo.org>, bug 315931.
