@@ -1,6 +1,14 @@
 2010-07-02: Christian Ruppert <idl0r@gentoo.org>
 	* imlate: Don't ignore package names without category.
 	* ekeyword: Show "diff -U 0" to cover all changes.
+		Add file_parse, get_portdir and get_architectures functions.
+		file_parse is a file parser which strips trailing and starting
+		whitespace, replaces multiple whitespace by one whitespace and ignores
+		comments. It returns an array.
+		get_portdir uses portageq to determine the PORTDIR value.
+		get_architectures reads $PORTDIR/profiles/arch.list and adds all
+		available architectures to the %ARCH hash which can be used for
+		validation.
 
 2010-05-17: Christian Ruppert <idl0r@gentoo.org>
 	* echangelog: Update copyright in other files too (except binaries and

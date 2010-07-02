@@ -13,6 +13,50 @@
 my ($kw_re) = '^(?:([-~^]?)(\w[\w-]*)|([-^]\*))$';
 my (@kw);
 
+sub file_parse {
+	my $fname = shift;
+	my @content = ();
+
+	if ( ! -r $fname ) {
+		printf STDERR ("Error: File '%s' doesn't exist or is not readable!\n", $fname);
+		exit(1);
+	}
+
+	open(FILE, '<', $fname);
+	while(defined(my $line = <FILE>)) {
+		chomp($line);
+		$line =~ s/^\s*//g;
+		$line =~ s/\s*$//g;
+		$line =~ s/\s+/ /g;
+		next if length($line) eq 0;
+
+		next if $line =~ m/^#/;
+
+		push(@content, $line);
+	}
+	close(FILE);
+
+	return @content;
+}
+
+sub get_portdir() {
+	open(PORTAGEQ, '-|', 'portageq portdir');
+	chomp(my $portdir = <PORTAGEQ>);
+	close(PORTAGEQ);
+
+	if (length($portdir) eq 0) {
+		printf STDERR ("Error: Couldn't determine your PORTDIR...\n");
+		exit(1);
+	}
+	return $portdir;
+}
+
+sub get_architectures() {
+	foreach my $arch (file_parse("${PORTDIR}/profiles/arch.list")) {
+		$ARCH{$arch} = 0;
+	}
+}
+
 # make sure the cmdline consists of keywords and ebuilds
 unless (@ARGV > 0) {
 	# NOTE: ~all will ignore all -arch keywords
