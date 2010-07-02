@@ -88,6 +88,7 @@ for my $a (@ARGV) {
 
 $PORTDIR = get_portdir();
 get_architectures();
+get_architectures_status();
 
 my $files = 0;
 for my $f (@ARGV) {
@@ -146,7 +147,20 @@ for my $f (@ARGV) {
 				} else {
 					if ($arch eq 'all') {
 						# modify all non-masked keywords in the list
-						$quoted =~ s/(^|\s)~?(?=\w)/$1$leader/g;
+
+						# Don't add stable keywords for != stable architectures
+						if(length($leader) eq 0) {
+							foreach my $tmp (split(/\s/, $quoted)) {
+								my (undef, $_arch, undef) = ($tmp =~ m/$kw_re/o);
+
+								if($ARCH{$_arch} and $ARCH{$_arch} eq 3) {
+									$quoted =~ s/\Q~${_arch}\E/${_arch}/;
+								}
+							}
+						}
+						else {
+							$quoted =~ s/(^|\s)~?(?=\w)/$1$leader/g;
+						}
 					} else {
 						# modify or add keyword
 						unless ($quoted =~ s/[-~]?\Q$arch\E(\s|$)/$leader$arch$1/) {
