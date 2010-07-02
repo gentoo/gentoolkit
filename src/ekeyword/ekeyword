@@ -65,8 +65,8 @@ sub get_architectures_status() {
 		my ($arch, undef, $status) = split(/\s/, $line, 3);
 
 		if(defined($ARCH{$arch})) {
-			$ARCH{$arch} = 1 if $status eq "dev";
-			$ARCH{$arch} = 2 if $status eq "exp";
+			$ARCH{$arch} = 1 if $status eq "dev" and $ARCH{$arch} < 3; # Don't override stable
+			$ARCH{$arch} = 2 if $status eq "exp" and $ARCH{$arch} < 3; # Don't override stable
 			$ARCH{$arch} = 3 if $status eq "stable";
 		}
 	}

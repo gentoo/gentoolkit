@@ -12,6 +12,7 @@
 		Validate user input/arch, bug 326029.
 		Add get_architectures_status function to get the architecture status,
 		0 = unkown, 1 = dev, 2 = exp, 3 = stable.
+		Don't override stable status in get_architectures_status.
 
 2010-05-17: Christian Ruppert <idl0r@gentoo.org>
 	* echangelog: Update copyright in other files too (except binaries and
