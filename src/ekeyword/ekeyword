@@ -60,6 +60,18 @@ sub get_architectures() {
 	}
 }
 
+sub get_architectures_status() {
+	foreach my $line (file_parse("${PORTDIR}/profiles/profiles.desc")) {
+		my ($arch, undef, $status) = split(/\s/, $line, 3);
+
+		if(defined($ARCH{$arch})) {
+			$ARCH{$arch} = 1 if $status eq "dev";
+			$ARCH{$arch} = 2 if $status eq "exp";
+			$ARCH{$arch} = 3 if $status eq "stable";
+		}
+	}
+}
+
 # make sure the cmdline consists of keywords and ebuilds
 unless (@ARGV > 0) {
 	# NOTE: ~all will ignore all -arch keywords
