@@ -1,5 +1,6 @@
 2010-07-02: Christian Ruppert <idl0r@gentoo.org>
 	* imlate: Don't ignore package names without category.
+	* ekeyword: Show "diff -U 0" to cover all changes.
 
 2010-05-17: Christian Ruppert <idl0r@gentoo.org>
 	* echangelog: Update copyright in other files too (except binaries and

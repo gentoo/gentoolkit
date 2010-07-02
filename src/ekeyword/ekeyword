@@ -40,8 +40,6 @@ for my $f (@ARGV) {
 	open O, ">$f.new"   or die "Can't create $f.new: $!\n";
 	select O;
 
-	my $keys_before;
-	my $keys_after;
 	while (<I>) {
 		if (/^\s*KEYWORDS=/) {
 
@@ -52,7 +50,6 @@ for my $f (@ARGV) {
 				$_ = join " ", $_, $next;
 			}
 			(my $quoted = $_) =~ s/^.*?["'](.*?)["'].*/$1/s;
-			$keys_before = $quoted;
 
 			# replace -* with -STAR for our convenience below
 			$quoted =~ s/-\*/-STAR/;
@@ -109,8 +106,6 @@ for my $f (@ARGV) {
 				$sa cmp $sb;
 			} split " ", $quoted;
 
-			$keys_after = $quoted;
-
 			# re-insert quoted to KEYWORDS
 			s/(["']).*?["']/$1$quoted$1/;
 
@@ -124,19 +119,8 @@ for my $f (@ARGV) {
 	close O;
 	select STDOUT;
 
-	if ($keys_before ne $keys_after) {
-		# This gives uniform output, but actually seems to make
-		# it harder to pick out differences, and doesn't work so
-		# well when adding/removing keywords
-		#$keys_before =~ s/(^| )/  /g;
-		#$keys_before =~ s/ ([-~])/$1/g;
-		#$keys_after =~ s/(^| )/  /g;
-		#$keys_after =~ s/ ([-~])/$1/g;
-		print "  -  $keys_before\n  +  $keys_after\n";
-		#system "diff -U 0 $f $f.new | sed -n -r 's:^(.)[[:space:]]*KEYWORDS=\"(.*)\":  \\1 \\2:p'";
-		#system "diff -U 0 $f $f.new | sed -n '/KEYWORDS=/s:^:  :p'";
-	}
-	rename "$f.new", "$f" or die "Can't rename: $!\n";
+	system("diff -U 0 ${f} ${f}.new");
+	rename("$f.new", "$f") or die "Can't rename: $!\n";
 	$files++;
 }
 
