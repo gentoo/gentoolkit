@@ -9,6 +9,7 @@
 		get_architectures reads $PORTDIR/profiles/arch.list and adds all
 		available architectures to the %ARCH hash which can be used for
 		validation.
+		Validate user input/arch, bug 326029.
 
 2010-05-17: Christian Ruppert <idl0r@gentoo.org>
 	* echangelog: Update copyright in other files too (except binaries and

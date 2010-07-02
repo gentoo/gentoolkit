@@ -13,6 +13,9 @@
 my ($kw_re) = '^(?:([-~^]?)(\w[\w-]*)|([-^]\*))$';
 my (@kw);
 
+my $PORTDIR = undef;
+my %ARCH = ();
+
 sub file_parse {
 	my $fname = shift;
 	my @content = ();
@@ -71,9 +74,21 @@ for my $a (@ARGV) {
 	die "I don't understand $a\n";
 }
 
+$PORTDIR = get_portdir();
+get_architectures();
+
 my $files = 0;
 for my $f (@ARGV) {
-	if ($f =~ /$kw_re/o) {
+	if ($f =~ m/$kw_re/o) {
+		my $arch = $2;
+
+		if(length($arch) > 0 && $arch ne "all") {
+			if(!defined($ARCH{$arch})) {
+				printf STDERR ("'%s' is an unknown architecture! skipping...\n", $arch);
+				next;
+			}
+		}
+
 		push @kw, $f;
 		next;
 	}
