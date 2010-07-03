@@ -1,3 +1,6 @@
+2010-07-03: Christian Ruppert <idl0r@gentoo.org>
+	* ekeyword: Fix stabilization with "all", bug 304133#c11.
+
 2010-07-02: Christian Ruppert <idl0r@gentoo.org>
 	* imlate: Don't ignore package names without category.
 	* ekeyword: Show "diff -U 0" to cover all changes.
