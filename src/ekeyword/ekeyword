@@ -150,15 +150,22 @@ for my $f (@ARGV) {
 
 						# Don't add stable keywords for != stable architectures
 						if(length($leader) eq 0) {
+							my @new;
 							foreach my $tmp (split(/\s/, $quoted)) {
-								my (undef, $_arch, undef) = ($tmp =~ m/$kw_re/o);
+								my ($_leader, $_arch, undef) = ($tmp =~ m/$kw_re/o);
+								$_leader = "" if !defined($_leader);
+								$_arch = "" if !defined($_arch);
 
-								if($ARCH{$_arch} and $ARCH{$_arch} eq 3) {
-									# [^-] to ignore ~arch-foo in case just arch shall
-									# be stabilized, bug 304133#c11
-									$quoted =~ s/\Q~${_arch}\E[^-]/${_arch}/;
+								if($_leader eq "~" && ($ARCH{$_arch} && $ARCH{$_arch} eq 3) ) {
+									push(@new, $_arch);
+									next;
+								}
+								else {
+									push(@new, "${_leader}${_arch}");
+									next;
 								}
 							}
+							$quoted = join(" ", @new);
 						}
 						else {
 							$quoted =~ s/(^|\s)~?(?=\w)/$1$leader/g;
