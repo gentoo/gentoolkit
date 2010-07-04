@@ -1,4 +1,8 @@
 2010-07-03: Christian Ruppert <idl0r@gentoo.org>
+	* ekeyword: Don't touch an empty KEYWORDS variable in case it occurs more
+	than once, like in live ebuilds. Bug 321475.
+
+2010-07-03: Christian Ruppert <idl0r@gentoo.org>
 	* ekeyword: Fix stabilization with "all", bug 304133#c11.
 
 2010-07-02: Christian Ruppert <idl0r@gentoo.org>

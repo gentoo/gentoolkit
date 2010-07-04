@@ -112,6 +112,12 @@ for my $f (@ARGV) {
 	open O, ">$f.new"   or die "Can't create $f.new: $!\n";
 	select O;
 
+	my $count = 0;
+	while(<I>) {
+		$count++ if m/^\s*KEYWORDS=/;
+	}
+	seek(I, 0, 0);
+
 	while (<I>) {
 		if (/^\s*KEYWORDS=/) {
 
@@ -122,6 +128,13 @@ for my $f (@ARGV) {
 				$_ = join " ", $_, $next;
 			}
 			(my $quoted = $_) =~ s/^.*?["'](.*?)["'].*/$1/s;
+
+			if($count > 1 && length($quoted) eq 0) {
+				# Skip empty KEYWORDS variables in case they occur more than
+				# once, bug 321475.
+				print $_;
+				next;
+			}
 
 			# replace -* with -STAR for our convenience below
 			$quoted =~ s/-\*/-STAR/;
