@@ -751,7 +751,6 @@ open O, '>ChangeLog.new' or die "Can't open ChangeLog.new for output: $!\n";
 print O $text            or die "Can't write ChangeLog.new: $!\n";
 close O                  or die "Can't close ChangeLog.new: $!\n";
 
-
 # Update affected ebuilds and some other files copyright dates.  There is no reason to update the
 # copyright lines on ebuilds that haven't changed. I verified this with an IP
 # lawyer. (patches/diffs and binary files are excluded)
