@@ -17,7 +17,7 @@ use Getopt::Long;
 setlocale(&POSIX::LC_ALL, "C");
 
 use Text::Wrap;
-$Text::Wrap::columns = 77;
+$Text::Wrap::columns = 80;
 $Text::Wrap::unexpand = 0;
 
 # Global variables
