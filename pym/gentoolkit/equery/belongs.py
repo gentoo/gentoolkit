@@ -154,6 +154,7 @@ def main(input_args):
 		printer_fn=printer_fn
 	)
 
-	find_owner(queries)
+	if not find_owner(queries):
+		sys.exit(1)
 
 # vim: set ts=4 sw=4 tw=79:
