@@ -31,7 +31,7 @@ from gentoolkit import errors
 # =======
 
 isvalid_version_re = re.compile("^(?:cvs\\.)?(?:\\d+)(?:\\.\\d+)*[a-z]?"
-    "(?:_(p(?:re)?|beta|alpha|rc)\\d*)*$")
+	"(?:_(p(?:re)?|beta|alpha|rc)\\d*)*$")
 isvalid_cat_re = re.compile("^(?:[a-zA-Z0-9][-a-zA-Z0-9+._]*(?:/(?!$))?)+$")
 _pkg_re = re.compile("^[a-zA-Z0-9+_]+$")
 
@@ -225,9 +225,8 @@ def split_cpv(cpv, validate=True):
 		if rev:
 			revision = rev
 
-	if validate and not isvalid_version_re.match(pkg_chunks[-1]):
-		raise errors.GentoolkitInvalidCPV(cpv)
-	version = pkg_chunks.pop(-1)
+	if isvalid_version_re.match(pkg_chunks[-1]):
+		version = pkg_chunks.pop(-1)
 
 	if not isvalid_pkg_name(pkg_chunks):
 		raise errors.GentoolkitInvalidCPV(cpv)
@@ -237,19 +236,19 @@ def split_cpv(cpv, validate=True):
 
 
 def isvalid_pkg_name(chunks):
-    if not chunks[0]:
-        # this means a leading -
-        return False
-    mf = _pkg_re.match
-    if not all(not s or mf(s) for s in chunks):
-        return False
-    if chunks[-1].isdigit() or not chunks[-1]:
-        # not allowed.
-        return False
-    return True
+	if not chunks[0]:
+		# this means a leading -
+		return False
+	mf = _pkg_re.match
+	if not all(not s or mf(s) for s in chunks):
+		return False
+	if chunks[-1].isdigit() or not chunks[-1]:
+		# not allowed.
+		return False
+	return True
 
 
 def isvalid_rev(s):
-    return s and s[0] == 'r' and s[1:].isdigit()
+	return s and s[0] == 'r' and s[1:] != '0' and s[1:].isdigit() 
 
 # vim: set ts=4 sw=4 tw=79:

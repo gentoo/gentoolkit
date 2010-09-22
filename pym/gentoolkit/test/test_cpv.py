@@ -77,6 +77,63 @@ class TestGentoolkitCPV(unittest.TestCase):
 		vt = ('sys-auth/pambase-20080318', 'sys-auth/pambase-20080318')
 		self.failUnless(compare_strs(vt[0], vt[1]) == 0)
 
+	def test_chunk_splitting(self):
+		all_tests = [
+			# simple
+			('sys-apps/portage-2.2', {
+				'category': 'sys-apps',
+				'name': 'portage',
+				'cp': 'sys-apps/portage',
+				'version': '2.2',
+				'revision': '',
+				'fullversion': '2.2'
+			}),
+			# with rc
+			('sys-apps/portage-2.2_rc10', {
+				'category': 'sys-apps',
+				'name': 'portage',
+				'cp': 'sys-apps/portage',
+				'version': '2.2_rc10',
+				'revision': '',
+				'fullversion': '2.2_rc10'
+			}),
+			# with revision
+			('sys-apps/portage-2.2_rc10-r1', {
+				'category': 'sys-apps',
+				'name': 'portage',
+				'cp': 'sys-apps/portage',
+				'version': '2.2_rc10',
+				'revision': 'r1',
+				'fullversion': '2.2_rc10-r1'
+			}),
+			# with dash (-) in name (Bug #316961)
+			('c-portage', {
+				'category': '',
+				'name': 'c-portage',
+				'cp': 'c-portage',
+				'version': '',
+				'revision': '',
+				'fullversion': ''
+			}),
+			# with dash (-) in name (Bug #316961)
+			('sys-apps/c-portage-2.2_rc10-r1', {
+				'category': 'sys-apps',
+				'name': 'c-portage',
+				'cp': 'sys-apps/c-portage',
+				'version': '2.2_rc10',
+				'revision': 'r1',
+				'fullversion': '2.2_rc10-r1'
+			}),
+		]
+
+		for test in all_tests:
+			cpv = CPV(test[0])
+			keys = ('category', 'name', 'cp', 'version', 'revision', 'fullversion')
+			for k in keys:
+				self.failUnlessEqual(
+					getattr(cpv, k), test[1][k]
+				)
+
 
 def test_main():
 	test_support.run_unittest(TestGentoolkitCPV)
