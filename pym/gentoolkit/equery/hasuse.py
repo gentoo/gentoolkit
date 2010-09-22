@@ -60,7 +60,7 @@ def print_help(with_description=True):
 		(" -o, --overlay-tree", "include overlays in search path"),
 		(" -p, --portage-tree", "include entire portage tree in search path"),
 		(" -F, --format=TMPL", "specify a custom output format"),
-        ("              TMPL",
+		("              TMPL",
 			"a format template using (see man page):")
 	)))
 	print(" " * 24, ', '.join(pp.emph(x) for x in FORMAT_TMPL_VARS))			
@@ -73,19 +73,19 @@ def display_useflags(query, pkg):
 		useflags = [x.lstrip("+-") for x in pkg.environment("IUSE").split()]
 	except errors.GentoolkitFatalError:
 		# aux_get KeyError or other unexpected result
-		return
+		return False
 
 	if query not in useflags:
-		return
+		return False
 
 	if CONFIG['verbose']:
-		 pkgstr = PackageFormatter(
+		pkgstr = PackageFormatter(
 			pkg,
 			do_format=True,
 			custom_format=QUERY_OPTS["package_format"]
 		)
 	else:
-		 pkgstr = PackageFormatter(
+		pkgstr = PackageFormatter(
 			pkg,
 			do_format=False,
 			custom_format=QUERY_OPTS["package_format"]
@@ -95,16 +95,18 @@ def display_useflags(query, pkg):
 		not QUERY_OPTS["in_porttree"] and
 		not QUERY_OPTS["in_overlay"]):
 		if not 'I' in  pkgstr.location:
-			return
+			return False
 	if (QUERY_OPTS["in_porttree"] and
 		not QUERY_OPTS["in_overlay"]):
 		if not 'P' in  pkgstr.location:
-			return
+			return False
 	if (QUERY_OPTS["in_overlay"] and
 		not QUERY_OPTS["in_porttree"]):
 		if not 'O' in  pkgstr.location:
-			return
+			return False
 	pp.uprint(pkgstr)
+
+	return True
 
 
 
@@ -158,6 +160,7 @@ def main(input_args):
 	#
 
 	first_run = True
+	got_match = False
 	for query in queries:
 		if not first_run:
 			print()
@@ -166,7 +169,12 @@ def main(input_args):
 			pp.uprint(" * Searching for USE flag %s ... " % pp.emph(query))
 
 		for pkg in matches:
-			display_useflags(query, pkg)
+			if display_useflags(query, pkg):
+				got_match = True
+
 		first_run = False
+
+	if not got_match:
+		sys.exit(1)
 
 # vim: set ts=4 sw=4 tw=79:

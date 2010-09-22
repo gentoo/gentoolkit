@@ -141,11 +141,16 @@ def main(input_args):
 		sys.exit(2)
 
 	first_run = True
+	got_match = False
 	for query in (Query(x) for x in queries):
 		if not first_run:
 			print()
 
 		match = query.find_best()
+		if match is None:
+			continue
+
+		got_match = True
 		changelog_path = os.path.join(match.package_path(), 'ChangeLog')
 		changelog = ChangeLog(changelog_path)
 
@@ -177,5 +182,8 @@ def main(input_args):
 				print_entries(changelog.entries_matching_atom(atom)[:end])
 
 		first_run = False
+	
+	if not got_match:
+		sys.exit(1)
 
 # vim: set ts=4 sw=4 tw=79:

@@ -171,7 +171,9 @@ def main(input_args):
 	#
 
 	dep_print = DependPrinter(verbose=CONFIG['verbose'])
+
 	first_run = True
+	got_match = False
 	for query in queries:
 		if not first_run:
 			print()
@@ -184,13 +186,17 @@ def main(input_args):
 
 		if CONFIG['verbose']:
 			print(" * These packages depend on %s:" % pp.emph(pkg.cpv))
-		pkg.graph_reverse_depends(
+		if pkg.graph_reverse_depends(
 			pkgset=sorted(pkggetter(), key=CPV),
 			max_depth=QUERY_OPTS["max_depth"],
 			only_direct=QUERY_OPTS["only_direct"],
 			printer_fn=dep_print
-		)
+		):
+			got_match = True
 
 		first_run = False
+
+	if not got_match:
+		sys.exit(1)
 
 # vim: set ts=4 sw=4 tw=79:
