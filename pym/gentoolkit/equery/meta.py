@@ -217,7 +217,7 @@ def format_keywords(keywords):
 
 	result = []
 
-	for kw in sorted(keywords, key=keyword.Keyword):
+	for kw in sorted(keywords, keyword.compare_strs):
 		if kw.startswith('-'):
 			# arch masked
 			kw = pp.keyword(kw, stable=False, hard_masked=True)

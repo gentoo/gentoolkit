@@ -33,9 +33,6 @@
 		'Thomas Mills Hinkle'
 """
 
-# Move to Imports section after Python-2.6 is stable
-
-
 __all__ = ('MetaData',)
 __docformat__ = 'epytext'
 

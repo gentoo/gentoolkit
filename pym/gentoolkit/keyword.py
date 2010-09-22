@@ -15,7 +15,7 @@ __all__ = (
 	'Keyword',
 	'compare_strs',
 	'reduce_keywords',
-	'determine_keywords'
+	'determine_keyword'
 )
 
 # =======
@@ -66,7 +66,7 @@ class Keyword(object):
 		return self.keyword
 
 	def __repr__(self):
-		return "<Keyword {0.keyword!r}>".format(self)
+		return "<{0.__class__.__name__} {0.keyword!r}>".format(self)
 
 # =========
 # Functions
