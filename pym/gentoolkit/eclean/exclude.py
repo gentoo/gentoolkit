@@ -156,10 +156,9 @@ def cp_all(categories, portdb=portage.portdb ):
 		"""
 		try:
 			cps = portdb.cp_all(categories)
-			message = "Deprecation Warning: eclean.exclude.cp_all()\n" + \
-				"New portage functionality is available " +\
-				"Please migrate code permanently"
-			print( warn(message), file=sys.stderr)
+			# NOTE: the following backup code should be removed 
+			# when all available versions of portage have the 
+			# categories parameter in cp_all()
 		except:  # new behaviour not available
 			#~ message =  "Exception: eclean.exclude.cp_all() " +\
 				#~ "new portdb.cp_all() behavior not found. using fallback code"
