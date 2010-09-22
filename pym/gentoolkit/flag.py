@@ -9,7 +9,7 @@
 
 
 __all__ = (
-	'get)iuse',
+	'get_iuse',
 	'get_installed_use',
 	'reduce_flag',
 	'reduce_flags',
