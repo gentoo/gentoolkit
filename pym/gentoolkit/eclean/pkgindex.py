@@ -11,6 +11,7 @@ import os
 import sys
 
 import gentoolkit.pprinter as pp
+from gentoolkit.eprefix import EPREFIX
 
 import portage
 
@@ -25,6 +26,8 @@ class PkgIndex(object):
 
 	def __init__(self, controller=None):
 		self.controller = controller
+		# backup command line call
+		self.emaint_cmd = "%s/usr/sbin/emaint --fix binhost" % EPREFIX
 
 
 	def _get_emaint_binhost(self):
@@ -75,9 +78,8 @@ class PkgIndex(object):
 		file_ = os.path.join(portage.settings['PKGDIR'], 'Packages')
 		statinfo = os.stat(file_)
 		size1 = statinfo.st_size
-		command = "emaint --fix binhost"
 		try:
-			retcode = subprocess.call(command, shell=True)
+			retcode = subprocess.call(self.emaint_cmd, shell=True)
 			if retcode < 0:
 				print( pp.error("Child was terminated by signal" + str(-retcode)), file=sys.stderr)
 		except OSError as e:
