@@ -246,11 +246,16 @@ class DistfilesSearch(object):
 		@returns packages to clean
 		@rtype: dictionary
 		"""
-		# this regexp extracts files names from SRC_URI. It is not very precise,
-		# but we don't care (may return empty strings, etc.), since it is fast.
-		file_regexp = re.compile(r'([a-zA-Z0-9_,\.\-\+\~]*)[\s\)]')
 		for cpv in pkgs:
-			for file in file_regexp.findall(pkgs[cpv]+"\n"):
+			uris = pkgs[cpv].split()
+			uris.reverse()
+			while uris:
+				uri = uris.pop()
+				if uris and uris[-1] == "->":
+					operator = uris.pop()
+					file = uris.pop()
+				else:
+					file = os.path.basename(uri)
 				if file in clean_me:
 					del clean_me[file]
 			# no need to waste IO time if there is nothing left to clean
