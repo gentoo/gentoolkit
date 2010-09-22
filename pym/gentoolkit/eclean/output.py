@@ -91,14 +91,18 @@ class OutputControl(object):
 			color = self.numbers
 		units = [" G"," M"," K"," B"]
 		approx = 0
+		# by using 1000 as the changeover, the integer portion
+		# of the number will never be more than 3 digits long
+		# but the true base 2 value of 1024 is used for the actual
+		# calulation to maintain better accuracy.
 		while len(units) and size >= 1000:
 			approx = 1
-			size = size / 1024.
+			size = size / 1024.0
 			units.pop()
-		sizestr = '%d'% size + units[-1]
+		sizestr = "%.1f" %(round(size,1)) + units[-1]
 		if justify:
 			sizestr = " " + self.brace("[ ")  + \
-				color(sizestr.rjust(7)) + self.brace(" ]")
+				color(sizestr.rjust(8)) + self.brace(" ]")
 		return sizestr
 
 	def yesNoAllPrompt(self, message="Do you want to proceed?"):
@@ -175,5 +179,9 @@ class OutputControl(object):
 		"""
 		indent = ' ' * 12
 		for key in pkgs:
-			print( indent,self.pkg_color(key))
+			if pkgs[key]:
+				saved = ""
+			else:
+				saved = " ...distfile name(s) not known/saved"
+			print( indent,self.pkg_color(key) + saved)
 		print()
