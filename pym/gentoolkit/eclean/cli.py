@@ -465,13 +465,10 @@ def main():
 		if options['verbose']:
 			options['verbose-output'] = output.einfo
 	# parse the exclusion file
-	#print("MAIN(), CHecking exclude-file")
 	if not 'exclude-file' in options:
 		# set it to the default exclude file if it exists
 		exclude_file = "%s/etc/%s/%s.exclude" % (EPREFIX,__productname__ , action)
-		#print("MAIN(), EXCLUDE FILE name=", exclude_file)
 		if os.path.isfile(exclude_file):
-			#print("MAIN(), setting default exclude-file")
 			options['exclude-file'] = exclude_file
 	if 'exclude-file' in options:
 		try:
