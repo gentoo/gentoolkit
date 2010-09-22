@@ -27,7 +27,7 @@ from gentoolkit.query import Query
 # Classes
 # =======
 
-class Dependencies(CPV):
+class Dependencies(Query):
 	"""Access a package's dependencies and reverse dependencies.
 
 	Example usage:
@@ -40,14 +40,8 @@ class Dependencies(CPV):
 		[<Atom '>=dev-lang/python-2.5'>, <Atom '<dev-lang/python-3.0'>, ...]
 
 	"""
-	def __init__(self, cpv, op='', parser=None):
-		if isinstance(cpv, CPV):
-			self.__dict__.update(cpv.__dict__)
-		else:
-			CPV.__init__(self, cpv)
-
-		self.operator = op
-		self.atom = self.operator + self.cpv
+	def __init__(self, query, parser=None):
+		Query.__init__(self, query)
 		self.use = []
 		self.depatom = str()
 
@@ -320,10 +314,16 @@ class Dependencies(CPV):
 			if tok[0] == '!':
 				# We're not interested in blockers
 				continue
-			atom = Atom(tok)
-			if use_conditional is not None:
-				atom.use_conditional = use_conditional
-			result.append(atom)
+			# skip it if it's empty
+			if tok and tok != '':
+				atom = Atom(tok)
+				if use_conditional is not None:
+					atom.use_conditional = use_conditional
+				result.append(atom)
+			else:
+				message = "dependencies.py: _parser() found an empty " +\
+					"dep string token for: %s, deps= %s"
+				raise errors.GentoolkitInvalidAtom(message %(self.cpv, deps))
 
 		return result
 
