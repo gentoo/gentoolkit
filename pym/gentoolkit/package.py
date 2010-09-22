@@ -344,12 +344,12 @@ class Package(CPV):
 			try:
 				st = os.lstat(f)
 			except OSError:
-				pass
+				continue
 
 			# Remove hardlinks by checking for duplicate inodes. Bug #301026.
 			file_inode = st.st_ino
 			if file_inode in seen:
-				pass
+				continue
 			seen.add(file_inode)
 
 			try:
