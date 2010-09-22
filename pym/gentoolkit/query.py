@@ -27,6 +27,7 @@ from gentoolkit import CONFIG
 from gentoolkit import errors
 from gentoolkit import helpers
 from gentoolkit import pprinter as pp
+from gentoolkit.atom import Atom
 from gentoolkit.cpv import CPV
 from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit.package import Package
@@ -36,7 +37,7 @@ from gentoolkit.sets import get_set_atoms, SETPREFIX
 # Classes
 # =======
 
-class Query(object):
+class Query(CPV):
 	"""Provides common methods on a package query."""
 
 	def __init__(self, query, is_regex=False):
@@ -60,6 +61,16 @@ class Query(object):
 		self.is_regex = is_regex
 		self.query_type = self._get_query_type()
 
+		# Name the rest of the chunks, if possible
+		if self.query_type != "set":
+			try:
+				atom = Atom(self.query)
+				self.__dict__.update(atom.__dict__)
+			except errors.GentoolkitInvalidAtom:
+				CPV.__init__(self, self.query)
+				self.operator = ''
+				self.atom = self.cpv
+
 	def __repr__(self):
 		rx = ''
 		if self.is_regex:
@@ -79,8 +90,7 @@ class Query(object):
 			cat_str = ""
 			pkg_str = pp.emph(self.query)
 		else:
-			cpv = CPV(self.query)
-			cat, pkg = cpv.category, cpv.name + cpv.fullversion
+			cat, pkg = self.category, self.name + self.fullversion
 			if cat and not self.is_regex:
 				cat_str = "in %s " % pp.emph(cat.lstrip('><=~!'))
 			else:
@@ -185,7 +195,9 @@ class Query(object):
 			if in_installed:
 				matches.extend(VARDB.match(self.query))
 		except portage.exception.InvalidAtom as err:
-			raise errors.GentoolkitInvalidAtom(str(err))
+			message = "query.py: find(), query=%s, InvalidAtom=%s" %(
+				self.query, str(err))
+			raise errors.GentoolkitInvalidAtom(message)
 
 		return [Package(x) for x in set(matches)]
 
@@ -221,7 +233,9 @@ class Query(object):
 		try:
 			best = PORTDB.xmatch("bestmatch-visible", self.query)
 		except portage.exception.InvalidAtom as err:
-			raise errors.GentoolkitInvalidAtom(err)
+			message = "query.py: find_best(), bestmatch-visible, " + \
+				"query=%s, InvalidAtom=%s" %(self.query, str(err))
+			raise errors.GentoolkitInvalidAtom(message)
 		# xmatch can return an empty string, so checking for None is not enough
 		if not best:
 			if not (include_keyworded or include_masked):
@@ -229,7 +243,9 @@ class Query(object):
 			try:
 				matches = PORTDB.xmatch("match-all", self.query)
 			except portage.exception.InvalidAtom as err:
-				raise errors.GentoolkitInvalidAtom(err)
+				message = "query.py: find_best(), match-all, query=%s, InvalidAtom=%s" %(
+					self.query, str(err))
+				raise errors.GentoolkitInvalidAtom(message)
 			masked = portage.best(matches)
 			keywordable = []
 			for m in matches:
@@ -302,10 +318,7 @@ class Query(object):
 				cat_re = cat
 			else:
 				cat_re = fnmatch.translate(cat)
-				# [::-1] reverses a sequence, so we're emulating an ".rreplace()"
-				# except we have to put our "new" string on backwards
-				cat_re = cat_re[::-1].replace('$', '*./', 1)[::-1]
-			predicate = lambda x: re.match(cat_re, x)
+			predicate = lambda x: re.match(cat_re, x.split("/", 1)[0])
 			pre_filter = self.package_finder(predicate=predicate)
 
 		# Post-filter
