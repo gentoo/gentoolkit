@@ -9,7 +9,7 @@
 
 import portage
 
-#bindb = portage.db[portage.root]["bintree"].dbapi
+BINDB = portage.db[portage.root]["bintree"].dbapi
 PORTDB = portage.db[portage.root]["porttree"].dbapi
 VARDB = portage.db[portage.root]["vartree"].dbapi
 #virtuals = portage.db[portage.root]["virtuals"]

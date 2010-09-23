@@ -16,6 +16,7 @@ __all__ = (
 	'get_cpvs',
 	'get_installed_cpvs',
 	'get_uninstalled_cpvs',
+	'get_bintree_cpvs',
 	'uniqify',
 )
 __docformat__ = 'epytext'
@@ -35,7 +36,7 @@ from gentoolkit import pprinter as pp
 from gentoolkit import errors
 from gentoolkit.atom import Atom
 from gentoolkit.cpv import CPV
-from gentoolkit.dbapi import PORTDB, VARDB
+from gentoolkit.dbapi import BINDB, PORTDB, VARDB
 from gentoolkit.versionmatch import VersionMatch
 # This has to be imported below to stop circular import.
 #from gentoolkit.package import Package
@@ -430,6 +431,25 @@ def get_installed_cpvs(predicate=None):
 		yield cpv
 
 
+def get_bintree_cpvs(predicate=None):
+	"""Get all binary packages available. Optionally apply a predicate.
+
+	@type predicate: function
+	@param predicate: a function to filter the package list with
+	@rtype: generator
+	@return: a generator that yields unsorted binary package cat/pkg-ver strings
+		from BINDB
+	"""
+
+	if predicate:
+		installed_cps = iter(x for x in BINDB.cp_all() if predicate(x))
+	else:
+		installed_cps = BINDB.cp_all()
+
+	for cpv in chain.from_iterable(BINDB.cp_list(x) for x in installed_cps):
+		yield cpv
+
+	
 def print_file(path):
 	"""Display the contents of a file."""
 
