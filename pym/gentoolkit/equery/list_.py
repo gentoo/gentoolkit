@@ -21,6 +21,7 @@ import gentoolkit
 import gentoolkit.pprinter as pp
 from gentoolkit.equery import format_options, mod_usage, CONFIG
 from gentoolkit.helpers import get_installed_cpvs
+from gentoolkit.helpers import get_bintree_cpvs
 from gentoolkit.package import PackageFormatter, FORMAT_TMPL_VARS
 from gentoolkit.query import Query
 
@@ -36,7 +37,8 @@ QUERY_OPTS = {
 	"include_mask_reason": False,
 	"is_regex": False,
 	"show_progress": (not CONFIG['quiet']),
-	"package_format": None
+	"package_format": None,
+	"binpkgs-missing": False
 }
 
 # =========
@@ -71,6 +73,7 @@ def print_help(with_description=True):
 	print(format_options((
 		(" -h, --help", "display this help message"),
 		(" -d, --duplicates", "list only installed duplicate packages"),
+		(" -b, --missing-binpkgs", "list only installed packages without a corresponding binary package"),
 		(" -f, --full-regex", "query is a regular expression"),
 		(" -m, --mask-reason", "include reason for package mask"),
 		(" -I, --exclude-installed",
@@ -102,6 +105,20 @@ def get_duplicates(matches):
 	return result
 
 
+def get_binpkgs_missing(matches):
+	"""Return only packages that do not have a corresponding binary package."""
+
+	result = []
+	binary_packages = set(get_bintree_cpvs())
+	matched_packages = set(x.cpv for x in matches)
+	missing_binary_packages = set(matched_packages.difference(binary_packages))
+
+	for pkg in matches:
+		if pkg.cpv in missing_binary_packages:
+			result.append(pkg)
+	return result
+
+
 def parse_module_options(module_opts):
 	"""Parse module options and update QUERY_OPTS"""
 
@@ -129,6 +146,8 @@ def parse_module_options(module_opts):
 			print()
 		elif opt in ('-d', '--duplicates'):
 			QUERY_OPTS['duplicates'] = True
+		elif opt in ('-b', '--binpkgs-missing'):
+			QUERY_OPTS['binpkgs-missing'] = True
 		elif opt in ('-F', '--format'):
 			QUERY_OPTS["package_format"] = posarg
 
@@ -136,7 +155,7 @@ def parse_module_options(module_opts):
 def main(input_args):
 	"""Parse input and run the program"""
 
-	short_opts = "hdefiImopF:" # -i, -e were options for default actions
+	short_opts = "hdbefiImopF:" # -i, -e were options for default actions
 
 	# 04/09: djanderson
 	# --all is no longer needed. Kept for compatibility.
@@ -144,7 +163,7 @@ def main(input_args):
 	# --exact-name is no longer needed. Kept for compatibility.
 	long_opts = ('help', 'all', 'installed', 'exclude-installed',
 		'mask-reason', 'portage-tree', 'overlay-tree', 'format=', 'full-regex',
-		'exact-name', 'duplicates')
+		'exact-name', 'duplicates', 'binpkgs-missing')
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
@@ -156,8 +175,8 @@ def main(input_args):
 
 	parse_module_options(module_opts)
 
-	# Only search installed packages when listing duplicate packages
-	if QUERY_OPTS["duplicates"]:
+	# Only search installed packages when listing duplicate or missing binary packages
+	if QUERY_OPTS["duplicates"] or QUERY_OPTS["binpkgs-missing"]:
 		QUERY_OPTS["in_installed"] = True
 		QUERY_OPTS["in_porttree"] = False
 		QUERY_OPTS["in_overlay"] = False
@@ -177,6 +196,10 @@ def main(input_args):
 		# Find duplicate packages
 		if QUERY_OPTS["duplicates"]:
 			matches = get_duplicates(matches)
+
+		# Find missing binary packages
+		if QUERY_OPTS["binpkgs-missing"]:
+			matches = get_binpkgs_missing(matches)
 
 		matches.sort()
 
