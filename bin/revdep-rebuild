@@ -288,9 +288,11 @@ get_file_owner() {
 	# Add a space to the end of each object name to prevent false
 	# matches, for example /usr/bin/dia matching /usr/bin/dialog (bug #196460).
 	# The same for "${rpath} ".
+	# Don't match an entry with a '-' at the start of the package name. This
+	# prevents us from matching invalid -MERGING entries. (bug #338031)
 	find -L /var/db/pkg -type f -name CONTENTS -print0 |
 		xargs -0 grep -m 1 -Fl -e "${*} " -e "${rpath} " -e "${mlib} " |
-		sed 's:/var/db/pkg/\(.*\)/CONTENTS:\1:'
+		sed 's:/var/db/pkg/\(.*\)/\([^-].*\)/CONTENTS:\1/\2:'
 }
 ##
 # Normalize some EMERGE_OPTIONS
