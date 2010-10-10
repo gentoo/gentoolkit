@@ -299,7 +299,7 @@ process_ebuild() {
     fi
 }
 
-function get_vcs() {
+get_vcs() {
 	if [[ -d "CVS" ]];
 	then
 		echo "cvs"

@@ -1,3 +1,6 @@
+2010-10-10: Christian Ruppert <idl0r@gentoo.org>
+	* ebump: Make ebump POSIX conform
+
 2010-07-03: Christian Ruppert <idl0r@gentoo.org>
 	* ekeyword: Don't touch an empty KEYWORDS variable in case it occurs more
 	than once, like in live ebuilds. Bug 321475.
