@@ -1,3 +1,7 @@
+2010-10-19: Christian Ruppert <idl0r@gentoo.org>
+	* eshowkw: Apply a patch from Mart Raudsepp <leio@gentoo.org> to speedup
+		version_sort(). Remove unused functions.
+
 2010-10-10: Christian Ruppert <idl0r@gentoo.org>
 	* ebump: Make ebump POSIX conform
 
