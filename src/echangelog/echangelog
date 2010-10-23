@@ -709,7 +709,7 @@ die "Please set ECHANGELOG_USER or run as non-root\n" if $user =~ /<root@/;
 
 $date = strftime("%d %b %Y", gmtime);
 $entry = "$date; $user ";
-$entry .= join ', ', map "$actions{$_}$_", @files;
+$entry .= join ', ', sort sortfunc map("$actions{$_}$_", @files);
 $entry .= ':';
 $entry = Text::Wrap::fill('  ', '  ', $entry); # does not append a \n
 $entry .= "\n$input";                          # append user input

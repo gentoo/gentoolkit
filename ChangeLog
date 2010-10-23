@@ -1,6 +1,8 @@
 2010-10-23: Christian Ruppert <idl0r@gentoo.org>
 	* echangelog: Fix version bump detection for hg/mercurial, bug 335636,
 		thanks to Mike Gilbert <floppymaster@gmail.com>.
+		Sort files properly, bug 336390, thanks to Michał Górny
+		<mgorny@gentoo.org>.
 
 2010-10-19: Christian Ruppert <idl0r@gentoo.org>
 	* eshowkw: Apply a patch from Mart Raudsepp <leio@gentoo.org> to speedup
