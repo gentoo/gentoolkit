@@ -584,7 +584,7 @@ if (@ebuilds) {
 close C;
 
 # Subversion diff doesn't identify new versions. So use the status command
-if (($vcs eq "svn") and (@ebuilds)) {
+if (($vcs eq "svn" or $vcs eq "hg") and (@ebuilds)) {
 	open C, $vcs{$vcs}{status}." @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{status}."$!\n";
 	$_ = <C>;
 
