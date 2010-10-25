@@ -15,7 +15,7 @@ test:
 
 dist:
 	mkdir -p ../../$(distdir)/src/echangelog/test/templates
-	cp Makefile AUTHORS README TODO ChangeLog echangelog echangelog.1 ../../$(distdir)/src/echangelog/
+	cp Makefile AUTHORS README ChangeLog echangelog echangelog.1 ../../$(distdir)/src/echangelog/
 	cp test/TEST.pm test/test.sh ../../$(distdir)/src/echangelog/test/
 	cp test/templates/test.patch test/templates/vcstest-0.0.1.ebuild ../../$(distdir)/src/echangelog/test/templates
 

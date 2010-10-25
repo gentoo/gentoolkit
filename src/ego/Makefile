@@ -10,7 +10,7 @@ all:
 
 dist:
 	mkdir -p ../../$(distdir)/src/ego/
-	cp Makefile AUTHORS README TODO ChangeLog ego ../../$(distdir)/src/ego/
+	cp Makefile AUTHORS README ChangeLog ego ../../$(distdir)/src/ego/
 
 install: all
 	install -d $(docdir)/ego	
