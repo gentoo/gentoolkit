@@ -4,6 +4,8 @@
 		Cleanup. Make it a bit more POSIX conform. Update manpage. Add support
 		for multiple ebuilds to bump. Bump version. Fix header.
 
+	* ego: Move "ego" into DEPRECATED.
+
 
 2010-10-23: Christian Ruppert <idl0r@gentoo.org>
 	* echangelog: Fix version bump detection for hg/mercurial, bug 335636,
