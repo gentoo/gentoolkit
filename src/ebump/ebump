@@ -14,12 +14,12 @@ __description__="Ebuild version bumping tool"
 
 
 die() {
-	echo $1 > /dev/stderr
+	echo $1 >&2
 	exit -1
 }
 
 einfo() {
-	if [ ${opt_verbosity} -eq 1 ] ; then
+	if [ ${opt_verbosity:-0} -eq 1 ] ; then
 		echo $*
 	fi
 }
@@ -51,20 +51,18 @@ print_usage() {
 load_options() {
 	# FIXME: Sourcing config files like this is really a bad idea; users may
 	# easily override any function in this program inside his config files.
-
-	if [ -f /etc/gentoolkit/ebump.conf ] ; then
+	if [ -f "/etc/gentoolkit/ebump.conf" ] ; then
 		. /etc/gentoolkit/ebump.conf
 	fi
-	if [ -f ${HOME}/.gentoo/gentool-env ] ; then
+	if [ -f "${HOME}/.gentoo/gentool-env" ] ; then
 		. ${HOME}/.gentoo/gentool-env
 	fi
-	if [ -f ${HOME}/.gentoo/ebump.conf ] ; then
+	if [ -f "${HOME}/.gentoo/ebump.conf" ] ; then
 		. ${HOME}/.gentoo/ebump.conf
 	fi
 
 	# FIXME: remove this warning in 2-3 releases.
-	if [[ -n ${opt_add_cvs} ]];
-	then
+	if [ -n "${opt_add_cvs}" ]; then
 		echo "Warning: opt_add_cvs is deprecated, please use opt_add_vcs from now on!" >/dev/stderr
 	fi
 }
@@ -73,14 +71,14 @@ load_options() {
 # Find closes ebuild to ${1}, if any
 #
 find_ebuild() {
-	f=${1}
+	local f=${1}
 
-	if [ -f ${1} ] ; then
-		echo ${1}
+	if [ -f "${f}" ] ; then
+		echo ${f}
 	fi
 
-	if [ -f ${1}.ebuild ] ; then
-		echo ${1}
+	if [ -f "${f}.ebuild" ] ; then
+		echo ${f}
 	fi
 }
 
@@ -123,18 +121,19 @@ splitname() {
 		;;
 		*)
 			echo
+		;;
 	esac
 }
 
 process_ebuild() {
-	vcs=$1
-	ebuild_arg=$2
+	local vcs=$1
+	local ebuild_arg=$2
 	shift $#
 
 	# Files to add to VCS
-	addfiles=""
+	local addfiles=""
 	# Files to remove from VCS
-	delfiles=""
+	local delfiles=""
 
 	if [ -z ${ebuild_arg} ] ; then
 		print_usage
@@ -144,8 +143,7 @@ process_ebuild() {
 	#
 	# Try to find a matching ebuild
 	#
-
-	ebuild_name=$(find_ebuild ${ebuild_arg})
+	local ebuild_name=$(find_ebuild ${ebuild_arg})
 	if [ -z ${ebuild_name} ] ; then
 		die "Could not find ${ebuild_arg}"
 	fi
@@ -154,20 +152,18 @@ process_ebuild() {
 	#
 	# Bump revision suffix (or add one)
 	#
-
-	PF=$(basename ${ebuild_name} .ebuild)
-	PN=$(splitname name ${PF})
-	PV=$(splitname version ${PF})
-	rev=$(splitname revision ${PF})
-	PV_norev=$(splitname vernorev ${PF})
-	newPF=${PN}-${PV_norev}-r$[rev+1]
+	local PF=$(basename ${ebuild_name} .ebuild)
+	local PN=$(splitname name ${PF})
+	local PV=$(splitname version ${PF})
+	local rev=$(splitname revision ${PF})
+	local PV_norev=$(splitname vernorev ${PF})
+	local newPF=${PN}-${PV_norev}-r$[rev+1]
 
 #	echo $PF / $PN / $PV / $rev / $PV_norev / $newPF
 
 	einfo "Bumped ${PF}.ebuild to ${newPF}.ebuild"
 
-	if [[ "${vcs}" == "svn" ]];
-	then
+	if [ "${vcs}" == "svn" ]; then
 		svn cp ${PF}.ebuild ${newPF}.ebuild
 	else
 		cp ${PF}.ebuild ${newPF}.ebuild
@@ -187,7 +183,7 @@ process_ebuild() {
 		# Gather list of auxiliary files in files/ that has a versioned
 		# filename, where the version matches our current version.
 
-		bumplist=""
+		local bumplist=""
 		for x in $(echo files/*) ; do
 			if [ ! -z $(echo $x | grep "${PV}$") ] ; then
 				bumplist="${bumplist} ${x}"
@@ -196,8 +192,9 @@ process_ebuild() {
 
 		# Bump version of all matches
 		for x in ${bumplist} ; do
-			bn=$(basename ${x})
-			dn=$(dirname ${x})
+			local bn=$(basename ${x})
+			local dn=$(dirname ${x})
+			local newbn
 
 			PN=$(splitname name ${bn})
 			PV=$(splitname version ${bn})
@@ -230,90 +227,80 @@ process_ebuild() {
 			delfiles="${delfiles} ${dn}/${bn}"
 
 			einfo "Bumped ${dn}/${bn} to ${dn}/${newbn}"
-			done
-		fi
+		done
+	fi
 
-#		echo "addfiles ${addfiles}"
-#		echo "delfiles ${delfiles}"
+#	echo "addfiles ${addfiles}"
+#	echo "delfiles ${delfiles}"
 
-		filelist="${addfiles}"
-
-		#
-		# (Optional) Add VCS entry for all new files
-		#
-		if [ "${opt_add_vcs}" == "y" ] ; then
-			for x in ${addfiles} ; do
-				if [ -d ${x} ] ; then
-					find ${x} -exec ${vcs} add {} ';'
-				else
-					${vcs} add ${x}
-				fi
-			done
-			einfo "Added ${addfiles} to VCS"
-		fi
-
-
-		#
-		# (Optional) Delete previous entry
-		#
-		# Could we use 'rm' instead of remove for all vcs?
-		if [ "${opt_delete_old}" == "y" ] ; then
-			for x in ${delfiles} ; do
-				if [[ "${vcs}" == "cvs" ]];
-				then
-					${vcs} remove -f ${x}
-				elif [[ "${vcs}" == "git" ]];
-				then
-					${vcs} rm ${x}
-				else
-					${vcs} remove ${x}
-				fi
-			done
-			einfo "Removed ${delfiles} from VCS"
-		fi
-
-		#
-		# (Optional) Add ChangeLog entry
-		#
-		if [[ "${opt_add_changelog}" == "y" ]] && [[ "${opt_add_vcs}" == "y" ]];
-		then
-			# FIXME: remove this warning in 2-3 releases
-			if [[ -n ${AUTHORNAME} ]] || [[ -n ${AUTHOREMAIL} ]];
-			then
-				echo "Warning: AUTHORNAME and AUTHOREMAIL is deprecated!" >/dev/stderr
-				echo "Please take a look at echangelog(1)." >/dev/stderr
-				echo "To avoid this warning unset AUTHORNAME and AUTHOREMAIL." >/dev/stderr
-			fi
-
-			echangelog "${opt_commitmessage}" || set $?
-
-			if [[ ${1:-0} -ne 0 ]];
-			then
-				einfo "Modifying ChangeLog failed!"
+	#
+	# (Optional) Add VCS entry for all new files
+	#
+	if [ "${opt_add_vcs}" == "y" ] ; then
+		for x in ${addfiles} ; do
+			if [ -d ${x} ] ; then
+				find ${x} -exec ${vcs} add {} ';'
 			else
-				einfo "Added ChangeLog entry"
+				${vcs} add ${x}
 			fi
+		done
+		einfo "Added ${addfiles} to VCS"
+	fi
+
+
+	#
+	# (Optional) Delete previous entry
+	#
+	# Could we use 'rm' instead of remove for all vcs?
+	if [ "${opt_delete_old}" == "y" ] ; then
+		for x in ${delfiles} ; do
+			if [ "${vcs}" == "cvs" ]; then
+				${vcs} remove -f ${x}
+			elif [ "${vcs}" == "git" ]; then
+				${vcs} rm ${x}
+			else
+				${vcs} remove ${x}
+			fi
+		done
+		einfo "Removed ${delfiles} from VCS"
+	fi
+
+	#
+	# (Optional) Add ChangeLog entry
+	#
+	if [ "${opt_add_changelog}" == "y" ] && [ "${opt_add_vcs}" == "y" ]; then
+		# FIXME: remove this warning in 2-3 releases
+		if [ -n ${AUTHORNAME} ] || [ -n ${AUTHOREMAIL} ]; then
+			echo "Warning: AUTHORNAME and AUTHOREMAIL is deprecated!" >&2
+			echo "Please take a look at echangelog(1)." >&2
+			echo "To avoid this warning unset AUTHORNAME and AUTHOREMAIL." >&2
 		fi
+
+		echangelog "${opt_commitmessage}" || set $?
+
+		if [ ${1:-0} -ne 0 ]; then
+			einfo "Modifying ChangeLog failed!"
+		else
+			einfo "Added ChangeLog entry"
+		fi
+	fi
 }
 
 get_vcs() {
-	if [[ -d "CVS" ]];
-	then
+	if [ -d "CVS" ]; then
 		echo "cvs"
 		return 0
-	elif [[ -d ".svn" ]];
-	then
+	elif [ -d ".svn" ]; then
 		echo "svn"
 		return 0
 	else
-		if [[ -x "$(which git)" ]];
-		then
-			if [[ -n "$(git rev-parse --git-dir 2>/dev/null)" ]];
-			then
+		if [ -x "$(which git)" ]; then
+			if [ -n "$(git rev-parse --git-dir 2>/dev/null)" ]; then
 				echo "git"
 				return 0
 			fi
 		fi
+
 		echo
 		return 1
 	fi
@@ -383,8 +370,7 @@ while [ ${#} -gt 0 ] ; do
 done
 
 _vcs=$(get_vcs)
-if [[ -z "${_vcs}" ]];
-then
+if [ -z "${_vcs}" ]; then
 	echo "Warning: no cvs, git or svn repository found!" >/dev/stderr
 	echo "Changes can't be added to the VCS" >/dev/stderr
 	opt_add_vcs=n
