@@ -1,4 +1,4 @@
-.TH "ebump" "1" "0.1.0" "Gentoolkit" "Gentoo Administration"
+.TH "ebump" "1" "0.1.1" "Gentoolkit" "Gentoo Administration"
 .SH "NAME"
 .LP 
 ebump \- Gentoo: Ebuild revision bumper
@@ -46,6 +46,20 @@ Increase verbosity level. May be used more than once.
 \fB--quiet\fB
 .IP 
 Do not output any non-essential information.
+
+.LP
+\fB\-a\fR
+.br
+\fB--no-auxfiles\fB
+.IP
+don't bump auxfiles (files/*)
+
+.LP
+\fB\-c\fR
+.br
+\fB--no-changelog\fB
+.IP
+do not update ChangeLog (via echangelog)
 
 .LP 
 \fB\-m\fR <\fIChangeLog text\fR>
@@ -108,3 +122,5 @@ The rest of the utilities in \fIapp-portage/gentoolkit-dev\fR, such as
 .SH "AUTHORS"
 .LP 
 Karl Trygve Kalleberg <karltk@gentoo.org>
+.br
+Christian Ruppert <idl0r@gentoo.org>

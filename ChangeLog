@@ -1,7 +1,7 @@
 2010-10-25: Christian Ruppert <idl0r@gentoo.org>
 	* ebump: Whitespace fixes.
 		Fix options. Add descriptions for -a|--no-auxfiles and -c|--no-changelog.
-		Cleanup. Make it a bit more POSIX conform.
+		Cleanup. Make it a bit more POSIX conform. Update manpage.
 
 
 2010-10-23: Christian Ruppert <idl0r@gentoo.org>
