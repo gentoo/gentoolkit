@@ -1,12 +1,9 @@
 #! /bin/sh
-#
 # Copyright (c) 2004 Karl Trygve Kalleberg <karltk@gentoo.org>
-# Copyright (c) Gentoo Technologies, Inc.
-# Licensed under the GNU General Public License, version 2
-#
-# Maintainer: Karl Trygve Kalleberg <karltk@gentoo.org>
+# Copyright 1999-2010 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
 
-__version__="0.1.0"
+__version__="0.1.1"
 __author__="Karl Trygve Kalleberg"
 __email__="<karltk@gentoo.org>"
 __description__="Ebuild version bumping tool"
@@ -27,8 +24,8 @@ einfo() {
 print_version() {
 	echo "${__description__}, v${__version__}"
 	echo "Copyright (c) 2004 ${__author__} ${__email__}"
-	echo "Copyright (c) 2004 Gentoo Technologies, Inc."
-	echo "Licensed under the GNU General Public License, version 2"
+	echo "Copyright 1999-2010 Gentoo Foundation"
+	echo "Distributed under the terms of the GNU General Public License v2"
 }
 
 print_usage() {
@@ -127,7 +124,8 @@ splitname() {
 
 process_ebuild() {
 	local vcs=$1
-	local ebuild_arg=$2
+	shift
+	local ebuild_arg="${*}"
 	shift $#
 
 	# Files to add to VCS
@@ -140,95 +138,97 @@ process_ebuild() {
 		exit
 	fi
 
-	#
-	# Try to find a matching ebuild
-	#
-	local ebuild_name=$(find_ebuild ${ebuild_arg})
-	if [ -z "${ebuild_name}" ] ; then
-		die "Could not find ${ebuild_arg}"
-	fi
-	einfo "Processing ebuild ${ebuild_name}"
+	for ebuild in $ebuild_arg; do
+		#
+		# Try to find a matching ebuild
+		#
+		local ebuild_name=$(find_ebuild ${ebuild})
+		if [ -z "${ebuild_name}" ] ; then
+			die "Could not find ${ebuild}"
+		fi
 
-	#
-	# Bump revision suffix (or add one)
-	#
-	local PF=$(basename ${ebuild_name} .ebuild)
-	local PN=$(splitname name ${PF})
-	local PV=$(splitname version ${PF})
-	local rev=$(splitname revision ${PF})
-	local PV_norev=$(splitname vernorev ${PF})
-	local newPF=${PN}-${PV_norev}-r$[rev+1]
+		einfo "Processing ebuild ${ebuild_name}"
 
-#	echo $PF / $PN / $PV / $rev / $PV_norev / $newPF
+		#
+		# Bump revision suffix (or add one)
+		#
+		local PF=$(basename ${ebuild_name} .ebuild)
+		local PN=$(splitname name ${PF})
+		local PV=$(splitname version ${PF})
+		local rev=$(splitname revision ${PF})
+		local PV_norev=$(splitname vernorev ${PF})
+		local newPF=${PN}-${PV_norev}-r$[rev+1]
 
-	einfo "Bumped ${PF}.ebuild to ${newPF}.ebuild"
+#		echo $PF / $PN / $PV / $rev / $PV_norev / $newPF
 
-	if [ "${vcs}" == "svn" ]; then
-		svn cp ${PF}.ebuild ${newPF}.ebuild
-	else
-		cp ${PF}.ebuild ${newPF}.ebuild
-	fi
+		einfo "Bumped ${PF}.ebuild to ${newPF}.ebuild"
 
-	einfo "Reset keywords to ~arch"
+		if [ "${vcs}" == "svn" ]; then
+			svn cp ${PF}.ebuild ${newPF}.ebuild
+		else
+			cp ${PF}.ebuild ${newPF}.ebuild
+		fi
 
-	ekeyword '~all' "${newPF}.ebuild"
+		einfo "Reset keywords to ~arch"
 
-	addfiles="${addfiles} ${newPF}.ebuild"
-	delfiles="${delfiles} ${PF}.ebuild"
+		ekeyword '~all' "${newPF}.ebuild"
 
-	#
-	# (Optional) Bump relevant files in files/
-	#
-	if [ "${opt_bump_auxfiles}" == "y" ] ; then
-		# Gather list of auxiliary files in files/ that has a versioned
-		# filename, where the version matches our current version.
+		addfiles="${addfiles} ${newPF}.ebuild"
+		delfiles="${delfiles} ${PF}.ebuild"
 
-		local bumplist=""
-		for x in $(echo files/*) ; do
-			if [ ! -z "$(echo $x | grep "${PV}$")" ] ; then
-				bumplist="${bumplist} ${x}"
-			fi
-		done
-
-		# Bump version of all matches
-		for x in ${bumplist} ; do
-			local bn=$(basename ${x})
-			local dn=$(dirname ${x})
-			local newbn
-
-			PN=$(splitname name ${bn})
-			PV=$(splitname version ${bn})
-			rev=$(splitname revision ${bn})
-			PV_norev=$(splitname vernorev ${bn})
-
-#			echo $PN / ${PV_norev} / ${rev}
-
-			# Special case for when we have no name part; filename
-			# is just a version number
-			if [ -z "${PN}" ] ; then
-				newbn=${PV_norev}-r$[rev+1]
-			else
-				newbn=${PN}-${PV_norev}-r$[rev+1]
-			fi
-
-			if [ -d ${dn}/${bn} ] ; then
-				if [ -e ${dn}/${newbn} ] ; then
-					echo "Directory ${dn}/${newbn} exists, not copying" >&2
-				else
-					cp -a ${dn}/${bn} ${dn}/${newbn}
-					# uhm, is that necessary?
-#					find ${dn}/${newbn} -name CVS | xargs rm -rf
+		#
+		# (Optional) Bump relevant files in files/
+		#
+		if [ "${opt_bump_auxfiles}" == "y" ] ; then
+			# Gather list of auxiliary files in files/ that has a versioned
+			# filename, where the version matches our current version.
+			local bumplist=""
+			for x in $(echo files/*) ; do
+				if [ ! -z "$(echo $x | grep "${PV}$")" ] ; then
+					bumplist="${bumplist} ${x}"
 				fi
-			else
-				cp ${dn}/${bn} ${dn}/${newbn}
-			fi
+			done
 
-			addfiles="${addfiles} ${dn}/${newbn}"
-			delfiles="${delfiles} ${dn}/${bn}"
+			# Bump version of all matches
+			for x in ${bumplist} ; do
+				local bn=$(basename ${x})
+				local dn=$(dirname ${x})
+				local newbn
 
-			einfo "Bumped ${dn}/${bn} to ${dn}/${newbn}"
-		done
-	fi
+				PN=$(splitname name ${bn})
+				PV=$(splitname version ${bn})
+				rev=$(splitname revision ${bn})
+				PV_norev=$(splitname vernorev ${bn})
+
+#				echo $PN / ${PV_norev} / ${rev}
+
+				# Special case for when we have no name part; filename
+				# is just a version number
+				if [ -z "${PN}" ] ; then
+					newbn=${PV_norev}-r$[rev+1]
+				else
+					newbn=${PN}-${PV_norev}-r$[rev+1]
+				fi
+
+				if [ -d ${dn}/${bn} ] ; then
+					if [ -e ${dn}/${newbn} ] ; then
+						echo "Directory ${dn}/${newbn} exists, not copying" >&2
+					else
+						cp -a ${dn}/${bn} ${dn}/${newbn}
+						# uhm, is that necessary?
+#						find ${dn}/${newbn} -name CVS | xargs rm -rf
+					fi
+				else
+					cp ${dn}/${bn} ${dn}/${newbn}
+				fi
+
+				addfiles="${addfiles} ${dn}/${newbn}"
+				delfiles="${delfiles} ${dn}/${bn}"
+
+				einfo "Bumped ${dn}/${bn} to ${dn}/${newbn}"
+			done
+		fi
+	done
 
 #	echo "addfiles ${addfiles}"
 #	echo "delfiles ${delfiles}"
@@ -237,13 +237,14 @@ process_ebuild() {
 	# (Optional) Add VCS entry for all new files
 	#
 	if [ "${opt_add_vcs}" == "y" ] ; then
-		for x in ${addfiles} ; do
-			if [ -d ${x} ] ; then
-				find ${x} -exec ${vcs} add {} ';'
-			else
-				${vcs} add ${x}
-			fi
-		done
+#		for x in ${addfiles} ; do
+#			if [ -d ${x} ] ; then
+#				find ${x} -exec ${vcs} add {} ';'
+#			else
+#				${vcs} add ${x}
+#			fi
+#		done
+		$vcs add $addfiles
 		einfo "Added ${addfiles} to VCS"
 	fi
 
@@ -253,15 +254,22 @@ process_ebuild() {
 	#
 	# Could we use 'rm' instead of remove for all vcs?
 	if [ "${opt_delete_old}" == "y" ] ; then
-		for x in ${delfiles} ; do
-			if [ "${vcs}" == "cvs" ]; then
-				${vcs} remove -f ${x}
-			elif [ "${vcs}" == "git" ]; then
-				${vcs} rm ${x}
-			else
-				${vcs} remove ${x}
-			fi
-		done
+#		for x in ${delfiles} ; do
+#			if [ "${vcs}" == "cvs" ]; then
+#				${vcs} remove -f ${x}
+#			elif [ "${vcs}" == "git" ]; then
+#				${vcs} rm ${x}
+#			else
+#				${vcs} remove ${x}
+#			fi
+#		done
+		if [ "${vcs}" == "cvs" ]; then
+			$vcs remove -f $delfiles
+		elif [ "${vcs}" == "git" ]; then
+			$vcs rm $delfiles
+		else
+			$vcs remove $delfiles
+		fi
 		einfo "Removed ${delfiles} from VCS"
 	fi
 
@@ -305,8 +313,6 @@ get_vcs() {
 		return 1
 	fi
 }
-
-original_params=${#}
 
 #
 # Global options
@@ -363,7 +369,7 @@ while [ ${#} -gt 0 ] ; do
 			continue
 		;;
 		*)
-			ebuild_arg=${arg}
+			ebuild_arg="${ebuild_arg:+${ebuild_arg} }${arg}"
 			continue
 		;;
 	esac
@@ -376,7 +382,8 @@ if [ -z "${vcs}" ]; then
 	opt_add_vcs=n
 	opt_delete_old=n
 fi
-process_ebuild "${vcs}" ${ebuild_arg}
+
+process_ebuild "${vcs}" $ebuild_arg
 
 # TODO:
 # - put cli parser into separate functions
