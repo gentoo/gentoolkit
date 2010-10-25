@@ -19,7 +19,7 @@ die() {
 }
 
 einfo() {
-	if [ ${opt_verbosity} -gt 1 ] ; then
+	if [ ${opt_verbosity} -eq 1 ] ; then
 		echo $*
 	fi
 }
@@ -37,6 +37,8 @@ print_usage() {
 	echo "  -V|--version           show version info"
 	echo "  -v|--verbose           increase verbosity"
 	echo "  -q|--quiet             turn off output"
+	echo "  -a|--no-auxfiles       don't bump auxfiles (files/*)"
+	echo "  -c|--no-changelog      do not update ChangeLog (via echangelog)"
 	echo "  -C|--no-vcs            do not add to VCS"
 	echo "  -m|--message           append message to ChangeLog"
 	echo "  -d|--delete-old        delete previous revision from VCS (DANGEROUS!)"
@@ -322,8 +324,7 @@ original_params=${#}
 #
 # Global options
 #
-opt_verbosity=1
-opt_warn_on_delete=y
+opt_verbosity=0
 opt_add_changelog=y
 opt_add_vcs=y
 opt_bump_auxfiles=y
@@ -332,43 +333,53 @@ opt_commitmessage=""
 
 load_options
 
-skip=0
 while [ ${#} -gt 0 ] ; do
 	arg=${1}
 	shift
-	if [ ${skip} -gt 0 ] ; then
-	skip=$[skip-1]
-	else
+
 	case ${arg} in
-	-h|--help)
-		print_usage
-		exit 0
+		-h|--help)
+			print_usage
+			exit 0
 		;;
-	-m|--message)
-		opt_commitmessage="${1}"
-		skip=1
+		-m|--message)
+			opt_commitmessage="${1}"
+			shift
+			continue
 		;;
-	-C|--no-vcs)
-		opt_add_vcs=n
+		-a|--no-auxfiles)
+			opt_bump_auxfiles=n
+			continue
 		;;
-	-V|--version)
-		print_version
-		exit
+		-c|--no-changelog)
+			opt_add_changelog=n
+			continue
 		;;
-	-v|--verbose)
-		opt_verbosity=$[opt_verbosity + 1]
+		-C|--no-vcs)
+			opt_add_vcs=n
+			continue
 		;;
-	-q|--quiet)
-		opt_verbosity=0
+		-V|--version)
+			print_version
+			exit
 		;;
-	-d|--delete-old)
-		opt_delete_old=y
+		-v|--verbose)
+			opt_verbosity=1
+			continue
 		;;
-	*)
-		ebuild_arg=${arg}
+		-q|--quiet)
+			opt_verbosity=0
+			continue
+		;;
+		-d|--delete-old)
+			opt_delete_old=y
+			continue
+		;;
+		*)
+			ebuild_arg=${arg}
+			continue
 		;;
 	esac
-	fi
 done
 
 _vcs=$(get_vcs)
