@@ -135,7 +135,7 @@ process_ebuild() {
 	# Files to remove from VCS
 	local delfiles=""
 
-	if [ -z ${ebuild_arg} ] ; then
+	if [ -z "${ebuild_arg}" ] ; then
 		print_usage
 		exit
 	fi
@@ -144,7 +144,7 @@ process_ebuild() {
 	# Try to find a matching ebuild
 	#
 	local ebuild_name=$(find_ebuild ${ebuild_arg})
-	if [ -z ${ebuild_name} ] ; then
+	if [ -z "${ebuild_name}" ] ; then
 		die "Could not find ${ebuild_arg}"
 	fi
 	einfo "Processing ebuild ${ebuild_name}"
@@ -185,7 +185,7 @@ process_ebuild() {
 
 		local bumplist=""
 		for x in $(echo files/*) ; do
-			if [ ! -z $(echo $x | grep "${PV}$") ] ; then
+			if [ ! -z "$(echo $x | grep "${PV}$")" ] ; then
 				bumplist="${bumplist} ${x}"
 			fi
 		done
@@ -270,7 +270,7 @@ process_ebuild() {
 	#
 	if [ "${opt_add_changelog}" == "y" ] && [ "${opt_add_vcs}" == "y" ]; then
 		# FIXME: remove this warning in 2-3 releases
-		if [ -n ${AUTHORNAME} ] || [ -n ${AUTHOREMAIL} ]; then
+		if [ -n "${AUTHORNAME}" ] || [ -n "${AUTHOREMAIL}" ]; then
 			echo "Warning: AUTHORNAME and AUTHOREMAIL is deprecated!" >&2
 			echo "Please take a look at echangelog(1)." >&2
 			echo "To avoid this warning unset AUTHORNAME and AUTHOREMAIL." >&2
@@ -369,14 +369,14 @@ while [ ${#} -gt 0 ] ; do
 	esac
 done
 
-_vcs=$(get_vcs)
-if [ -z "${_vcs}" ]; then
+vcs=$(get_vcs)
+if [ -z "${vcs}" ]; then
 	echo "Warning: no cvs, git or svn repository found!" >&2
 	echo "Changes can't be added to the VCS" >&2
 	opt_add_vcs=n
 	opt_delete_old=n
 fi
-process_ebuild "${_vcs}" ${ebuild_arg}
+process_ebuild "${vcs}" ${ebuild_arg}
 
 # TODO:
 # - put cli parser into separate functions
