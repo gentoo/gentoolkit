@@ -63,7 +63,7 @@ load_options() {
 
 	# FIXME: remove this warning in 2-3 releases.
 	if [ -n "${opt_add_cvs}" ]; then
-		echo "Warning: opt_add_cvs is deprecated, please use opt_add_vcs from now on!" >/dev/stderr
+		echo "Warning: opt_add_cvs is deprecated, please use opt_add_vcs from now on!" >&2
 	fi
 }
 
@@ -213,7 +213,7 @@ process_ebuild() {
 
 			if [ -d ${dn}/${bn} ] ; then
 				if [ -e ${dn}/${newbn} ] ; then
-					echo "Directory ${dn}/${newbn} exists, not copying" > /dev/stderr
+					echo "Directory ${dn}/${newbn} exists, not copying" >&2
 				else
 					cp -a ${dn}/${bn} ${dn}/${newbn}
 					# uhm, is that necessary?
@@ -371,8 +371,8 @@ done
 
 _vcs=$(get_vcs)
 if [ -z "${_vcs}" ]; then
-	echo "Warning: no cvs, git or svn repository found!" >/dev/stderr
-	echo "Changes can't be added to the VCS" >/dev/stderr
+	echo "Warning: no cvs, git or svn repository found!" >&2
+	echo "Changes can't be added to the VCS" >&2
 	opt_add_vcs=n
 	opt_delete_old=n
 fi
