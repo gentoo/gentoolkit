@@ -108,7 +108,7 @@ def main(argv):
 		package=os.path.basename(currdir)
 		# check if there are actualy some ebuilds
 		ebuilds = ['%s' % x for x in os.listdir(currdir)
-			if fnmatch.fnmatch(file, '*.ebuild')]
+			if fnmatch.fnmatch(x, '*.ebuild')]
 		if len(ebuilds) <= 0:
 			msg_err = 'No ebuilds at "%s"' % currdir
 			raise SystemExit(msg_err)
