@@ -1,3 +1,4 @@
+#	vim:fileencoding=utf-8
 # Copyright 2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
@@ -79,10 +80,6 @@ def process_args(argv):
 def main(argv):
 	global ignore_slots, bold, order, topper
 
-	# equery support
-	if argv[0] = 'equery':
-		pkgsearch_only = True
-
 	#opts parsing
 	opts = process_args(argv)
 	ignore_slots = opts.ignore_slot
@@ -99,7 +96,7 @@ def main(argv):
 	package = opts.package
 
 	# equery support
-	if pkgsearch_only and len(package) <= 0:
+	if argv[0] == 'equery' and len(package) <= 0:
 		msg_err = 'No packages specified'
 		raise SystemExit(msg_err)
 
