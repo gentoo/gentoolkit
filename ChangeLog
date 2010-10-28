@@ -1,3 +1,7 @@
+2010-10-28: Tomáš Chvátal <scarabeus@gentoo.org>
+	* eshowkw: Deprecate eshowkw.
+		This package (more of its full rewrite) will be from now on at
+		gentoolkit package.
 2010-10-25: Christian Ruppert <idl0r@gentoo.org>
 	* ebump: Whitespace fixes.
 		Fix options. Add descriptions for -a|--no-auxfiles and -c|--no-changelog.
