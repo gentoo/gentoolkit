@@ -38,6 +38,7 @@ python_scripts = [os.path.join(cwd, path) for path in (
 	'pym/gentoolkit/eclean/cli.py',
 	'pym/gentoolkit/analyse/__init__.py',
 	'pym/gentoolkit/equery/__init__.py'
+	'pym/gentoolkit/eshowkw/__init__.py'
 )]
 
 

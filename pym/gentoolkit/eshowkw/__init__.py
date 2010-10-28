@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 __package__ = 'eshowkw'
-__version__ = '0.5'
+__version__ = 'svn'
 
 import portage
 
