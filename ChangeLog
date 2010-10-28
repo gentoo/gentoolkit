@@ -1,3 +1,7 @@
+2010-10-29: Tomáš Chvátal <scarabeus@gentoo.org>
+	* eshowkw: Add new module as drop-in replacement for eshowkw from
+	gentoolkit-dev
+
 2010-05-13: Christian Ruppert <idl0r@gentoo.org>
 	* eclean/cli.py: Fix typo, bug 319349, thanks to Ulrich Müller
 	<ulm@gentoo.org>.
