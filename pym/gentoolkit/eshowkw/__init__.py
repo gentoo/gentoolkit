@@ -79,6 +79,10 @@ def process_args(argv):
 def main(argv):
 	global ignore_slots, bold, order, topper
 
+	# equery support
+	if argv[0] = 'equery':
+		pkgsearch_only = True
+
 	#opts parsing
 	opts = process_args(argv)
 	ignore_slots = opts.ignore_slot
@@ -93,6 +97,12 @@ def main(argv):
 	prefix = opts.prefix
 	color = opts.color
 	package = opts.package
+
+	# equery support
+	if pkgsearch_only and len(package) <= 0:
+		msg_err = 'No packages specified'
+		raise SystemExit(msg_err)
+
 	# disable colors when redirected and they are not forced on
 	if not color and not sys.stdout.isatty():
 		# disable colors
