@@ -1,8 +1,9 @@
 # Copyright 2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-__package__ = 'eshowkw'
+__package__ = 'gentoolkit.eshowkw'
 __version__ = 'svn'
+__author__ = "Tomáš Chvátal <scarabeus@gentoo.org>"
 
 import portage
 
@@ -14,10 +15,10 @@ from portage import config as portc
 from portage import portdbapi as portdbapi
 from portage import db as portdb
 
-from keywords_header import keywords_header
-from keywords_content import keywords_content
-from display_pretty import string_rotator
-from display_pretty import display
+from .keywords_header import keywords_header
+from .keywords_content import keywords_content
+from .display_pretty import string_rotator
+from .display_pretty import display
 
 ignore_slots = False
 bold = False
