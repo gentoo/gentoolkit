@@ -120,8 +120,8 @@ def main(argv):
 			msg_err = 'No ebuilds at "%s"' % currdir
 			raise SystemExit(msg_err)
 		ourtree = os.path.abspath('../../')
-
-		mysettings = portc(env={'PORTDIR_OVERLAY': os.path.abspath('../../')})
+		overlays = '%s %s' % (ports['PORTDIR_OVERLAY'], ourtree)
+		mysettings = portc(env={'PORTDIR_OVERLAY': overlays})
 		dbapi = portdbapi(mysettings=mysettings)
 		# specify that we want just our nice tree we are in cwd
 		dbapi.porttrees = [ourtree]
