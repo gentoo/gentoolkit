@@ -4,7 +4,7 @@
 
 include makedefs.mak
 
-TOOLS=ebump echangelog ekeyword eshowkw eviewcvs imlate
+TOOLS=ebump echangelog ekeyword eviewcvs imlate
 RELEASE="gentoolkit-dev-$(VERSION)$(RELEASE_TAG)"
 
 all:
