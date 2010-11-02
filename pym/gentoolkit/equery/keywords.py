@@ -5,4 +5,4 @@
 from gentoolkit.eshowkw import main as emain
 
 def main(input_args):
-	emain(input_args)
+	emain(input_args, True)
