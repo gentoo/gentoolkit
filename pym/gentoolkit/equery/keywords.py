@@ -5,6 +5,5 @@
 import sys
 from gentoolkit.eshowkw import main as emain
 
-# we have equery as first argument instead of the scriptname
-# so we will just ommit it
-emain(sys.argv)
+def main(input_args):
+	args.extend(input_args)

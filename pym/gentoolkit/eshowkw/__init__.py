@@ -75,7 +75,7 @@ def process_args(argv):
 	parser.add_argument('-S', '--ignore-slot', action='store_true', default=False,
 		help='Treat slots as irelevant during detection of redundant pacakges.')
 
-	return parser.parse_args(args=argv[1:])
+	return parser.parse_args(args=argv)
 
 def main(argv):
 	global ignore_slots, bold, order, topper
@@ -129,4 +129,4 @@ def main(argv):
 	return 0
 
 if __name__ == '__main__':
-	sys.exit(main(sys.argv))
+	sys.exit(main(sys.argv[1:]))
