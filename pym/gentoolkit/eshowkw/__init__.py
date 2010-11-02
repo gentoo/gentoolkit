@@ -77,7 +77,7 @@ def process_args(argv):
 
 	return parser.parse_args(args=argv)
 
-def main(argv):
+def main(argv, indirect = False):
 	global ignore_slots, bold, order, topper
 
 	#opts parsing
@@ -96,7 +96,7 @@ def main(argv):
 	package = opts.package
 
 	# equery support
-	if argv[0] == 'equery' and len(package) <= 0:
+	if indirect and len(package) <= 0:
 		msg_err = 'No packages specified'
 		raise SystemExit(msg_err)
 
