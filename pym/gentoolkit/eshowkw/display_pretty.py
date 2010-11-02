@@ -21,7 +21,7 @@ def display(plain_list, rotated_list, plain_width, rotated_height, cp, toplist =
 	if toplist == 'archlist':
 		data_printout.extend(plain_list)
 	output.extend(data_printout)
-	print print_content(output)
+	print(print_content(output))
 
 def align_string(string, align, length):
 	"""Align string to the specified alignment (left or right, and after rotation it becames top and bottom)"""

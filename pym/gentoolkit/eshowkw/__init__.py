@@ -38,7 +38,7 @@ def process_display(package, keywords, dbapi):
 		header_length = portdata.version_length
 		content_length = keywords.length
 	else:
-		header = string_rotator().rotateContent(portdata.content, portdata.content_length, order, bold)
+		header = string_rotator().rotateContent(portdata.content, portdata.content_length, bold)
 		content = keywords.content
 		sep = [''.ljust(keywords.length) for x in range(portdata.slot_length-1)]
 		content.extend(sep)
