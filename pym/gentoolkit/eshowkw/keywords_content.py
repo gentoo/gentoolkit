@@ -155,11 +155,7 @@ class keywords_content:
 	def __checkExist(self, pdb, package):
 		"""Check if specified package even exists."""
 		try:
-			cp = port.dep_expand(package, mydb=pdb, settings=pdb.settings).cp
-			matches = []
-			for repo in pdb.porttrees:
-				for cpv in pdb.cp_list(mycp=cp,mytree=[repo]):
-					matches.append((cpv, repo))
+			matches = pdb.xmatch('match-all', package)
 		except port.exception.AmbiguousPackageName as Arg:
 			msg_err = 'Ambiguous package name "%s".\n' % package
 			found = 'Possibilities: %s' % Arg
