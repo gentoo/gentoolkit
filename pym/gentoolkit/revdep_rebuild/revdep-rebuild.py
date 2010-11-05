@@ -667,7 +667,7 @@ if __name__ == "__main__":
             elif key in ('-i', '--ignore'):
                 USE_TMP_FILES = False
 
-        args = " ".join(args)
+        args = " " + " ".join(args)
     except getopt.GetoptError:
         print_v(1, red('Unrecognized option\n'))
         print_usage()
