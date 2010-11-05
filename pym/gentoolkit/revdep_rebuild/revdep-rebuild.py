@@ -46,7 +46,9 @@ DEFAULT_TMP_DIR = '/tmp/revdep-rebuild' #cache default location
 VERBOSITY = 1      #verbosity level; 0-quiet, 1-norm., 2-verbose
 
 IS_DEV = True       #True for dev. version, False for stable
-NO_PRETEND = False  #used when IS_DEV is True, forces to call emerge from script
+#used when IS_DEV is True, False forces to call emerge with --pretend
+# can be set True from the cli with the --no-pretend option
+NO_PRETEND = False 
 
 
 
@@ -72,7 +74,7 @@ def print_v(verbosity, args):
 
 
 def exithandler(signum, frame):
-    print 'Signal catched!'
+    print 'Signal caught!'
     print 'Bye!'
     signal.signal(signal.SIGINT, signal.SIG_IGN)
     signal.signal(signal.SIGTERM, signal.SIG_IGN)
@@ -475,7 +477,7 @@ def get_best_match(cpv, cp):
     """
 
     slot = portage.db[portage.root]["vartree"].dbapi.aux_get(cpv, ["SLOT"])
-    print_v(1, yellow('Warn: ebuild ' + cpv + ' not found.'))
+    print_v(1, yellow('Warning: ebuild "' + cpv + '" not found.'))
     print_v(1, 'Looking for %s:%s' %(cp, slot))
     try:
         m = portdb.match('%s:%s' %(cp, slot))
@@ -568,7 +570,7 @@ def analyse(output=print_v, libraries=None, la_libraries=None, libraries_links=N
     """
 
     if libraries and la_libraries and libraries_links and binaries:
-        output(1, blue(' * ') + bold('Found cache, skipping collecting phase'))
+        output(1, blue(' * ') + bold('Found a valid cache, skipping collecting phase'))
     else:
         #TODO: add partial cache (for ex. only libraries) when found for some reason
 
@@ -680,7 +682,7 @@ if __name__ == "__main__":
         print_v(1, blue(' * ') + yellow('You are not root, adding --pretend to portage options'))
         PRETEND = True
     elif not PRETEND and IS_DEV and not NO_PRETEND:
-        print_v(1, blue(' * ') + yellow('This is dev. version, so it could not work correctly'))
+        print_v(1, blue(' * ') + yellow('This is a development version, so it may not work correctly'))
         print_v(1, blue(' * ') + yellow('Adding --pretend to portage options anyway'))
         print_v(1, blue(' * ') + 'If you\'re sure, you can add --no-pretend to revdep options')
         PRETEND = True
