@@ -25,6 +25,7 @@ class TestEqueryInit(unittest.TestCase):
 			'g': 'depgraph',
 			'f': 'files',
 			'h': 'hasuse',
+			'y': 'keywords',
 			'l': 'list_',
 			'm': 'meta',
 			's': 'size',
