@@ -343,7 +343,7 @@ Exclude= {'packages': {
 def get_props(cpvs):
 	props = {}
 	for cpv in cpvs:
-		props[cpv] = PROPS[cpv]
+		props[cpv] = PROPS[cpv].copy()
 	return props
 
 class Dbapi(object):
