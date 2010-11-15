@@ -40,9 +40,6 @@ QUERY_OPTS = {
 	"env_var": None
 }
 
-AUXDBKEYS = set(auxdbkeys)
-AUXDBKEYS.difference_update(['UNUSED_0{0}'.format(x) for x in range(6)])
-
 # =========
 # Functions
 # =========
@@ -70,11 +67,7 @@ def print_help(with_description=True):
 		("              TMPL",
 			"a format template using (see man page):")
 	)))
-	print(" " * 24, ', '.join(pp.emph(x) for x in FORMAT_TMPL_VARS))			
-	print()
-	print(pp.command("env_var"))
-	print("", ', '.join(pp.emph(x) for x in AUXDBKEYS))			
-	print(" other env_vars provided by eclasses may be available")
+#	print(" " * 24, ', '.join(pp.emph(x) for x in FORMAT_TMPL_VARS))			
 
 
 def query_in_env(query, env_var, pkg):

@@ -17,7 +17,7 @@ class TestEqueryInit(unittest.TestCase):
 	def test_expand_module_name(self):
 		# Test that module names are properly expanded
 		name_map = {
-			'a': 'has',
+			#'a': 'has',
 			'b': 'belongs',
 			'c': 'changes',
 			'k': 'check',

@@ -267,7 +267,7 @@ class TestFetchRestricted(unittest.TestCase):
 		cpvs.append('app-portage/deprecated-pkg-1.0.0')
 		pkgs, deprecated = self.target_class._fetch_restricted(None, cpvs)
 		self.record_results('fetch_restricted2', pkgs, deprecated)
-		self.test_results("test_fetch_restricted")
+		self.check_results("test_fetch_restricted")
 
 
 	def test_unrestricted(self):
@@ -279,16 +279,20 @@ class TestFetchRestricted(unittest.TestCase):
 		cpvs.append('app-portage/deprecated-pkg-1.0.0')
 		pkgs, deprecated = self.target_class._unrestricted(None, cpvs)
 		self.record_results('unrestricted2', pkgs, deprecated)
-		self.test_results("test_unrestricted")
+		self.check_results("test_unrestricted")
 
 
-	def test_results(self, test_name):
+	def check_results(self, test_name):
 		print("\nChecking results for %s,............" %test_name)
 		for key in sorted(self.results):
 			testdata = self.testdata[key]
 			results = self.results[key]
 			for item in sorted(testdata):
-				#print("comparing %s, %s" %(key, item))
+				if sorted(results[item]) == sorted(testdata[item]):
+					test = "OK"
+				else:
+					test = "FAILED"
+				print("comparing %s, %s" %(key, item), test)
 				self.failUnlessEqual(sorted(testdata[item]), sorted(results[item]),
 					"\n%s: %s %s data does not match\nresult=" %(test_name, key, item) +\
 					str(results[item]) + "\ntestdata=" + str(testdata[item]))
@@ -301,6 +305,10 @@ class TestFetchRestricted(unittest.TestCase):
 				}
 
 
+	def tearDown(self):
+		del self.portdb, self.vardb
+
+
 class TestNonDestructive(unittest.TestCase):
 	"""Tests eclean.search.DistfilesSearch._non_destructive and _destructive
 	functions, with addition useage tests of fetch_restricted() and _unrestricted()
@@ -311,13 +319,12 @@ class TestNonDestructive(unittest.TestCase):
 			props=PROPS, cp_list=[], name="FAKE VARDB")
 		self.portdb = Dbapi(cp_all=[], cpv_all=CPVS[:4],
 			props=get_props(CPVS[:4]), cp_list=[], name="FAKE PORTDB")
+		print(self.portdb)
 		# set a fetch restricted pkg
 		self.portdb._props[CPVS[0]]["RESTRICT"] = 'fetch'
 		self.callback_data = []
-		self.output = self.output = OutputSimulator(self.callback)
+		self.output = OutputSimulator(self.callback)
 		self.target_class = DistfilesSearch(self.output.einfo, self.portdb, self.vardb)
-		self.target_class.portdb = self.portdb
-		self.target_class.portdb = self.portdb
 		search.exclDictExpand = self.exclDictExpand
 		self.exclude = parseExcludeFile(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'distfiles.exclude'), self.output.einfo)
 		#print(self.callback_data)
@@ -346,8 +353,8 @@ class TestNonDestructive(unittest.TestCase):
 					'deprecated': {
 						},
 					'pkgs': {
-						'sys-auth/consolekit-0.4.1': 'http://www.freedesktop.org/software/ConsoleKit/dist/ConsoleKit-0.4.1.tar.bz2',
 						'sys-apps/devicekit-power-014': 'http://hal.freedesktop.org/releases/DeviceKit-power-014.tar.gz',
+						'sys-auth/consolekit-0.4.1': 'http://www.freedesktop.org/software/ConsoleKit/dist/ConsoleKit-0.4.1.tar.bz2',
 						'media-libs/sdl-pango-0.1.2': 'mirror://sourceforge/sdlpango/SDL_Pango-0.1.2.tar.gz http://zarb.org/~gc/t/SDL_Pango-0.1.2-API-adds.patch'
 						},
 					'output': [
@@ -485,15 +492,20 @@ class TestNonDestructive(unittest.TestCase):
 			fetch_restricted=False, pkgs_=None)
 		self.record_results('non_destructive1', pkgs, deprecated)
 
+		pkgs = None
+		deprecated = None
 		self.callback_data = []
 		self.vardb._cpv_all=CPVS[:3]
 		self.vardb._props=get_props(CPVS[:3])
 		self.portdb._cpv_all=CPVS[:]
 		self.portdb._props=get_props(CPVS)
+		self.target_class.installed_cpvs = None
 		pkgs, deprecated = self.target_class._non_destructive(destructive=True,
 			fetch_restricted=True, pkgs_=None)
 		self.record_results('non_destructive2', pkgs, deprecated)
 
+		pkgs = None
+		deprecated = None
 		self.callback_data = []
 		self.vardb._cpv_all=CPVS[:2]
 		self.vardb._props=get_props(CPVS[:2])
@@ -505,19 +517,27 @@ class TestNonDestructive(unittest.TestCase):
 		pkgs, deprecated = self.target_class._non_destructive(destructive=True,
 			fetch_restricted=True, pkgs_=pkgs)
 		self.record_results('non_destructive3', pkgs, deprecated)
-		self.test_results("test_non_destructive")
+		self.check_results("test_non_destructive")
 
 
-	def test_results(self, test_name):
+	def check_results(self, test_name):
 		print("\nChecking results for %s,............" %test_name)
 		for key in sorted(self.results):
 			testdata = self.testdata[key]
 			results = self.results[key]
 			for item in sorted(testdata):
-				#print("comparing %s, %s" %(key, item))
+				if sorted(results[item]) == sorted(testdata[item]):
+					test = "OK"
+				else:
+					test = "FAILED"
+				print("comparing %s, %s..." %(key, item), test)
+				if test == "FAILED":
+					print("", sorted(results[item]), "\n",  sorted(testdata[item]))
 				self.failUnlessEqual(sorted(testdata[item]), sorted(results[item]),
-					"\n%s: %s %s data does not match\nresult=" %(test_name, key, item) +\
-					str(results[item]) + "\ntestdata=" + str(testdata[item]))
+					"\n%s: %s, %s data does not match\n"
+					%(test_name, key, item) + \
+					"result=" + str(results[item]) + "\ntestdata=" + str(testdata[item])
+				)
 
 
 	def record_results(self, test, pkgs, deprecated):
@@ -563,7 +583,7 @@ class TestNonDestructive(unittest.TestCase):
 		pkgs, deprecated = self.target_class._destructive(package_names=False,
 			exclude=self.exclude, pkgs_=None, installed_included=False )
 		self.record_results('destructive4', pkgs, deprecated)
-		self.test_results("test_destructive")
+		self.check_results("test_destructive")
 
 		self.callback_data = []
 		self.vardb._cpv_all=CPVS[:3]
@@ -575,7 +595,11 @@ class TestNonDestructive(unittest.TestCase):
 		pkgs, deprecated = self.target_class._destructive(package_names=False,
 			exclude=self.exclude, pkgs_=None, installed_included=False )
 		self.record_results('destructive5', pkgs, deprecated)
-		self.test_results("test_destructive")
+		self.check_results("test_destructive")
+
+
+	def tearDown(self):
+		del self.portdb, self.vardb
 
 
 class TestRemoveProtected(unittest.TestCase):

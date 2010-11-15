@@ -21,7 +21,7 @@ cwd = os.getcwd()
 try: 
 	from portage.const import EPREFIX 
 except ImportError: 
-	EPREFIX='' 
+	EPREFIX='/' 
 
 
 # Bash files that need `VERSION=""` subbed, relative to this dir:
@@ -95,12 +95,19 @@ def	load_test():
 
 	return test
 
-
 packages = [
 	str('.'.join(root.split(os.sep)[1:]))
 	for root, dirs, files in os.walk('pym/gentoolkit')
 	if '__init__.py' in files
 ]
+
+test_data = {
+	'gentoolkit': [
+		'test/eclean/Packages',
+		'test/eclean/testdistfiles.tar.gz',
+		'test/eclean/distfiles.exclude'
+	]
+}
 
 core.setup(
 	name='gentoolkit',
@@ -115,12 +122,13 @@ core.setup(
 		% __version__,
 	package_dir={'': 'pym'},
 	packages=packages,
+	package_data = test_data,
 	scripts=(glob('bin/*')),
 	data_files=(
-		(EPREFIX + '/etc/env.d', ['data/99gentoolkit-env']),
-		(EPREFIX + '/etc/revdep-rebuild', ['data/revdep-rebuild/99revdep-rebuild']),
-		(EPREFIX + '/etc/eclean', glob('data/eclean/*')),
-		(EPREFIX + '/usr/share/man/man1', glob('man/*'))
+		(os.path.join(EPREFIX, 'etc/env.d'), ['data/99gentoolkit-env']),
+		(os.path.join(EPREFIX, 'etc/revdep-rebuild'), ['data/revdep-rebuild/99revdep-rebuild']),
+		(os.path.join(EPREFIX, 'etc/eclean'), glob('data/eclean/*')),
+		(os.path.join(EPREFIX, 'usr/share/man/man1'), glob('man/*')),
 	),
 	cmdclass={
 		'test': load_test(),

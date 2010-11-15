@@ -40,6 +40,8 @@ QUERY_OPTS = {
 class DependPrinter(object):
 	"""Output L{gentoolkit.dependencies.Dependencies} objects."""
 	def __init__(self, verbose=True):
+		self.verbose = verbose
+
 		if verbose:
 			self.print_fn = self.print_verbose
 		else:
@@ -62,7 +64,7 @@ class DependPrinter(object):
 	def print_quiet(indent, cpv, use_conditional, depatom):
 		"""Quietly prints a subset set of dep strings."""
 
-		pp.uprint(indent + pp.cpv(cpv))
+		pp.uprint(indent + cpv)
 
 	def format_depend(self, dep, dep_is_displayed):
 		"""Format a dependency for printing.
@@ -70,6 +72,10 @@ class DependPrinter(object):
 		@type dep: L{gentoolkit.dependencies.Dependencies}
 		@param dep: the dependency to display
 		"""
+
+		# Don't print blank lines
+		if dep_is_displayed and not self.verbose:
+			return
 
 		depth = getattr(dep, 'depth', 0)
 		indent = " " * depth

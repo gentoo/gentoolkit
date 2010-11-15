@@ -143,7 +143,7 @@ class Package(CPV):
 	def environment(self, envvars, prefer_vdb=True, fallback=True):
 		"""Returns one or more of the predefined environment variables.
 
-		Available envvars are:
+		Some available envvars are:
 		----------------------
 			BINPKGMD5  COUNTER         FEATURES   LICENSE  SRC_URI
 			CATEGORY   CXXFLAGS        HOMEPAGE   PDEPEND  USE
@@ -319,7 +319,7 @@ class Package(CPV):
 	def use_status(self):
 		"""Returns the USE flags active for installation."""
 
-		iuse, final_flags = get_flags(slef.cpv, final_setting=True)
+		iuse, final_flags = get_flags(self.cpv, final_setting=True)
 		return final_flags
 
 	def parsed_contents(self):
