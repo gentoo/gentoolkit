@@ -1,3 +1,6 @@
+2010-11-16: Christian Ruppert <idl0r@gentoo.org>
+	* echangelog: Make test case POSIX conform.
+
 2010-10-28: Tomáš Chvátal <scarabeus@gentoo.org>
 	* eshowkw: Deprecate eshowkw.
 		This package (more of its full rewrite) will be from now on at

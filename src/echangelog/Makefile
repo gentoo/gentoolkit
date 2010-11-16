@@ -11,7 +11,7 @@ include ../../makedefs.mak
 all:
 
 test:
-	cd test; bash test.sh
+	cd test; sh test.sh
 
 dist:
 	mkdir -p ../../$(distdir)/src/echangelog/test/templates
