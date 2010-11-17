@@ -118,9 +118,9 @@ def main(argv, indirect = False):
 		if len(ebuilds) <= 0:
 			msg_err = 'No ebuilds at "%s"' % currdir
 			raise SystemExit(msg_err)
-		package= '%s/%s' % (os.path.basename(os.path.abspath('../')), os.path.basename(currdir))
+		package= '/'.join(os.path.basename(os.path.abspath('../')), os.path.basename(currdir))
 		ourtree = os.path.abspath('../../')
-		overlays = '%s %s' % (ports['PORTDIR_OVERLAY'], ourtree)
+		overlays = ' '.join(ports['PORTDIR_OVERLAY'], ourtree)
 		mysettings = portc(env={'PORTDIR_OVERLAY': overlays})
 		dbapi = portdbapi(mysettings=mysettings)
 		# specify that we want just our nice tree we are in cwd
