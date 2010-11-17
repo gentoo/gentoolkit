@@ -112,13 +112,13 @@ def main(argv, indirect = False):
 		map(lambda x: process_display(x, keywords, dbapi), package)
 	else:
 		currdir = os.getcwd()
-		package=os.path.basename(currdir)
 		# check if there are actualy some ebuilds
 		ebuilds = ['%s' % x for x in os.listdir(currdir)
 			if fnmatch.fnmatch(x, '*.ebuild')]
 		if len(ebuilds) <= 0:
 			msg_err = 'No ebuilds at "%s"' % currdir
 			raise SystemExit(msg_err)
+		package= '%s/%s' % (os.path.basename(os.path.abspath('../')), os.path.basename(currdir))
 		ourtree = os.path.abspath('../../')
 		overlays = '%s %s' % (ports['PORTDIR_OVERLAY'], ourtree)
 		mysettings = portc(env={'PORTDIR_OVERLAY': overlays})
