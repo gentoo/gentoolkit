@@ -210,9 +210,9 @@ def parse_revdep_config():
                     continue
                 m = re.match('SEARCH_DIRS=\\"([^"]+)\\"', line)
                 if m is not None:
-                    s = m.group(1).split(' ')
+                    s = m.group(1).split()
                     for ss in s:
-                        search_dirs = masked_dirs.union(glob.glob(ss))
+                        search_dirs = search_dirs.union(glob.glob(ss))
                     continue
 
     return (masked_dirs, masked_files, search_dirs)
@@ -615,7 +615,7 @@ def analyse(output=print_v, libraries=None, la_libraries=None, libraries_links=N
     elif _bits.startswith('64'):
         bits = 64
 
-    for av_bits in glob.glob('/lib[0-9]*'):
+    for av_bits in glob.glob('/lib[0-9]*') or ('/lib32',):
         bits = int(av_bits[4:])
         _libraries = call_program(['scanelf', '-M', str(bits), '-BF', '%F',] + libraries+libraries_links).strip().split('\n')
 
@@ -740,6 +740,11 @@ if __name__ == "__main__":
         args += ' --verbose'
     elif VERBOSITY < 1:
         args += ' --quiet'
+
+    if len(emerge_command) == 0:
+        print_v(1, bold('\nThere is nothing to emerge. Exiting.'))
+        sys.exit(0)
+
     emerge_command = args + ' --oneshot ' + emerge_command
 
 
