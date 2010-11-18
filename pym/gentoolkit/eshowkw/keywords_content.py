@@ -195,7 +195,6 @@ class keywords_content:
 		# -* -> red *
 		"""
 		keys = [ '~%s' % arch, '-%s' % arch, '%s' % arch, '-*' ]
-		nocolor_values = [ '~', '-', '+', '*' ]
 		values = [
 			colorize('darkyellow', '~'),
 			colorize('darkred', '-'),
@@ -205,7 +204,7 @@ class keywords_content:
 		# check what keyword we have
 		# here we cant just append space because it would get stripped later
 		char = colorize('darkgray','o')
-		for k, v, n in zip(keys, values, nocolor_values):
+		for k, v in zip(keys, values):
 			if k in keywords:
 				char = v
 				break
