@@ -20,11 +20,12 @@ import stat
 import time
 import glob
 import portage
+import platform
 from portage import portdb
 from portage.output import bold, red, blue, yellow, green, nocolor
 
 APP_NAME = sys.argv[0]
-VERSION = '0.1-r2'
+VERSION = '0.1-r3'
 
 
 __productname__ = "revdep-ng"
@@ -342,14 +343,15 @@ def _match_str_in_list(lst, stri):
     return False
 
 
-def prepare_checks(files_to_check, libraries):
-    ''' Calls scanelf for all files_to_check, then returns found libraries and dependencies '''
+def prepare_checks(files_to_check, libraries, bits):
+    ''' Calls scanelf for all files_to_check, then returns found libraries and dependencies
+    '''
 
     libs = [] # libs found by scanelf
     dependencies = [] # list of lists of files (from file_to_check) that uses
                       # library (for dependencies[id] and libs[id] => id==id)
 
-    for line in call_program(['scanelf', '-nBF', '%F %n',]+files_to_check).strip().split('\n'):
+    for line in call_program(['scanelf', '-M', str(bits), '-nBF', '%F %n',]+files_to_check).strip().split('\n'):
         r = line.strip().split(' ')
         if len(r) < 2: # no dependencies?
             continue
@@ -368,6 +370,9 @@ def prepare_checks(files_to_check, libraries):
 def extract_dependencies_from_la(la, libraries, to_check):
     broken = []
     for f in la:
+        if not os.path.exists(f):
+            continue
+
         for line in open(f, 'r').readlines():
             line = line.strip()
             if line.startswith('dependency_libs='):
@@ -417,7 +422,6 @@ def find_broken(found_libs, system_libraries, to_check):
             for f in found_libs:
                 if tc in f and f+'|' not in sl:
                     broken.append(found_libs.index(f))
-        #print broken
 
     return broken
 
@@ -596,10 +600,32 @@ def analyse(output=print_v, libraries=None, la_libraries=None, libraries_links=N
     output(2,'Search for ' + str(len(binaries)+len(libraries)) + ' within ' + str(len(libraries)+len(libraries_links)))
     libs_and_bins = libraries+binaries
 
-    found_libs, dependencies = prepare_checks(libs_and_bins, libraries+libraries_links)
+    #l = []
+    #for line in call_program(['scanelf', '-M', '64', '-BF', '%F',] + libraries).strip().split('\n'):
+        #l.append(line)
+    #libraries = l
 
-    broken = find_broken(found_libs, libraries+libraries_links, _libs_to_check)
-    broken_la = extract_dependencies_from_la(la_libraries, libraries+libraries_links, _libs_to_check)
+    found_libs = []
+    dependencies = []
+
+
+    _bits, linkg = platform.architecture()
+    if _bits.startswith('32'):
+        bits = 32
+    elif _bits.startswith('64'):
+        bits = 64
+
+    for av_bits in glob.glob('/lib[0-9]*'):
+        bits = int(av_bits[4:])
+        _libraries = call_program(['scanelf', '-M', str(bits), '-BF', '%F',] + libraries+libraries_links).strip().split('\n')
+
+        found_libs, dependencies = prepare_checks(libs_and_bins, _libraries, bits)
+
+        broken = find_broken(found_libs, _libraries, _libs_to_check)
+        broken_la = extract_dependencies_from_la(la_libraries, _libraries, _libs_to_check)
+
+        bits /= 2
+        bits = int(bits)
 
     broken_pathes = main_checks(found_libs, broken, dependencies)
     broken_pathes += broken_la
@@ -646,7 +672,7 @@ if __name__ == "__main__":
         opts, args = getopt.getopt(sys.argv[1:], 'dehiklopqvCL:P', ['nocolor', 'debug', 'exact', 'help', 'ignore',\
             'keep-temp', 'library=', 'no-ld-path', 'no-order', 'pretend', 'no-pretend', 'no-progress', 'quiet', 'verbose'])
 
-        for key,val in opts:
+        for key, val in opts:
             if key in ('-h', '--help'):
                 print_usage()
                 sys.exit(0)
