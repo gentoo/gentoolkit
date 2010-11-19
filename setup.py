@@ -10,6 +10,7 @@ from distutils import core, log
 from glob import glob
 
 import os
+import io
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'pym'))
 
@@ -59,13 +60,13 @@ class set_version(core.Command):
 		def sub(files, pattern):
 			for f in files:
 				updated_file = []
-				with open(f) as s:
+				with io.open(f, 'r', 1, 'utf_8') as s:
 					for line in s:
 						newline = re.sub(pattern, '"%s"' % ver, line, 1)
 						if newline != line:
 							log.info("%s: %s" % (f, newline))
 						updated_file.append(newline)
-				with open(f, 'w') as s:
+				with io.open(f, 'w', 1, 'utf_8') as s:
 					s.writelines(updated_file)
 		quote = r'[\'"]{1}'
 		bash_re = r'(?<=VERSION=)' + quote + '[^\'"]*' + quote
