@@ -38,6 +38,11 @@ class keywords_content:
 				result.append(item)
 			return result
 
+		def __cleanKeyword(self, keyword):
+			"""Remove masked arches and hardmasks from keywords since we don't care about that."""
+			return ["%s" % x for x in keyword.split()
+				if x != '-*' and not x.startswith('-')]
+
 		def __listRedundantAll(self, keywords):
 			"""Search for redundant packages using all versions ignoring its slotting."""
 			return list(self.__compareSelected(list(keywords)))
@@ -61,26 +66,20 @@ class keywords_content:
 
 		def __compareKeywordWithRest(self, keyword, keywords):
 			"""Compare keywords with list of keywords."""
-			for key in keywords:
-				if self.__checkShadow(keyword, key):
+			kw = self.__cleanKeyword(keyword)
+			for kwi in keywords:
+				kwi = self.__cleanKeyword(kwi)
+				kw = self.__checkShadow(kw, kwi)
+				if not kw:
 					return True
 			return False
 
 		def __checkShadow(self, old, new):
 			"""Check if package version is overshadowed by other package version."""
-			# remove -* and -arch since they are useless for us
-			newclean = ["%s" % x for x in new.split()
-				if x != '-*' and not x.startswith('-')]
-			oldclean = ["%s" % x for x in old.split()
-				if x != '-*' and not x.startswith('-')]
-
-			tmp = set(newclean)
-			tmp.update("~%s" % x for x in newclean
+			tmp = set(new)
+			tmp.update("~%s" % x for x in new
 				if not x.startswith("~"))
-			if not set(oldclean).difference(tmp):
-				return True
-			else:
-				return False
+			return list(set(old).difference(tmp))
 
 		def __init__(self, keywords, slots, ignore_slots = False):
 			"""Query all relevant data for redundancy package checking"""
