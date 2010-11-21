@@ -14,7 +14,7 @@ def display(plain_list, rotated_list, plain_width, rotated_height, cp, toplist =
 	output.append('Keywords for %s:' % colorize('blue', cp))
 	# data
 	corner_image = [''.ljust(plain_width) for x in range(rotated_height)]
-	if toplist == 'versionlist':
+	if toplist != 'archlist':
 		corner_image.extend(plain_list)
 	data_printout = ['%s%s' % (x, y)
 		for x, y in izip_longest(corner_image, rotated_list, fillvalue=corner_image[0])]
