@@ -88,14 +88,7 @@ class keywords_content:
 	class VersionChecker:
 		def __getVersions(self, packages, vartree):
 			"""Obtain properly aligned version strings without colors."""
-			return self.__stripStartingSpaces(map(lambda x: self.__separateVersion(x, vartree), packages))
-
-		def __stripStartingSpaces(self, pvs):
-			"""Strip starting whitespace if there is no real reason for it."""
-			if not self.__require_prepend:
-					return map(lambda x: x.lstrip(), pvs)
-			else:
-				return pvs
+			return map(lambda x: self.__separateVersion(x, vartree), packages)
 
 		def __separateVersion(self, cpv, vartree):
 			"""Get version string for specfied cpv"""
@@ -117,13 +110,10 @@ class keywords_content:
 
 			if mask and install:
 				pv = '[M][I]%s' % pv
-				self.__require_longprepend = True
 			elif mask:
 				pv = '[M]%s' % pv
-				self.__require_prepend = True
 			elif install:
 				pv = '[I]%s' % pv
-				self.__require_prepend = True
 			return pv
 
 		def __getMaskStatus(self, cpv):
@@ -131,15 +121,14 @@ class keywords_content:
 			Figure out if package is pmasked.
 			This also uses user settings in /etc/ so local changes are important.
 			"""
-			pmask = False
 			try:
 				if port.getmaskingstatus(cpv) == ['package.mask']:
-					pmask = True
+					return True
 			except:
 				# occurs when package is not known by portdb
 				# so we consider it unmasked
 				pass
-			return pmask
+			return False
 
 		def __getInstallStatus(self, cpv, vartree):
 			"""Check if package version we test is installed."""
@@ -147,8 +136,6 @@ class keywords_content:
 
 		def __init__(self, packages, vartree):
 			"""Query all relevant data for version data formatting"""
-			self.__require_longprepend = False
-			self.__require_prepend = False
 			self.versions = self.__getVersions(packages, vartree)
 
 	def __checkExist(self, pdb, package):
