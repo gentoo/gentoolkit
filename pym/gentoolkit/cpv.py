@@ -34,6 +34,8 @@ isvalid_version_re = re.compile("^(?:cvs\\.)?(?:\\d+)(?:\\.\\d+)*[a-z]?"
 	"(?:_(p(?:re)?|beta|alpha|rc)\\d*)*$")
 isvalid_cat_re = re.compile("^(?:[a-zA-Z0-9][-a-zA-Z0-9+._]*(?:/(?!$))?)+$")
 _pkg_re = re.compile("^[a-zA-Z0-9+_]+$")
+# Prefix specific revision is of the form -r0<digit>+.<digit>+
+isvalid_rev_re = re.compile(r'(\d+|0\d+\.\d+)')
 
 # =======
 # Classes
@@ -249,6 +251,6 @@ def isvalid_pkg_name(chunks):
 
 
 def isvalid_rev(s):
-	return s and s[0] == 'r' and s[1:] != '0' and s[1:].isdigit() 
+	return s and s[0] == 'r' and isvalid_rev_re.match(s[1:])
 
 # vim: set ts=4 sw=4 tw=79:
