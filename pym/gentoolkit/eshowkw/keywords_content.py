@@ -87,14 +87,14 @@ class keywords_content:
 			self.redundant = self.__listRedundant(keywords, ignore_slots, slots)
 
 	class VersionChecker:
-		def __getVersions(self, packages, vartree):
+		def __getVersions(self, packages):
 			"""Obtain properly aligned version strings without colors."""
-			return map(lambda x: self.__separateVersion(x, vartree), packages)
+			return map(lambda x: self.__separateVersion(x), packages)
 
-		def __separateVersion(self, cpv, vartree):
+		def __separateVersion(self, cpv):
 			"""Get version string for specfied cpv"""
 			#pv = port.versions.cpv_getversion(cpv)
-			return self.__prependVersionInfo(cpv, self.cpv_getversion(cpv), vartree)
+			return self.__prependVersionInfo(cpv, self.cpv_getversion(cpv))
 
 		# remove me when portage 2.1.9 is stable
 		def cpv_getversion(self, mycpv):
@@ -104,10 +104,10 @@ class keywords_content:
 				return None
 			return mycpv[len(cp+"-"):]
 
-		def __prependVersionInfo(self, cpv, pv, vartree):
+		def __prependVersionInfo(self, cpv, pv):
 			"""Prefix version with string based on whether version is installed or masked."""
 			mask = self.__getMaskStatus(cpv)
-			install = self.__getInstallStatus(cpv, vartree)
+			install = self.__getInstallStatus(cpv)
 
 			if mask and install:
 				pv = '[M][I]%s' % pv
@@ -131,13 +131,14 @@ class keywords_content:
 				pass
 			return False
 
-		def __getInstallStatus(self, cpv, vartree):
+		def __getInstallStatus(self, cpv):
 			"""Check if package version we test is installed."""
+			vartree = port.db[port.settings['ROOT']]['vartree'].dbapi
 			return vartree.cpv_exists(cpv)
 
-		def __init__(self, packages, vartree):
+		def __init__(self, packages):
 			"""Query all relevant data for version data formatting"""
-			self.versions = self.__getVersions(packages, vartree)
+			self.versions = self.__getVersions(packages)
 
 	def __checkExist(self, pdb, package):
 		"""Check if specified package even exists."""
@@ -248,13 +249,12 @@ class keywords_content:
 
 	def __init__(self, package, keywords_list, porttree, ignoreslots = False, content_align = 'bottom', usebold = False, toplist = 'archlist'):
 		"""Query all relevant data from portage databases."""
-		vartree = port.db[port.settings['ROOT']]['vartree'].dbapi
 		packages = self.__checkExist(porttree, package)
 		self.keywords, self.slots, self.repositories = self.__getMetadata(porttree, packages)
 		self.slot_length = max([len(x) for x in self.slots])
 		repositories_length = max([len(x) for x in self.repositories])
 		self.keyword_length = len(keywords_list)
-		self.versions = self.VersionChecker(packages, vartree).versions
+		self.versions = self.VersionChecker(packages).versions
 		self.version_length = max([len(x) for x in self.versions])
 		self.version_count = len(self.versions)
 		self.redundant = self.RedundancyChecker(self.keywords, self.slots, ignoreslots).redundant
