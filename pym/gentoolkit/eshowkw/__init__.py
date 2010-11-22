@@ -6,8 +6,6 @@ __package__ = 'gentoolkit.eshowkw'
 __version__ = 'svn'
 __author__ = "Tomáš Chvátal <scarabeus@gentoo.org>"
 
-import portage
-
 import sys, os, fnmatch
 import argparse
 from portage import output as porto
