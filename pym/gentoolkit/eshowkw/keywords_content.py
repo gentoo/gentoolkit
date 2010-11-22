@@ -69,7 +69,8 @@ class keywords_content:
 			kw = self.__cleanKeyword(keyword)
 			for kwi in keywords:
 				kwi = self.__cleanKeyword(kwi)
-				kw = self.__checkShadow(kw, kwi)
+				if kwi:
+					kw = self.__checkShadow(kw, kwi)
 				if not kw:
 					return True
 			return False
