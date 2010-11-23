@@ -99,8 +99,7 @@ def print_usage():
   -h, --help           Print this usage
   -i, --ignore         Ignore temporary files from previous runs (also won't create any)
   -L, --library NAME   Emerge existing packages that use the library with NAME
-      --library=NAME   NAME can be a full path to the library or a basic
-                       regular expression (man grep)
+      --library=NAME   NAME can be a full or partial library name
   -l, --no-ld-path     Do not set LD_LIBRARY_PATH
   -o, --no-order       Do not check the build order
                        (Saves time, but may cause breakage.)
@@ -420,7 +419,7 @@ def find_broken(found_libs, system_libraries, to_check):
     else:
         for tc in to_check:
             for f in found_libs:
-                if tc in f and f+'|' not in sl:
+                if tc in f:# and f+'|' not in sl:
                     broken.append(found_libs.index(f))
 
     return broken
