@@ -9,20 +9,7 @@
 PROGRAM_NAME=euse
 VERSION="svn"
 
-error() {
-	echo "ERROR: ${1}"
-	set +f
-	exit 1
-}
-
-# Portage now supports make.conf in /etc and /etc/portage
-if [ -r /etc/make.conf ]; then
-	MAKE_CONF_PATH=/etc/make.conf
-elif [ -r /etc/portage/make.conf ]; then
-	MAKE_CONF_PATH=/etc/portage/make.conf
-else
-	error "make.conf file is not readable"
-fi
+MAKE_CONF_PATH=/etc/make.conf
 MAKE_GLOBALS_PATH=/etc/make.globals
 MAKE_PROFILE_PATH=/etc/make.profile
 MAKE_CONF_BACKUP_PATH=/etc/make.conf.euse_backup
@@ -60,6 +47,12 @@ parse_arguments() {
 		esac
 		shift
 	done
+}
+
+error() {
+	echo "ERROR: ${1}"
+	set +f
+	exit 1
 }
 
 get_real_path() {
