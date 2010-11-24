@@ -1,6 +1,6 @@
 2010-11-24: Paul Varner <fuzzyray@gentoo.org>
 	* euse: Fix euse to look for portage configuration files in both the
-	old and new paths. bug 346519.
+	old and new paths. bug 346519. Make euse work in prefix environments.
 
 2010-10-29: Tomáš Chvátal <scarabeus@gentoo.org>
 	* eshowkw: Add new module as drop-in replacement for eshowkw from

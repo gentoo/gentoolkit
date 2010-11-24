@@ -9,8 +9,9 @@
 PROGRAM_NAME=euse
 VERSION="svn"
 
-ETC="/etc"
-USR_SHARE_PORTAGE="/usr/share/portage"
+EPREFIX=${EPREFIX:-$(portageq envvar EPREFIX)}
+ETC="${EPREFIX}/etc"
+USR_SHARE_PORTAGE="${EPREFIX}/usr/share/portage"
 
 # define error function so it can be used immediately
 error() {
