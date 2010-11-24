@@ -9,10 +9,41 @@
 PROGRAM_NAME=euse
 VERSION="svn"
 
-MAKE_CONF_PATH=/etc/make.conf
-MAKE_GLOBALS_PATH=/etc/make.globals
-MAKE_PROFILE_PATH=/etc/make.profile
-MAKE_CONF_BACKUP_PATH=/etc/make.conf.euse_backup
+ETC="/etc"
+USR_SHARE_PORTAGE="/usr/share/portage"
+
+# define error function so it can be used immediately
+error() {
+	echo "ERROR: ${1}"
+	set +f
+	exit 1
+}
+
+# /etc/make.conf can now exist in /etc/portage/make.conf, prefer it over /etc/make.conf for changes
+if [ -e "${ETC}/portage/make.conf" ]; then
+	MAKE_CONF_PATH="${ETC}/portage/make.conf"
+elif [ -e "${ETC}/make.conf" ]; then
+	MAKE_CONF_PATH="${ETC}/make.conf"
+else
+	error "make.conf does not exist"
+fi
+MAKE_CONF_BACKUP_PATH="${MAKE_CONF_PATH}.euse_backup"
+
+# /etc/make.globals has been moved to /usr/share/portage/config/make.globals
+if [ -e "${USR_SHARE_PORTAGE}/config/make.globals" ]; then
+	MAKE_GLOBALS_PATH="${USR_SHARE_PORTAGE}/config/make.globals"
+else
+	MAKE_GLOBALS_PATH="${ETC}/make.globals"
+fi
+
+# /etc/make.profile or /etc/portage/make.profile, if /etc/make.profile exists, it will be used
+if [ -e "${ETC}/make.profile" ]; then
+	MAKE_PROFILE_PATH="${ETC}/make.profile"
+elif [ -e "${ETC}/portage/make.profile" ]; then
+	MAKE_PROFILE_PATH="${ETC}/portage/make.profile"
+else
+	error "make.profile does not exist"
+fi
 
 [ -z "${MODE}" ] && MODE="showhelp"		# available operation modes: showhelp, showversion, showdesc, showflags, modify
 
@@ -49,12 +80,6 @@ parse_arguments() {
 	done
 }
 
-error() {
-	echo "ERROR: ${1}"
-	set +f
-	exit 1
-}
-
 get_real_path() {
 	set -P
 	cd "$1"
@@ -67,12 +92,16 @@ check_sanity() {
 	# file permission tests
 	local descdir
 	local make_defaults
+	local make_conf
 
 	[[ ! -d "${MAKE_PROFILE_PATH}" || ! -r "${MAKE_PROFILE_PATH}" ]] && error "${MAKE_PROFILE_PATH} is not readable"
+	# 
+	for make_conf in $(get_all_make_conf); do
+		[ ! -r "${make_conf}" ] && error "${make_conf} is not readable"
+	done
 
 	descdir="$(get_portdir)/profiles"
 
-	[ ! -r "${MAKE_CONF_PATH}" ] && error "${MAKE_CONF_PATH} is not readable"
 	[ ! -r "${MAKE_GLOBALS_PATH}" ] && error "${MAKE_GLOBALS_PATH} is not readable"
 	[ -z "$(get_portdir)" ] && error "\$PORTDIR couldn't be determined"
 	[ ! -d "${descdir}" ] && error "${descdir} does not exist or is not a directory"
@@ -160,8 +189,10 @@ get_useflags() {
 
 	ACTIVE_FLAGS[0]="$(reduce_incrementals ${USE})"
 	USE=""
-	source "${MAKE_CONF_PATH}"
-	ACTIVE_FLAGS[1]="$(reduce_incrementals ${USE})"
+	for x in $(get_all_make_conf); do
+		source "${x}"
+		ACTIVE_FLAGS[1]="$(reduce_incrementals ${ACTIVE_FLAGS[1]} ${USE})"
+	done
 	USE=""
 	for x in $(get_all_make_defaults); do
 		source "${x}"
@@ -196,6 +227,13 @@ get_useflaglist() {
 	fi
 }
 
+# get all make.conf files that exist on the system
+get_all_make_conf() {
+	# At least one of the files exists or we would not have made it this far
+	for x in ${ETC}/make.conf ${ETC}/portage/make.conf; do
+		[ -e "${x}" ] && echo "${x}"
+	done
+}
 # get all make.defaults by traversing the cascaded profile directories
 get_all_make_defaults() {
 	local curdir
@@ -272,7 +310,9 @@ get_portdir() {
 		for x in $(get_all_make_defaults); do
 			source "${x}"
 		done
-		source "${MAKE_CONF_PATH}"
+		for x in $(get_all_make_conf); do
+			source "${x}"
+		done
 		USE="${use_backup}"
 	fi
 	echo "${PORTDIR}"
