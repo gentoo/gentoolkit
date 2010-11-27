@@ -3,6 +3,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 import portage as port
+import os
 from portage.output import colorize
 
 __all__ = ['keywords_content']
@@ -140,10 +141,29 @@ class keywords_content:
 			"""Query all relevant data for version data formatting"""
 			self.versions = self.__getVersions(packages)
 
-	def __checkExist(self, pdb, package):
-		"""Check if specified package even exists."""
+	def __cpv_sort_ascending(self, cpv_list):
+		"""
+		Use this to sort self.cp_list() results in ascending
+		order. It sorts in place and returns None.
+		"""
+		if len(cpv_list) > 1:
+			# If the cpv includes explicit -r0, it has to be preserved
+			# for consistency in findname and aux_get calls, so use a
+			# dict to map strings back to their original values.
+			ver_map = {}
+			for cpv in cpv_list:
+				cpv = cpv.split('%')[0]
+				ver_map[cpv] = '-'.join(port.versions.catpkgsplit(cpv)[2:])
+			def cmp_cpv(cpv1, cpv2):
+				cpv1 = cpv1.split('%')[0]
+				cpv2 = cpv2.split('%')[0]
+				return port.versions.vercmp(ver_map[cpv1], ver_map[cpv2])
+			cpv_list.sort(key=port.util.cmp_sort_key(cmp_cpv))
+
+	def __xmatch(self, pdb, package):
+		"""xmatch function that searches for all packages over all repos"""
 		try:
-			matches = pdb.xmatch('match-all', package)
+			mycp = port.dep_expand(package, mydb=pdb, settings=pdb.settings).cp
 		except port.exception.AmbiguousPackageName as Arg:
 			msg_err = 'Ambiguous package name "%s".\n' % package
 			found = 'Possibilities: %s' % Arg
@@ -151,15 +171,45 @@ class keywords_content:
 		except port.exception.InvalidAtom:
 			msg_err = 'No such package "%s"' % package
 			raise SystemExit(msg_err)
+
+		mysplit = mycp.split('/')
+		d={}
+		for oroot in pdb.porttrees:
+			try:
+				file_list = os.listdir(os.path.join(oroot, mycp))
+			except OSError:
+				continue
+			for x in file_list:
+				pf = x[:-7] if x[-7:] == '.ebuild' else []
+				if pf:
+					ps = port.pkgsplit(pf)
+					if not ps or ps[0] != mysplit[1]:
+						# we got garbage or ebuild with wrong name in the dir
+						continue
+					ver_match = port.versions.ver_regexp.match("-".join(ps[1:]))
+					if ver_match is None or not ver_match.groups():
+						# version is not allowed by portage or unset
+						continue
+					d[mysplit[0]+'/'+pf+'%'+oroot] = None
+
+		mylist = list(d)
+		self.__cpv_sort_ascending(mylist)
+		return mylist
+
+	def __checkExist(self, pdb, package):
+		"""Check if specified package even exists."""
+		matches = self.__xmatch(pdb, package)
 		if len(matches) <= 0:
 			msg_err = 'No such package "%s"' % package
 			raise SystemExit(msg_err)
-		return matches
+		content = [x.split('%') for x in matches]
+		return list(zip(*content))
 
-	def __getMetadata(self, pdb, packages):
-		"""Obtain all KEYWORDS and SLOT from metadata"""
+	def __getMetadata(self, pdb, packages, repos):
+		"""Obtain all required metadata from portage auxdb"""
 		try:
-			metadata = map(lambda x: pdb.aux_get(x, ['KEYWORDS', 'SLOT', 'repository']), packages)
+			metadata = [pdb.aux_get(pkg, ['KEYWORDS', 'SLOT'], tree)
+				for pkg, tree in zip(packages, repos)]
 		except KeyError:
 			# portage prints out more verbose error for us if we were lucky
 			raise SystemExit('Failed to obtain metadata')
@@ -249,8 +299,10 @@ class keywords_content:
 
 	def __init__(self, package, keywords_list, porttree, ignoreslots = False, content_align = 'bottom', usebold = False, toplist = 'archlist'):
 		"""Query all relevant data from portage databases."""
-		packages = self.__checkExist(porttree, package)
-		self.keywords, self.slots, self.repositories = self.__getMetadata(porttree, packages)
+		packages, self.repositories = self.__checkExist(porttree, package)
+		self.keywords, self.slots = self.__getMetadata(porttree, packages, self.repositories)
+		# convert repositories from path to name
+		self.repositories = [porttree.getRepositoryName(x) for x in self.repositories]
 		self.slot_length = max([len(x) for x in self.slots])
 		repositories_length = max([len(x) for x in self.repositories])
 		self.keyword_length = len(keywords_list)
