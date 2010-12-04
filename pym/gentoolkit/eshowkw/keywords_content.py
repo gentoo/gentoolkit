@@ -154,7 +154,7 @@ class keywords_content:
 				ver_map[cpv[0]] = '-'.join(port.versions.catpkgsplit(cpv[0])[2:])
 			def cmp_cpv(cpv1, cpv2):
 				return port.versions.vercmp(ver_map[cpv1[0]], ver_map[cpv2[0]])
-			#package_content.sort(key=lambda i: [getattr(i,a) for a in attrs])
+
 			package_content.sort(key=port.util.cmp_sort_key(cmp_cpv))
 			package_content.sort(key=itemgetter(2))
 
