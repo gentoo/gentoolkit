@@ -23,9 +23,8 @@ gentoolkit-dev
 ==============
 ebump          - Ebuild revision bumper
 echangelog     - update portage ChangeLogs
-ego            - 
+ego            -
 ekeyword       - modify package KEYWORDS
-eshowkw        - Display ebuild keywords in a graphical form
 eviewcvs       - generate viewcvs URLs
 imlate         - Displays candidates for keywords for an architecture based upon a target architecture
 
