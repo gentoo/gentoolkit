@@ -1,7 +1,7 @@
 
 OVERVIEW
 
-The SVN module 'gentoolkit' contains all the scripts and stuff for both the 
+The SVN module 'gentoolkit' contains all the scripts and stuff for both the
 gentoolkit and the gentoolkit-dev package. The gentoolkit-dev package is
 an optional add-on, that is only intented for the Gentoo developers.
 
@@ -24,10 +24,10 @@ us a mail at tools-portage@gentoo.org if you need an immediate release.
 The release manager (big words;) will then do
 
 1) make VERSION=major.minor.patch RELEASE_TAG=<optional> dist
-2) copy release/gentoolkit-dev-${VERSION}-${RELEASE_TAG}.tar.gz to 
+2) copy release/gentoolkit-dev-${VERSION}-${RELEASE_TAG}.tar.gz to
    dev.gentoo.org:/space/distfiles-local/
 3) make a new ebuild, app-portage/gentoolkit-dev/gentoolkit-dev-${VERSION}.ebuild
-   with a SRC_URI that points to 
+   with a SRC_URI that points to
    mirror://gentoo/gentoolkit-dev-${VERSION}-${RELEASE_TAG}.tar.gz
    (just use one of the previous ebuilds)
 
@@ -35,7 +35,7 @@ Important!
 1) _ALWAYS_ make sure you don't "overwrite" a previous release. Your
    new VERSION must be newer than any previous released version. If you
    mess up a release, don't overwrite with the same release number, iterate
-   the patch version and try again (and again, and again until you get 
+   the patch version and try again (and again, and again until you get
    it right;)
 
 
@@ -45,5 +45,5 @@ Currently, the following people have "release access":
  - fuzzyray@gentoo.org
  - idl0r@gentoo.org
 
-If you want a new release, ping either one of us. If you want to get 
+If you want a new release, ping either one of us. If you want to get
 "release access", talk to fuzzyray@gentoo.org
