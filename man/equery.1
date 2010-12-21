@@ -270,6 +270,54 @@ equery files --filter=cmd vlc
 Find out where a package installed its executables.
 
 .SS
+.BI "has (a) [OPTIONS] " "KEY  VALUE"
+List all installed packages that have a given \fIPKG\fP match.
+
+\fBNote\fP: \fBKEY\fP is case sensitive. Also \fBhas\fP does not currently have the ability to inteligently compare values dependending on the type of information being looked up.  It performs a simple string match. It can only list which packages have the matching \fBVALUE\fP as given on the command line. It is a general purpose lookup for most information available via portage's dbapi.aux_get() function.  Warning the quality of the results printed is dependant on the quality of the search (given the limited comparison method) and the recorded data available in the vardb. (See \fIEXAMPLES\fP)
+
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-I, \-\-exclude-installed
+.br
+Exclude installed packages from being output.
+.HP
+.B \-o, \-\-overlay-tree
+.br
+Include package from overlays in the search path.
+.HP
+.B \-p, \-\-portage-tree
+.br
+Include all packages from the Portage tree in the search path. Use this option to search through all standard Gentoo packages, including those that are not installed.
+.HP
+.B \-F, \-\-format=\fITMPL\fP
+.br 
+Customize the output format of the matched packages using the template string \fITMPL\fP. See the \fB\-\-format\fP option for \fBlist\fP below for a description of the \fITMPL\fP argument.
+.P
+.IR "OUTPUT" ":"
+.HP
+(See \fIOUTPUT\fP for \fBlist\fP below)
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+equery has SLOT 2.4
+.EE
+.br
+View all installed Gentoo packages that have a recorded SLOT = "2.4".
+.EX
+.HP
+equery has repository sunrise
+.EE
+.br
+View all installed Gentoo packages that were recorded to be installed from ebuilds from the "sunrise" overlay.
+.EX
+.HP
+equery has EAPI 2
+.EE
+.br
+View all installed Gentoo packages that were installed with ebuilds with a recorded EAPI of "2".
+
+.SS
 .BI "hasuse (h) [OPTIONS] " "USE"
 List all installed packages that have a given \fIPKG\fP flag.
 
