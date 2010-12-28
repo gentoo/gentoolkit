@@ -129,7 +129,7 @@ def get_all_cpv_use(cpv):
 	use = None
 	PORTDB.settings.unlock()
 	try:
-		PORTDB.settings.setcpv(cpv, use_cache=True, mydb=portage.portdb)
+		PORTDB.settings.setcpv(cpv, mydb=portage.portdb)
 		use = portage.settings['PORTAGE_USE'].split()
 		use_expand_hidden = portage.settings["USE_EXPAND_HIDDEN"].split()
 		usemask = list(PORTDB.settings.usemask)
