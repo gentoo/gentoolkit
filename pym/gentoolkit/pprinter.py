@@ -1,116 +1,185 @@
 #!/usr/bin/python
 #
 # Copyright 2004 Karl Trygve Kalleberg <karltk@gentoo.org>
-# Copyright 2004 Gentoo Foundation
+# Copyright 2004-2009 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 #
 # $Header$
 
+"""Provides a consistent color scheme for Gentoolkit scripts."""
+
+__all__ = (
+	'command',
+	'cpv',
+	'die',
+	'emph',
+	'error',
+	'globaloption',
+	'installedflag',
+	'localoption',
+	'number',
+	'path',
+	'path_symlink',
+	'pkgquery',
+	'productname',
+	'regexpquery',
+	'section',
+	'slot',
+	'subsection',
+	'useflag',
+	'warn'
+)
+
+# =======
+# Imports
+# =======
+
 import sys
-import gentoolkit
+import locale
 
-try:
-	import portage.output as output
-except ImportError:
-	import output
+import portage.output as output
+from portage import archlist
 
+# =========
+# Functions
+# =========
 
-def print_error(s):
-	"""Prints an error string to stderr."""
-	sys.stderr.write(output.red("!!! ") + s + "\n")
+# output creates color functions on the fly, which confuses pylint.
+# E1101: *%s %r has no %r member*
+# pylint: disable-msg=E1101
 
-def print_info(lv, s, line_break = True):
-	"""Prints an informational string to stdout."""
-	if gentoolkit.Config["verbosityLevel"] >= lv:
-		sys.stdout.write(s)
-		if line_break:
-			sys.stdout.write("\n")
+def command(string):
+	"""Returns a program command string."""
+	return output.green(string)
 
-def print_warn(s):
-	"""Print a warning string to stderr."""
-	sys.stderr.write("!!! " + s + "\n")
-	
-def die(err, s):
-	"""Print an error string and die with an error code."""
-	print_error(s)
+def cpv(string):
+	"""Returns a category/package-<version> string."""
+	return output.green(string)
+
+def die(err, string):
+	"""Returns an error string and die with an error code."""
+	sys.stderr.write(error(string))
 	sys.exit(err)
 
-# Colour settings
+def emph(string):
+	"""Returns a string as emphasized."""
+	return output.bold(string)
 
-def cpv(s):
-	"""Print a category/package-<version> string."""
-	return output.green(s)
+def error(string):
+	"""Prints an error string."""
+	return output.red("!!! ") + string + "\n"
 
-def slot(s):
-	"""Print a slot string"""
-	return output.bold(s)
+def globaloption(string):
+	"""Returns a global option string, i.e. the program global options."""
+	return output.yellow(string)
+
+def localoption(string):
+	"""Returns a local option string, i.e. the program local options."""
+	return output.green(string)
+
+def number(string):
+	"""Returns a number string."""
+	return output.turquoise(string)
+
+def path(string):
+	"""Returns a file or directory path string."""
+	return output.bold(string)
+
+def path_symlink(string):
+	"""Returns a symlink string."""
+	return output.turquoise(string)
+
+def pkgquery(string):
+	"""Returns a package query string."""
+	return output.bold(string)
+
+def productname(string):
+	"""Returns a product name string, i.e. the program name."""
+	return output.turquoise(string)
+
+def regexpquery(string):
+	"""Returns a regular expression string."""
+	return output.bold(string)
+
+def section(string):
+	"""Returns a string as a section header."""
+	return output.turquoise(string)
+
+def slot(string):
+	"""Returns a slot string"""
+	return output.bold(string)
+
+def subsection(string):
+	"""Returns a string as a subsection header."""
+	return output.turquoise(string)
+
+def useflag(string, enabled=True):
+	"""Returns a USE flag string."""
+	return output.blue(string) if enabled else output.red(string)
+
+def keyword(string, stable=True, hard_masked=False):
+	"""Returns a keyword string."""
+	if stable:
+		return output.green(string)
+	if hard_masked:
+		return output.red(string)
+	# keyword masked:
+	return output.blue(string)
+
+def masking(mask):
+	"""Returns a 'masked by' string."""
+	if 'package.mask' in mask or 'profile' in mask:
+		# use porthole wrap style to help clarify meaning
+		return output.red("M["+mask[0]+"]")
+	if mask is not []:
+		for status in mask:
+			if 'keyword' in status:
+				# keyword masked | " [missing keyword] " <=looks better
+				return output.blue("["+status+"]")
+			if status in archlist:
+				return output.green(status)
+			if 'unknown' in status:
+				return output.yellow(status)
+		return output.red(status)
+	return ''
+
+def warn(string):
+	"""Returns a warning string."""
+	return "!!! " + string + "\n"
+
+try:
+	unicode
+except NameError:
+	unicode = str
+
+def uprint(*args, **kw):
+	"""Replacement for the builtin print function.
 	
-def useflag(s):
-	"""Print a USE flag strign"""
-	return output.blue(s)
+	This version gracefully handles characters not representable in the 
+	user's current locale (through the errors='replace' handler).
 
-def useflagon(s):
-	"""Print an enabled USE flag string"""
-	# FIXME: Collapse into useflag with parameter
-	return output.red(s)
+	@see: >>> help(print)
+	"""
 
-def useflagoff(s):
-	"""Print a disabled USE flag string"""
-	# FIXME: Collapse into useflag with parameter
-	return output.blue(s)
-	
-def maskflag(s):
-	"""Print a masking flag string"""
-	return output.red(s)
+	sep = kw.pop('sep', ' ')
+	end = kw.pop('end', '\n')
+	file = kw.pop("file", sys.stdout)
+	if kw:
+		raise TypeError("got invalid keyword arguments: {0}".format(list(kw)))
+	file = getattr(file, 'buffer', file)
 
-def installedflag(s):
-	"""Print an installed flag string"""
-	return output.bold(s)
-	
-def number(s):
-	"""Print a number string"""
-	return output.turquoise(s)
+	encoding = locale.getpreferredencoding()
 
-def pkgquery(s):
-	"""Print a package query string."""
-	return output.bold(s)
+	def encoded_args():
+		for arg in args:
+			if isinstance(arg, bytes):
+				yield arg
+			else:
+				yield unicode(arg).encode(encoding, 'replace')
 
-def regexpquery(s):
-	"""Print a regular expression string"""
-	return output.bold(s)
+	sep = sep.encode(encoding, 'replace')
+	end = end.encode(encoding, 'replace')
+	text = sep.join(encoded_args())
+	file.write(text + end)
 
-def path(s):
-	"""Print a file or directory path string"""
-	return output.bold(s)
-
-def path_symlink(s):
-	"""Print a symlink string."""
-	return output.turquoise(s)
-
-def productname(s):
-	"""Print a product name string, i.e. the program name."""
-	return output.turquoise(s)
-	
-def globaloption(s):
-	"""Print a global option string, i.e. the program global options."""
-	return output.yellow(s)
-
-def localoption(s):
-	"""Print a local option string, i.e. the program local options."""
-	return output.green(s)
-
-def command(s):
-	"""Print a program command string."""
-	return output.green(s)
-	
-def section(s):
-	"""Print a string as a section header."""
-	return output.turquoise(s)	
-
-def subsection(s):
-	"""Print a string as a subsection header."""
-	return output.turquoise(s)
-	
-def emph(s):
-	"""Print a string as emphasized."""
-	return output.bold(s)
+# vim: set ts=4 sw=4 tw=79:

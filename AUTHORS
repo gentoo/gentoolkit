@@ -1,19 +1,19 @@
 * gentoolkit
   Original author: Karl Trygve Kalleberg <karltk@gentoo.org>
-  Further additions: Douglas Anderson <dja@gendja.com>
+  Library additions and refactor: Douglas Anderson <douglasjanderson@gmail.com>
   Current maintainer: Paul Varner <fuzzyray@gentoo.org>
 
 * eclean
   Original author: Thomas de Grenier de Latour (tgl) <degrenier@easyconnect.fr>
- 
+
 * epkginfo
   Author: Ned Ludd <solar@gentoo.org>
   earch: Eldad Zack <eldad@gentoo.org>
-  metadata: Olinger <EvvL AT RustedHalo DOT net> 
+  metadata: Olinger <EvvL AT RustedHalo DOT net>
 
 * equery
   Original author: Karl Trygve Kalleberg <karltk@gentoo.org>
-  Modular redesign: Douglas Anderson <dja@gendja.com>
+  0.3.0 author: Douglas Anderson <douglasjanderson@gmail.com>
 
 * eread
   Original author: Donnie Berkholz <dberkholz@gentoo.org>

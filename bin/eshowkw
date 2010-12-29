@@ -1,0 +1,9 @@
+#!/usr/bin/python
+#	vim:fileencoding=utf-8
+# Copyright 2010 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+import sys
+from gentoolkit.eshowkw import main as emain
+
+sys.exit(emain(sys.argv[1:]))

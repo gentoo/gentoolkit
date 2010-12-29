@@ -7,13 +7,53 @@
 # Licensed under the GPL v2
 
 PROGRAM_NAME=euse
-PROGRAM_VERSION=$(cat /usr/share/gentoolkit/VERSION)
+VERSION="svn"
 
-MAKE_CONF_PATH=/etc/make.conf
-MAKE_GLOBALS_PATH=/etc/make.globals
-MAKE_PROFILE_PATH=/etc/make.profile
-MAKE_CONF_BACKUP_PATH=/etc/make.conf.euse_backup
-PACKAGE_USE_PATH=/etc/portage/package.use
+EPREFIX=${EPREFIX:-$(portageq envvar EPREFIX)}
+ETC="${EPREFIX}/etc"
+USR_SHARE_PORTAGE="${EPREFIX}/usr/share/portage"
+
+# define error functions so they can be used immediately
+fatal() {
+	echo -e "ERROR: ${*}"
+	set +f
+	exit 1
+}
+
+error() {
+	echo -e "ERROR: ${*}"
+}
+
+warn() {
+	echo -e "WARNING: ${*}"
+}
+
+# /etc/make.conf can now exist in /etc/portage/make.conf, prefer it over /etc/make.conf for changes
+if [ -e "${ETC}/portage/make.conf" ]; then
+	MAKE_CONF_PATH="${ETC}/portage/make.conf"
+elif [ -e "${ETC}/make.conf" ]; then
+	MAKE_CONF_PATH="${ETC}/make.conf"
+else
+	fatal "make.conf does not exist"
+fi
+MAKE_CONF_BACKUP_PATH="${MAKE_CONF_PATH}.euse_backup"
+
+# /etc/make.globals has been moved to /usr/share/portage/config/make.globals
+if [ -e "${USR_SHARE_PORTAGE}/config/make.globals" ]; then
+	MAKE_GLOBALS_PATH="${USR_SHARE_PORTAGE}/config/make.globals"
+else
+	MAKE_GLOBALS_PATH="${ETC}/make.globals"
+fi
+
+# /etc/make.profile or /etc/portage/make.profile, if /etc/make.profile exists, it will be used
+if [ -e "${ETC}/make.profile" ]; then
+	MAKE_PROFILE_PATH="${ETC}/make.profile"
+elif [ -e "${ETC}/portage/make.profile" ]; then
+	MAKE_PROFILE_PATH="${ETC}/portage/make.profile"
+else
+	fatal "make.profile does not exist"
+fi
+PACKAGE_USE_PATH=${ETC}/portage/package.use
 
 [ -z "${MODE}" ] && MODE="showhelp"		# available operation modes: showhelp, showversion, showdesc, showflags, modify
 
@@ -51,20 +91,6 @@ parse_arguments() {
 	done
 }
 
-fatal() {
-	echo -e "${*}" | sed -e "s/^/ERROR: /g"
-	set +f
-	exit 1
-}
-
-error() {
-	echo -e "${*}" | sed -e "s/^/ERROR: /g"
-}
-
-warn() {
-	echo -e "${*}" | sed -e "s/^/WARNING: /g"
-}
-
 get_real_path() {
 	set -P
 	cd "$1"
@@ -79,16 +105,22 @@ check_sanity() {
 	# file permission tests
 	local descdir
 	local make_defaults
-	
+	local make_conf
+
+	[[ ! -d "${MAKE_PROFILE_PATH}" || ! -r "${MAKE_PROFILE_PATH}" ]] && error "${MAKE_PROFILE_PATH} is not readable"
+	# 
+	for make_conf in $(get_all_make_conf); do
+		[ ! -r "${make_conf}" ] && fatal "${make_conf} is not readable"
+	done
+
 	descdir="$(get_portdir)/profiles"
 	
-	[ ! -r "${MAKE_CONF_PATH}" ] && fatal "${MAKE_CONF_PATH} is not readable"
 	[ ! -r "${MAKE_GLOBALS_PATH}" ] && fatal "${MAKE_GLOBALS_PATH} is not readable"
-	[ ! -h "${MAKE_PROFILE_PATH}" ] && fatal "${MAKE_PROFILE_PATH} is not a symlink"
 	[ -z "$(get_portdir)" ] && fatal "\$PORTDIR couldn't be determined"
 	[ ! -d "${descdir}" ] && fatal "${descdir} does not exist or is not a directory"
 	[ ! -r "${descdir}/use.desc" ] && fatal "${descdir}/use.desc is not readable"
 	[ ! -r "${descdir}/use.local.desc" ] && fatal "${descdir}/use.local.desc is not readable"
+
 	for make_defaults in $(get_all_make_defaults); do
 		[ ! -r "$make_defaults" ]  && fatal "$_make_defaults is not readable"
 	done
@@ -98,7 +130,7 @@ check_sanity() {
 
 showhelp() {
 cat << HELP
-${PROGRAM_NAME} (${PROGRAM_VERSION}-JJ0)
+${PROGRAM_NAME} (${VERSION})
 
 Syntax: ${PROGRAM_NAME} <option> [suboptions] [useflaglist]
 
@@ -128,7 +160,7 @@ HELP
 
 showversion() {
 cat << VER
-${PROGRAM_NAME} (${PROGRAM_VERSION})
+${PROGRAM_NAME} (${VERSION})
 Written by Marius Mauch
 
 Copyright (C) 2004-2009 Gentoo Foundation, Inc.
@@ -238,8 +270,10 @@ get_useflags() {
 	
 	ACTIVE_FLAGS[0]="$(reduce_incrementals ${USE})"
 	USE=""
-	source "${MAKE_CONF_PATH}"
-	ACTIVE_FLAGS[1]="$(reduce_incrementals ${USE})"
+	for x in $(get_all_make_conf); do
+		source "${x}"
+		ACTIVE_FLAGS[1]="$(reduce_incrementals ${ACTIVE_FLAGS[1]} ${USE})"
+	done
 	USE=""
 	for x in $(get_all_make_defaults); do
 		source "${x}"
@@ -275,7 +309,7 @@ get_portageuseflags() {
 	# get the currently active USE flags as seen by portage, this has to be after
 	# restoring USE or portage won't see the original environment
 	# Bug 181309, emerge may complain if EMERGE_DEFAULT_OPTS="--ask" is set
-	ACTIVE_FLAGS[9]="$(emerge --ignore-default-opts --info | grep 'USE=' | cut -b 5- | sed -e 's:"::g')" #'
+	ACTIVE_FLAGS[9]="$(portageq envvar USE)" #'
 	_PORTAGE_USE_FLAGS_CALCULATED=1
 } # }}}
 
@@ -379,6 +413,13 @@ get_useflaglist_ebuild() {
 	done
 } # }}}
 
+# get all make.conf files that exist on the system
+get_all_make_conf() {
+	# At least one of the files exists or we would not have made it this far
+	for x in ${ETC}/make.conf ${ETC}/portage/make.conf; do
+		[ -e "${x}" ] && echo "${x}"
+	done
+}
 # Function: traverse_profile {{{
 # General method of collecting the contents of a profile
 # component by traversing through the cascading profile
@@ -631,7 +672,9 @@ get_portdir() {
 		for x in $(get_all_make_defaults); do
 			source "${x}"
 		done
-		source "${MAKE_CONF_PATH}"
+		for x in $(get_all_make_conf); do
+			source "${x}"
+		done
 		USE="${use_backup}"
 	fi
 	echo "${PORTDIR}"
@@ -687,7 +730,7 @@ showdesc() {
 	
 	set -f
 	args="${*:-*}"
-	
+
 	if [ -z "${SCOPE}" ]; then
 		SCOPE="global" showdesc ${args}
 		echo
@@ -704,7 +747,7 @@ showdesc() {
 	if [ "${args}" == "*" ]; then
 		args="${useflags[*]}"
 	fi
-	
+
 	set ${args}
 
 	foundone=0
@@ -718,7 +761,7 @@ showdesc() {
 				foundone=1
 			fi
 		fi
-		# local flags are a bit more complicated as there can be multiple 
+		# local flags are a bit more complicated as there can be multiple
 		# entries per flag and we can't pipe into printf
 		if [[ "${SCOPE}" == "local" ]]; then
 			if array_contains "${useflags[*]}" "$1"; then
@@ -788,13 +831,13 @@ showinstdesc() {
 
 	descdir="$(get_portdir)/profiles"
 	echo "************************************************************"
-	
+
 	if [ "${args}" = "*" ]; then
 		args="$(get_useflaglist | sort -u)"
 	fi
-	
+
 	set "${args[@]}"
-	
+
 	while [ -n "${1}" ]; do
 		case "${SCOPE}" in
 			"global")
@@ -834,7 +877,7 @@ showinstdesc() {
 		esac
 		shift
 	done
-	
+
 	if [ ${foundone} -lt 1 ]; then
 		echo "no matching entries found"
 	fi
@@ -847,13 +890,13 @@ showflags() {
 	local args
 
 	get_useflags
-	
+
 	args="${*:-*}"
-	
+
 	if [ "${args}" == "*" ]; then
 		args="$(get_useflaglist | sort -u)"
 	fi
-	
+
 	set ${args}
 	get_portageuseflags
 	
@@ -1127,11 +1170,11 @@ modify() {
 			set $(get_useflaglist | sort -u)
 		fi
 	fi
-	
+
 	get_useflags
-	
+
 	NEW_MAKE_CONF_USE=" ${ACTIVE_FLAGS[1]} "
-	
+
 	while [ -n "${1}" ]; do
 		if [ "${ACTION}" == "add" ]; then
 			if echo " ${NEW_MAKE_CONF_USE} " | grep " ${1} " > /dev/null; then
@@ -1176,13 +1219,13 @@ modify() {
 			shift
 		fi
 	done
-	
+
 	#echo "old flags:"
 	#echo ${ACTIVE_FLAGS[1]}
 	#echo
 	#echo "new flags:"
 	#echo ${NEW_MAKE_CONF_USE}
-	
+
 	# a little loop to add linebreaks so we don't end with one ultra-long line
 	NEW_MAKE_CONF_USE_2=""
 	for x in ${NEW_MAKE_CONF_USE}; do
@@ -1195,9 +1238,9 @@ modify() {
 
 	# make a backup just in case the user doesn't like the new make.conf
 	cp -p "${MAKE_CONF_PATH}" "${MAKE_CONF_BACKUP_PATH}"
-	
+
 	# as sed doesn't really work with multi-line patterns we have to replace USE
-	# on our own here. Basically just skip everything between USE=" and the 
+	# on our own here. Basically just skip everything between USE=" and the
 	# closing ", printing our new USE line there instead.
 	inuse=0
 	had_use=0
@@ -1226,7 +1269,7 @@ modify() {
 		echo -ne "${NEW_MAKE_CONF_USE_2%% }"
 		echo '"'
 	fi ) < "${MAKE_CONF_BACKUP_PATH}" | sed -e 's:\\ $:\\:' > "${MAKE_CONF_PATH}"
-	
+
 	echo "${MAKE_CONF_PATH} was modified, a backup copy has been placed at ${MAKE_CONF_BACKUP_PATH}"
 } # }}}
 

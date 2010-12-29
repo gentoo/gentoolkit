@@ -3,35 +3,29 @@
 # $Header: $
 # This program is licensed under the GPL, version 2
 
-import os
 import sys
+import os
 import codecs
-try:
-	import portage
-except ImportError:
-	sys.path.insert(0, "/usr/lib/portage/pym")
-	import portage
+from functools import reduce
 
-try:
-	from portage.output import *
-except ImportError:
-	from output import *
+import portage
+from portage.output import *
 
 from getopt import getopt, GetoptError
 
 __program__ = "glsa-check"
 __author__ = "Marius Mauch <genone@gentoo.org>"
-__version__ = open("/usr/share/gentoolkit/VERSION").read().strip()
+__version__ = "svn"
 
 optionmap = [
-["-l", "--list", "list all unapplied GLSA"],
-["-d", "--dump", "--print", "show all information about the given GLSA"],
-["-t", "--test", "test if this system is affected by the given GLSA"],
-["-p", "--pretend", "show the necessary commands to apply this GLSA"],
-["-f", "--fix", "try to auto-apply this GLSA (experimental)"],
+["-l", "--list", "list the GLSAs"],
+["-d", "--dump", "--print", "show all information about the GLSAs"],
+["-t", "--test", "test if this system is affected by the GLSAs"],
+["-p", "--pretend", "show the necessary steps to apply the GLSAs"],
+["-f", "--fix", "try to auto-apply the GLSAs (experimental)"],
 ["-i", "--inject", "inject the given GLSA into the glsa_injected file"],
 ["-n", "--nocolor", "disable colors (option)"],
-["-e", "--emergelike", "do not use a least-change algorithm (option)"],
+["-e", "--emergelike", "upgrade to latest version (not least-change, option)"],
 ["-h", "--help", "show this help message"],
 ["-V", "--version", "some information about this tool"],
 ["-v", "--verbose", "print more information (option)"],
@@ -55,12 +49,12 @@ try:
 	args, params = getopt(sys.argv[1:], "".join([o[0][1] for o in optionmap]), \
 		[x[2:] for x in reduce(lambda x,y: x+y, [z[1:-1] for z in optionmap])])
 	args = [a for a,b in args]
-	
+
 	for option in ["--nocolor", "-n"]:
 		if option in args:
 			nocolor()
 			args.remove(option)
-			
+
 	verbose = False
 	for option in ["--verbose", "-v"]:
 		if option in args:
@@ -72,7 +66,7 @@ try:
 		if option in args:
 			list_cve = True
 			args.remove(option)
-	
+
 	least_change = True
 	for option in ["--emergelike", "-e"]:
 		if option in args:
@@ -100,7 +94,7 @@ try:
 			if args in [o for o in m[:-1]]:
 				mode = m[1][2:]
 
-except GetoptError, e:
+except GetoptError as e:
 	sys.stderr.write("unknown option given: ")
 	sys.stderr.write(str(e)+"\n")
 	mode = "HELP"
@@ -112,8 +106,8 @@ if len(params) <= 0 and mode in ["fix", "test", "pretend", "dump", "inject", "ma
 	sys.stderr.write("(specify \"all\" as parameter)\n\n")
 	mode = "HELP"
 elif len(params) <= 0 and mode == "list":
-	params.append("new")
-	
+	params.append("affected")
+
 # show help message
 if mode == "help" or mode == "HELP":
 	msg = "Syntax: glsa-check <option> [glsa-list]\n\n"
@@ -123,7 +117,7 @@ if mode == "help" or mode == "HELP":
 			msg += "\t" + o + "\n"
 	msg += "\nglsa-list can contain an arbitrary number of GLSA ids, \n"
 	msg += "filenames containing GLSAs or the special identifiers \n"
-	msg += "'all', 'new' and 'affected'\n"
+	msg += "'all' and 'affected'\n"
 	if mode == "help":
 		sys.stdout.write(msg)
 		sys.exit(0)
@@ -154,8 +148,8 @@ glsaconfig = checkconfig(portage.config(clone=portage.settings))
 if quiet:
     glsaconfig["EMERGE_OPTS"] += " --quiet"
 
-vardb = portage.db["/"]["vartree"].dbapi
-portdb = portage.db["/"]["porttree"].dbapi
+vardb = portage.db[portage.root]["vartree"].dbapi
+portdb = portage.db[portage.root]["porttree"].dbapi
 
 # Check that we really have a glsa dir to work on
 if not (os.path.exists(glsaconfig["GLSA_DIR"]) and os.path.isdir(glsaconfig["GLSA_DIR"])):
@@ -173,18 +167,19 @@ todolist = [e for e in completelist if e not in checklist]
 
 glsalist = []
 if "new" in params:
-	glsalist = todolist
 	params.remove("new")
-	
+	sys.stderr.write("Warning: The 'new' glsa-list target has been removed, using 'affected'.\n")
+	params.append("affected")
+
 if "all" in params:
 	glsalist = completelist
 	params.remove("all")
+
 if "affected" in params:
-	# replaced completelist with todolist on request of wschlich
 	for x in todolist:
 		try:
 			myglsa = Glsa(x, glsaconfig)
-		except (GlsaTypeException, GlsaFormatException), e:
+		except (GlsaTypeException, GlsaFormatException) as e:
 			if verbose:
 				sys.stderr.write(("invalid GLSA: %s (error message was: %s)\n" % (x, e)))
 			continue
@@ -201,6 +196,13 @@ for p in params[:]:
 glsalist.extend([g for g in params if g not in glsalist])
 
 def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr, encoding="utf-8"):
+	# Get to the raw streams in py3k before wrapping them with an encoded writer
+	# to avoid writing bytes to a text stream (stdout/stderr are text streams
+	# by default in py3k)
+	if hasattr(fd1, "buffer"):
+		fd1 = fd1.buffer
+	if hasattr(fd2, "buffer"):
+		fd2 = fd2.buffer
 	fd1 = codecs.getwriter(encoding)(fd1)
 	fd2 = codecs.getwriter(encoding)(fd2)
 	if not quiet:
@@ -212,7 +214,7 @@ def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr, encoding="utf-8"):
 	for myid in myglsalist:
 		try:
 			myglsa = Glsa(myid, glsaconfig)
-		except (GlsaTypeException, GlsaFormatException), e:
+		except (GlsaTypeException, GlsaFormatException) as e:
 			if verbose:
 				fd2.write(("invalid GLSA: %s (error message was: %s)\n" % (myid, e)))
 			continue
@@ -233,7 +235,7 @@ def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr, encoding="utf-8"):
 
 		fd1.write(color(myglsa.nr) + " " + color(status) + " " + color(access) + myglsa.title + " (")
 		if not verbose:
-			for pkg in myglsa.packages.keys()[:3]:
+			for pkg in list(myglsa.packages.keys())[:3]:
 				fd1.write(" " + pkg + " ")
 			if len(myglsa.packages) > 3:
 				fd1.write("... ")
@@ -258,17 +260,21 @@ if mode in ["dump", "fix", "inject", "pretend"]:
 	for myid in glsalist:
 		try:
 			myglsa = Glsa(myid, glsaconfig)
-		except (GlsaTypeException, GlsaFormatException), e:
+		except (GlsaTypeException, GlsaFormatException) as e:
 			if verbose:
 				sys.stderr.write(("invalid GLSA: %s (error message was: %s)\n" % (myid, e)))
 			continue
 		if mode == "dump":
 			myglsa.dump()
 		elif mode == "fix":
-			sys.stdout.write("Fixing GLSA "+myid+"\n")
+			if not quiet:
+				sys.stdout.write("Fixing GLSA "+myid+"\n")
 			if not myglsa.isVulnerable():
-				sys.stdout.write(">>> no vulnerable packages installed\n")
+				if not quiet:
+					sys.stdout.write(">>> no vulnerable packages installed\n")
 			else:
+				if quiet:
+					sys.stdout.write("Fixing GLSA "+myid+"\n")
 				mergelist = myglsa.getMergeList(least_change=least_change)
 				if mergelist == []:
 					sys.stdout.write(">>> cannot fix GLSA, no unaffected packages available\n")
@@ -287,24 +293,36 @@ if mode in ["dump", "fix", "inject", "pretend"]:
 						exitcode >>= 8
 					if exitcode:
 						sys.exit(exitcode)
-			if len(mergelist):
-				sys.stdout.write("\n")
+				if len(mergelist):
+					sys.stdout.write("\n")
 		elif mode == "pretend":
-			sys.stdout.write("Checking GLSA "+myid+"\n")
+			if not quiet:
+				sys.stdout.write("Checking GLSA "+myid+"\n")
 			if not myglsa.isVulnerable():
-				sys.stdout.write(">>> no vulnerable packages installed\n")
+				if not quiet:
+					sys.stdout.write(">>> no vulnerable packages installed\n")
 			else:
+				if quiet:
+					sys.stdout.write("Checking GLSA "+myid+"\n")
 				mergedict = {}
 				for (vuln, update) in myglsa.getAffectionTable(least_change=least_change):
 					mergedict.setdefault(update, []).append(vuln)
-				
-				sys.stdout.write(">>> The following updates will be performed for this GLSA:\n")
-				for pkg in mergedict:
-					if pkg != "":
-						sys.stdout.write("     " + pkg + " (vulnerable: " + ", ".join(mergedict[pkg]) + ")\n")
+
+				# first, extract the atoms that cannot be upgraded (where key == "")
+				no_upgrades = []
 				if "" in mergedict:
-					sys.stdout.write("\n>>> For the following packages, no upgrade path exists:\n")
-					sys.stdout.write("     " + ", ".join(mergedict[""]))
+					no_upgrades = mergedict[""]
+					del mergedict[""]
+
+				# see if anything is left that can be upgraded
+				if mergedict:
+					sys.stdout.write(">>> Updates that will be performed:\n")
+					for (upd, vuln) in mergedict.items():
+						sys.stdout.write("     " + green(upd) + " (vulnerable: " + red(", ".join(vuln)) + ")\n")
+
+				if no_upgrades:
+					sys.stdout.write(">>> No upgrade path exists for these packages:\n")
+					sys.stdout.write("     " + red(", ".join(no_upgrades)) + "\n")
 		elif mode == "inject":
 			sys.stdout.write("injecting " + myid + "\n")
 			myglsa.inject()
@@ -316,7 +334,7 @@ if mode == "test":
 	for myid in glsalist:
 		try:
 			myglsa = Glsa(myid, glsaconfig)
-		except (GlsaTypeException, GlsaFormatException), e:
+		except (GlsaTypeException, GlsaFormatException) as e:
 			if verbose:
 				sys.stderr.write(("invalid GLSA: %s (error message was: %s)\n" % (myid, e)))
 			continue
@@ -338,9 +356,9 @@ if mode == "mail":
 		import portage.mail as portage_mail
 	except ImportError:
 		import portage_mail
-		
+
 	import socket
-	from StringIO import StringIO
+	from io import StringIO
 	try:
 		from email.mime.text import MIMEText
 	except ImportError:
@@ -353,7 +371,7 @@ if mode == "mail":
 		myrecipient = glsaconfig["PORTAGE_ELOG_MAILURI"].split()[0]
 	else:
 		myrecipient = "root@localhost"
-	
+
 	if "PORTAGE_ELOG_MAILFROM" in glsaconfig:
 		myfrom = glsaconfig["PORTAGE_ELOG_MAILFROM"]
 	else:
@@ -373,7 +391,7 @@ if mode == "mail":
 	for myid in glsalist:
 		try:
 			myglsa = Glsa(myid, glsaconfig)
-		except (GlsaTypeException, GlsaFormatException), e:
+		except (GlsaTypeException, GlsaFormatException) as e:
 			if verbose:
 				sys.stderr.write(("invalid GLSA: %s (error message was: %s)\n" % (myid, e)))
 			continue
@@ -382,12 +400,12 @@ if mode == "mail":
 		myattachments.append(MIMEText(str(myfd.getvalue()), _charset="utf8"))
 		myfd.close()
 
-        if glsalist or not quiet:
+	if glsalist or not quiet:
 		mymessage = portage_mail.create_message(myfrom, myrecipient, mysubject, summary, myattachments)
 		portage_mail.send_mail(glsaconfig, mymessage)
-		
+
 	sys.exit(0)
-	
+
 # something wrong here, all valid paths are covered with sys.exit()
 sys.stderr.write("nothing more to do\n")
 sys.exit(2)
