@@ -1,5 +1,8 @@
 import unittest
-from test import test_support
+try:
+	from test import test_support
+except ImportError:
+	from test import support as test_support
 
 from gentoolkit import equery
 
@@ -14,6 +17,7 @@ class TestEqueryInit(unittest.TestCase):
 	def test_expand_module_name(self):
 		# Test that module names are properly expanded
 		name_map = {
+			'a': 'has',
 			'b': 'belongs',
 			'c': 'changes',
 			'k': 'check',
@@ -21,12 +25,14 @@ class TestEqueryInit(unittest.TestCase):
 			'g': 'depgraph',
 			'f': 'files',
 			'h': 'hasuse',
+			'y': 'keywords',
 			'l': 'list_',
 			'm': 'meta',
 			's': 'size',
 			'u': 'uses',
 			'w': 'which'
 		}
+		self.failUnlessEqual(equery.NAME_MAP, name_map)
 		for short_name, long_name in zip(name_map, name_map.values()):
 			self.failUnlessEqual(equery.expand_module_name(short_name),
 				long_name)
@@ -36,8 +42,10 @@ class TestEqueryInit(unittest.TestCase):
 		for key in unused_keys:
 			self.failUnlessRaises(KeyError, equery.expand_module_name, key)
 
+
 def test_main():
 	test_support.run_unittest(TestEqueryInit)
+
 
 if __name__ == '__main__':
 	test_main()

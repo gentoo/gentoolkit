@@ -6,6 +6,8 @@
 
 """Print total size of files contained in a given package"""
 
+from __future__ import print_function
+
 __docformat__ = 'epytext'
 
 # =======
@@ -16,23 +18,21 @@ import sys
 from getopt import gnu_getopt, GetoptError
 
 import gentoolkit.pprinter as pp
-from gentoolkit.equery import format_options, mod_usage, Config
-from gentoolkit.helpers2 import do_lookup
+from gentoolkit.equery import format_options, mod_usage, CONFIG
+from gentoolkit.query import Query
 
 # =======
 # Globals
 # =======
 
 QUERY_OPTS = {
-	"categoryFilter": None,
-	"includeInstalled": False,
-	"includePortTree": False,
-	"includeOverlayTree": False,
-	"includeMasked": True,
-	"isRegex": False,
-	"matchExact": False,
-	"printMatchInfo": False,
-	"sizeInBytes": False
+	"in_installed": True,
+	"in_porttree": False,
+	"in_overlay": False,
+	"include_masked": True,
+	"is_regex": False,
+	"show_progress": False,
+	"size_in_bytes": False
 }
 
 # =========
@@ -41,31 +41,34 @@ QUERY_OPTS = {
 
 def print_help(with_description=True):
 	"""Print description, usage and a detailed help message.
-	
+
 	@type with_description: bool
 	@param with_description: if true, print module's __doc__ string
 	"""
 
 	if with_description:
-		print __doc__.strip()
-		print
+		print(__doc__.strip())
+		print()
 
-	# Deprecation warning added 04/09: djanderson
-	pp.print_warn("Default action for this module has changed in Gentoolkit 0.3.")
-	pp.print_warn("-e, --exact-name is now the default behavior.")
-	pp.print_warn("Use globbing to simulate the old behavior (see man equery).")
-	pp.print_warn("Use '*' to check all installed packages.")
-	print
+	# Deprecation warning added by djanderson, 12/2008
+	depwarning = (
+		"Default action for this module has changed in Gentoolkit 0.3.",
+		"Use globbing to simulate the old behavior (see man equery).",
+		"Use '*' to check all installed packages.",
+		"Use 'foo-bar/*' to filter by category."
+	)
+	for line in depwarning:
+		sys.stderr.write(pp.warn(line))
+	print()
 
-	print mod_usage(mod_name="size")
-	print
-	print pp.command("options")
-	print format_options((
+	print(mod_usage(mod_name="size"))
+	print()
+	print(pp.command("options"))
+	print(format_options((
 		(" -h, --help", "display this help message"),
 		(" -b, --bytes", "report size in bytes"),
-		(" -c, --category CAT", "only search in the category CAT"),
 		(" -f, --full-regex", "query is a regular expression")
-	))
+	)))
 
 
 def display_size(match_set):
@@ -76,25 +79,25 @@ def display_size(match_set):
 	"""
 
 	for pkg in match_set:
-		(size, files, uncounted) = pkg.size()
+		size, files, uncounted = pkg.size()
 
-		if Config['verbose']:
-			print " * %s" % pp.cpv(pkg.cpv)
-			print "Total files : %s".rjust(25) % pp.number(str(files))
+		if CONFIG['verbose']:
+			pp.uprint(" * %s" % pp.cpv(str(pkg.cpv)))
+			print("Total files : %s".rjust(25) % pp.number(str(files)))
 
 			if uncounted:
-				pp.print_info(0, "Inaccessible files : %s".rjust(25) %
-					pp.number(str(uncounted)))
+				print(("Inaccessible files : %s".rjust(25) %
+					pp.number(str(uncounted))))
 
-			if QUERY_OPTS["sizeInBytes"]:
+			if QUERY_OPTS["size_in_bytes"]:
 				size_str = pp.number(str(size))
 			else:
 				size_str = "%s %s" % format_bytes(size)
 
-			pp.print_info(0, "Total size  : %s".rjust(25) % size_str)
+			print("Total size  : %s".rjust(25) % size_str)
 		else:
 			info = "%s: total(%d), inaccessible(%d), size(%s)"
-			print info % (pkg.cpv, files, uncounted, size)
+			pp.uprint(info % (str(pkg.cpv), files, uncounted, size))
 
 
 def format_bytes(bytes_, precision=2):
@@ -106,10 +109,10 @@ def format_bytes(bytes_, precision=2):
 	"""
 
 	labels = (
-		(1<<40L, 'TiB'),
-		(1<<30L, 'GiB'),
-		(1<<20L, 'MiB'),
-		(1<<10L, 'KiB'),
+		(1<<40, 'TiB'),
+		(1<<30, 'GiB'),
+		(1<<20, 'MiB'),
+		(1<<10, 'KiB'),
 		(1, 'bytes')
 	)
 
@@ -134,24 +137,22 @@ def format_bytes(bytes_, precision=2):
 
 
 def parse_module_options(module_opts):
-	"""Parse module options and update GLOBAL_OPTS"""
+	"""Parse module options and update QUERY_OPTS"""
 
 	opts = (x[0] for x in module_opts)
-	posargs = (x[1] for x in module_opts)
-	for opt, posarg in zip(opts, posargs):
+	for opt in opts:
 		if opt in ('-h', '--help'):
 			print_help()
 			sys.exit(0)
 		elif opt in ('-b', '--bytes'):
-			QUERY_OPTS["sizeInBytes"] = True
-		elif opt in ('-c', '--category'):
-			QUERY_OPTS['categoryFilter'] = posarg
+			QUERY_OPTS["size_in_bytes"] = True
 		elif opt in ('-e', '--exact-name'):
-			pp.print_warn("-e, --exact-name is now default.")
-			pp.print_warn("Use globbing to simulate the old behavior.")
-			print
+			sys.stderr.write(pp.warn("-e, --exact-name is now default."))
+			warning = pp.warn("Use globbing to simulate the old behavior.")
+			sys.stderr.write(warning)
+			print()
 		elif opt in ('-f', '--full-regex'):
-			QUERY_OPTS['isRegex'] = True
+			QUERY_OPTS['is_regex'] = True
 
 
 def main(input_args):
@@ -159,41 +160,37 @@ def main(input_args):
 
 	# -e, --exact-name is no longer needed. Kept for compatibility.
 	# 04/09 djanderson
-	short_opts = "hbc:fe"
-	long_opts = ('help', 'bytes', 'category=', 'full-regex', 'exact-name')
+	short_opts = "hbfe"
+	long_opts = ('help', 'bytes', 'full-regex', 'exact-name')
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
-	except GetoptError, err:
-		pp.print_error("Module %s" % err)
-		print
+	except GetoptError as err:
+		sys.stderr.write(pp.error("Module %s" % err))
+		print()
 		print_help(with_description=False)
 		sys.exit(2)
 
 	parse_module_options(module_opts)
-	
-	if not queries and not QUERY_OPTS["includeInstalled"]:
+
+	if not queries:
 		print_help()
 		sys.exit(2)
-	elif queries and not QUERY_OPTS["includeInstalled"]:
-		QUERY_OPTS["includeInstalled"] = True
-	elif QUERY_OPTS["includeInstalled"]:
-		queries = ["*"]
-
-	#
-	# Output
-	#
 
 	first_run = True
-	for query in queries:
+	for query in (Query(x, QUERY_OPTS['is_regex']) for x in queries):
 		if not first_run:
-			print
+			print()
 
-		matches = do_lookup(query, QUERY_OPTS)
+		matches = query.smart_find(**QUERY_OPTS)
 
 		if not matches:
-			pp.print_error("No package found matching %s" % query)
+			sys.stderr.write(pp.error("No package found matching %s" % query))
+
+		matches.sort()
 
 		display_size(matches)
 
 		first_run = False
+
+# vim: set ts=4 sw=4 tw=79:

@@ -1,0 +1,47 @@
+.TH "eshowkw" "1" "" "Tomáš Chvátal" ""
+.SH "NAME"
+.LP 
+eshowkw \- Gentoo: Tool to package keywords
+.SH "SYNOPSIS"
+.B eshowkw
+[OPTIONS] [\-\-] [package [package ...]]
+.SH "DESCRIPTION"
+Display keywords for specified package(s) or for package that is in the current working directory.
+
+.SH "OPTIONS"
+.TP 
+.B package
+The packages to check. (The default is to read ebuilds in the current directory)
+.TP 
+.B \-h | \-\-help
+Print usage.
+.TP 
+.B   \-v | \-\-version
+Show version and exit.
+.TP 
+.B \-a=ARCH[,ARCH ...] | \-\-arch=ARCH[,ARCH ...]
+Display only specified architectures.
+.TP 
+.B \-A {top,bottom} | \-\-align {top,bottom}
+Specify alignment for descriptions. (default: bottom)
+.TP 
+.B \-T {archlist,versionlist} | \-\-top\-position {archlist,versionlist}
+Specify which fields we want to have in top listing. (default: archlist)
+.TP 
+.B \-B | \-\-bold
+Print out each other column in bold for easier visual separation. (default: False)
+.TP 
+.B \-C | \-\-color
+Force colored output (default: False)
+.TP 
+.B \-O | \-\-overlays
+Search overlays (default: False)
+.TP 
+.B \-P | \-\-prefix
+Display prefix keywords in output. (default: False)
+.TP 
+.B \-S | \-\-ignore\-slot
+Treat slots as irelevant during detection of redundant packages. (default: False)
+.SH "BUGS"
+.LP 
+Report bugs to <http://bugs.gentoo.org>.

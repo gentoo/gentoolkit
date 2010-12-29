@@ -1,42 +1,25 @@
 #!/usr/bin/python
 #
 # Copyright 2003-2004 Karl Trygve Kalleberg
-# Copyright 2003-2009 Gentoo Technologies, Inc.
+# Copyright 2003-2009 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 #
 # $Header$
 
-# =======
-# Imports 
-# =======
+"""Gentoolkit is a collection of administration scripts for Gentoo"""
 
-import portage
-try:
-	from threading import Lock
-except ImportError:
-	# If we don't have thread support, we don't need to worry about
-	# locking the global settings object. So we define a "null" Lock.
-	class Lock(object):
-		def acquire(self):
-			pass
-		def release(self):
-			pass
+import sys
 
-# =======
-# Globals
-# =======
-
-PORTDB = portage.db[portage.root]["porttree"].dbapi
-VARDB  = portage.db[portage.root]["vartree"].dbapi
-VIRTUALS = portage.db[portage.root]["virtuals"]
-
-Config = {
-	"verbosityLevel": 3
+CONFIG = {
+    # Color handling: -1: Use Portage settings, 0: Force off, 1: Force on
+    'color': -1,
+    # Guess piping output:
+    'piping': False if sys.stdout.isatty() else True,
+    # Set some defaults:
+    'quiet': False,
+    # verbose is True if not quiet and not piping
+    'verbose': True,
+    'debug': False
 }
 
-try:
-	settingslock = Lock()
-	settings = portage.config(clone=portage.settings)
-except portage.exception.PermissionDenied, err:
-	sys.stderr.write("Permission denied: '%s'\n" % str(err))
-	sys.exit(e.errno)
+# vim: set ts=8 sw=4 tw=79:

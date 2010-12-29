@@ -1,0 +1,210 @@
+.TH "ANALYSE" "22" "Febuary 2010" "GENTOOLKIT"
+.SH "NAME"
+analyse \- Gentoo Installed Package Analysis Tool
+
+.SH "SYNOPSIS"
+.BI "analyse " "[global-options] " "module " "[local-options]" "TARGET"
+
+.SH "DESCRIPTION"
+.B Analyse
+Is a collection of modules for analysing the state of installed Gentoo packages for
+USE flags or keywords used for installation, and their current masking status.
+.br
+It can also optionally (re)generate new /etc/portage/package.* files.
+.br 
+
+.br
+.B CAUTION:
+This is beta software and is not yet feature complete. Some features, options or its name
+may change in the future.   Any files that it generates are saved to your home directory
+and will not harm your system without effort on your part.
+.br
+
+.SH "GLOBAL OPTIONS"
+.HP
+.B \-h, \-\-help
+.br
+Output a help message.
+.HP
+.B \-q, \-\-quiet
+.br
+Be less verbose where possible. In some modules, this option can increase the output speed.
+.HP
+.B \-C, \-\-no-color
+.br
+Do not colorize output.
+.HP
+.B \-N, \-\-no\-pipe
+.br
+Turn off automatic pipe detection. Use this option if you do not want
+.B analyse
+To detect if the output is being directed to the screen or to another program
+and adjust color and verbosity accordingly.
+.HP
+.B \-V, \-\-version
+.br
+Display \fBGentoolkit\fP's version. Please include this in all bug reports. (see
+.B BUGS
+below)
+
+.SH "MODULES"
+.B Analyse
+Uses a system of modules. Each module has both a long and short name. 
+The list below uses the notation "\fBmodule (m)\fP", where \fIm\fP is the short name
+and \fImodule\fP is the long name.
+.P
+You can view the
+.B help
+message for a specific module by using
+.BR "-h" ", " "--help "
+as either a global option (after
+.B analyse
+and before the module name) or as a local option (after the module name).
+
+.SS
+.BI "analyse (a) [OPTIONS] TARGET"
+Report on all installed packages for \fITARGET\fP.
+.P
+
+.IR "TARGET" ":"
+.HP
+.B use
+.br
+Will analyse the installed with USE flags for output results.
+.HP
+.B pkguse
+.br
+Will analyse the USE flags information from the installed pkg's 'PKGUSE' file which contains 
+only flags settings from /etc/portage/package.use at the time of installation.
+.HP
+.B keywords
+.br
+Will analyse the recorded keywords for output results.
+.HP
+.B unmask
+.br
+Will analyse the installed packages and portage trees for pkgs that require unmasking and report them.
+.br
+.P
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-u, \-\-unset
+.br
+Will also include any USE flags used that were not enabled for some packages.
+.HP
+.B \-v, \-\-verebose
+.br
+Gives more detail about the results found and the current task being performed.
+
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+analyse a --verbose --unset use
+.EE
+.br
+Report on all use flags used to install the packages.  (--unset) Include in the report all flags
+that have been used but also were not set enabled for some packages.  
+(--verbose) Also list the packages that used the USE flag setting.
+The report will break down the useage and report the USE flag up to 3 times indicating its
+setting {"+","-"," "= unset} prepended to the flag name. 
+It will also color the output, red = Disabled, blue = Enabled, plain text = unset
+.br
+
+.SS
+.BI "rebuild (r) [OPTIONS] TARGET"
+Create a list all packages for \fITARGET\fP settings that are needed for
+other than the default settings.
+
+.IR "TARGET" ":"
+.HP
+.B use
+.br
+Will analyse the USE flags for output results.
+.HP
+.B keywords
+.br
+Will analyse the keywords for output results.
+.HP
+.B unmask
+.br
+Will analyse the installed packages and portage trees for pkgs that require
+unmasking and produce output/a new /etc/portage/package.unmask file.
+.P
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-a, \-\-all
+.br
+Create files/output for all TARGET(s) found to need it. (not Implemented yet)
+.HP
+.B \-e, \-\-excact
+.br
+Will prepend the pkg with = as well as use the version information for the entries.
+.br
+eg.:  =CAT/PKG-VER flag1 flag2
+.HP
+.B \-p, \-\-pretend
+.br
+Sends the output to the screen instead of a file.
+.HP
+.B \-v, \-\-verebose
+.br
+Gives more detail about the results found and the current task being performed.
+.P
+.IR "EXAMPLES" ":"
+.EX
+.HP
+analyse rebuild -p use
+.EE
+.br
+Analyse the installed packages database and current system USE flag settings
+ and output the results in the form of:
+.br
+   
+.br
+.EX
+CAT/PKG -flag1 -flag2 flag3 flag4...
+
+.SS
+.BI "clean (c) [OPTIONS] TARGET"
+Clean all packages for \fITARGET\fP settings that are found with obsolete settings
+for the current settings and pkg ebuild. (not Implemented yet)
+
+.IR "TARGET" ":"
+.HP
+.B use
+.br
+Will analyse the USE flags and /etc/portage/package.use file(s) for entries that
+are redundant or no longer used by the pkg.
+.HP
+.B keywords
+.br
+Will analyse the keywords and /etc/portage/package.keywords file(s) for entries
+that are no longer needed.
+.HP
+.B unmask
+.br
+Will analyse the installed packages, /etc/portage/package.unmask file(s) and
+portage trees for pkgs that no longer require unmasking.
+.P
+.IR "LOCAL OPTIONS" ":"
+.HP
+.B \-a, \-\-all
+.br
+Clean files/output for all TARGET(s) found to need it. (not Implemented yet)
+.HP
+.B \-p, \-\-pretend
+.br
+Sends the output to the screen instead of a file.
+.HP
+.B \-v, \-\-verebose
+.br
+Gives more detail about the results found and the current task being performed.
+
+
+.SH "BUGS"
+Submit bug reports to http://bugs.gentoo.org.
+
+.SH "AUTHORS"
+.br
+Brian Dolbec <brian.dolbec@gmail.com>, 2010

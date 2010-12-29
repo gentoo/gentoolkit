@@ -1,0 +1,39 @@
+Adding or modifying code:
+=========================
+- If you add new code, best practice is to write a test for it.
+- If you're modifying code that doesn't have a test and you can write a test
+  for it, please do.
+- Before committing your changes to a python file, please make sure it passes
+  pylint with:
+pylint --rcfile=pylintrc yourfile.py
+- If pylint raises a warning or error that you don't agree with, it's probably
+  better to just change your code. If you're sure you have a good reason for
+  doing what you're doing, you can add an exception to our pylintrc.
+
+Creating a release:
+===================
+Note: We are using VERSION="0.3.0" simply as an example.
+
+- Run Gentoolkit's test suite, make sure it passes:
+Note: requires dev-python/snakeoil
+
+Note: If running from the gentoolkit repository, please grab the eclean test file from:
+http://genscripts.googlecode.com/svn/trunk/gentoolkit/pym/gentoolkit/test/eclean/testdistfiles.tar.gz
+Please do not add/commit the test file to the gentoolkit repository
+
+./setup.py test
+
+- Create a tag for the release
+svn copy svn+ssh://<dev>@svn.gentoo.org/var/svnroot/gentoolkit/trunk/gentoolkit \
+         svn+ssh://<dev>@svn.gentoo.org/var/svnroot/gentoolkit/tags/gentoolkit-0.3.0 \
+	 -m "Tagging the <VERSION> release of gentoolkit."
+svn update to pull the tag from subversion
+cd to the local tags/gentoolkit-0.3.0 directory
+
+- Create a source distribution (you need to add VERSION here):
+VERSION="0.3.0" ./setup.py sdist
+Transfer dist/gentoolkit-0.3.0.tar.gz to dev.gentoo.org:/space/distfiles-local
+
+- Clean up temporary files:
+./setup.py clean -a
+

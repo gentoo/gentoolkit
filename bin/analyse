@@ -1,0 +1,48 @@
+#!/usr/bin/python
+#
+# Copyright 2010 Brian Dolbec <brian.dolbec@gmail.com>
+# Copyright 2002-2010 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2 or later
+#
+# $Header$
+
+"""'analyse' is a flexible utility for Gentoo linux which can display various
+information about installed packages, such as the USE flags used and the
+packages that use them.  It can also be used to help rebuild /etc/portage/package.*
+files in the event of corruption, and possibly more.
+"""
+
+from __future__ import print_function
+
+import sys
+# This block ensures that ^C interrupts are handled quietly.
+try:
+	import signal
+
+	def exithandler(signum,frame):
+		signal.signal(signal.SIGINT, signal.SIG_IGN)
+		signal.signal(signal.SIGTERM, signal.SIG_IGN)
+		print()
+		sys.exit(1)
+
+	signal.signal(signal.SIGINT, exithandler)
+	signal.signal(signal.SIGTERM, exithandler)
+	signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
+except KeyboardInterrupt:
+	print()
+	sys.exit(1)
+
+from gentoolkit import analyse, errors
+
+try:
+	analyse.main()
+except errors.GentoolkitException as err:
+	if '--debug' in sys.argv:
+		raise
+	else:
+		from gentoolkit import pprinter as pp
+		sys.stderr.write(pp.error(str(err)))
+		print()
+		print("Add '--debug' to global options for traceback.")
+		sys.exit(1)

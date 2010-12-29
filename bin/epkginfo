@@ -1,244 +1,54 @@
 #!/usr/bin/python
-##############################################################################
-# $Header: $
-##############################################################################
-# Distributed under the terms of the GNU General Public License, v2 or later
-# Author: Ned Ludd <solar@gentoo.org> (glue all the parts together)
-# Author: Eldad Zack <eldad@gentoo.org> (earch)
-# Author : Eric Olinger <EvvL AT RustedHalo DOT net> (metadata)
+#
+# Copyright 2009 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2 or later
+#
+# $Header$
 
-# Gentoo metadata xml and arch keyword checking tool.
+"""Shortcut to equery meta"""
 
-import os
+from __future__ import print_function
+
+__authors__ = (
+	'Douglas Anderson <douglasjanderson@gmail.com>: equery meta',
+	'Ned Ludd <solar@gentoo.org>: first full implimentation'
+	'Eldad Zack <eldad@gentoo.org>: earch',
+	'Eric Olinger <EvvL AT RustedHalo DOT net>: metadata'
+	)
+
 import sys
-import re
-from stat import *
-from xml.sax import saxutils, make_parser, handler
-from xml.sax.handler import feature_namespaces
 
-import portage
-from portage.output import *
+from gentoolkit import equery, errors
+from gentoolkit.equery import mod_usage
+from gentoolkit.equery.meta import main, print_help
+from portage.exception import AmbiguousPackageName
 
-version = open('/usr/share/gentoolkit/VERSION').read().strip()
+def print_epkginfo_help():
+	print(mod_usage(mod_name="epkginfo"))
+	print()
+	print_help(with_usage=False)
 
-def earch(workdir):
-	"""Prints arch keywords for a given dir"""
-	portdir = portage.settings["PORTDIR"]
-	#workdir = "."
-	os.chdir(workdir)
-
-	archdict = {}
-	ebuildlist = []
-	for file in os.listdir(workdir):
-		if re.search("\.ebuild$",file):
-			ebuildlist.append(re.split("\.ebuild$",file)[0])
-
-	ebuildlist.sort(lambda x,y: portage.pkgcmp(portage.pkgsplit(x),portage.pkgsplit(y)))
-
-	slot_list = []
-
-	for pkg in ebuildlist:		
-		portdb = portage.portdbapi(portdir)
-		aux = portdb.aux_get(workdir.rsplit("/")[-2] + "/" + pkg, ['SLOT', 'KEYWORDS'])
-		
-		slot = aux[0]
-		keywords = keywords = re.split(' ',aux[1])
-		
-		if not slot in slot_list:
-			slot_list.append(slot)
-		
-		for arch in keywords:
-			if arch in archdict:
-				archdict[arch].append((pkg, slot))
-			else:
-				archdict[arch] = [ (pkg, slot) ]
-
-	archlist = archdict.keys();
-	archlist.sort()
-
-	slot_list.sort()
-
-	for slot in slot_list:
-		visible_stable = {}
-		visible_unstable = {}
-		
-		for arch in archlist:
-			visible_stable[arch] = None
-			visible_unstable[arch] = None
-			
-		for pkg in ebuildlist:
-			for arch in archlist:
-				if (arch and (pkg, slot) in archdict[arch]):
-					if arch[0] == "-":
-						pass
-					elif "~" == arch[0]:
-						visible_unstable[arch] = pkg
-					else:
-						visible_unstable[arch] = None
-						visible_stable[arch] = pkg
-		
-		for pkg in ebuildlist:
-			found = False
-			for arch in archlist:
-				if (pkg, slot) in archdict[arch]:
-					found = True
-			
-			if not found:
-				continue
-			
-			if not pkg == ebuildlist[0]:
-				print ""
-				
-			print darkgreen("Keywords: ") + pkg + "[" + slot + "]:",
-			
-			for arch in archlist:
-				if (arch and (pkg, slot) in archdict[arch]):
-					if arch[0] == "-":
-						print red(arch),
-					elif "~" == arch[0]:
-						if visible_unstable[arch] == pkg:
-							print blue(arch),
-					else:
-						if visible_stable[arch] == pkg:
-							print green(arch),
-
-
-class Metadata_XML(handler.ContentHandler):
-	_inside_herd="No"
-	_inside_maintainer="No"
-	_inside_email="No"
-	_inside_longdescription="No"
-
-	_herd = []
-	_maintainers = []
-	_longdescription = ""
-
-	def startElement(self, tag, attr):
-		if tag == "herd":
-			self._inside_herd="Yes"
-		if tag == "longdescription":
-			self._inside_longdescription="Yes"
-		if tag == "maintainer":
-			self._inside_maintainer="Yes"
-		if tag == "email":
-			self._inside_email="Yes"
-
-	def endElement(self, tag):
-		if tag == "herd":
-			self._inside_herd="No"
-		if tag == "longdescription":
-			self._inside_longdescription="No"
-		if tag == "maintainer":
-			self._inside_maintainer="No"
-		if tag == "email":
-			self._inside_email="No"
-
-	def characters(self, contents):
-		if self._inside_herd == "Yes":
-			self._herd.append(contents)
-
-		if self._inside_longdescription == "Yes":
-			self._longdescription = contents
-			
-		if self._inside_maintainer=="Yes" and self._inside_email=="Yes":
-			self._maintainers.append(contents)
-
-
-def check_metadata(full_package):
-	"""Checks that the primary maintainer is still an active dev and list the herd the package belongs to"""
-	metadata_file=portage.settings["PORTDIR"] + "/" + portage.pkgsplit(full_package)[0] + "/metadata.xml"
-	if not os.path.exists(metadata_file):
-		print darkgreen("Maintainer: ") + red("Error (Missing metadata.xml)")
-		return 1
-
-	parser = make_parser()
-	handler = Metadata_XML()
-	handler._maintainers = []
-	parser.setContentHandler(handler)
-	parser.parse( metadata_file )
-
-	if handler._herd:
-		herds = ", ".join(handler._herd)
-		print darkgreen("Herd: ") + herds
-	else:       
-		print darkgreen("Herd: ") + red("Error (No Herd)")
-		return 1
-
-
-	if handler._maintainers:
-		print darkgreen("Maintainer: ") + ", ".join(handler._maintainers)
-	else:
-		print darkgreen("Maintainer: ") + "none"
-
-	if len(handler._longdescription) > 1:
-		print darkgreen("Description: ") + handler._longdescription
-	print darkgreen("Location: ") + os.path.normpath(portage.settings["PORTDIR"] + "/" + portage.pkgsplit(full_package)[0])
-
-
-def usage(code):
-	"""Prints the uage information for this script"""
-	print green("epkginfo"), "(%s)" % version
-	print
-	print "Usage: epkginfo [package-cat/]package"
-	sys.exit(code)
-
-
-# default color setup
-if ( not sys.stdout.isatty() ) or ( portage.settings["NOCOLOR"] in ["yes","true"] ):
-	nocolor()
-
-def fc(x,y):
-	return cmp(y[0], x[0])
-
-
-def grab_changelog_devs(catpkg):
+equery.initialize_configuration()
+args = sys.argv[1:]
+if not args or set(('-h', '--help')).intersection(args):
+	print_epkginfo_help()
+else:
 	try:
-		os.chdir(portage.settings["PORTDIR"] + "/" + catpkg)
-		foo=""
-		r=re.compile("<[^@]+@gentoo.org>", re.I)
-		s="\n".join(portage.grabfile("ChangeLog"))
-		d={}
-		for x in r.findall(s):
-			if x not in d:
-				d[x] = 0
-			d[x] += 1
+		main(args)
+	except AmbiguousPackageName as e:
+		pkgs = e.args[0]
+		for candidate in pkgs:
+			print(candidate)
 
-		l=[(d[x], x) for x in d.keys()]
-		#l.sort(lambda x,y: cmp(y[0], x[0]))
-		l.sort(fc)
-		for x in l:
-			p = str(x[0]) +" "+ x[1].lstrip("<").rstrip(">")
-			foo += p[:p.find("@")]+", "
-		return foo
-	except:
-		raise
+		from gentoolkit import pprinter as pp
+		from os.path import basename # To get the short name
 
-def main ():
-	if len( sys.argv ) < 2:
-		usage(1)
+		print(file=sys.stderr)
+		print(pp.error("The short ebuild name '%s' is ambiguous. Please specify" % basename(pkgs[0])),
+				file=sys.stderr, end="")
+		pp.die(1, "one of the above fully-qualified ebuild names instead.")
+	except errors.GentoolkitException as err:
+		from gentoolkit import pprinter as pp
+		pp.die(1, str(err))
 
-	for pkg in sys.argv[1:]:
-
-		if sys.argv[1:][:1] == "-":
-			print "NOT WORKING?=="+sys.argv[1:]
-			continue
-
-		try:
-			package_list = portage.portdb.xmatch("match-all", pkg)
-			if package_list:
-
-				catpkg = portage.pkgsplit(package_list[0])[0]
-
-				print darkgreen("Package: ") + catpkg
-				check_metadata(package_list[0])
-				earch(portage.settings["PORTDIR"] + "/" + catpkg)
-				#print darkgreen("ChangeLog: ") + grab_changelog_devs(catpkg)
-				print ""
-			else:
-				print "!!! No package '%s'" % pkg
-		except:
-			print red("Error: "+pkg+"\n")
-
-
-if __name__ == '__main__':
-	main()
+# vim: set ts=4 sw=4 tw=79:
