@@ -36,6 +36,7 @@ __all__ = (
 
 import sys
 import locale
+import codecs
 
 import portage.output as output
 from portage import archlist
@@ -169,6 +170,14 @@ def uprint(*args, **kw):
 	file = getattr(file, 'buffer', file)
 
 	encoding = locale.getpreferredencoding()
+	# Make sure that python knows the encoding. Bug 350156
+	try:
+		# We don't care about what is returned, we just want to
+		# verify that we can find a codec.
+		codecs.lookup(encoding)
+	except LookupError:
+		# Python does not know the encoding, so use utf-8.
+		encoding = 'utf_8'
 
 	def encoded_args():
 		for arg in args:
