@@ -26,7 +26,7 @@ ech() {
 	shift
 	local msg="${*}"
 
-	perl -I$(dirname $(dirname ${bin})) ${bin} "${msg}"
+	perl -I$(dirname $(dirname ${bin})) $bin $msg
 }
 
 make_test() {
@@ -70,7 +70,7 @@ make_test() {
 	fi
 
 	cd ${VCSTEST}
-	ech ${echangelog} 'New ebuild for bug <id>.'
+	ech ${echangelog} --vcs $vcs 'New ebuild for bug <id>.'
 
 	if [ "${MD5_INIT}" != "$(md5 ChangeLog)" ]; then
 		eerror "WRONG MD5_INIT!"
@@ -85,7 +85,7 @@ make_test() {
 		${vcs} add files
 	fi
 
-	ech ${echangelog} "Added adittional patch to fix foo."
+	ech ${echangelog} --vcs $vcs "Added adittional patch to fix foo."
 
 	if [ "${MD5_PATCH}" != "$(md5 ChangeLog)" ]; then
 		eerror "WRONG MD5_PATCH!"
@@ -102,14 +102,14 @@ make_test() {
 	cp vcstest-0.0.1.ebuild vcstest-0.0.1-r1.ebuild
 	${vcs} add vcstest-0.0.1-r1.ebuild
 
-	ech ${echangelog} "Revbump..."
+	ech ${echangelog} --vcs $vcs "Revbump..."
 
 	if [ "${MD5_REVBUMP}" != "$(md5 ChangeLog)" ]; then
 		eerror "WRONG MD5_REVBUMP!"
 	fi
 
 	sed -i -e 's:# Copyright 1999-2009 Gentoo Foundation:# Copyright 1999-2010 Gentoo Foundation:' vcstest-0.0.1.ebuild
-	ech ${echangelog} "Revbump...; Just copyright changed."
+	ech ${echangelog} --vcs $vcs "Revbump...; Just copyright changed."
 
 	if [ "${MD5_COPYRIGHT}" != "$(md5 ChangeLog)" ]; then
 		eerror "WRONG MD5_COPYRIGHT!"
@@ -122,14 +122,14 @@ make_test() {
 		${vcs} rm files/test.patch
 	fi
 
-	ech ${echangelog} "Revbump...; Just copyright changed; Removed obsolete patch."
+	ech ${echangelog} --vcs $vcs "Revbump...; Just copyright changed; Removed obsolete patch."
 
 	if [ "${MD5_OBSOLETE}" != "$(md5 ChangeLog)" ]; then
 		eerror "WRONG MD5_OBSOLETE!"
 	fi
 
 	echo>>vcstest-0.0.1.ebuild
-	ech ${echangelog} "Revbump...; Just copyright changed; Removed obsolete patch; Modified more then just the copyright."
+	ech ${echangelog} --vcs $vcs "Revbump...; Just copyright changed; Removed obsolete patch; Modified more then just the copyright."
 
 	if [ "${MD5_FINAL}" != "$(md5 ChangeLog)" ]; then
 		eerror "WRONG MD5_FINAL!"
