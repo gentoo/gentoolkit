@@ -8,7 +8,7 @@
 # Licensed under the GPL v2
 
 PROGRAM_NAME=euse
-VERSION="svn"
+VERSION="9999-b62586ede6c2716be976a538d41fac836875ed05"
 
 EPREFIX=${EPREFIX:-$(portageq envvar EPREFIX)}
 ETC="${EPREFIX}/etc"
@@ -1092,7 +1092,7 @@ modify_package() {
 		if [[ "${ACTIVE}" == "-" ]]; then
 			# If flag is masked, it should be added to package.mask, instead
 			# of package.use. For now, yield a warning and quit
-			if [[ -n $(echo " ${ACTIVE_FLAGS[6]}" | grep "$flag") ]]; then
+			if [[ -n $(echo " ${ACTIVE_FLAGS[6]}" | grep " -$flag") ]]; then
 				error "USE flag \"$flag\" is masked. Enabling in package.use will" \
 					  "\nbe ineffective. You may have an incorrect profile selected."
 				continue
