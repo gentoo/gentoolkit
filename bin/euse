@@ -4,6 +4,7 @@
 
 # bash replacement for the original euse by Arun Bhanu
 # Author: Marius Mauch <genone@gentoo.org>
+#         Jared Hancock (Signigicant rewrite for package.use support)
 # Licensed under the GPL v2
 
 PROGRAM_NAME=euse
@@ -144,11 +145,12 @@ Options: -h, --help           - show this message
          -a, --active         - show currently active useflags and their origin
          -E, --enable         - enable the given useflags
          -D, --disable        - disable the given useflags
+         -R, --remove         - remove the use flag and restore the default
          -P, --prune          - remove all references to the given flags from
                                 make.conf and package.use to revert to default 
                                 settings
-         -p, --package        - used with -E, -D, to apply to a specific
-                                package only
+         -p, --package        - used with -E, -D, and -R to apply to a
+                                speciic package only
 
 Notes: ${PROGRAM_NAME} currently works for global flags defined
        in make.globals, make.defaults, make.conf, use.force, and use.mask 
@@ -379,9 +381,16 @@ get_useflaglist_ebuild() {
 	for portdir in ${ALL_PORTDIRS[@]}; do
 		# Open the ebuild file and retrieve defined USE flags
 		[[ ! -d "$portdir/${1}" ]] && continue
-		append=$(echo -n $portdir/${1}/*.ebuild "" \
-			| perl -pne "s:$portdir/${1}/${pkg}-(([^.]|\.(?!e))+)\.ebuild:\1:g" \
-			| while read -d " " version; do
+		if [[ ! -d "$portdir/metadata/cache" ]]; then
+			echo "!!! Metadata cache not found. You need to run " >&2
+			echo "!!! 'egencache --repo=$overlay --update'" >&2
+			echo "!!! to generate metadata for your overlays" >&2
+			return 1
+		fi
+		append=$(ls $portdir/metadata/cache/${1}-* \
+			| egrep "${1}-[0-9.]+" \
+			| sed -e "s:$portdir/metadata/cache/${1}-::g" \
+			| while read -d $'\n' version; do
 				IFS=$'\n'
 				if [[ $portdir == $PORTDIR ]]; then 
 					overlay=""
@@ -393,12 +402,7 @@ get_useflaglist_ebuild() {
 						overlay="$(basename "${portdir}")"
 					fi
 				fi
-				if [[ ! -d "$portdir/metadata/cache" ]]; then
-					echo "!!! Metadata cache not found. You need to run " >&2
-					echo "!!! 'egencache --repo=$overlay --update'" >&2
-					echo "!!! to generate metadata for your overlays" >&2
-					return 1
-				elif [[ ! -e "$portdir/metadata/cache/${1}-$version" ]]; then
+				if [[ ! -e "$portdir/metadata/cache/${1}-$version" ]]; then
 					# Repo does not have this particular package
 					continue
 				fi
@@ -923,10 +927,12 @@ add_flag() {
 	if [[ -n $(echo " ${ACTIVE_FLAGS[6]} " | grep " -${1} ") ]]; then
 		error "Use flag \"${1}\" is masked and should not be added" \
 			  "to make.conf."
+		return 1
 	# Bug #104396 -- Only add use flags defined in use.desc and use.local.desc
 	elif [[ -z $(echo " $(get_useflaglist) " | grep " -?${1} ") ]]; then
 		error "Use flag \"${1}\" is not defined in use.desc and should" \
 			  "not be added\nto make.conf."
+		return 1
 	else
 		NEW_MAKE_CONF_USE="${NEW_MAKE_CONF_USE} ${1}"
 	fi
@@ -969,7 +975,7 @@ scrub_use_flag() {
 		if [[ -z $(echo "${line}" | sed -re "s/^ *#.*$//") ]]; then
 			echo "${line}"
 		# Detect if requested package is defined on this line
-		elif [[ -n ${PACKAGE} ]]; then
+		elif [[ -n "${PACKAGE}" ]]; then
 			if [[ -n $(echo "${line}" | grep -Ee "${pkg_re}") ]]; then	
 				# If this is the only (remaining) use flag defined
                 # for this package, then remove the whole line
@@ -984,10 +990,14 @@ scrub_use_flag() {
 			fi
 		# If line only has this use flag, let it be removed 
 		# (used if PACKAGE is not defined -- from pruning)
-		elif [[ -z $(echo ${line} | \
-				grep -re "[^#]*${atom_re}.*-?${flag}") ]]; then
-			# Remove flag from this line
-			echo "${line}" | sed -re "s/-?\b${flag}\b//"
+		elif [[ -n $(echo "${line}" | \
+				egrep "^[^#]*${atom_re}.*-?${flag}") ]]; then
+			echo "Removing use flag from ${line}" >&2
+			if [[ -z $(echo "${line}" | \
+					grep -Ee "${atom_re} *-?${flag} *$") ]]; then
+				# Remove flag from this line
+				echo "${line}" | sed -re "s/-?\b${flag}\b//"
+			fi
 		else
 			# Passthru
 			echo "${line}"
@@ -1040,7 +1050,8 @@ modify_package() {
 	#
 	# (2) make sure ${flag} is defined in get_useflaglist
 	elif ! array_contains "$all_flags" ${flag}; then
-		warn "USE flag \"${flag}\" does not exist"
+		error "USE flag \"${flag}\" does not exist"
+		continue
 		# Don't bail just because of this, just warn
 	# (3) make sure use flag is valid for the package
 	elif [[ -z $(echo "${ACTIVE_FLAGS[5]} " | grep -Ee "^${pkg_re}" \
@@ -1054,12 +1065,27 @@ modify_package() {
 	# the negative flag instead
 	if [[ "${ACTION}" == "remove" ]]; then
 		if [[ "${ACTIVE:-${GLOBAL_ACTIVE}}" == "+" ]]; then
-			flag="-${flag}"
-			ACTION="add"
+			if [[ -n $(echo "${ACTIVE_FLAGS[4]}" | grep "^$PACKAGE" \
+					| grep " $flag") ]]; then
+				iuse=$(echo "${ACTIVE_FLAGS[5]} " | grep -Ee "^${pkg_re}" \
+						| cut -d ";" -f4 | egrep -o "[+-]?${flag}")
+				# Ensure the flag is enabled in the ebuild _and_ in package.use,
+				# if so, enable it in package.use
+				if [[ "${iuse}" =~ "+" ]]; then
+					# The flag is currently enabled in the ebuild, so add a
+					# disablement
+					flag="-${flag}"
+					ACTION="add"
+				fi
+			fi
 		else
 			error "USE flag \"$flag\" is already disabled for $PACKAGE"
 			continue
 		fi
+	elif [[ "${ACTION}" == "prune" ]]; then
+		# Just remove the flag below
+		[[ "${ACTIVE}" == "-" ]] && flag="-${flag}"
+		ACTION="remove"
 	# If flag is currently disabled for the package requested 
 	# to be enabled in, then "remove" the negative
 	elif [[ "${ACTION}" == "add" ]]; then
@@ -1156,8 +1182,8 @@ modify_package() {
 # USE flag modification function. Mainly a loop with calls to add_flag and 
 # remove_flag to create a new USE string which is then inserted into make.conf.
 modify() {
-	if [[ -n ${PACKAGE} ]]; then
-		modify_package ${*}
+	if [[ -n "${PACKAGE}" ]]; then
+		modify_package "${*}"
 		return;
 	fi;
 
@@ -1182,7 +1208,7 @@ modify() {
 			elif echo " ${NEW_MAKE_CONF_USE} " | grep " -${1} " > /dev/null; then
 				remove_flag "-${1}"
 			else
-				add_flag "${1}"
+				add_flag "${1}" || exit
 				shift
 			fi
 		elif [ "${ACTION}" == "remove" ]; then
@@ -1191,7 +1217,7 @@ modify() {
 			elif echo " ${NEW_MAKE_CONF_USE} " | grep " ${1} " > /dev/null; then
 				remove_flag "${1}"
 			else
-				add_flag "-${1}"
+				add_flag "-${1}" || exit
 				shift
 			fi
 		elif [ "${ACTION}" == "prune" ]; then
@@ -1201,15 +1227,15 @@ modify() {
 				remove_flag "-${1}"
 			fi
 			# Locate use flag in package.use
-			local filename
-			if [[ -d ${PACKAGE_USE_PATH} ]]; then
-				filename=$( egrep -rle "-?\b${1}\b" "${PACKAGE_USE_PATH}")
+			local -a filename
+			if [[ -d "${PACKAGE_USE_PATH}" ]]; then
+				filename=($( egrep -rle "-?\b${1}\b" "${PACKAGE_USE_PATH}"))
 			else
 				# Scrub from package.use file
-				filename=${PACKAGE_USE_PATH}
+				filename=("${PACKAGE_USE_PATH}")
 			fi
 			# Scrub use flag from matched files
-			for f in ${filename}; do
+			for f in "${filename}"; do
 				# Remove current flags in file
 				echo "Disabling ""${1}"" use flag in ""${f}"""
 				scrub_use_flag ${f} ${1} 
