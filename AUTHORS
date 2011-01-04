@@ -22,6 +22,7 @@
 * euse
   Original perl version: Arun Bhanu <codebear@gentoo.org>
   New bash version: Marius Mauch <genone@gentoo.org>
+  package.use support: Jared Hancock
 
 * revdep-rebuild
   Original author: Stanislav Brabec
