@@ -8,7 +8,7 @@
 # Licensed under the GPL v2
 
 PROGRAM_NAME=euse
-VERSION="9999-b62586ede6c2716be976a538d41fac836875ed05"
+VERSION="svn"
 
 EPREFIX=${EPREFIX:-$(portageq envvar EPREFIX)}
 ETC="${EPREFIX}/etc"
@@ -73,7 +73,8 @@ parse_arguments() {
 			-a | --active)         MODE="showflags";;
 			-E | --enable)         MODE="modify"; ACTION="add";;
 			-D | --disable)        MODE="modify"; ACTION="remove";;
-			-P | --prune)          MODE="modify"; ACTION="prune";;
+			-P | --prune | -R | --remove)
+                                   MODE="modify"; ACTION="prune";;
 			-p | --package)	       MODE="modify"; shift; PACKAGE=${1}; SCOPE="local";;
 			-*)
 				echo "ERROR: unknown option ${1} specified."
@@ -145,10 +146,10 @@ Options: -h, --help           - show this message
          -a, --active         - show currently active useflags and their origin
          -E, --enable         - enable the given useflags
          -D, --disable        - disable the given useflags
-         -R, --remove         - remove the use flag and restore the default
-         -P, --prune          - remove all references to the given flags from
+         -R, --remove         - remove all references to the given flags from
                                 make.conf and package.use to revert to default 
                                 settings
+         -P, --prune          - alias for --remove
          -p, --package        - used with -E, -D, and -R to apply to a
                                 speciic package only
 
@@ -924,13 +925,13 @@ showflags() {
 
 # two small helpers to add or remove a flag from a USE string
 add_flag() {
-	if [[ -n $(echo " ${ACTIVE_FLAGS[6]} " | grep " -${1} ") ]]; then
-		error "Use flag \"${1}\" is masked and should not be added" \
+	if [[ -n $(grep " -${1//-/} " <<< " ${ACTIVE_FLAGS[6]} ") ]]; then
+		error "Use flag \"${1//-/}\" is masked and should not be added" \
 			  "to make.conf."
 		return 1
 	# Bug #104396 -- Only add use flags defined in use.desc and use.local.desc
-	elif [[ -z $(echo " $(get_useflaglist) " | grep " -?${1} ") ]]; then
-		error "Use flag \"${1}\" is not defined in use.desc and should" \
+	elif [[ -z $(grep "^${1//-/}$" <<< "$(get_useflaglist)") ]]; then
+		error "Use flag \"${1//-/}\" is not defined in use.desc and should" \
 			  "not be added\nto make.conf."
 		return 1
 	else
@@ -1059,6 +1060,12 @@ modify_package() {
 		# XXX: Handle version or version wildcard?
 		warn "USE flag \"${flag}\" is not used by $PACKAGE"
 		# Don't necessarily bail for this, just warn
+    elif [[ -n "${V}" && -z "$(egrep "<|>|=" <<< "${PACKAGE:0:1}")" ]]; then
+        error "Invalid package atom. Did you forget the leading '='?"
+        continue
+    elif [[ -z "${V}" && -n "$(egrep "<|>|=" <<< "${PACKAGE:0:1}")" ]]; then
+        error "Invalid package atom. Did you forget the version?"
+        continue
 	fi
 	# If flag is enabled in portage USE flags (emerge --info), 
 	# then "remove"ing the flag should be replaced with adding
@@ -1077,6 +1084,10 @@ modify_package() {
 					flag="-${flag}"
 					ACTION="add"
 				fi
+            else
+                # Not enabled in package.use, so disable it there
+                flag="-${flag}"
+                ACTION="add"
 			fi
 		else
 			error "USE flag \"$flag\" is already disabled for $PACKAGE"
@@ -1092,7 +1103,7 @@ modify_package() {
 		if [[ "${ACTIVE}" == "-" ]]; then
 			# If flag is masked, it should be added to package.mask, instead
 			# of package.use. For now, yield a warning and quit
-			if [[ -n $(echo " ${ACTIVE_FLAGS[6]}" | grep " -$flag") ]]; then
+			if [[ -n $(echo " ${ACTIVE_FLAGS[6]}" | grep " -${flag}") ]]; then
 				error "USE flag \"$flag\" is masked. Enabling in package.use will" \
 					  "\nbe ineffective. You may have an incorrect profile selected."
 				continue
@@ -1137,7 +1148,7 @@ modify_package() {
 			echo "Adding \"${PACKAGE}[${flag}]\" use flag in \"${filename}\""
             local added=0
 		 	while read line; do
-				if [[ -n $(echo "${line}" | egrep -re "^[^#]*${pkg_re}") ]]; then
+				if [[ -n $(echo "${line}" | egrep -re "^[^#]*${PACKAGE} ") ]]; then
 					echo $(reduce_package_use "${line} ${flag}")
 					added=1
 				else
@@ -1226,22 +1237,6 @@ modify() {
 			elif echo " ${NEW_MAKE_CONF_USE} " | grep " -${1} " > /dev/null; then
 				remove_flag "-${1}"
 			fi
-			# Locate use flag in package.use
-			local -a filename
-			if [[ -d "${PACKAGE_USE_PATH}" ]]; then
-				filename=($( egrep -rle "-?\b${1}\b" "${PACKAGE_USE_PATH}"))
-			else
-				# Scrub from package.use file
-				filename=("${PACKAGE_USE_PATH}")
-			fi
-			# Scrub use flag from matched files
-			for f in "${filename}"; do
-				# Remove current flags in file
-				echo "Disabling ""${1}"" use flag in ""${f}"""
-				scrub_use_flag ${f} ${1} 
-			done;
-			# Remove empty files from package.use
-			clean_package_use
 			shift
 		fi
 	done
@@ -1272,7 +1267,7 @@ modify() {
 	had_use=0
 	x=0
 	(while [ "$x" -eq "0" ]; do
-		read -r line
+		read -r line || break
 		x="$?"
 		# Bug 275362 - Handle the case where make.conf includes:
 		# USE="
