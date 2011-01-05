@@ -19,6 +19,7 @@ from getopt import gnu_getopt, GetoptError
 
 import gentoolkit
 import gentoolkit.pprinter as pp
+import gentoolkit.errors as errors
 from gentoolkit.equery import format_options, mod_usage, CONFIG
 from gentoolkit.helpers import get_installed_cpvs
 from gentoolkit.helpers import get_bintree_cpvs
@@ -191,7 +192,15 @@ def main(input_args):
 		if not first_run:
 			print()
 
-		matches = query.smart_find(**QUERY_OPTS)
+		# if we are in quiet mode, do not raise GentoolkitNoMatches exception
+		# TODO: Return a non-zero exit status
+		try:
+			matches = query.smart_find(**QUERY_OPTS)
+		except errors.GentoolkitNoMatches:
+			if CONFIG['verbose']:
+				raise
+			else:
+				continue
 
 		# Find duplicate packages
 		if QUERY_OPTS["duplicates"]:
