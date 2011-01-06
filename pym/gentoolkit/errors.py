@@ -16,7 +16,8 @@ __all__ = (
 	'GentoolkitInvalidVersion',
 	'GentoolkitNoMatches',
 	'GentoolkitSetNotFound',
-	'GentoolkitUnknownKeyword'
+	'GentoolkitUnknownKeyword',
+	'GentoolkitNonZeroExit'
 )
 
 # ==========
@@ -144,5 +145,13 @@ class GentoolkitUnknownKeyword(GentoolkitException):
 		return ("Unable to determine the install keyword for:\n" +
 			"'%s', KEYWORDS = '%s'\nUSE flags = '%s'"
 			% (self.query, self.keywords, self.use))
+
+
+class GentoolkitNonZeroExit(GentoolkitException):
+	"""Used to signal, that a non-fatal, no warning error occurred.
+	   The primary use case is for not returning any data."""
+	def __init__(self, return_code=1, is_serious=False):
+		GentoolkitException.__init__(self, is_serious=is_serious)
+		self.return_code = return_code
 
 # vim: set ts=4 sw=4 tw=79:

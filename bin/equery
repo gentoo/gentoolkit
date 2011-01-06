@@ -36,6 +36,8 @@ from gentoolkit import equery, errors
 
 try:
 	equery.main()
+except errors.GentoolkitNonZeroExit as err:
+	sys.exit(err.return_code)
 except errors.GentoolkitException as err:
 	if '--debug' in sys.argv or bool(os.getenv('DEBUG', False)):
 		raise
