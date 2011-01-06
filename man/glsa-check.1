@@ -15,25 +15,25 @@ Please read:
 http://www.gentoo.org/security
 .br 
 before reporting a bug.
-.LP
+.LP 
 Note: In order for this tool to be effective, you must regularly sync your local portage tree.
 .SH "OPTIONS"
 .LP 
 .TP 
 .B \-l, \-\-list
-list the a summary for all GLSAs in glsa-list and whether they affect the system
+list the a summary for all GLSAs in glsa\-list and whether they affect the system
 .TP 
 .B \-d, \-\-dump, \-\-print
-show all information about the GLSAs in glsa-list
+show all information about the GLSAs in glsa\-list
 .TP 
 .B \-t, \-\-test
-test if this system is affected by the GLSAs in glsa-list and output the GLSA IDs
+test if this system is affected by the GLSAs in glsa\-list and output the GLSA IDs
 .TP 
 .B \-p, \-\-pretend
-show the necessary steps to apply the GLSAs in glsa-list
+show the necessary steps to apply the GLSAs in glsa\-list
 .TP 
 .B \-f, \-\-fix
-try to auto\-apply the GLSAs in in glsa-list using emerge. This will only upgrade packages to later version, but not remove packages when no upgrade path exists (experimental)
+try to auto\-apply the GLSAs in in glsa\-list using emerge. This will only upgrade packages to later version, but not remove packages when no upgrade path exists (experimental)
 .TP 
 .B \-i, \-\-inject
 inject the given GLSA into the glsa_injected file
@@ -49,10 +49,10 @@ some information about this tool
 .TP 
 .B \-v, \-\-verbose
 print more messages (option)
-.TP
+.TP 
 .B \-c, \-\-cve
 show CVE ids in listing mode (option)
-.TP
+.TP 
 .B \-q, \-\-quiet
 be less verbose and do not send empty mail (option)
 .TP 
@@ -63,4 +63,4 @@ send a mail with the given GLSAs to the administrator
 .TP 
 .B /var/lib/portage/glsa_injected
 List of GLSA ids that have been injected and will never show up as 'affected' on this system.
-The file must contain one GLSA id (e.g. '200804-02') per line.
+The file must contain one GLSA id (e.g. '200804\-02') per line.
