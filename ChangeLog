@@ -1,3 +1,8 @@
+2010-01-04: Paul Varner <fuzzyray@gentoo.org>
+	* euse: Merge euse from bug #259318 written by Jared Hancock. This
+	version is a significant rewrite and add supports for utilizing
+	package.use.
+
 2010-11-24: Paul Varner <fuzzyray@gentoo.org>
 	* euse: Fix euse to look for portage configuration files in both the
 	old and new paths. bug 346519. Make euse work in prefix environments.
