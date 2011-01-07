@@ -25,7 +25,7 @@ from portage import portdb
 from portage.output import bold, red, blue, yellow, green, nocolor
 
 APP_NAME = sys.argv[0]
-VERSION = '0.1-r3'
+VERSION = '0.1-r4'
 
 
 __productname__ = "revdep-ng"
@@ -51,6 +51,7 @@ IS_DEV = True       #True for dev. version, False for stable
 # can be set True from the cli with the --no-pretend option
 NO_PRETEND = False 
 
+CMD_MAX_ARGS = 1000 # number of maximum allowed files to be parsed at once
 
 
 # util. functions
@@ -60,6 +61,22 @@ def call_program(args):
                                 stderr=subprocess.PIPE)
     stdout, stderr = subp.communicate()
     return stdout
+
+
+def scan(params, files):
+    ''' Calls scanelf with given params and files to scan.
+        @param params is list of parameters that should be passed into scanelf app.
+        @param files list of files to scan.
+
+        When files count is greater CMD_MAX_ARGS, it'll be divided
+        into several parts
+
+        @return scanelf output (joined if was called several times)
+    '''
+    out = []
+    for i in range(0, len(files), CMD_MAX_ARGS):
+        out += call_program(['scanelf'] + params + files[i:i+CMD_MAX_ARGS]).strip().split('\n')
+    return out
 
 
 def print_v(verbosity, args):
@@ -75,10 +92,6 @@ def print_v(verbosity, args):
 
 
 def exithandler(signum, frame):
-    print 'Signal caught!'
-    print 'Bye!'
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
-    signal.signal(signal.SIGTERM, signal.SIG_IGN)
     sys.exit(1)
 
 
@@ -350,7 +363,8 @@ def prepare_checks(files_to_check, libraries, bits):
     dependencies = [] # list of lists of files (from file_to_check) that uses
                       # library (for dependencies[id] and libs[id] => id==id)
 
-    for line in call_program(['scanelf', '-M', str(bits), '-nBF', '%F %n',]+files_to_check).strip().split('\n'):
+    for line in scan(['-M', str(bits), '-nBF', '%F %n'], files_to_check):
+    #call_program(['scanelf', '-M', str(bits), '-nBF', '%F %n',]+files_to_check).strip().split('\n'):
         r = line.strip().split(' ')
         if len(r) < 2: # no dependencies?
             continue
@@ -463,7 +477,7 @@ def assign_packages(broken, output):
                                     if found not in assigned:
                                         assigned.add(found)
                                     print_v(1, '\t' + m + ' -> ' + bold(found))
-                except:
+                except Exception as e:
                     output(1, red(' !! Failed to read ' + f))
 
     return assigned
@@ -544,7 +558,7 @@ def read_cache(temp_path=DEFAULT_TMP_DIR):
     return (ret['libraries'], ret['la_libraries'], ret['libraries_links'], ret['binaries'])
 
 
-def save_cache(to_save, temp_path=DEFAULT_TMP_DIR):
+def save_cache(output=print_v, to_save={}, temp_path=DEFAULT_TMP_DIR):
     ''' Tries to store caching information.
         @param to_save have to be dict with keys: libraries, la_libraries, libraries_links and binaries
     '''
@@ -552,16 +566,18 @@ def save_cache(to_save, temp_path=DEFAULT_TMP_DIR):
     if not os.path.exists(temp_path):
         os.makedirs(temp_path)
 
-    f = open(os.path.join(temp_path, 'timestamp'), 'w')
-    f.write(str(int(time.time())))
-    f.close()
-
-    for key,val in to_save.iteritems():
-        f = open(os.path.join(temp_path, key), 'w')
-        for line in val:
-            f.write(line + '\n')
+    try:
+        f = open(os.path.join(temp_path, 'timestamp'), 'w')
+        f.write(str(int(time.time())))
         f.close()
 
+        for key,val in to_save.iteritems():
+            f = open(os.path.join(temp_path, key), 'w')
+            for line in val:
+                f.write(line + '\n')
+            f.close()
+    except Exception as ex:
+        output(1, red('Could not save cache %s' %str(ex)))
 
 def analyse(output=print_v, libraries=None, la_libraries=None, libraries_links=None, binaries=None):
     """Main program body.  It will collect all info and determine the
@@ -616,7 +632,8 @@ def analyse(output=print_v, libraries=None, la_libraries=None, libraries_links=N
 
     for av_bits in glob.glob('/lib[0-9]*') or ('/lib32',):
         bits = int(av_bits[4:])
-        _libraries = call_program(['scanelf', '-M', str(bits), '-BF', '%F',] + libraries+libraries_links).strip().split('\n')
+        _libraries = scan(['-M', str(bits), '-BF', '%F'], libraries+libraries_links)
+        #call_program(['scanelf', '-M', str(bits), '-BF', '%F',] + libraries+libraries_links).strip().split('\n')
 
         found_libs, dependencies = prepare_checks(libs_and_bins, _libraries, bits)
 
