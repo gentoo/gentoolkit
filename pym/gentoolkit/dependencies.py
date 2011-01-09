@@ -243,7 +243,8 @@ class Dependencies(Query):
 			try:
 				all_depends = depcache[pkgdep]
 			except KeyError:
-				all_depends = uniqify(pkgdep.get_all_depends())
+				#all_depends = uniqify(pkgdep.get_all_depends())
+				all_depends = pkgdep.get_all_depends()
 				depcache[pkgdep] = all_depends
 
 			dep_is_displayed = False
