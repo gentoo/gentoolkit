@@ -19,7 +19,7 @@ from portage.dep import paren_reduce
 from gentoolkit import errors
 from gentoolkit.atom import Atom
 from gentoolkit.cpv import CPV
-from gentoolkit.helpers import uniqify
+from gentoolkit.helpers import uniqify_atoms
 from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit.query import Query
 
@@ -243,8 +243,7 @@ class Dependencies(Query):
 			try:
 				all_depends = depcache[pkgdep]
 			except KeyError:
-				#all_depends = uniqify(pkgdep.get_all_depends())
-				all_depends = pkgdep.get_all_depends()
+				all_depends = uniqify_atoms(pkgdep.get_all_depends())
 				depcache[pkgdep] = all_depends
 
 			dep_is_displayed = False
