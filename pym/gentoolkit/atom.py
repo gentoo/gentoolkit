@@ -344,4 +344,11 @@ class Atom(portage.dep.Atom, CPV):
 		raise NotImplementedError(
 			'Someone added an operator without adding it to intersects')
 
+	def get_depstr(self):
+		"""Returns a string representation of the original dep
+		"""
+		uc = self.use_conditional
+		uc = "%s? " % uc if uc is not None else ''
+		return "%s%s" % (uc, self.atom)
+
 # vim: set ts=4 sw=4 tw=79:

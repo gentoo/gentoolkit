@@ -449,7 +449,7 @@ def get_bintree_cpvs(predicate=None):
 	for cpv in chain.from_iterable(BINDB.cp_list(x) for x in installed_cps):
 		yield cpv
 
-	
+
 def print_file(path):
 	"""Display the contents of a file."""
 
@@ -473,6 +473,18 @@ def uniqify(seq, preserve_order=True):
 		result = [x for x in seq if x not in seen and not seen.add(x)]
 	else:
 		result = list(set(seq))
+
+	return result
+
+def uniqify_atoms(seq):
+	"""Return a uniqified list."""
+	seen = set()
+	result = []
+	for x in seq:
+		dep = x.get_depstr()
+		if dep not in seen:
+			result.append(x)
+			seen.add(dep)
 
 	return result
 
