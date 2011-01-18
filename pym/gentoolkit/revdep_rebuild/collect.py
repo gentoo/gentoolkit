@@ -7,12 +7,10 @@ import stat
 import logging
 import portage
 from portage.output import bold, red, blue, yellow, green, nocolor
-
-DEFAULT_LD_FILE = 'etc/ld.so.conf'
-DEFAULT_ENV_FILE = 'etc/profile.env'
+from settings import SETTINGS
 
 
-def parse_conf(conf_file=os.path.join(portage.root, DEFAULT_LD_FILE), visited=None, logger=logging):
+def parse_conf(conf_file=SETTINGS['DEFAULT_LD_FILE'], visited=None, logger=logging):
     ''' Parses supplied conf_file for libraries pathes.
         conf_file is file or files to parse
         visited is set of files already parsed
@@ -64,15 +62,15 @@ def prepare_search_dirs(logger=logging):
     bin_dirs = set(['/bin', '/usr/bin', ])
     lib_dirs = set(['/lib', '/usr/lib', ])
 
-    try:
-        with open(os.path.join(portage.root, DEFAULT_ENV_FILE), 'r') as f:
-            for line in f.readlines():
-                line = line.strip()
-                m = re.match("^export (ROOT)?PATH='([^']+)'", line)
-                if m is not None:
-                    bin_dirs = bin_dirs.union(set(m.group(2).split(':')))
-    except EnvironmentError:
-        logger.debug(yellow('Could not open file %s' % f))
+    #try:
+    with open(os.path.join(portage.root, SETTINGS['DEFAULT_ENV_FILE']), 'r') as f:
+        for line in f.readlines():
+            line = line.strip()
+            m = re.match("^export (ROOT)?PATH='([^']+)'", line)
+            if m is not None:
+                bin_dirs = bin_dirs.union(set(m.group(2).split(':')))
+    #except EnvironmentError:
+        #logger.debug(yellow('Could not open file %s' % f))
 
     lib_dirs = parse_conf(logger=logger)
     return (bin_dirs, lib_dirs)
@@ -87,7 +85,7 @@ def parse_revdep_config():
     masked_files = set()
 
     #TODO: remove hard-coded path
-    for f in os.listdir('/etc/revdep-rebuild/'):
+    for f in os.listdir(SETTINGS['REVDEP_CONFDIR']):
         for line in open(os.path.join('/etc/revdep-rebuild', f)):
             line = line.strip()
             if not line.startswith('#'): #first check for comment, we do not want to regex all lines
