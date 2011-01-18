@@ -25,39 +25,16 @@ from portage import portdb
 from portage.output import bold, red, blue, yellow, green, nocolor
 
 from analyse import analyse
-from stuff import *
-from cache import *
+from stuff import exithandler
+from cache import check_temp_files, read_cache
 from assign import get_slotted_cps
+from settings import SETTINGS
 
 
 APP_NAME = sys.argv[0]
-VERSION = '0.1-r5'
-
+VERSION = '0.1-r6'
 
 __productname__ = "revdep-ng"
-
-
-
-# configuration variables
-DEFAULT_LD_FILE = 'etc/ld.so.conf'
-DEFAULT_ENV_FILE = 'etc/profile.env'
-
-
-# global variables
-PRINT_DEBUG = False      #program in debug mode
-
-PRETEND = False     #pretend only
-EXACT = False      #exact package version
-USE_TMP_FILES = True #if program should use temporary files from previous run
-DEFAULT_TMP_DIR = '/tmp/revdep-rebuild' #cache default location
-VERBOSITY = 1      #verbosity level; 0-quiet, 1-norm., 2-verbose
-
-IS_DEV = True       #True for dev. version, False for stable
-#used when IS_DEV is True, False forces to call emerge with --pretend
-# can be set True from the cli with the --no-pretend option
-NO_PRETEND = False
-
-CMD_MAX_ARGS = 1000 # number of maximum allowed files to be parsed at once
 
 
 
@@ -122,26 +99,26 @@ if __name__ == "__main__":
                 print_usage()
                 sys.exit(0)
             elif key in ('-q', '--quiet'):
-                VERBOSITY = 0
                 logger.setLevel(logging.ERROR)
+                SETTINGS['VERBOSITY'] = 0
             elif key in ('-v', '--verbose'):
-                VERBOSITY = 2
                 logger.setLevel(logging.INFO)
+                SETTINGS['VERBOSITY'] = 2
             elif key in ('-d', '--debug'):
-                PRINT_DEBUG = True
                 logger.setLevel(logging.DEBUG)
+                SETTINGS['VERBOSITY'] = 3
             elif key in ('-p', '--pretend'):
-                PRETEND = True
+                SETTINGS['PRETEND'] = True
             elif key == '--no-pretend':
-                NO_PRETEND = True
+                SETTINGS['NO_PRETEND'] = True
             elif key in ('-e', '--exact'):
-                EXACT = True
+                SETTINGS['EXACT'] = True
             elif key in ('-C', '--nocolor', '--no-color'):
                 nocolor()
             elif key in ('-L', '--library', '--library='):
                 _libs_to_check = _libs_to_check.union(val.split(','))
             elif key in ('-i', '--ignore'):
-                USE_TMP_FILES = False
+                SETTINGS['USE_TMP_FILES'] = False
 
         args = " " + " ".join(args)
     except getopt.GetoptError:
@@ -152,14 +129,14 @@ if __name__ == "__main__":
     if not sys.stdout.isatty():
         nocolor()
 
-    if os.getuid() != 0 and not PRETEND:
+    if os.getuid() != 0 and not SETTINGS['PRETEND']:
         logger.warn(blue(' * ') + yellow('You are not root, adding --pretend to portage options'))
-        PRETEND = True
-    elif not PRETEND and IS_DEV and not NO_PRETEND:
+        SETTINGS['PRETEND'] = True
+    elif not SETTINGS['PRETEND'] and SETTINGS['IS_DEV'] and not SETTINGS['NO_PRETEND']:
         logger.warn(blue(' * ') + yellow('This is a development version, so it may not work correctly'))
         logger.warn(blue(' * ') + yellow('Adding --pretend to portage options anyway'))
         logger.info(blue(' * ') + 'If you\'re sure, you can add --no-pretend to revdep options')
-        PRETEND = True
+        SETTINGS['PRETEND'] = True
 
 
     signal.signal(signal.SIGINT, exithandler)
@@ -167,7 +144,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
     analyze_cache = {}
-    if USE_TMP_FILES and check_temp_files():
+    if SETTINGS['USE_TMP_FILES'] and check_temp_files():
         libraries, la_libraries, libraries_links, binaries = read_cache()
         assigned = analyse(libraries=libraries, la_libraries=la_libraries, \
                        libraries_links=libraries_links, binaries=binaries, _libs_to_check=_libs_to_check)
@@ -178,15 +155,15 @@ if __name__ == "__main__":
         logger.warn('\n' + bold('Your system is consistent'))
         sys.exit(0)
 
-    if EXACT:
+    if SETTINGS['EXACT']:
         emerge_command = '=' + ' ='.join(assigned)
     else:
         emerge_command = ' '.join(get_slotted_cps(assigned, logger))
-    if PRETEND:
+    if SETTINGS['PRETEND']:
         args += ' --pretend'
-    if VERBOSITY >= 2:
+    if SETTINGS['VERBOSITY'] >= 2:
         args += ' --verbose'
-    elif VERBOSITY < 1:
+    elif SETTINGS['VERBOSITY'] < 1:
         args += ' --quiet'
 
     if len(emerge_command) == 0:
