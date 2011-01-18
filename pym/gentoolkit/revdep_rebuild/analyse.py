@@ -1,17 +1,17 @@
 #!/usr/bin/python
 
+import os
+import re
 import platform
 import logging
 import glob
 from portage.output import bold, red, blue, yellow, green, nocolor
 
-from stuff import *
-from collect import *
+from stuff import scan
+from collect import prepare_search_dirs, parse_revdep_config, collect_libraries_from_dir, collect_binaries_from_dir
 from assign import assign_packages
-
-
-USE_TMP_FILES = True #if program should use temporary files from previous run
-CMD_MAX_ARGS = 1000 # number of maximum allowed files to be parsed at once
+from cache import save_cache
+from settings import SETTINGS
 
 
 
@@ -23,7 +23,7 @@ def prepare_checks(files_to_check, libraries, bits):
     dependencies = [] # list of lists of files (from file_to_check) that uses
                       # library (for dependencies[id] and libs[id] => id==id)
 
-    for line in scan(['-M', str(bits), '-nBF', '%F %n'], files_to_check, CMD_MAX_ARGS):
+    for line in scan(['-M', str(bits), '-nBF', '%F %n'], files_to_check, SETTINGS['CMD_MAX_ARGS']):
     #call_program(['scanelf', '-M', str(bits), '-nBF', '%F %n',]+files_to_check).strip().split('\n'):
         r = line.strip().split(' ')
         if len(r) < 2: # no dependencies?
@@ -143,7 +143,7 @@ def analyse(logger=logging, libraries=None, la_libraries=None, libraries_links=N
         libraries, la_libraries, libraries_links, symlink_pairs = collect_libraries_from_dir(lib_dirs, masked_dirs, logger)
         binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logger)
 
-        if USE_TMP_FILES:
+        if SETTINGS['USE_TMP_FILES']:
             save_cache(to_save={'libraries':libraries, 'la_libraries':la_libraries, 'libraries_links':libraries_links, 'binaries':binaries})
 
 
@@ -170,7 +170,7 @@ def analyse(logger=logging, libraries=None, la_libraries=None, libraries_links=N
 
     for av_bits in glob.glob('/lib[0-9]*') or ('/lib32',):
         bits = int(av_bits[4:])
-        _libraries = scan(['-M', str(bits), '-BF', '%F'], libraries+libraries_links, CMD_MAX_ARGS)
+        _libraries = scan(['-M', str(bits), '-BF', '%F'], libraries+libraries_links, SETTINGS['CMD_MAX_ARGS'])
         #call_program(['scanelf', '-M', str(bits), '-BF', '%F',] + libraries+libraries_links).strip().split('\n')
 
         found_libs, dependencies = prepare_checks(libs_and_bins, _libraries, bits)
