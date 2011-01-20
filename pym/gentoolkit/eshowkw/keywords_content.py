@@ -13,20 +13,26 @@ from display_pretty import align_string
 
 class keywords_content:
 	class RedundancyChecker:
-		def __listRedundant(self, keywords, ignoreslots, slots):
+		def __listRedundant(self, masks, keywords, ignoreslots, slots):
 			"""List all redundant packages."""
 			if ignoreslots:
-				return self.__listRedundantAll(keywords)
+				return self.__listRedundantAll(masks, keywords)
 			else:
-				return self.__listRedundantSlots(keywords, slots)
+				return self.__listRedundantSlots(masks, keywords, slots)
 
-		def __listRedundantSlots(self, keywords, slots):
+		def __listRedundantSlots(self, masks, keywords, slots):
 			"""Search for redundant packages walking per keywords for specified slot."""
-			result = [self.__compareSelected([k for k, s in zip(keywords, slots)
-				if s == slot])
-					for slot in self.__uniq(slots)]
+			output = list()
+			for slot in self.__uniq(slots):
+				ms = list()
+				ks = list()
+				for m, k, s in zip(masks, keywords, slots):
+					if slot == s:
+						ms.append(m)
+						ks.append(k)
+				output.append(self.__compareSelected(ms, ks))
 			# this is required because the list itself is not just one level depth
-			return list(''.join(result))
+			return list(''.join(output))
 
 		def __uniq(self, seq):
 			"""Remove all duplicate elements from list."""
@@ -44,20 +50,22 @@ class keywords_content:
 			return ["%s" % x for x in keyword.split()
 				if x != '-*' and not x.startswith('-')]
 
-		def __listRedundantAll(self, keywords):
+		def __listRedundantAll(self, masks, keywords):
 			"""Search for redundant packages using all versions ignoring its slotting."""
-			return list(self.__compareSelected(list(keywords)))
+			return list(self.__compareSelected(list(masks), list(keywords)))
 
-		def __compareSelected(self, kws):
+		def __compareSelected(self, masks, kws):
 			"""
 			Rotate over list of keywords and compare each element with others.
 			Selectively remove each already compared list from the remaining keywords.
 			"""
 			result = []
 			kws.reverse()
+			masks.reverse()
 			for i in range(len(kws)):
 				kw = kws.pop()
-				if self.__compareKeywordWithRest(kw, kws):
+				masks.pop()
+				if self.__compareKeywordWithRest(kw, kws, masks):
 					result.append('#')
 				else:
 					result.append('o')
@@ -65,12 +73,12 @@ class keywords_content:
 				result.append('o')
 			return ''.join(result)
 
-		def __compareKeywordWithRest(self, keyword, keywords):
+		def __compareKeywordWithRest(self, keyword, keywords, masks):
 			"""Compare keywords with list of keywords."""
 			kw = self.__cleanKeyword(keyword)
-			for kwi in keywords:
+			for kwi, mask in zip(keywords, masks):
 				kwi = self.__cleanKeyword(kwi)
-				if kwi:
+				if kwi and not mask:
 					kw = self.__checkShadow(kw, kwi)
 				if not kw:
 					return True
@@ -83,9 +91,9 @@ class keywords_content:
 				if not x.startswith("~"))
 			return list(set(old).difference(tmp))
 
-		def __init__(self, keywords, slots, ignore_slots = False):
+		def __init__(self, masks, keywords, slots, ignore_slots = False):
 			"""Query all relevant data for redundancy package checking"""
-			self.redundant = self.__listRedundant(keywords, ignore_slots, slots)
+			self.redundant = self.__listRedundant(masks, keywords, ignore_slots, slots)
 
 	class VersionChecker:
 		def __getVersions(self, packages):
@@ -140,6 +148,7 @@ class keywords_content:
 		def __init__(self, packages):
 			"""Query all relevant data for version data formatting"""
 			self.versions = self.__getVersions(packages)
+			self.masks = map(lambda x: self.__getMaskStatus(x), packages)
 
 	def __packages_sort(self, package_content):
 		"""
@@ -303,9 +312,10 @@ class keywords_content:
 		repositories_length = max([len(x) for x in self.repositories])
 		self.keyword_length = len(keywords_list)
 		self.versions = self.VersionChecker(packages).versions
+		masks = self.VersionChecker(packages).masks
 		self.version_length = max([len(x) for x in self.versions])
 		self.version_count = len(self.versions)
-		self.redundant = self.RedundancyChecker(self.keywords, self.slots, ignoreslots).redundant
+		self.redundant = self.RedundancyChecker(masks, self.keywords, self.slots, ignoreslots).redundant
 		redundant_length = max([len(x) for x in self.redundant])
 
 		ver = self.__formatVersions(self.versions, content_align, self.version_length)
