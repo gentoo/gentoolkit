@@ -129,7 +129,8 @@ class keywords_content:
 		def __getMaskStatus(self, cpv):
 			"""Figure out if package is pmasked."""
 			try:
-				if port.getmaskingstatus(cpv) == ['package.mask']:
+				mysettings = port.config(local_config=False)
+				if port.getmaskingstatus(cpv, settings=mysettings) == ['package.mask']:
 					return True
 			except:
 				# occurs when package is not known by portdb
