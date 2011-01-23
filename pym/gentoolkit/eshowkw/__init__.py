@@ -104,7 +104,8 @@ def main(argv, indirect = False):
 		porto.nocolor()
 	keywords = keywords_header(prefix, highlight_arch, order)
 	if len(package) > 0:
-		dbapi = portdb[ports['ROOT']]['porttree'].dbapi
+		settings = portc(local_config=False)
+		dbapi = portdbapi(mysettings=settings)
 		if not use_overlays:
 			dbapi.porttrees = [dbapi.porttree_root]
 		map(lambda x: process_display(x, keywords, dbapi), package)
@@ -119,8 +120,8 @@ def main(argv, indirect = False):
 		package= '%s/%s' % (os.path.basename(os.path.abspath('../')), os.path.basename(currdir))
 		ourtree = os.path.abspath('../../')
 		overlays = '%s %s' % (ports['PORTDIR_OVERLAY'], ourtree)
-		mysettings = portc(env={'PORTDIR_OVERLAY': overlays})
-		dbapi = portdbapi(mysettings=mysettings)
+		settings = portc(local_config=False, env={'PORTDIR_OVERLAY': overlays})
+		dbapi = portdbapi(mysettings=settings)
 		# specify that we want just our nice tree we are in cwd
 		dbapi.porttrees = [ourtree]
 		process_display(package, keywords, dbapi)

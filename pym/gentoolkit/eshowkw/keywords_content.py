@@ -127,10 +127,7 @@ class keywords_content:
 			return pv
 
 		def __getMaskStatus(self, cpv):
-			"""
-			Figure out if package is pmasked.
-			This also uses user settings in /etc/ so local changes are important.
-			"""
+			"""Figure out if package is pmasked."""
 			try:
 				if port.getmaskingstatus(cpv) == ['package.mask']:
 					return True
