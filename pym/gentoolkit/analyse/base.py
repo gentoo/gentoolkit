@@ -22,7 +22,7 @@ from getopt import gnu_getopt, GetoptError
 import gentoolkit.pprinter as pp
 from gentoolkit.formatters import format_options
 from gentoolkit.base import mod_usage
-
+from gentoolkit import CONFIG
 
 class ModuleBase(object):
 	"""Analyse base module class to parse module options print module help, etc.."""
@@ -87,6 +87,7 @@ class ModuleBase(object):
 					self.print_help(with_description=False)
 					sys.exit(2)
 				self.options[opt_name] = val
+		self.options['quiet'] = CONFIG["quiet"]
 		if self.options['quiet']:
 			self.options['verbose'] = False
 
