@@ -20,8 +20,8 @@ import gentoolkit
 from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit.analyse.base import ModuleBase
 from gentoolkit import pprinter as pp
-from gentoolkit.analyse.lib import (get_installed_use, get_flags,
-	abs_flag, abs_list, FlagAnalyzer)
+from gentoolkit.analyse.lib import get_installed_use, get_flags, FlagAnalyzer
+from gentoolkit.flag import reduce_flags
 from gentoolkit.analyse.output import RebuildPrinter
 
 import portage
@@ -179,7 +179,7 @@ class Rebuild(ModuleBase):
 			for pkg in pkg_keys:
 				if self.options['verbose']:
 					flag_count += len(pkgs[pkg])
-					unique_flags.update(abs_list(pkgs[pkg]))
+					unique_flags.update(reduce_flags(pkgs[pkg]))
 				output(pkg, pkgs[pkg])
 			if self.options['verbose']:
 				message = (pp.emph("     ") +
