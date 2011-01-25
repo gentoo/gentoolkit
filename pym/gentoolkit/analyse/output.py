@@ -12,7 +12,7 @@ from __future__ import print_function
 
 import gentoolkit
 from gentoolkit import pprinter as pp
-from gentoolkit.textwrap_ import TextWrapper
+from gentoolkit.formatters import CpvValueWrapper
 from gentoolkit.cpv import split_cpv
 
 
@@ -25,13 +25,16 @@ def nl(lines=1):
 		"""
 	print(('\n' * lines))
 
-class AnalysisPrinter(object):
+class AnalysisPrinter(CpvValueWrapper):
 	"""Printing functions"""
-	def __init__(self, target, verbose=True, references=None):
+	def __init__(self, target, verbose=True, references=None, key_width=1, width=None):
 		"""@param references: list of accepted keywords or
 				the system use flags
 				"""
 		self.references = references
+		self.key_width = key_width
+		self.width = width
+		CpvValueWrapper.__init__(self, cpv_width=key_width, width=width)
 		self.set_target(target, verbose)
 
 	def set_target(self, target, verbose=True):
@@ -132,10 +135,21 @@ class AnalysisPrinter(object):
 		"""Determines the stats for key, formats it and
 		calls the pre-determined print function
 		"""
-		self.print_fn(key, flags)
+		(plus, minus, cleaned) = flags
+		_plus = []
+		_minus = []
+		for flag in plus:
+			_flag = flag.strip()
+			if _flag:
+				_plus.append(_flag)
+		for flag in minus:
+			_flag = flag.strip()
+			if _flag:
+				_minus.append(_flag)
+		#print("cpv=", key, "_plus=", _plus, "_minus=", _minus)
+		self.print_fn(key, (plus, minus, cleaned))
 
-	@staticmethod
-	def print_pkg_verbose(cpv, flags):
+	def print_pkg_verbose(self, cpv, flags):
 		"""Verbosely prints the pkg's use flag info.
 		"""
 		(plus, minus, cleaned) = flags
@@ -144,25 +158,33 @@ class AnalysisPrinter(object):
 			_flags.append(pp.useflag((flag), True))
 		for flag in minus:
 			_flags.append(pp.useflag((flag), False))
-		#cpv = _pkgs.pop(0)
-		print(pp.cpv(cpv),'.'*(45-len(cpv)), ", ".join(_flags))
-		#while _pkgs:
-		#    cpv = _pkgs.pop(0)
-		#    print(' '*52 + pp.cpv(cpv))
+		
+		print(self._format_values(cpv, ", ".join(_flags)))
+
+	def print_pkg_quiet(self, cpv, flags):
+		"""Verbosely prints the pkg's use flag info.
+		"""
+		(plus, minus, cleaned) = flags
+		_flags = []
+		for flag in plus:
+			_flags.append(pp.useflag((flag), True))
+		for flag in minus:
+			_flags.append(pp.useflag((flag), False))
+		
+		print(self._format_values(cpv, ", ".join(_flags)))
 
 
-
-class RebuildPrinter(object):
+class RebuildPrinter(CpvValueWrapper):
 	"""Output functions"""
-	def __init__(self, target, pretend=True, exact=False):
+	def __init__(self, target, pretend=True, exact=False, key_width=1, width=None):
 		"""@param references: list of accepted keywords or
 				the system use flags
 		"""
 		self.target = target
 		self.set_target(target)
 		self.pretend = pretend
+		CpvValueWrapper.__init__(self, cpv_width=key_width, width=width)
 		if pretend:
-			self.twrap = TextWrapper(width=gentoolkit.CONFIG['termWidth'])
 			self.spacer = '  '
 			self.init_indent = len(self.spacer)
 		else:
@@ -197,23 +219,6 @@ class RebuildPrinter(object):
 		values.sort()
 		self.data[_key] = values
 		self.print_fn( _key, values)
-
-	def _format_values(self, key, values):
-		"""Format entry values ie. USE flags, keywords,...
-
-		@type key: str
-		@param key: a pre-formatted cpv
-		@type values: list of pre-formatted strings
-		@param values: ['flag1', 'flag2',...]
-		@rtype: str
-		@return: formatted options string
-		"""
-
-		result = []
-		self.twrap.initial_indent = pp.cpv(key+" ")
-		self.twrap.subsequent_indent = " " * (len(key)+1)
-		result.append(self.twrap.fill(values))
-		return '\n'.join(result)
 
 	def print_use(self, key, values):
 		"""Prints a USE flag string.
