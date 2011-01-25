@@ -148,7 +148,11 @@ def gather_keywords_info(
 		elif keyword in keyword_users:
 				keyword_users[keyword]["stable"].append(cpv)
 		else:
-				keyword_users[keyword] = {"stable": [cpv], "testing": [], "missing": []}
+				keyword_users[keyword] = {
+					"stable": [cpv],
+					"testing": [],
+					"missing": []
+					}
 	return keyword_users
 
 
@@ -166,6 +170,7 @@ class Analyse(ModuleBase):
 		self.options = {
 			"flags": False,
 			"keywords": False,
+			"packages": False,
 			"unset": False,
 			"verbose": False,
 			"quiet": False,
@@ -187,40 +192,44 @@ class Analyse(ModuleBase):
 			"--portage": ("portage", "boolean", False),
 		}
 		self.formatted_options = [
-			("    -h, --help",  "Outputs this useage message"),
-			("    -a, --analyse",
+			("  -h, --help",  "Outputs this useage message"),
+			("  -a, --analyse",
 			"Action, sets the module to gather data and output the"),
 			("", "formatted stats/information to the screen"),
-			("    -u, --unset",
+			("  -u, --unset",
 			"Additionally include any unset USE flags and the packages"),
 			("", "that could use them"),
-			("    -v, --verbose",
+			("  -v, --verbose",
 			"Used in the analyse action to output more detailed information"),
-			("    -p, --prefix",
+			("  -p, --prefix",
 			"Used for testing purposes only, runs report using " +
 			"a prefix keyword and 'prefix' USE flag"),
-			#("    -G, --portage",
+			#(" -G, --portage",
 			#"Use portage directly instead of gentoolkit's Package " +
 			#"object for some operations. Usually a little faster."),
 		]
 		self.formatted_args = [
-			("    use",
-			"causes the action to analyse the installed packages USE flags"),
-			("    pkguse",
-			"causes the action to analyse the installed packages PKGUSE flags"),
-			("    ",
+			("  use",
+			"Causes the action to analyse the installed packages USE flags"),
+			("  pkguse",
+			"Causes the action to analyse the installed packages PKGUSE flags"),
+			("  ",
 			"These are flags that have been set in /etc/portage/package.use"),
-			("    keywords",
-			"causes the action to analyse the installed packages keywords"),
+			("  keywords",
+			"Causes the action to analyse the installed packages keywords"),
+			("  packages",
+			"Causes the action to analyse the installed packages and the"),
+			("  ",
+			"USE flags they were installed with"),
 		]
 		self.short_opts = "huvpG"
 		self.long_opts = ("help", "unset", "verbose", "prefix") #, "portage")
 		self.need_queries = True
 		self.arg_spec = "Target"
-		self.arg_options = ['use', 'pkguse','keywords']
+		self.arg_options = ['use', 'pkguse','keywords', 'packages']
 		self.arg_option = False
 		self.warning = (
-			"     CAUTION",
+			"   CAUTION",
 			"This is beta software and some features/options are incomplete,",
 			"some features may change in future releases includig its name.",
 			"Feedback will be appreciated, http://bugs.gentoo.org")
@@ -237,6 +246,8 @@ class Analyse(ModuleBase):
 			self.analyse_flags(query)
 		elif query in ["keywords"]:
 			self.analyse_keywords()
+		elif query in ["packages"]:
+			self.analyse_packages()
 
 	def analyse_flags(self, target):
 		"""This will scan the installed packages db and analyse the
@@ -247,7 +258,10 @@ class Analyse(ModuleBase):
 		@param target: the target to be analysed, one of ["use", "pkguse"]
 		"""
 		system_use = portage.settings["USE"].split()
-		self.printer = AnalysisPrinter("use", self.options["verbose"], system_use)
+		self.printer = AnalysisPrinter(
+				"use",
+				self.options["verbose"],
+				system_use)
 		if self.options["verbose"]:
 			cpvs = VARDB.cpv_all()
 			#cpvs = get_installed_cpvs()
@@ -263,10 +277,10 @@ class Analyse(ModuleBase):
 		#print flag_users
 		flag_keys = sorted(flag_users)
 		if self.options["verbose"]:
-			print("    Flag                              System  #pkgs   cat/pkg-ver")
+			print(" Flag                              System  #pkgs   cat/pkg-ver")
 			blankline = nl
 		elif not self.options['quiet']:
-			print("    Flag                              System  #pkgs")
+			print(" Flag                              System  #pkgs")
 			blankline = lambda: None
 		for flag in flag_keys:
 			flag_pos = flag_users[flag]["+"]
@@ -283,9 +297,11 @@ class Analyse(ModuleBase):
 			#blankline()
 		if not self.options['quiet']:
 			print("===================================================")
-			print("Total number of flags in report =", pp.output.red(str(len(flag_keys))))
+			print("Total number of flags in report =",
+				pp.output.red(str(len(flag_keys))))
 			if self.options["verbose"]:
-				print("Total number of installed ebuilds =", pp.output.red(str(len([x for x in cpvs]))))
+				print("Total number of installed ebuilds =",
+					pp.output.red(str(len([x for x in cpvs]))))
 			print()
 
 
@@ -303,13 +319,17 @@ class Analyse(ModuleBase):
 			print("Current system ARCH =", arch)
 			print("Current system ACCEPT_KEYWORDS =", system_keywords)
 		system_keywords = system_keywords.split()
-		self.printer = AnalysisPrinter("keywords", self.options["verbose"], system_keywords)
+		self.printer = AnalysisPrinter(
+				"keywords",
+				self.options["verbose"],
+				system_keywords)
 		self.analyser = KeywordAnalyser( arch, system_keywords, VARDB)
 		#self.analyser.set_order(portage.settings["USE"].split())
 		# only for testing
 		test_use = portage.settings["USE"].split()
 		if self.options['prefix'] and 'prefix' not in test_use:
-			print("ANALYSE_KEYWORDS() 'prefix' flag not found in system USE flags!!!  appending for testing")
+			print("ANALYSE_KEYWORDS() 'prefix' flag not found in system",
+				"USE flags!!!  appending for testing")
 			print()
 			test_use.append('prefix')
 		self.analyser.set_order(test_use)
@@ -336,9 +356,9 @@ class Analyse(ModuleBase):
 		#print keyword_users
 		keyword_keys = sorted(keyword_users)
 		if self.options["verbose"]:
-			print(" Keyword               System  #pkgs   cat/pkg-ver")
+			print(" Keyword   System  #pkgs   cat/pkg-ver")
 		elif not self.options['quiet']:
-			print(" Keyword               System  #pkgs")
+			print(" Keyword   System  #pkgs")
 		for keyword in keyword_keys:
 			kwd_stable = keyword_users[keyword]["stable"]
 			if len(kwd_stable):
@@ -360,9 +380,50 @@ class Analyse(ModuleBase):
 				for cpv in self.analyser.mismatched:
 					print("\t", pp.cpv(cpv))
 			print("===================================================")
-			print("Total number of keywords in report =", pp.output.red(str(len(keyword_keys))))
+			print("Total number of keywords in report =",
+				pp.output.red(str(len(keyword_keys))))
 			if self.options["verbose"]:
-				print("Total number of installed ebuilds =", pp.output.red(str(len(cpvs))))
+				print("Total number of installed ebuilds =",
+					pp.output.red(str(len(cpvs))))
+			print()
+
+
+	def analyse_packages(self):
+		"""This will scan the installed packages db and analyse the
+		USE flags used for installation and produce a report.
+
+		@type target: string
+		@param target: the target to be analysed, one of ["use", "pkguse"]
+		"""
+		system_use = portage.settings["USE"].split()
+		self.printer = AnalysisPrinter(
+				"packages",
+				self.options["verbose"],
+				system_use)
+		if self.options["verbose"]:
+			cpvs = VARDB.cpv_all()
+		else:
+			cpvs = get_installed_cpvs()
+
+		flags = FlagAnalyzer(
+					system=system_use,
+					filter_defaults=False,
+					target="USE"
+					)
+
+		if self.options["verbose"]:
+			print(" cat/pkg-ver USE Flags")
+			blankline = nl
+		elif not self.options['quiet']:
+			print(" cat/pkg-ver USE Flags")
+			blankline = lambda: None
+		for cpv in cpvs:
+			(flag_plus, flag_neg, cleaned) = flags.analyse_cpv(cpv)
+			self.printer(cpv, "", (flag_plus, flag_neg, cleaned))
+		if not self.options['quiet']:
+			print("===================================================")
+			print("Total number of installed ebuilds =",
+				pp.output.red(str(len([x for x in cpvs]))))
 			print()
 
 
