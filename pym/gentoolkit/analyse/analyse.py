@@ -396,15 +396,19 @@ class Analyse(ModuleBase):
 		@param target: the target to be analysed, one of ["use", "pkguse"]
 		"""
 		system_use = portage.settings["USE"].split()
+		if self.options["verbose"]:
+			cpvs = VARDB.cpv_all()
+			key_width = 45
+		else:
+			cpvs = get_installed_cpvs()
+			key_width = 1
+
 		self.printer = AnalysisPrinter(
 				"packages",
 				self.options["verbose"],
-				system_use)
-		if self.options["verbose"]:
-			cpvs = VARDB.cpv_all()
-		else:
-			cpvs = get_installed_cpvs()
+				key_width=key_width)
 
+		cpvs = sorted(cpvs)
 		flags = FlagAnalyzer(
 					system=system_use,
 					filter_defaults=False,
@@ -412,14 +416,18 @@ class Analyse(ModuleBase):
 					)
 
 		if self.options["verbose"]:
-			print(" cat/pkg-ver USE Flags")
+			print("   cat/pkg-ver                                 USE Flags")
+				#   "app-emulation/emul-linux-x86-sdl-20100915 ...."
 			blankline = nl
 		elif not self.options['quiet']:
-			print(" cat/pkg-ver USE Flags")
+			print("   cat/pkg-ver                                 USE Flags")
 			blankline = lambda: None
 		for cpv in cpvs:
 			(flag_plus, flag_neg, cleaned) = flags.analyse_cpv(cpv)
-			self.printer(cpv, "", (flag_plus, flag_neg, cleaned))
+			if self.options["unset"]:
+				self.printer(cpv, "", (flag_plus, flag_neg, cleaned))
+			else:
+				self.printer(cpv, "", (flag_plus, [], cleaned))
 		if not self.options['quiet']:
 			print("===================================================")
 			print("Total number of installed ebuilds =",
