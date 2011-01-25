@@ -49,13 +49,13 @@ class AnalysisPrinter(CpvValueWrapper):
 				self.print_fn = self.print_keyword_verbose
 			else:
 				self.print_fn = self.print_keyword_quiet
-			self._format_key = self._format_key_
+			self._format_key = self._format_use_keyword
 		elif target in ["packages"]:
 			if verbose:
 				self.print_fn = self.print_pkg_verbose
 			else:
 				self.print_fn = self.print_pkg_quiet
-			self._format_key = self._format_pkg_
+			self._format_key = self._format_pkg
 
 	def __call__(self, key, active, data):
 		self._format_key(key, active, data)
@@ -131,7 +131,7 @@ class AnalysisPrinter(CpvValueWrapper):
 
 	# W0613: *Unused argument %r*
 	# pylint: disable-msg=W0613
-	def _format_pkg_(self, key, active, flags):
+	def _format_pkg(self, key, active, flags):
 		"""Determines the stats for key, formats it and
 		calls the pre-determined print function
 		"""
