@@ -242,6 +242,7 @@ class Analyse(ModuleBase):
 		"""
 		query = self.main_setup(input_args)
 		query = self.validate_query(query)
+		self.set_quiet(quiet)
 		if query in ["use", "pkguse"]:
 			self.analyse_flags(query)
 		elif query in ["keywords"]:
