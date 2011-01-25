@@ -157,7 +157,7 @@ class AnalysisPrinter(CpvValueWrapper):
 		for flag in plus:
 			_flags.append(pp.useflag((flag), True))
 		for flag in minus:
-			_flags.append(pp.useflag((flag), False))
+			_flags.append(pp.useflag(('-'+flag), False))
 		
 		print(self._format_values(cpv, ", ".join(_flags)))
 
@@ -169,7 +169,7 @@ class AnalysisPrinter(CpvValueWrapper):
 		for flag in plus:
 			_flags.append(pp.useflag((flag), True))
 		for flag in minus:
-			_flags.append(pp.useflag((flag), False))
+			_flags.append(pp.useflag(('-'+flag), False))
 		
 		print(self._format_values(cpv, ", ".join(_flags)))
 
