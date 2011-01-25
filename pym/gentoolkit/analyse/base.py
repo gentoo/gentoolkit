@@ -36,6 +36,7 @@ class ModuleBase(object):
 		self.module_opts = {}
 		self.warning = None
 		self.need_queries = True
+		self.saved_verbose = None
 
 
 	def print_help(self, with_description=True):
@@ -87,9 +88,21 @@ class ModuleBase(object):
 					self.print_help(with_description=False)
 					sys.exit(2)
 				self.options[opt_name] = val
-		self.options['quiet'] = CONFIG["quiet"]
-		if self.options['quiet']:
+
+	def set_quiet(self, quiet):
+		"""sets the class option["quiet"] and option["verbose"] accordingly"""
+		if quiet == self.options['quiet']:
+			return
+		if self.saved_verbose:
+			# detected a switch
+			verbose = self.options['verbose'] 
+			self.options['verbose']  = self.saved_verbose
+			self.saved_verbose = verbose
+		elif quiet:
+			self.saved_verbose = self.options['verbose'] 
 			self.options['verbose'] = False
+		self.options['quiet'] = quiet
+		return
 
 	def validate_query(self, query, depth=0):
 		"""check that the query meets the modules TargetSpec
