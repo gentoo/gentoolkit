@@ -97,3 +97,42 @@ def format_timestamp(timestamp):
 
 	return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(timestamp)))
 
+class CpvValueWrapper(object):
+	"""Format a cpv and linewrap pre-formatted values"""
+
+	def __init__(self, cpv_width=None, width=None):
+		self.cpv_width = cpv_width
+		if width is None:
+			width = gentoolkit.CONFIG['termWidth']
+		self.twrap = TextWrapper(width=width)
+		#self.init_indent = len(self.spacer)
+
+	def _format_values(self, key, values):
+		"""Format entry values ie. USE flags, keywords,...
+
+		@type key: str
+		@param key: a pre-formatted cpv
+		@type values: list of pre-formatted strings
+		@param values: ['flag1', 'flag2',...]
+		@rtype: str
+		@return: formatted options string
+		"""
+
+		result = []
+		if self.cpv_width > 1:
+			_cpv = pp.cpv(key+'.'*(self.cpv_width-len(key)))
+			if not len(values):
+				return _cpv
+			self.twrap.initial_indent = _cpv
+			self.twrap.subsequent_indent = " " * (self.cpv_width+1)
+		else:
+			_cpv = pp.cpv(key+' ')
+			if not len(values):
+				return _cpv
+			self.twrap.initial_indent = _cpv
+			self.twrap.subsequent_indent = " " * (len(key)+1)
+
+		result.append(self.twrap.fill(values))
+		return '\n'.join(result)
+
+
