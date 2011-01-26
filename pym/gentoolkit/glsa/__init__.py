@@ -622,6 +622,7 @@ class Glsa:
 		@param	outfile: Stream that should be used for writing
 						 (defaults to sys.stdout)
 		"""
+		outstream = getattr(outstream, "buffer", outstream)
 		outstream = codecs.getwriter(encoding)(outstream)
 		width = int(self.config["PRINTWIDTH"])
 		outstream.write(center("GLSA %s: \n%s" % (self.nr, self.title), width)+"\n")
