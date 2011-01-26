@@ -85,8 +85,8 @@ class FlagAnalyzer(object):
 			plus = usedflags
 		minus = defaults.difference(usedflags)
 		unset = iuse.difference(defaults, plus, minus)
-		cleaned = self.remove_expanding(unset)
-		return (plus, minus, cleaned)
+		cleaned_unset = self.remove_expanding(unset)
+		return (plus, minus, cleaned_unset)
 
 	def analyse_pkg(self, pkg):
 		"""Gets all relevent USE flag info for a pkg and breaks them down
@@ -98,7 +98,9 @@ class FlagAnalyzer(object):
 		@return (plus, minus, unset) sets of USE flags
 		"""
 		installed = set(self.pkg_used(pkg))
+		print("installed =", installed)
 		iuse =  set(reduce_flags(self.pkg_flags(pkg)))
+		print("iuse =", iuse)
 		return self._analyse(installed, iuse)
 
 	def pkg_used(self, pkg):

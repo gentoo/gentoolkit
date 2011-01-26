@@ -424,11 +424,11 @@ class Analyse(ModuleBase):
 			print("   cat/pkg-ver                                 USE Flags")
 			blankline = lambda: None
 		for cpv in cpvs:
-			(flag_plus, flag_neg, cleaned) = flags.analyse_cpv(cpv)
+			(flag_plus, flag_neg, unset) = flags.analyse_cpv(cpv)
 			if self.options["unset"]:
-				self.printer(cpv, "", (flag_plus, flag_neg, cleaned))
+				self.printer(cpv, "", (flag_plus, flag_neg, unset))
 			else:
-				self.printer(cpv, "", (flag_plus, [], cleaned))
+				self.printer(cpv, "", (flag_plus, flag_neg, []))
 		if not self.options['quiet']:
 			print("===================================================")
 			print("Total number of installed ebuilds =",

@@ -138,6 +138,7 @@ class AnalysisPrinter(CpvValueWrapper):
 		(plus, minus, cleaned) = flags
 		_plus = []
 		_minus = []
+		_cleaned = []
 		for flag in plus:
 			_flag = flag.strip()
 			if _flag:
@@ -146,30 +147,39 @@ class AnalysisPrinter(CpvValueWrapper):
 			_flag = flag.strip()
 			if _flag:
 				_minus.append(_flag)
+		for flag in cleaned:
+			_flag = flag.strip()
+			if _flag:
+				_cleaned.append(_flag)
 		#print("cpv=", key, "_plus=", _plus, "_minus=", _minus)
 		self.print_fn(key, (plus, minus, cleaned))
 
 	def print_pkg_verbose(self, cpv, flags):
 		"""Verbosely prints the pkg's use flag info.
 		"""
-		(plus, minus, cleaned) = flags
+		(plus, minus, unset) = flags
 		_flags = []
 		for flag in plus:
 			_flags.append(pp.useflag((flag), True))
 		for flag in minus:
-			_flags.append(pp.useflag(('-'+flag), False))
-		
+			_flags.append(pp.useflag(('-' + flag), False))
+		for flag in unset:
+			_flags.append(pp.globaloption('-' + flag))
+			
 		print(self._format_values(cpv, ", ".join(_flags)))
+
 
 	def print_pkg_quiet(self, cpv, flags):
 		"""Verbosely prints the pkg's use flag info.
 		"""
-		(plus, minus, cleaned) = flags
+		(plus, minus, unset) = flags
 		_flags = []
 		for flag in plus:
 			_flags.append(pp.useflag((flag), True))
 		for flag in minus:
 			_flags.append(pp.useflag(('-'+flag), False))
+		for flag in unset:
+			_flags.append(pp.globaloption('-' + flag))
 		
 		print(self._format_values(cpv, ", ".join(_flags)))
 
