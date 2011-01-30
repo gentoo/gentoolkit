@@ -98,32 +98,36 @@ class keywords_content:
 	class VersionChecker:
 		def __getVersions(self, packages):
 			"""Obtain properly aligned version strings without colors."""
-			return map(lambda x: self.__separateVersion(x), packages)
+			revlength = max([len(self.__getRevision(x)) for x in packages])
+			return map(lambda x: self.__separateVersion(x, revlength), packages)
 
-		def __separateVersion(self, cpv):
-			"""Get version string for specfied cpv"""
-			#pv = port.versions.cpv_getversion(cpv)
-			return self.__prependVersionInfo(cpv, self.cpv_getversion(cpv))
+		def __getRevision(self, cpv):
+			"""Get revision informations for each package for nice further alignment"""
+			rev = port.catpkgsplit(cpv)[3]
+			return rev if rev != 'r0' else ''
 
-		# remove me when portage 2.1.9 is stable
-		def cpv_getversion(self, mycpv):
-			"""Returns the v (including revision) from an cpv."""
-			cp = port.versions.cpv_getkey(mycpv)
-			if cp is None:
-				return None
-			return mycpv[len(cp+"-"):]
+		def __separateVersion(self, cpv, revlength):
+			return self.__modifyVersionInfo(cpv, port.versions.cpv_getversion(cpv), revlength)
 
-		def __prependVersionInfo(self, cpv, pv):
-			"""Prefix version with string based on whether version is installed or masked."""
+		def __modifyVersionInfo(self, cpv, pv, revlength):
+			"""Prefix and suffix version with string based on whether version is installed or masked and its revision."""
 			mask = self.__getMaskStatus(cpv)
 			install = self.__getInstallStatus(cpv)
-
+			suffixlen = revlength - len(self.__getRevision(cpv))
+			# +1 required for the dash in revision
+			if suffixlen != 0:
+				suffixlen = suffixlen + 1
+			suffix = ''
+			for x in range(suffixlen):
+				suffix = '%s ' % suffix
 			if mask and install:
-				pv = '[M][I]%s' % pv
+				pv = '[M][I]%s%s' % (pv, suffix)
 			elif mask:
-				pv = '[M]%s' % pv
+				pv = '[M]%s%s' % (pv, suffix)
 			elif install:
-				pv = '[I]%s' % pv
+				pv = '[I]%s%s' % (pv, suffix)
+			else:
+				pv = '%s%s' % (pv, suffix)
 			return pv
 
 		def __getMaskStatus(self, cpv):
@@ -309,8 +313,9 @@ class keywords_content:
 		self.slot_length = max([len(x) for x in self.slots])
 		repositories_length = max([len(x) for x in self.repositories])
 		self.keyword_length = len(keywords_list)
-		self.versions = self.VersionChecker(packages).versions
-		masks = self.VersionChecker(packages).masks
+		vers =self.VersionChecker(packages)
+		self.versions = vers.versions
+		masks = vers.masks
 		self.version_length = max([len(x) for x in self.versions])
 		self.version_count = len(self.versions)
 		self.redundant = self.RedundancyChecker(masks, self.keywords, self.slots, ignoreslots).redundant
