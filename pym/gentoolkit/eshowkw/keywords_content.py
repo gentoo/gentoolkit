@@ -113,6 +113,7 @@ class keywords_content:
 			"""Prefix and suffix version with string based on whether version is installed or masked and its revision."""
 			mask = self.__getMaskStatus(cpv)
 			install = self.__getInstallStatus(cpv)
+
 			# calculate suffix length
 			currevlen = len(self.__getRevision(cpv))
 			suffixlen = revlength - currevlen
@@ -122,6 +123,7 @@ class keywords_content:
 			suffix = ''
 			for x in range(suffixlen):
 				suffix = '%s ' % suffix
+
 			if mask and install:
 				pv = '[M][I]%s%s' % (pv, suffix)
 			elif mask:
