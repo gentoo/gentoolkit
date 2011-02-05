@@ -137,7 +137,10 @@ def _get_metadata(metadata, element, tag):
 				values.append("no-herd")
 				continue
 
-			values.append(node[0].childNodes[0].data)
+			try:
+				values.append(node[0].childNodes[0].data)
+			except IndexError:
+				pass
 	except NotFoundErr:
 		raise NotFoundErr("%s: Malformed input: missing 'flag' tag(s)" % (metadata))
 
