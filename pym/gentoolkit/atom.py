@@ -81,10 +81,13 @@ class Atom(portage.dep.Atom, CPV):
 			if self.blocker.overlap.forbid != other.blocker.overlap.forbid:
 				return False
 
+		if self.use_conditional != other.use_conditional:
+			return False
+
 		# Don't believe Portage has something like this
 		#c = cmp(self.negate_vers, other.negate_vers)
 		#if c:
-		#	return c
+		#   return c
 
 		if self.slot != other.slot:
 			return False
@@ -133,7 +136,7 @@ class Atom(portage.dep.Atom, CPV):
 		# Don't believe Portage has something like this
 		#c = cmp(self.negate_vers, other.negate_vers)
 		#if c:
-		#	return c
+		#   return c
 
 		if self.slot != other.slot:
 			if self.slot is None:
@@ -229,8 +232,8 @@ class Atom(portage.dep.Atom, CPV):
 
 		# TODO: Uncomment when Portage's Atom supports repo
 		#if (self.repo_name is not None and other.repo_name is not None and
-		#	self.repo_name != other.repo_name):
-		#	return False
+		#   self.repo_name != other.repo_name):
+		#   return False
 
 		# Use deps are similar: if one of us forces a flag on and the
 		# other forces it off we do not intersect. If only one of us
@@ -247,9 +250,9 @@ class Atom(portage.dep.Atom, CPV):
 				if flag[0] == '-' and flag[1:] in flags:
 					return False
 
-        # Remaining thing to check is version restrictions. Get the
-        # ones we can check without actual version comparisons out of
-        # the way first.
+		# Remaining thing to check is version restrictions. Get the
+		# ones we can check without actual version comparisons out of
+		# the way first.
 
 		# If one of us is unversioned we intersect:
 		if not self.operator or not other.operator:
