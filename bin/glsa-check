@@ -358,7 +358,7 @@ if mode == "mail":
 		import portage_mail
 
 	import socket
-	from io import StringIO
+	from io import BytesIO
 	try:
 		from email.mime.text import MIMEText
 	except ImportError:
@@ -380,11 +380,13 @@ if mode == "mail":
 	mysubject = "[glsa-check] Summary for %s" % socket.getfqdn()
 
 	# need a file object for summarylist()
-	myfd = StringIO()
-	myfd.write("GLSA Summary report for host %s\n" % socket.getfqdn())
-	myfd.write("(Command was: %s)\n\n" % " ".join(sys.argv))
+	myfd = BytesIO()
+	line = "GLSA Summary report for host %s\n" % socket.getfqdn()
+	myfd.write(line.encode("utf-8"))
+	line = "(Command was: %s)\n\n" % " ".join(sys.argv)
+	myfd.write(line.encode("utf-8"))
 	summarylist(glsalist, fd1=myfd, fd2=myfd)
-	summary = str(myfd.getvalue())
+	summary = myfd.getvalue().decode("utf-8")
 	myfd.close()
 
 	myattachments = []
@@ -395,9 +397,10 @@ if mode == "mail":
 			if verbose:
 				sys.stderr.write(("invalid GLSA: %s (error message was: %s)\n" % (myid, e)))
 			continue
-		myfd = StringIO()
+		myfd = BytesIO()
 		myglsa.dump(outstream=myfd)
-		myattachments.append(MIMEText(str(myfd.getvalue()), _charset="utf8"))
+		attachment = myfd.getvalue().decode("utf-8")
+		myattachments.append(MIMEText(attachment, _charset="utf8"))
 		myfd.close()
 
 	if glsalist or not quiet:
