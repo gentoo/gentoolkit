@@ -7,7 +7,7 @@
 """Miscellaneous helper functions and classes.
 
 @note: find_* functions that previously lived here have moved to
-       the query module, where they are called as: Query('portage').find_*().
+	   the query module, where they are called as: Query('portage').find_*().
 """
 
 __all__ = (
@@ -473,18 +473,6 @@ def uniqify(seq, preserve_order=True):
 		result = [x for x in seq if x not in seen and not seen.add(x)]
 	else:
 		result = list(set(seq))
-
-	return result
-
-def uniqify_atoms(seq):
-	"""Return a uniqified list."""
-	seen = set()
-	result = []
-	for x in seq:
-		dep = x.get_depstr()
-		if dep not in seen:
-			result.append(x)
-			seen.add(dep)
 
 	return result
 
