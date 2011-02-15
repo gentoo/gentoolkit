@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import subprocess
+import portage
 
 
 # util. functions
@@ -34,6 +35,12 @@ def exithandler(signum, frame):
     sys.exit(1)
 
 
+def get_masking_status(ebuild):
+    try:
+        status = portage.getmaskingstatus(ebuild)
+    except KeyError:
+        status = ['deprecated']
+    return status
 
 if __name__ == '__main__':
     print "There is nothing to run here."
