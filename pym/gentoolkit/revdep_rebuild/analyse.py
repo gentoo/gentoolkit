@@ -131,7 +131,7 @@ def analyse(logger=logging, libraries=None, la_libraries=None, libraries_links=N
     else:
         #TODO: add partial cache (for ex. only libraries) when found for some reason
 
-        logger.info(green(' * ') + bold('Collecting system binaries and libraries'))
+        logger.warn(green(' * ') + bold('Collecting system binaries and libraries'))
         bin_dirs, lib_dirs = prepare_search_dirs(logger)
 
         masked_dirs, masked_files, ld = parse_revdep_config()

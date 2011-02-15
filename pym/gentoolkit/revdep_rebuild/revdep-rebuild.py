@@ -25,7 +25,7 @@ from portage import portdb
 from portage.output import bold, red, blue, yellow, green, nocolor
 
 from analyse import analyse
-from stuff import exithandler
+from stuff import exithandler, get_masking_status
 from cache import check_temp_files, read_cache
 from assign import get_slotted_cps
 from settings import SETTINGS
@@ -154,6 +154,21 @@ if __name__ == "__main__":
     if not assigned:
         logger.warn('\n' + bold('Your system is consistent'))
         sys.exit(0)
+
+
+    has_masked = False
+    tmp = []
+    for a in assigned:
+        if get_masking_status(a):
+            has_masked = True
+            logger.warn('!!! ' + red('All ebuilds that could satisfy: ') + green(a) + red(' have been masked'))
+        else:
+            tmp.append(a)
+    assigned = tmp
+
+    if has_masked:
+        logger.info(red(' * ') + 'Unmask all ebuild listed above and call revdep-rebuild again or manually emerge given packages.')
+
 
     if SETTINGS['EXACT']:
         emerge_command = '=' + ' ='.join(assigned)
