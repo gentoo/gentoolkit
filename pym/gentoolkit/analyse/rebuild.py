@@ -20,9 +20,12 @@ import gentoolkit
 from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit.analyse.base import ModuleBase
 from gentoolkit import pprinter as pp
-from gentoolkit.analyse.lib import get_installed_use, get_flags, FlagAnalyzer
+from gentoolkit.analyse.lib import (get_installed_use, get_flags, FlagAnalyzer,
+	KeywordAnalyser)
 from gentoolkit.flag import reduce_flags
 from gentoolkit.analyse.output import RebuildPrinter
+from gentoolkit.atom import Atom
+
 
 import portage
 
@@ -71,6 +74,55 @@ def cpv_all_diff_use(
 	return data
 
 
+def cpv_all_diff_keywords(
+		cpvs=None,
+		system_keywords=None,
+		use_portage=False,
+		#  override-able for testing
+		keywords=portage.settings["ACCEPT_KEYWORDS"],
+		analyser = None
+		):
+	"""Analyse the installed pkgs 'keywords' for difference from ACCEPT_KEYWORDS
+
+	@param cpvs: optional list of [cat/pkg-ver,...] to analyse or
+			defaults to entire installed pkg db
+	@param system_keywords: list of the system keywords
+	@param keywords: user defined list of keywords to check and report on
+			or reports on all relevant keywords found to have been used.
+	@param _get_kwds: overridable function for testing
+	@param _get_used: overridable function for testing
+	@rtype dict. {keyword:{"stable":[cat/pkg-ver,...],
+						   "testing":[cat/pkg-ver,...]}
+	"""
+	if cpvs is None:
+		cpvs = VARDB.cpv_all()
+	keyword_users = {}
+	for cpv in cpvs:
+		if cpv.startswith("virtual"):
+			continue
+		if use_portage:
+			keyword = analyser.get_inst_keyword_cpv(cpv)
+		else:
+			pkg = Package(cpv)
+			keyword = analyser.get_inst_keyword_pkg(pkg)
+		#print "returned keyword =", cpv, keyword, keyword[0]
+		key = keyword[0]
+		if key in ["~", "-"] and keyword not in system_keywords:
+			atom = Atom("="+cpv)
+			if atom.cp not in keyword_users:
+				keyword_users[atom.cp] = []
+			if key in ["~"]:
+				atom.keyword = keyword
+				atom.slot = VARDB.aux_get(atom.cpv, ["SLOT"])[0]
+				keyword_users[atom.cp].append(atom)
+			elif key in ["-"]:
+				#print "adding cpv to missing:", cpv
+				atom.keyword = "**"
+				atom.slot = VARDB.aux_get(atom.cpv, ["SLOT"])[0]
+				keyword_users[atom.cp].append(atom)
+	return keyword_users
+
+
 class Rebuild(ModuleBase):
 	"""Installed db analysis tool to query the installed databse
 	and produce/output stats for USE flags or keywords/mask.
@@ -90,6 +142,9 @@ class Rebuild(ModuleBase):
 			"quiet": False,
 			"exact": False,
 			"pretend": False,
+			"prefix": False,
+			"portage": True,
+			"slot": False
 			#"unset": False
 		}
 		self.module_opts = {
@@ -97,6 +152,8 @@ class Rebuild(ModuleBase):
 			"--pretend": ("pretend", "boolean", True),
 			"-e": ("exact", "boolean", True),
 			"--exact": ("exact", "boolean", True),
+			"-s": ("slot", "boolean", True),
+			"--slot": ("slot", "boolean", True),
 			"-v": ("verbose", "boolean", True),
 			"--verbose": ("verbose", "boolean", True),
 		}
@@ -105,7 +162,9 @@ class Rebuild(ModuleBase):
 			("    -p, --pretend", "Does not actually create the files."),
 			("    ", "It directs the outputs to the screen"),
 			("    -e, --exact", "will atomize the package with a"),
-			("  ", "leading '=' and include the version")
+			("  ", "leading '=' and include the version"),
+			("    -s, --slot", "will atomize the package with a"),
+			("  ", "leading '=' and include the slot")
 		]
 		self.formatted_args = [
 			("    use",
@@ -116,8 +175,8 @@ class Rebuild(ModuleBase):
 			"causes the action to analyse the installed packages " + \
 			"current mask status")
 		]
-		self.short_opts = "hepv"
-		self.long_opts = ("help", "exact", "pretend", "verbose")
+		self.short_opts = "hepsv"
+		self.long_opts = ("help", "exact", "pretend", "slot", "verbose")
 		self.need_queries = True
 		self.arg_spec = "TargetSpec"
 		self.arg_options = ['use', 'keywords', 'unmask']
@@ -153,7 +212,8 @@ class Rebuild(ModuleBase):
 			print("  -- Scanning installed packages for USE flag settings that")
 			print("     do not match the default settings")
 		system_use = portage.settings["USE"].split()
-		output = RebuildPrinter("use", self.options["pretend"], self.options["exact"])
+		output = RebuildPrinter(
+			"use", self.options["pretend"], self.options["exact"])
 		pkgs = cpv_all_diff_use(system_flags=system_use)
 		pkg_count = len(pkgs)
 		if self.options["verbose"]:
@@ -167,26 +227,17 @@ class Rebuild(ModuleBase):
 			if self.options["pretend"] and not self.options["quiet"]:
 				print()
 				print(pp.globaloption(
-					"  -- These are the installed packages & flags " +
+					"  -- These are the installed packages & keywords " +
 					"that were detected"))
-				print(pp.globaloption("     to need flag settings other " +
+				print(pp.globaloption("     to need keyword settings other " +
 					"than the defaults."))
 				print()
 			elif not self.options["quiet"]:
 				print("  -- preparing pkgs for file entries")
-			flag_count = 0
-			unique_flags = set()
 			for pkg in pkg_keys:
-				if self.options['verbose']:
-					flag_count += len(pkgs[pkg])
-					unique_flags.update(reduce_flags(pkgs[pkg]))
 				output(pkg, pkgs[pkg])
 			if self.options['verbose']:
 				message = (pp.emph("     ") +
-					pp.number(str(len(unique_flags))) +
-					pp.emph(" unique flags\n") + "     " +
-					pp.number(str(flag_count))+
-					pp.emph(" flag entries\n") + "     " +
 					pp.number(str(pkg_count)) +
 					pp.emph(" different packages"))
 				print()
@@ -197,12 +248,80 @@ class Rebuild(ModuleBase):
 				#unique.sort()
 				#print unique
 			if not self.options["pretend"]:
-				filepath = os.path.expanduser('~/package.use.test')
-				self.save_file(filepath, output.use_lines)
+				filepath = os.path.expanduser('~/package.keywords.test')
+				self.save_file(filepath, output.lines)
 
 	def rebuild_keywords(self):
 		print("Module action not yet available")
 		print()
+		"""This will scan the installed packages db and analyse the
+		keywords used for installation and produce a report on them.
+		"""
+		system_keywords = portage.settings["ACCEPT_KEYWORDS"].split()
+		output = RebuildPrinter(
+			"keywords", self.options["pretend"], self.options["exact"],
+			self.options['slot'])
+		arch = portage.settings["ARCH"]
+		if self.options["prefix"]:
+			# build a new keyword for testing
+			system_keywords = "~" + arch + "-linux"
+		if self.options["verbose"] or self.options["prefix"]:
+			print("Current system ARCH =", arch)
+			print("Current system ACCEPT_KEYWORDS =", system_keywords)
+		self.analyser = KeywordAnalyser( arch, system_keywords, VARDB)
+		#self.analyser.set_order(portage.settings["USE"].split())
+		# only for testing
+		test_use = portage.settings["USE"].split()
+		if self.options['prefix'] and 'prefix' not in test_use:
+			print("REBUILD_KEYWORDS() 'prefix' flag not found in system",
+				"USE flags!!!  appending for testing")
+			print()
+			test_use.append('prefix')
+		self.analyser.set_order(test_use)
+		# /end testing
+
+		cpvs = VARDB.cpv_all()
+		#print "Total number of installed ebuilds =", len(cpvs)
+		pkgs = cpv_all_diff_keywords(
+			cpvs=cpvs,
+			system_keywords=system_keywords,
+			use_portage=self.options['portage'],
+			analyser = self.analyser
+			)
+		#print([pkgs[p][0].cpv for p in pkgs])
+		if pkgs:
+			pkg_keys = sorted(pkgs)
+			#print(len(pkgs))
+			if self.options["pretend"] and not self.options["quiet"]:
+				print()
+				print(pp.globaloption(
+					"  -- These are the installed packages & keywords " +
+					"that were detected"))
+				print(pp.globaloption("     to need keyword settings other " +
+					"than the defaults."))
+				print()
+			elif not self.options["quiet"]:
+				print("  -- preparing pkgs for file entries")
+			for pkg in pkg_keys:
+				output(pkg, pkgs[pkg])
+		if not self.options['quiet']:
+			if self.analyser.mismatched:
+				print("_________________________________________________")
+				print(("The following packages were found to have a \n" +
+					"different recorded ARCH than the current system ARCH"))
+				for cpv in self.analyser.mismatched:
+					print("\t", pp.cpv(cpv))
+			print("===================================================")
+			print("Total number of entries in report =",
+				pp.output.red(str(len(pkg_keys))))
+			if self.options["verbose"]:
+				print("Total number of installed ebuilds =",
+					pp.output.red(str(len(cpvs))))
+			print()
+			if not self.options["pretend"]:
+				filepath = os.path.expanduser('~/package.keywords.test')
+				self.save_file(filepath, output.lines)
+
 
 	def rebuild_unmask(self):
 		print("Module action not yet available")
