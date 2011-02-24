@@ -161,7 +161,7 @@ class keywords_content:
 		Sort packages queried based on version and slot
 		%% pn , repo, slot, keywords
 		"""
-		from operator import itemgetter 
+		from operator import itemgetter
 
 		if len(package_content) > 1:
 			ver_map = {}
