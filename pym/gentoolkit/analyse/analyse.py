@@ -278,10 +278,10 @@ class Analyse(ModuleBase):
 		#print flag_users
 		flag_keys = sorted(flag_users)
 		if self.options["verbose"]:
-			print(" Flag                              System  #pkgs   cat/pkg-ver")
+			print(" Flag                                 System  #pkgs   cat/pkg-ver")
 			blankline = nl
 		elif not self.options['quiet']:
-			print(" Flag                              System  #pkgs")
+			print(" Flag                                 System  #pkgs")
 			blankline = lambda: None
 		for flag in flag_keys:
 			flag_pos = flag_users[flag]["+"]
@@ -357,9 +357,9 @@ class Analyse(ModuleBase):
 		#print keyword_users
 		keyword_keys = sorted(keyword_users)
 		if self.options["verbose"]:
-			print(" Keyword   System  #pkgs   cat/pkg-ver")
+			print(" Keyword               System  #pkgs   cat/pkg-ver")
 		elif not self.options['quiet']:
-			print(" Keyword   System  #pkgs")
+			print(" Keyword               System  #pkgs")
 		for keyword in keyword_keys:
 			kwd_stable = keyword_users[keyword]["stable"]
 			if len(kwd_stable):
@@ -417,11 +417,11 @@ class Analyse(ModuleBase):
 					)
 
 		if self.options["verbose"]:
-			print("   cat/pkg-ver                                 USE Flags")
+			print("   cat/pkg-ver                             USE Flags")
 				#   "app-emulation/emul-linux-x86-sdl-20100915 ...."
 			blankline = nl
 		elif not self.options['quiet']:
-			print("   cat/pkg-ver                                 USE Flags")
+			print("   cat/pkg-ver                             USE Flags")
 			blankline = lambda: None
 		for cpv in cpvs:
 			(flag_plus, flag_neg, unset) = flags.analyse_cpv(cpv)
