@@ -216,9 +216,9 @@ class RebuildPrinter(CpvValueWrapper):
 		self.lines = [self.header()]
 
 
-	def __call__(self, key, values):
-		if self.target in ["keywords"]:
-			self._format_atoms(key, values)
+	def __call__(self, key, values, cp_count):
+		if self.target in ["keywords", "use"]:
+			self._format_atoms(key, values, cp_count)
 		else:
 			self._format_key(key, values)
 
@@ -236,9 +236,11 @@ class RebuildPrinter(CpvValueWrapper):
 		self.data[_key] = values
 		self.print_fn( _key, values)
 
-	def print_use(self, key, values):
+	def print_use(self, key, atom=None, values=None):
 		"""Prints a USE flag string.
 		"""
+		if atom and not values:
+			values = atom.use
 		if self.pretend:
 			flags = []
 			for flag in values:
@@ -248,31 +250,31 @@ class RebuildPrinter(CpvValueWrapper):
 			line = ' '.join([key, ' '.join(values)])
 			self.lines.append(line)
 
-	def _format_atoms(self, key, atoms):
+	def _format_atoms(self, key, atoms, count):
 		"""Determines if there are more than one atom in the values and
 		calls the predetermined print function for each atom.
 		"""
 		#print("_format_atoms(),", key, atoms)
 		if self.exact:
 			for atom in atoms:
-				self.print_fn(str(atom), atom.keyword)
+				self.print_fn(str(atom), atom=atom)
 			return
-		many = False
-		if len(atoms) >1:
-			many = True
-		if self.slot or many:
+		#print("_format_atoms(), count =", count)
+		if self.slot or count > 1:
 			for atom in atoms:
 				_key = str(atom.cp) + ":" + atom.slot
-				self.print_fn(_key, atom.keyword)
+				self.print_fn(_key, atom=atom)
 		else:
 			for atom in atoms:
 				_key = str(atom.cp)
-				self.print_fn(_key, atom.keyword)
+				self.print_fn(_key, atom=atom)
 		return
 
-	def print_keyword(self, key, keyword):
+	def print_keyword(self, key, atom=None, keyword=None):
 		"""prints a pkg key and a keyword"""
 		#print("print_keyword(),", key, keyword)
+		if atom and not keyword:
+			keyword = atom.keyword
 		if self.pretend:
 			print(self._format_values(key, keyword))
 		else:
