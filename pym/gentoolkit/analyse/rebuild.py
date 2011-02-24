@@ -58,6 +58,7 @@ def cpv_all_diff_use(
 		cpvs = VARDB.cpv_all()
 	cpvs.sort()
 	data = {}
+	cp_counts = {}
 	# pass them in to override for tests
 	flags = FlagAnalyzer(system_flags,
 		filter_defaults=True,
@@ -67,11 +68,19 @@ def cpv_all_diff_use(
 	)
 	for cpv in cpvs:
 		plus, minus, unset = flags.analyse_cpv(cpv)
+		atom = Atom("="+cpv)
+		atom.slot = VARDB.aux_get(atom.cpv, ["SLOT"])[0]
 		for flag in minus:
 			plus.add("-"+flag)
 		if len(plus):
-			data[cpv] = list(plus)
-	return data
+			if atom.cp not in data:
+				data[atom.cp] = []
+			if atom.cp not in cp_counts:
+				cp_counts[atom.cp] = 0
+			atom.use = list(plus)
+			data[atom.cp].append(atom)
+			cp_counts[atom.cp] += 1
+	return data, cp_counts
 
 
 def cpv_all_diff_keywords(
@@ -97,6 +106,7 @@ def cpv_all_diff_keywords(
 	if cpvs is None:
 		cpvs = VARDB.cpv_all()
 	keyword_users = {}
+	cp_counts = {}
 	for cpv in cpvs:
 		if cpv.startswith("virtual"):
 			continue
@@ -111,16 +121,20 @@ def cpv_all_diff_keywords(
 			atom = Atom("="+cpv)
 			if atom.cp not in keyword_users:
 				keyword_users[atom.cp] = []
+			if atom.cp not in cp_counts:
+				cp_counts[atom.cp] = 0
 			if key in ["~"]:
 				atom.keyword = keyword
 				atom.slot = VARDB.aux_get(atom.cpv, ["SLOT"])[0]
 				keyword_users[atom.cp].append(atom)
+				cp_counts[atom.cp] += 1
 			elif key in ["-"]:
 				#print "adding cpv to missing:", cpv
 				atom.keyword = "**"
 				atom.slot = VARDB.aux_get(atom.cpv, ["SLOT"])[0]
 				keyword_users[atom.cp].append(atom)
-	return keyword_users
+				cp_counts[atom.cp] += 1
+	return keyword_users, cp_counts
 
 
 class Rebuild(ModuleBase):
@@ -213,8 +227,9 @@ class Rebuild(ModuleBase):
 			print("     do not match the default settings")
 		system_use = portage.settings["USE"].split()
 		output = RebuildPrinter(
-			"use", self.options["pretend"], self.options["exact"])
-		pkgs = cpv_all_diff_use(system_flags=system_use)
+			"use", self.options["pretend"], self.options["exact"],
+				self.options['slot'])
+		pkgs, cp_counts = cpv_all_diff_use(system_flags=system_use)
 		pkg_count = len(pkgs)
 		if self.options["verbose"]:
 			print()
@@ -227,15 +242,15 @@ class Rebuild(ModuleBase):
 			if self.options["pretend"] and not self.options["quiet"]:
 				print()
 				print(pp.globaloption(
-					"  -- These are the installed packages & keywords " +
+					"  -- These are the installed packages & use flags " +
 					"that were detected"))
-				print(pp.globaloption("     to need keyword settings other " +
+				print(pp.globaloption("     to need use flag settings other " +
 					"than the defaults."))
 				print()
 			elif not self.options["quiet"]:
 				print("  -- preparing pkgs for file entries")
 			for pkg in pkg_keys:
-				output(pkg, pkgs[pkg])
+				output(pkg, pkgs[pkg], cp_counts[pkg])
 			if self.options['verbose']:
 				message = (pp.emph("     ") +
 					pp.number(str(pkg_count)) +
@@ -248,7 +263,7 @@ class Rebuild(ModuleBase):
 				#unique.sort()
 				#print unique
 			if not self.options["pretend"]:
-				filepath = os.path.expanduser('~/package.keywords.test')
+				filepath = os.path.expanduser('~/package.use.test')
 				self.save_file(filepath, output.lines)
 
 	def rebuild_keywords(self):
@@ -282,7 +297,7 @@ class Rebuild(ModuleBase):
 
 		cpvs = VARDB.cpv_all()
 		#print "Total number of installed ebuilds =", len(cpvs)
-		pkgs = cpv_all_diff_keywords(
+		pkgs, cp_counts = cpv_all_diff_keywords(
 			cpvs=cpvs,
 			system_keywords=system_keywords,
 			use_portage=self.options['portage'],
@@ -303,7 +318,7 @@ class Rebuild(ModuleBase):
 			elif not self.options["quiet"]:
 				print("  -- preparing pkgs for file entries")
 			for pkg in pkg_keys:
-				output(pkg, pkgs[pkg])
+				output(pkg, pkgs[pkg], cp_counts[pkg])
 		if not self.options['quiet']:
 			if self.analyser.mismatched:
 				print("_________________________________________________")
