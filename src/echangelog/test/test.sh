@@ -16,9 +16,14 @@ MD5_COPYRIGHT="9ce45576db5489c4f109ed9ef9ffe05e"
 MD5_OBSOLETE="f0079450e03e69741502776a6b8138dc"
 MD5_FINAL="a3954786368fd92d8466bc65cbf689fc"
 
+UPDATE_MD5=0
+
 md5() {
 	local fname=$1
-	echo $(md5sum ${fname} | awk '{ print $1 }')
+	local var=$2
+	local md5=$(md5sum ${fname} | awk '{ print $1 }')
+	[ ${UPDATE_MD5:-0} -eq 1 ] && echo "${var}=\"${md5}\"" >> ${_ROOT}/MD5.new
+	echo $md5
 }
 
 ech() {
@@ -72,7 +77,7 @@ make_test() {
 	cd ${VCSTEST}
 	ech ${echangelog} --vcs $vcs 'New ebuild for bug <id>.'
 
-	if [ "${MD5_INIT}" != "$(md5 ChangeLog)" ]; then
+	if [ "${MD5_INIT}" != "$(md5 ChangeLog MD5_INIT)" ]; then
 		eerror "WRONG MD5_INIT!"
 	fi
 
@@ -87,7 +92,7 @@ make_test() {
 
 	ech ${echangelog} --vcs $vcs "Added adittional patch to fix foo."
 
-	if [ "${MD5_PATCH}" != "$(md5 ChangeLog)" ]; then
+	if [ "${MD5_PATCH}" != "$(md5 ChangeLog MD5_PATCH)" ]; then
 		eerror "WRONG MD5_PATCH!"
 	fi
 
@@ -104,14 +109,14 @@ make_test() {
 
 	ech ${echangelog} --vcs $vcs "Revbump..."
 
-	if [ "${MD5_REVBUMP}" != "$(md5 ChangeLog)" ]; then
+	if [ "${MD5_REVBUMP}" != "$(md5 ChangeLog MD5_REVBUMP)" ]; then
 		eerror "WRONG MD5_REVBUMP!"
 	fi
 
 	sed -i -e 's:# Copyright 1999-2009 Gentoo Foundation:# Copyright 1999-2010 Gentoo Foundation:' vcstest-0.0.1.ebuild
 	ech ${echangelog} --vcs $vcs "Revbump...; Just copyright changed."
 
-	if [ "${MD5_COPYRIGHT}" != "$(md5 ChangeLog)" ]; then
+	if [ "${MD5_COPYRIGHT}" != "$(md5 ChangeLog MD5_COPYRIGHT)" ]; then
 		eerror "WRONG MD5_COPYRIGHT!"
 	fi
 
@@ -124,19 +129,20 @@ make_test() {
 
 	ech ${echangelog} --vcs $vcs "Revbump...; Just copyright changed; Removed obsolete patch."
 
-	if [ "${MD5_OBSOLETE}" != "$(md5 ChangeLog)" ]; then
+	if [ "${MD5_OBSOLETE}" != "$(md5 ChangeLog MD5_OBSOLETE)" ]; then
 		eerror "WRONG MD5_OBSOLETE!"
 	fi
 
 	echo>>vcstest-0.0.1.ebuild
 	ech ${echangelog} --vcs $vcs "Revbump...; Just copyright changed; Removed obsolete patch; Modified more then just the copyright."
 
-	if [ "${MD5_FINAL}" != "$(md5 ChangeLog)" ]; then
+	if [ "${MD5_FINAL}" != "$(md5 ChangeLog MD5_FINAL)" ]; then
 		eerror "WRONG MD5_FINAL!"
 	fi
 }
 
 [ -d "${_ROOT}/tmp" ] && rm -rf ${_ROOT}/tmp
+[ -f "${_ROOT}/MD5.new" ] && rm -f ${_ROOT}/MD5.new
 mkdir -p ${_ROOT}/tmp
 
 ebegin "Preparing echangelog"
@@ -156,6 +162,7 @@ for vcs in $SUPPORTED_VCS; do
 		ebegin "Starting test with ${vcs}"
 		make_test $_ROOT "${vcs}" || set $?
 		eend ${1:-0}
+		[ ${UPDATE_MD5:-0} -eq 1 ] && break
 	else
 		ewarn "No ${vcs} executable found, skipping test..."
 	fi
