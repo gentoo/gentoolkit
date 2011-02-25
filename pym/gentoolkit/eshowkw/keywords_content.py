@@ -34,7 +34,8 @@ class keywords_content:
 			# this is required because the list itself is not just one level depth
 			return list(''.join(output))
 
-		def __uniq(self, seq):
+		@staticmethod
+		def __uniq(seq):
 			"""Remove all duplicate elements from list."""
 			seen = {}
 			result = []
@@ -45,7 +46,8 @@ class keywords_content:
 				result.append(item)
 			return result
 
-		def __cleanKeyword(self, keyword):
+		@staticmethod
+		def __cleanKeyword(keyword):
 			"""Remove masked arches and hardmasks from keywords since we don't care about that."""
 			return ["%s" % x for x in keyword.split()
 				if x != '-*' and not x.startswith('-')]
@@ -137,8 +139,7 @@ class keywords_content:
 		def __getMaskStatus(self, cpv):
 			"""Figure out if package is pmasked."""
 			try:
-				mysettings = port.config(local_config=False)
-				if "package.mask" in port.getmaskingstatus(cpv, settings=mysettings):
+				if "package.mask" in port.getmaskingstatus(cpv, settings=self.mysettings):
 					return True
 			except:
 				# occurs when package is not known by portdb
@@ -146,17 +147,20 @@ class keywords_content:
 				pass
 			return False
 
+
 		def __getInstallStatus(self, cpv):
 			"""Check if package version we test is installed."""
-			vartree = port.db[port.settings['ROOT']]['vartree'].dbapi
-			return vartree.cpv_exists(cpv)
+			return self.vartree.cpv_exists(cpv)
 
 		def __init__(self, packages):
 			"""Query all relevant data for version data formatting"""
+			self.vartree = port.db[port.settings['ROOT']]['vartree'].dbapi
+			self.mysettings = port.config(local_config=False)
 			self.versions = self.__getVersions(packages)
 			self.masks = map(lambda x: self.__getMaskStatus(x), packages)
 
-	def __packages_sort(self, package_content):
+	@staticmethod
+	def __packages_sort(package_content):
 		"""
 		Sort packages queried based on version and slot
 		%% pn , repo, slot, keywords
@@ -218,7 +222,8 @@ class keywords_content:
 			raise SystemExit(msg_err)
 		return list(zip(*matches))
 
-	def __getMetadata(self, pdb, package, repo):
+	@staticmethod
+	def __getMetadata(pdb, package, repo):
 		"""Obtain all required metadata from portage auxdb"""
 		try:
 			metadata = pdb.aux_get(package, ['KEYWORDS', 'SLOT'], repo)
@@ -235,7 +240,8 @@ class keywords_content:
 			for i, arch in enumerate(keywords_list)])
 				for version in keywords]
 
-	def __prepareKeywordChar(self, arch, field, keywords, usebold = False, toplist = 'archlist'):
+	@staticmethod
+	def __prepareKeywordChar(arch, field, keywords, usebold = False, toplist = 'archlist'):
 		"""
 		Convert specified keywords for package into their visual replacements.
 		# possibilities:
@@ -262,7 +268,8 @@ class keywords_content:
 			char = colorize('bold', char)
 		return char
 
-	def __formatVersions(self, versions, align, length):
+	@staticmethod
+	def __formatVersions(versions, align, length):
 		"""Append colors and align keywords properly"""
 		# % are used as separators for further split so we wont loose spaces and coloring
 		tmp = []
@@ -279,7 +286,8 @@ class keywords_content:
 				tmp.append(pv)
 		return tmp
 
-	def __formatAdditional(self, additional, color, length):
+	@staticmethod
+	def __formatAdditional(additional, color, length):
 		"""Align additional items properly"""
 		# % are used as separators for further split so we wont loose spaces and coloring
 		tmp = []
@@ -294,7 +302,8 @@ class keywords_content:
 			tmp.append(x)
 		return tmp
 
-	def __prepareContentResult(self, versions, keywords, redundant, slots, slot_length, repos, linesep):
+	@staticmethod
+	def __prepareContentResult(versions, keywords, redundant, slots, slot_length, repos, linesep):
 		"""Parse version fields into one list with proper separators"""
 		content = []
 		oldslot = ''
