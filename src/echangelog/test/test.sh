@@ -167,3 +167,5 @@ for vcs in $SUPPORTED_VCS; do
 		ewarn "No ${vcs} executable found, skipping test..."
 	fi
 done
+
+exit ${1:-0}
