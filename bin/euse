@@ -1077,7 +1077,7 @@ modify_package() {
 		error "Invalid package atom. Did you forget the version?"
 		continue
 	fi
-	# If removing a disabled flag, or addind an enabled one, emit a warning,
+	# If removing a disabled flag, or adding an enabled one, emit a warning,
 	# indicating a likely misunderstanding
 	if [[ "${ACTION}" == "remove" ]]; then
 		if [[ "${ACTIVE:-${GLOBAL_ACTIVE}}" == "-" ]]; then
