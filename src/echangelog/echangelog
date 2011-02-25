@@ -282,11 +282,19 @@ if (-f 'ChangeLog') {
 		close(I);
 
 		$text =~ s/^\*.*//ms; # don't need the fake entry
-
-		$text = update_cat_pn($text);
 	} else {
 		die "This should be run in a directory with ebuilds...\n";
 	}
+}
+
+# Update the copyright year in the ChangeLog
+$text = update_copyright($text);
+
+# New packages and/or ones that have moved around often have stale data here.
+# But only do that in places where ebuilds are around (as echangelog can be
+# used in profiles/ and such places).
+if (<*.ebuild>) {
+	$text = update_cat_pn($text);
 }
 
 # Figure out what has changed around here
@@ -736,16 +744,6 @@ if (@new_versions) {
 		/$1\n\n$entry\n\n/sx
 			or die "Failed to insert new entry (3)\n";
 }
-
-# New packages and/or ones that have moved around often have stale data here.
-# But only do that in places where ebuilds are around (as echangelog can be
-# used in profiles/ and such places).
-if (grep(/\.ebuild$/, @files)) {
-	$text = update_cat_pn($text);
-}
-
-# Update the copyright year in the ChangeLog
-$text = update_copyright($text);
 
 # Write the new ChangeLog
 open O, '>ChangeLog.new' or die "Can't open ChangeLog.new for output: $!\n";
