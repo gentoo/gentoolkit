@@ -14,12 +14,14 @@ class keywords_header:
 	__ADDITIONAL_FIELDS = [ 'unused', 'slot' ]
 	__EXTRA_FIELDS = [ 'repo' ]
 
-	def __readKeywords(self):
+	@staticmethod
+	def __readKeywords():
 		"""Read all available keywords from portage."""
 		return [x for x in ports.archlist()
 			if not x.startswith('~')]
 
-	def __sortKeywords(self, keywords, prefix = False, required_keywords = []):
+	@staticmethod
+	def __sortKeywords(keywords, prefix = False, required_keywords = []):
 		"""Sort keywords with short archs first"""
 		# user specified only some keywords to display
 		if len(required_keywords) != 0:
@@ -62,7 +64,8 @@ class keywords_header:
 				tmp.append(keyword)
 		return tmp
 
-	def __formatAdditional(self, additional, align, length):
+	@staticmethod
+	def __formatAdditional(additional, align, length):
 		"""Align additional items properly"""
 		# % are used as separators for further split so we wont loose spaces and coloring
 		return ['%'.join(align_string(x, align, length)) for x in additional]
