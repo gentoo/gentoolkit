@@ -936,11 +936,13 @@ add_flag() {
 		return 1
 	else
 		NEW_MAKE_CONF_USE="${NEW_MAKE_CONF_USE} ${1}"
+		echo "Adding flag \"${1}\" to make.conf" >&2
 	fi
 }
 
 remove_flag() {
 	NEW_MAKE_CONF_USE="${NEW_MAKE_CONF_USE// ${1} / }"
+	echo "Removing flag \"${1}\" from make.conf" >&2
 }
 
 # Function: clean_package_use {{{
@@ -1035,6 +1037,7 @@ modify_package() {
 	while [[ -n ${2} ]]; do
 	shift
 	local flag=${1}
+	local method="add"
 	ACTIVE="-"
 	#
 	# Fetch flag ACTIVE status (+,-,null)
@@ -1045,8 +1048,15 @@ modify_package() {
 	get_flagstatus_pkg "${flag}" "${pkg}" "${ACTIVE}" "${V}" > /dev/null
 	#
 	# --- Sanity checks
-	# (1) make sure ${pkg} exists in portdir
-	if [[ ! -d "$(get_portdir)/${pkg}" ]]; then
+	# (1) make sure ${pkg} exists in portdir or an overlay
+	local exists=1
+	for portdir in ${ALL_PORTDIRS[@]}; do
+		if [[ -d "${portdir}/${pkg}" ]]; then
+			exists=0
+			break
+		fi
+	done
+	if [[ $exists == 1 ]]; then
 		fatal "Package \"${pkg}\" does not exist"
 	#
 	# (2) make sure ${flag} is defined in get_useflaglist
@@ -1067,66 +1077,24 @@ modify_package() {
 		error "Invalid package atom. Did you forget the version?"
 		continue
 	fi
-	# If flag is enabled in portage USE flags (emerge --info), 
-	# then "remove"ing the flag should be replaced with adding
-	# the negative flag instead
+	# If removing a disabled flag, or addind an enabled one, emit a warning,
+	# indicating a likely misunderstanding
 	if [[ "${ACTION}" == "remove" ]]; then
-		if [[ "${ACTIVE:-${GLOBAL_ACTIVE}}" == "+" ]]; then
-			if [[ -n $(echo "${ACTIVE_FLAGS[4]}" | grep "^$PACKAGE" \
-					| grep " $flag") ]]; then
-				iuse=$(echo "${ACTIVE_FLAGS[5]} " | grep -Ee "^${pkg_re}" \
-						| cut -d ";" -f4 | egrep -o "[+-]?${flag}")
-				# Ensure the flag is enabled in the ebuild _and_ in package.use,
-				# if so, enable it in package.use
-				if [[ "${iuse}" =~ "+" ]]; then
-					# The flag is currently enabled in the ebuild, so add a
-					# disablement
-					flag="-${flag}"
-					ACTION="add"
-				fi
-			else
-				# Not enabled in package.use, so disable it there
-				flag="-${flag}"
-				ACTION="add"
-			fi
-		else
-			error "USE flag \"$flag\" is already disabled for $PACKAGE"
-			continue
+		if [[ "${ACTIVE:-${GLOBAL_ACTIVE}}" == "-" ]]; then
+			warn "USE flag \"$flag\" is already disabled for $PACKAGE"
 		fi
+		flag="-${flag}"
 	elif [[ "${ACTION}" == "prune" ]]; then
 		# Just remove the flag below
 		[[ "${ACTIVE}" == "-" ]] && flag="-${flag}"
-		ACTION="remove"
-	# If flag is currently disabled for the package requested 
-	# to be enabled in, then "remove" the negative
+		method="remove"
 	elif [[ "${ACTION}" == "add" ]]; then
-		if [[ "${ACTIVE}" == "-" ]]; then
-			# If flag is masked, it should be added to package.mask, instead
-			# of package.use. For now, yield a warning and quit
-			if [[ -n $(echo " ${ACTIVE_FLAGS[6]}" | grep " -${flag} ") ]]; then
-				error "USE flag \"$flag\" is masked. Enabling in package.use will" \
-					  "\nbe ineffective. You may have an incorrect profile selected."
-				continue
-			elif [[ -n $(echo "${ACTIVE_FLAGS[4]}" | grep "^$PACKAGE" \
-					| grep " -$flag") ]]; then
-				iuse=$(echo "${ACTIVE_FLAGS[5]} " | grep -Ee "^${pkg_re}" \
-						| cut -d ";" -f4 | egrep -o "[+-]?${flag}")
-				# Ensure the flag is disabled in the ebuild _and_ in package.use,
-				# if so, enable it in package.use
-				if [[ "${iuse}" =~ "+" ]]; then
-					# The flag is currently disabled by package.use only, so remove the
-					# disablement
-					flag="-${flag}"
-					ACTION="remove"
-				fi
-			fi
-		elif [[ "${ACTIVE:-${GLOBAL_ACTIVE:--}}" == "+" ]]; then
+		if [[ "${ACTIVE:-${GLOBAL_ACTIVE:--}}" == "+" ]]; then
 			# XXX: Perhaps look at indicating where it is enabled
-			error "USE flag \"$flag\" is already enabled for $PACKAGE"
-			continue
+			warn "USE flag \"$flag\" is already enabled for $PACKAGE"
 		fi
 	fi
-	case "${ACTION}" in
+	case "${method}" in
 		"add")
 			local filename
 			if [[ -d ${PACKAGE_USE_PATH} ]]; then
@@ -1198,6 +1166,8 @@ modify() {
 		return;
 	fi;
 
+	local make_conf_modified=0
+
 	if [ -z "${*}" ]; then
 		if [ "${ACTION}" != "prune" ]; then
 			echo "WARNING: no USE flags listed for modification, do you really"
@@ -1212,40 +1182,44 @@ modify() {
 
 	NEW_MAKE_CONF_USE=" ${ACTIVE_FLAGS[1]} "
 
-	while [ -n "${1}" ]; do
-		if [ "${ACTION}" == "add" ]; then
-			if echo " ${NEW_MAKE_CONF_USE} " | grep " ${1} " > /dev/null; then
+	while [[ -n "${1}" ]]; do
+		if [[ "${ACTION}" == "add" ]]; then
+			if  [[ -n $(grep " ${1} " <<< " ${NEW_MAKE_CONF_USE} ") ]]; then
+				warn "Use flag \"${1}\" is already enabled globally"
 				shift
-			elif echo " ${NEW_MAKE_CONF_USE} " | grep " -${1} " > /dev/null; then
-				remove_flag "-${1}"
+			elif [[ -n $(grep " -${1} " <<< " ${NEW_MAKE_CONF_USE} ") ]]; then
+				remove_flag "-${1}" || exit
+				make_conf_modified=1
 			else
 				add_flag "${1}" || exit
+				make_conf_modified=1
 				shift
 			fi
-		elif [ "${ACTION}" == "remove" ]; then
-			if echo " ${NEW_MAKE_CONF_USE} " | grep " -${1} " > /dev/null; then
+		elif [[ "${ACTION}" == "remove" ]]; then
+			if [[ -n $(grep " -${1} " <<< " ${NEW_MAKE_CONF_USE} ") ]]; then
+				warn "Use flag \"${1}\" is already disabled globally"
 				shift
-			elif echo " ${NEW_MAKE_CONF_USE} " | grep " ${1} " > /dev/null; then
-				remove_flag "${1}"
+			elif [[ -n $(grep " ${1} " <<< " ${NEW_MAKE_CONF_USE} ") ]]; then
+				remove_flag "${1}" || exit
+				make_conf_modified=1
 			else
 				add_flag "-${1}" || exit
+				make_conf_modified=1
 				shift
 			fi
-		elif [ "${ACTION}" == "prune" ]; then
-			if echo " ${NEW_MAKE_CONF_USE} " | grep " ${1} " > /dev/null; then
-				remove_flag "${1}"
-			elif echo " ${NEW_MAKE_CONF_USE} " | grep " -${1} " > /dev/null; then
-				remove_flag "-${1}"
+		elif [[ "${ACTION}" == "prune" ]]; then
+			if [[ -n $(grep " ${1} " <<< " ${NEW_MAKE_CONF_USE} ") ]]; then
+				remove_flag "${1}" || exit
+				make_conf_modified=1
+			elif [[ -n $(grep " -${1} " <<< " ${NEW_MAKE_CONF_USE} ") ]]; then
+				remove_flag "-${1}" || exit
+				make_conf_modified=1
+			else
+				warn "Use flag \"${1}\" is not set globally"
 			fi
 			shift
 		fi
 	done
-
-	#echo "old flags:"
-	#echo ${ACTIVE_FLAGS[1]}
-	#echo
-	#echo "new flags:"
-	#echo ${NEW_MAKE_CONF_USE}
 
 	# a little loop to add linebreaks so we don't end with one ultra-long line
 	NEW_MAKE_CONF_USE_2=""
@@ -1257,6 +1231,7 @@ modify() {
 		fi
 	done
 
+	[[ ${make_conf_modified} == 1 ]] || return
 	# make a backup just in case the user doesn't like the new make.conf
 	cp -p "${MAKE_CONF_PATH}" "${MAKE_CONF_BACKUP_PATH}"
 
