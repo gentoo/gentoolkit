@@ -74,7 +74,7 @@ parse_arguments() {
 			-E | --enable)         MODE="modify"; ACTION="add";;
 			-D | --disable)        MODE="modify"; ACTION="remove";;
 			-P | --prune | -R | --remove)
-                                   MODE="modify"; ACTION="prune";;
+                                               MODE="modify"; ACTION="prune";;
 			-p | --package)	       MODE="modify"; shift; PACKAGE=${1}; SCOPE="local";;
 			-*)
 				echo "ERROR: unknown option ${1} specified."
@@ -218,7 +218,7 @@ print ' '.join(r)"
 # * - Lines of package atom followed by flags
 #     (app-editors/vim flag1 flag2 -flag3)
 reduce_package_use() {
-    echo "${@}" | python -c "import sys,re
+	echo "${@}" | python -c "import sys,re
 h={}; getflags=re.compile(r'(-?[\w*-]+)')
 for x in sys.stdin.read().split('\n'):
 	if not x: continue
@@ -708,7 +708,7 @@ ALL_PORTDIRS=( "$PORTDIR" $(get_all_overlays) )
 # Returns:
 # 0 (True) if needle in haystack, null (False) otherwise
 array_contains() {
-    for i in $1; do [[ $i == $2 ]] && return 0; done
+	for i in $1; do [[ $i == $2 ]] && return 0; done
 	return
 } # }}}
 
@@ -979,8 +979,8 @@ scrub_use_flag() {
 		elif [[ -n "${PACKAGE}" ]]; then
 			if [[ -n $(echo "${line}" | grep -Ee "${pkg_re}") ]]; then	
 				# If this is the only (remaining) use flag defined
-                # for this package, then remove the whole line
-                if [[ -z $(echo "${line}" | \
+				# for this package, then remove the whole line
+				if [[ -z $(echo "${line}" | \
 						grep -Ee "${pkg_re} *-?${flag} *$") ]]; then
 					# Remove flag from this line
 					echo "${line}" | sed -re "s/ *-?\b${flag}\b//"
@@ -1060,12 +1060,12 @@ modify_package() {
 		# XXX: Handle version or version wildcard?
 		warn "USE flag \"${flag}\" is not used by $PACKAGE"
 		# Don't necessarily bail for this, just warn
-    elif [[ -n "${V}" && -z "$(egrep "<|>|=" <<< "${PACKAGE:0:1}")" ]]; then
-        error "Invalid package atom. Did you forget the leading '='?"
-        continue
-    elif [[ -z "${V}" && -n "$(egrep "<|>|=" <<< "${PACKAGE:0:1}")" ]]; then
-        error "Invalid package atom. Did you forget the version?"
-        continue
+	elif [[ -n "${V}" && -z "$(egrep "<|>|=" <<< "${PACKAGE:0:1}")" ]]; then
+		error "Invalid package atom. Did you forget the leading '='?"
+		continue
+	elif [[ -z "${V}" && -n "$(egrep "<|>|=" <<< "${PACKAGE:0:1}")" ]]; then
+		error "Invalid package atom. Did you forget the version?"
+		continue
 	fi
 	# If flag is enabled in portage USE flags (emerge --info), 
 	# then "remove"ing the flag should be replaced with adding
@@ -1084,10 +1084,10 @@ modify_package() {
 					flag="-${flag}"
 					ACTION="add"
 				fi
-            else
-                # Not enabled in package.use, so disable it there
-                flag="-${flag}"
-                ACTION="add"
+			else
+				# Not enabled in package.use, so disable it there
+				flag="-${flag}"
+				ACTION="add"
 			fi
 		else
 			error "USE flag \"$flag\" is already disabled for $PACKAGE"
@@ -1146,7 +1146,7 @@ modify_package() {
 			fi
 			# Walk through the file and add the flag manually
 			echo "Adding \"${PACKAGE}[${flag}]\" use flag in \"${filename}\""
-            local added=0
+			local added=0
 		 	while read line; do
 				if [[ -n $(echo "${line}" | egrep -re "^[^#]*${PACKAGE} ") ]]; then
 					echo $(reduce_package_use "${line} ${flag}")
@@ -1281,7 +1281,7 @@ modify() {
 			echo -n 'USE="'
 			echo -ne "${NEW_MAKE_CONF_USE_2%% }"
 			echo '"'
-		 	inuse=0
+			inuse=0
 			had_use=1
 		fi
 	done
