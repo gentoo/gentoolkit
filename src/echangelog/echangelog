@@ -23,13 +23,15 @@ $Text::Wrap::unexpand = 0;
 # Global variables
 my (@files, @ebuilds, @conflicts, @trivial, @unknown, @new_versions, %actions);
 my ($input, $editor, $entry, $user, $date, $text, $vcs);
-my ($opt_help, $opt_nostrict, $opt_force_vcs, $opt_version);
+my ($opt_help, $opt_nostrict, $opt_force_vcs, $opt_version, $opt_strict);
+
+$date = strftime("%d %b %Y", gmtime);
 
 $opt_help = 0;
 $opt_nostrict = 0;
 $opt_version = 0;
 # DEPRECATED
-my $opt_strict = 0;
+$opt_strict = 0;
 
 my %vcs = (
 	bzr => {
@@ -86,7 +88,7 @@ sub usage {
 	Options:
 	    --help      err, this screen ...
 	    --no-strict do not abort on trivial/no changes
-	    --vcs <vcs> skip vcs autodetection and use the specified vcs instead      
+	    --vcs <vcs> skip vcs autodetection and use the specified vcs instead
 	                for a list of supported version control systems see below
 	    --version   show version info
 
@@ -379,7 +381,7 @@ sub git_unknown_objects {
 
 		# IMHO we can skip those files, even if they're untracked
 		#next if $line =~ m/^\.gitignore$/;
-		
+
 		push(@unknown, $line);
 	}
 	close(GIT);
@@ -508,8 +510,8 @@ sub sortfunc($$) {
 
 # Forget ebuilds that only have changed copyrights, unless that's all
 # the changed files we have
-@ebuilds = grep /\.ebuild$/, @files;
-@files = grep !/\.ebuild$/, @files;
+@ebuilds = grep(/\.ebuild$/, @files);
+@files = grep(!/\.ebuild$/, @files);
 
 if (@ebuilds) {
 	if ($vcs eq "git") {
@@ -609,7 +611,7 @@ if (($vcs eq "svn" or $vcs eq "hg") and (@ebuilds)) {
 # Allow ChangeLog entries with no changed files, but give a fat warning
 unless (@files) {
 	print STDERR "**\n";
-	print STDERR "** NOTE: No non-trivial changed files found.  Normally echangelog\n";
+	print STDERR "** NOTE: No non-trivial changed files found. Normally echangelog\n";
 	print STDERR "** should be run after all affected files have been added and/or\n";
 	print STDERR "** modified.  Did you forget to $vcs add?\n";
 	print STDERR "**\n";
@@ -620,7 +622,7 @@ unless (@files) {
 		exit(1);
 	}
 
-	@files = sort sortfunc @trivial;
+	@files = @trivial;
 
 	# last resort to put something in the list
 	unless (@files) {
@@ -707,7 +709,6 @@ else {
 # Make sure that we didn't get "root"
 die "Please set ECHANGELOG_USER or run as non-root\n" if $user =~ /<root@/;
 
-$date = strftime("%d %b %Y", gmtime);
 $entry = "$date; $user ";
 $entry .= join ', ', sort sortfunc map("$actions{$_}$_", @files);
 $entry .= ':';
@@ -776,8 +777,7 @@ for my $e (grep(!/\.(patch|diff)$/, @files)) {
 		rename "$e.new", $e or warn("Can't rename $e.new: $!\n");
 
 		# git requires to re-add this file else it wouln't be included in the commit.
-		if ($vcs eq "git")
-		{
+		if ($vcs eq "git") {
 			system("$vcs{$vcs}{add} ${e}");
 		}
 	}
