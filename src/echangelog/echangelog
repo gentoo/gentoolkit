@@ -525,7 +525,7 @@ if (@ebuilds) {
 	while (defined $_) {
 		# only possible with cvs
 		if (/^$vcs diff: (([^\/]*?)\.ebuild) was removed/) {
-			mypush(@files, $1);
+			mypush(@ebuilds, $1);
 		}
 		# We assume GNU diff output format here.
 		# git format: diff --git a/app-doc/repodoc/metadata.xml b/app-doc/repodoc/metadata.xml
@@ -536,7 +536,7 @@ if (@ebuilds) {
 				while (<C>) {
 					last if /^deleted file mode|^index/;
 					if (/^new file mode/) {
-						mypush(@files, $file);
+						mypush(@ebuilds, $file);
 						mypush(@new_versions, $version);
 						last;
 					}
@@ -545,12 +545,12 @@ if (@ebuilds) {
 
 			if ($vcs eq "bzr") {
 				if (/^=== added file/) {
-					mypush(@files, $file);
+					mypush(@ebuilds, $file);
 					mypush(@new_versions, $version);
 					last;
 				}
 				elsif(/^=== renamed file '.+\/([^\/]+\.ebuild)' => '.+\/(([^\/]+)\.ebuild)'/) {
-					mypush(@files, $1, $2);
+					mypush(@ebuilds, $1, $2);
 					mypush(@new_versions, $3);
 					last;
 				}
@@ -565,17 +565,17 @@ if (@ebuilds) {
 			while (<C>) {
 				last if /^[A-Za-z]/;
 				if (/^[-+](?!# Copyright)/) {
-					mypush(@files, $file);
+					mypush(@ebuilds, $file);
 					last;
 				}
 			}
 
-			# at this point we've either added $f to @files or not,
+			# at this point we've either added $f to @ebuilds or not,
 			# and we have the next line in $_ for processing
 			next;
 		}
 		elsif (/^$vcs.*?: (([^\/]*?)\.ebuild) is a new entry/) {
-			mypush(@files, $1);
+			mypush(@ebuilds, $1);
 			mypush(@new_versions, $2);
 		}
 
@@ -592,7 +592,7 @@ if (($vcs eq "svn" or $vcs eq "hg") and (@ebuilds)) {
 
 	while (defined $_) {
 		if (/^A\s+\+?\s*(([^\s]*)\.ebuild)/) {
-			mypush(@files, $1);
+			mypush(@ebuilds, $1);
 			mypush(@new_versions, $2);
 		}
 
