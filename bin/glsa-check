@@ -48,7 +48,7 @@ params = []
 try:
 	args, params = getopt(sys.argv[1:], "".join([o[0][1] for o in optionmap]), \
 		[x[2:] for x in reduce(lambda x,y: x+y, [z[1:-1] for z in optionmap])])
-	args = [a for a,b in args]
+	args = [a for a, b in args]
 
 	for option in ["--nocolor", "-n"]:
 		if option in args:
@@ -231,7 +231,7 @@ def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr, encoding="utf-8"):
 		if verbose:
 			access = ("[%-8s] " % myglsa.access)
 		else:
-			access=""
+			access = ""
 
 		fd1.write(color(myglsa.nr) + " " + color(status) + " " + color(access) + myglsa.title + " (")
 		if not verbose:
@@ -289,7 +289,7 @@ if mode in ["dump", "fix", "inject", "pretend"]:
 						sys.stderr.write(emergecmd+"\n")
 					exitcode = os.system(emergecmd)
 					# system() returns the exitcode in the high byte of a 16bit integer
-					if exitcode >= 1<<8:
+					if exitcode >= 1 << 8:
 						exitcode >>= 8
 					if exitcode:
 						sys.exit(exitcode)
