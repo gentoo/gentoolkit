@@ -124,7 +124,7 @@ class DistfilesSearch(object):
 		self.output("...checking limits for %d ebuild sources"
 				%len(pkgs))
 
-		checks = self._get_default_checks(size_limit, time_limit, exclude)
+		checks = self._get_default_checks(size_limit, time_limit, exclude, destructive)
 		checks.extend(extra_checks)
 		clean_me = self._check_limits(_distdir, checks, clean_me)
 		# remove any protected files from the list
@@ -140,7 +140,7 @@ class DistfilesSearch(object):
 
 ####################### begin _check_limits code block
 
-	def _get_default_checks(self, size_limit, time_limit, excludes):
+	def _get_default_checks(self, size_limit, time_limit, excludes, destructive):
 		#checks =[(self._isreg_check_, "is_reg_check")]
 		checks =[self._isreg_check_]
 		if 'filenames' in excludes:
@@ -159,6 +159,10 @@ class DistfilesSearch(object):
 			checks.append(partial(self._time_check_, time_limit))
 		else:
 			self.output("   - skipping time limit check")
+		if destructive:
+			self.output("   - skipping dot files check")
+		else:
+			checks.append(self._dotfile_check_)
 		return checks
 
 
@@ -233,6 +237,14 @@ class DistfilesSearch(object):
 			#print( "filename match ", file)
 			return True, False
 		return False, True
+
+	@staticmethod
+	def _dotfile_check_(file_stat, file):
+		"""check if file is a regular file."""
+		head, tail = os.path.split(file)
+		if tail:
+			is_dot_file = tail.startswith('.')
+		return  is_dot_file, not is_dot_file
 
 ####################### end _check_limits code block
 
