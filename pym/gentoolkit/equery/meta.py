@@ -244,6 +244,14 @@ def format_keywords_line(pkg, fmtd_keywords, slot, verstr_len):
 	return result
 
 
+def format_homepage(homepage):
+	"""format the homepage(s) entries for dispaly"""
+	result = []
+	for page in homepage.split():
+		result.append(format_line(page, "Homepage:    ", " " * 13))
+	return result
+
+
 # R0912: *Too many branches (%s/%s)*
 # pylint: disable-msg=R0912
 def call_format_functions(best_match, matches):
@@ -284,11 +292,13 @@ def call_format_functions(best_match, matches):
 
 	if QUERY_OPTS["upstream"] or not got_opts:
 		upstream = format_upstream(best_match.metadata.upstream())
+		homepage = format_homepage(best_match.environment("HOMEPAGE"))
 		if QUERY_OPTS["upstream"]:
 			upstream = format_list(upstream)
 		else:
 			upstream = format_list(upstream, "Upstream:    ", " " * 13)
 		print_sequence(upstream)
+		print_sequence(homepage)
 
 	if not got_opts:
 		pkg_loc = best_match.package_path()
