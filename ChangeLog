@@ -1,3 +1,6 @@
+2011-03-23: Christian Ruppert <idl0r@gentoo.org>
+	* echangelog: Fix update_copyright loop to check/update ebuilds again.
+
 2011-01-25: Christian Ruppert <idl0r@gentoo.org>
 	* echangelog: Some cleanup.
 		Use the @ebuilds array instead of @files for ebuild related changes.

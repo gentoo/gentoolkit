@@ -750,7 +750,7 @@ if (@new_versions) {
 # Update affected ebuilds and some other files copyright dates.  There is no reason to update the
 # copyright lines on ebuilds that haven't changed. I verified this with an IP
 # lawyer. (patches/diffs and binary files are excluded)
-for my $e (grep(!/\.(patch|diff)$/, @files)) {
+for my $e (grep(!/\.(patch|diff)$/, @files), @ebuilds) {
 	if (-s $e && ! -B $e) {
 		my ($etext, $netext);
 
