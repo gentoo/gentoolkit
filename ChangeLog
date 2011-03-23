@@ -1,3 +1,22 @@
+2011-01-25: Christian Ruppert <idl0r@gentoo.org>
+	* echangelog: Some cleanup.
+		Use the @ebuilds array instead of @files for ebuild related changes.
+		Use update_cat_pn() and update_copyright() only once for the ChangeLog,
+		right after loading it.
+		Fix a bug where writing the new ChangeLog faild if *only* the ChangeLog
+		itself has been modified.
+		Fix sorting again, bug 336390.
+		Add a option to allow easy updating of the MD5 sums.
+		Exit properly.
+		Update some MD5 sums, related to the sorting fix in
+		e34afa6e3da2ed329104a14eb957fb05326c437f.
+
+2011-01-05: Christian Ruppert <idl0r@gentoo.org>
+	* imlate: Ignore empty tags
+
+2011-01-02: Christian Ruppert <idl0r@gentoo.org>
+	* echangelog: Fix echangelog test by using the --vcs $vcs option
+
 2010-11-16: Christian Ruppert <idl0r@gentoo.org>
 	* echangelog: Make test case POSIX conform.
 		Update md5 sums.
