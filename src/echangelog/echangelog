@@ -636,6 +636,7 @@ if (!@files && !@ebuilds) {
 }
 
 # sort
+@ebuilds = sort sortfunc @ebuilds;
 @files = sort sortfunc @files;
 @new_versions = sort sortfunc @new_versions;
 
@@ -715,11 +716,11 @@ die "Please set ECHANGELOG_USER or run as non-root\n" if $user =~ /<root@/;
 
 $entry = "$date; $user ";
 if(@ebuilds) {
-	$entry .= join(', ', sort sortfunc map("$actions{$_}$_", @ebuilds));
-	$entry .= ", ".join(', ', sort sortfunc map("$actions{$_}$_", @files)) if @files;
+	$entry .= join(', ', map("$actions{$_}$_", @ebuilds));
+	$entry .= ", ".join(', ', map("$actions{$_}$_", @files)) if @files;
 }
 else {
-	$entry .= join ', ', sort sortfunc map("$actions{$_}$_", @files);
+	$entry .= join ', ', map("$actions{$_}$_", @files);
 }
 $entry .= ':';
 $entry = Text::Wrap::fill('  ', '  ', $entry); # does not append a \n

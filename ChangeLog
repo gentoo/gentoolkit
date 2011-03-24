@@ -1,3 +1,6 @@
+2011-03-24: Christian Ruppert <idl0r@gentoo.org>
+	* echangelog: Remove duplicate sort calls.
+
 2011-03-23: Christian Ruppert <idl0r@gentoo.org>
 	* echangelog: Fix update_copyright loop to check/update ebuilds again.
 
