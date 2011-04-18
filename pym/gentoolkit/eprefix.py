@@ -10,25 +10,15 @@
 used in all gentoolkit modules
 
 Example useage:  from gentoolkit.eprefix import EPREFIX
-then in code add it to the filepath eg.:  
+then in code add it to the filepath eg.:
 	exclude_file = "%s/etc/%s/%s.exclude" % (EPREFIX,__productname__ , action)
 
 """
+# Load EPREFIX from Portage, fall back to the empty string if it fails
+try:
+	from portage.const import EPREFIX
+except ImportError:
+	EPREFIX = ''
 
-import os
-
-
-EPREFIX = ''
-
-# the following code is used to set it when
-# non-installed code is being run
-if 'EPREFIX' in os.environ:
-	EPREFIX = os.environ['EPREFIX']
-else:
-	try:
-		import portage.const
-		EPREFIX = portage.BPREFIX
-	except AttributeError:
-		EPREFIX = ''
-
-#print("EPREFIX set to:", EPREFIX)
+if __name__ == "__main__":
+	print("EPREFIX set to:", EPREFIX)
