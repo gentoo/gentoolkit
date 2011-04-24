@@ -185,7 +185,7 @@ VER
 #       worth another look to avoid calling python unnecessariy. Or we could
 #       just write the whole thing in python. ;)
 reduce_incrementals() {
-	echo $@ | python -c "import sys
+	echo $@ | python -c "from __future__ import print_function;import sys
 r=[]
 for x in sys.stdin.read().split():
 	if x[0] == '-' and x[1:] in r:
@@ -196,14 +196,14 @@ for x in sys.stdin.read().split():
 		r.append(x)
 	elif x == '-*': r = ['-*']
 	elif x not in r: r.append(x)
-print ' '.join(r)" 
+print(' '.join(r))" 
 } # }}}
 
 # Function: reduce_incrementals_trump {{{
 # Similar to reduce_incrementals but negative flags trump positive
 # flags, regardless of which follows which
 reduce_incrementals_trump() {
-	echo $@ | python -c "import sys
+	echo $@ | python -c "from __future__ import print_function;import sys
 r=[]
 for x in sys.stdin.read().split():
 	if x[0] == '-' and x[1:] in r:
@@ -211,7 +211,7 @@ for x in sys.stdin.read().split():
 		r.append(x)
 	elif x == '-*': r = ['-*']
 	elif x not in r and not '-'+x in r: r.append(x)
-print ' '.join(r)" 
+print(' '.join(r))" 
 } # }}}
 
 # Function: reduce_package_use {{{
@@ -222,7 +222,7 @@ print ' '.join(r)"
 # * - Lines of package atom followed by flags
 #     (app-editors/vim flag1 flag2 -flag3)
 reduce_package_use() {
-	echo "${@}" | python -c "import sys,re
+	echo "${@}" | python -c "from __future__ import print_function;import sys,re
 h={}; getflags=re.compile(r'(-?[\w*-]+)')
 for x in sys.stdin.read().split('\n'):
 	if not x: continue
@@ -242,7 +242,7 @@ for x in sys.stdin.read().split('\n'):
 		elif x == '-*': r = h[pkg] = ['-*']
 		elif x not in r:
 			r.append(x)
-print '\n'.join(['%s %s' % (pkg,' '.join(flgs)) for pkg,flgs in h.iteritems() if len(flgs)])"
+print('\n'.join(['%s %s' % (pkg,' '.join(flgs)) for pkg,flgs in h.items() if len(flgs)]))"
 } # }}}
 
 # Function: get_useflags {{{
@@ -511,8 +511,8 @@ get_flagstatus_helper_pkg() {
 		if [[ -z "${atoms[@]/[<>=]*/}" ]]; then
 			atoms=($(
 				echo "${atoms[@]}" | python -c "
-import portage.dep as dep, sys
-print ' '.join(dep.match_to_list('$5-$6',sys.stdin.read().split()))"))
+from __future__ import print_function;import portage.dep as dep, sys
+print(' '.join(dep.match_to_list('$5-$6',sys.stdin.read().split()))"))
 		fi
 		flags=$(for atom in ${atoms[@]}; do
 			[[ -z $atom ]] && continue
