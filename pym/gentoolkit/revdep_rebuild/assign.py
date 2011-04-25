@@ -2,6 +2,7 @@
 
 import os
 import re
+
 import portage
 from portage import portdb
 from portage.output import bold, red, blue, yellow, green, nocolor
