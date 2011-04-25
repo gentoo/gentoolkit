@@ -4,7 +4,7 @@ import re
 import os
 import glob
 import stat
-import logging
+
 import portage
 from portage.output import bold, red, blue, yellow, green, nocolor
 
@@ -185,7 +185,7 @@ def collect_libraries_from_dir(dirs, mask, logger):
 	return (found_files, found_la_files, found_symlinks, symlink_pairs)
 
 
-def collect_binaries_from_dir(dirs, mask, logger=logging):
+def collect_binaries_from_dir(dirs, mask, logger):
 	''' Collects all binaries from specified list of directories.
 		mask is list of pathes, that are ommited in scanning, can be eighter single file or entire directory
 		Returns list of binaries
@@ -229,6 +229,7 @@ def collect_binaries_from_dir(dirs, mask, logger=logging):
 
 
 if __name__ == '__main__':
+	import logging
 	bin_dirs, lib_dirs = prepare_search_dirs(logging)
 
 	masked_dirs, masked_files, ld = parse_revdep_config()
