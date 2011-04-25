@@ -71,13 +71,6 @@ def print_usage():
 	print 'and passed directly to emerge.'
 
 
-def _match_str_in_list(lst, stri):
-	for l in lst:
-		if stri.endswith(l):
-			return l
-	return False
-
-
 def init_logger(settings):
 	"""Creates and iitializes our logger according to the settings"""
 	logger = logging.getLogger()
