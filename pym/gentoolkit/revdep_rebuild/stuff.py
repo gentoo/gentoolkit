@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import subprocess
+
 import portage
 
 
@@ -39,7 +40,7 @@ def get_masking_status(ebuild):
 	try:
 		status = portage.getmaskingstatus(ebuild)
 	except KeyError:
-		status = ['deprecated']
+		status = ['unavailable']
 	return status
 
 if __name__ == '__main__':
