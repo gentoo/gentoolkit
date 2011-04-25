@@ -2,21 +2,19 @@
 
 import os
 import re
-import logging
 import portage
 from portage import portdb
 from portage.output import bold, red, blue, yellow, green, nocolor
-from settings import SETTINGS
 
 
-def assign_packages(broken, logger=logging):
+def assign_packages(broken, logger, settings):
 	''' Finds and returns packages that owns files placed in broken.
 		Broken is list of files
 	'''
 	assigned = set()
-	for group in os.listdir(SETTINGS['PKG_DIR']):
-		for pkg in os.listdir(SETTINGS['PKG_DIR'] + group):
-			f = SETTINGS['PKG_DIR'] + group + '/' + pkg + '/CONTENTS'
+	for group in os.listdir(settings['PKG_DIR']):
+		for pkg in os.listdir(settings['PKG_DIR'] + group):
+			f = settings['PKG_DIR'] + group + '/' + pkg + '/CONTENTS'
 			if os.path.exists(f):
 				try:
 					with open(f, 'r') as cnt:
