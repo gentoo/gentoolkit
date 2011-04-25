@@ -148,6 +148,8 @@ def rebuild(logger, assigned, settings):
 		args += ' --verbose'
 	elif settings['VERBOSITY'] < 1:
 		args += ' --quiet'
+	if settings['nocolor']:
+		args += ' --color n'
 
 	if len(emerge_command) == 0:
 		logger.warn(bold('\nThere is nothing to emerge. Exiting.'))
