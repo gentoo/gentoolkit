@@ -1,9 +1,10 @@
 #!/usr/bin/python
 
 import os
+import sys
 import portage
 
-SETTINGS = {
+DEFAULTS = {
 		'DEFAULT_LD_FILE': os.path.join(portage.root, 'etc/ld.so.conf'),
 		'DEFAULT_ENV_FILE': os.path.join(portage.root, 'etc/profile.env'),
 		'REVDEP_CONFDIR': os.path.join(portage.root, 'etc/revdep-rebuild/'),
@@ -23,4 +24,16 @@ SETTINGS = {
 				# can be set True from the cli with the --no-pretend option
 		'NO_PRETEND': False,
 		'VERBOSITY': 1,
-	}
+		
+		'quiet': False,
+		'nocolor': False,
+		'library': set(),
+		'no-progress': False,
+		'debug': False,
+		'no-ld-path': False,
+		'no-order': False,
+		'pass_through_options': '',
+		'stdout': sys.stdout,
+		'stdin': sys.stdin,
+		'stderr': sys.stderr
+		}
