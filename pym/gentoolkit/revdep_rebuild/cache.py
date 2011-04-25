@@ -2,7 +2,7 @@
 
 import os
 import time
-import logging
+
 from portage.output import red
 from settings import DEFAULTS
 
@@ -29,7 +29,7 @@ def read_cache(temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 	return (ret['libraries'], ret['la_libraries'], ret['libraries_links'], ret['binaries'])
 
 
-def save_cache(logger=logging, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
+def save_cache(logger, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 	''' Tries to store caching information.
 		@param logger
 		@param to_save have to be dict with keys: libraries, la_libraries, libraries_links and binaries
@@ -87,6 +87,7 @@ if __name__ == '__main__':
 	print 'Preparing cache ... '
 
 	from collect import *
+	import logging
 
 	bin_dirs, lib_dirs = prepare_search_dirs()
 
@@ -95,9 +96,12 @@ if __name__ == '__main__':
 	bin_dirs = bin_dirs.union(ld)
 	masked_dirs = masked_dirs.union(set(['/lib/modules', '/lib32/modules', '/lib64/modules',]))
 
-	libraries, la_libraries, libraries_links, symlink_pairs = collect_libraries_from_dir(lib_dirs, masked_dirs)
-	binaries = collect_binaries_from_dir(bin_dirs, masked_dirs)
+	libraries, la_libraries, libraries_links, symlink_pairs = collect_libraries_from_dir(lib_dirs, masked_dirs, logging)
+	binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logging)
 
-	save_cache(to_save={'libraries':libraries, 'la_libraries':la_libraries, 'libraries_links':libraries_links, 'binaries':binaries})
+	save_cache(logger=logging, 
+		to_save={'libraries':libraries, 'la_libraries':la_libraries, 
+			'libraries_links':libraries_links, 'binaries':binaries}
+		)
 
 	print 'Done.'
