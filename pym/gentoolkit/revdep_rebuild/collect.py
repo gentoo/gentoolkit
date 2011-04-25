@@ -7,10 +7,9 @@ import stat
 import logging
 import portage
 from portage.output import bold, red, blue, yellow, green, nocolor
-from settings import SETTINGS
 
 
-def parse_conf(conf_file=SETTINGS['DEFAULT_LD_FILE'], visited=None, logger=logging):
+def parse_conf(conf_file, visited=None, logger=None):
 	''' Parses supplied conf_file for libraries pathes.
 		conf_file is file or files to parse
 		visited is set of files already parsed
@@ -54,7 +53,7 @@ def parse_conf(conf_file=SETTINGS['DEFAULT_LD_FILE'], visited=None, logger=loggi
 	return lib_dirs
 
 
-def prepare_search_dirs(logger=logging):
+def prepare_search_dirs(logger, settings):
 	''' Lookup for search dirs. Returns tuple with two lists,
 		(list_of_bin_dirs, list_of_lib_dirs)
 	'''
@@ -63,7 +62,7 @@ def prepare_search_dirs(logger=logging):
 	lib_dirs = set(['/lib', '/usr/lib', ])
 
 	#try:
-	with open(os.path.join(portage.root, SETTINGS['DEFAULT_ENV_FILE']), 'r') as f:
+	with open(os.path.join(portage.root, settings['DEFAULT_ENV_FILE']), 'r') as f:
 		for line in f.readlines():
 			line = line.strip()
 			m = re.match("^export (ROOT)?PATH='([^']+)'", line)
@@ -72,11 +71,11 @@ def prepare_search_dirs(logger=logging):
 	#except EnvironmentError:
 		#logger.debug(yellow('Could not open file %s' % f))
 
-	lib_dirs = parse_conf(logger=logger)
+	lib_dirs = parse_conf(settings['DEFAULT_LD_FILE'], logger=logger)
 	return (bin_dirs, lib_dirs)
 
 
-def parse_revdep_config():
+def parse_revdep_config(revdep_confdir):
 	''' Parses all files under /etc/revdep-rebuild/ and returns
 		tuple of: (masked_dirs, masked_files, search_dirs)'''
 
@@ -85,7 +84,7 @@ def parse_revdep_config():
 	masked_files = set()
 
 	#TODO: remove hard-coded path
-	for f in os.listdir(SETTINGS['REVDEP_CONFDIR']):
+	for f in os.listdir(revdep_confdir):
 		for line in open(os.path.join('/etc/revdep-rebuild', f)):
 			line = line.strip()
 			if not line.startswith('#'): #first check for comment, we do not want to regex all lines
@@ -110,7 +109,7 @@ def parse_revdep_config():
 	return (masked_dirs, masked_files, search_dirs)
 
 
-def collect_libraries_from_dir(dirs, mask, logger=logging):
+def collect_libraries_from_dir(dirs, mask, logger):
 	''' Collects all libraries from specified list of directories.
 		mask is list of pathes, that are ommited in scanning, can be eighter single file or entire directory
 		Returns tuple composed of: list of libraries, list of symlinks, and toupe with pair

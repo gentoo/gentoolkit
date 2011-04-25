@@ -11,11 +11,9 @@ from stuff import scan
 from collect import prepare_search_dirs, parse_revdep_config, collect_libraries_from_dir, collect_binaries_from_dir
 from assign import assign_packages
 from cache import save_cache
-from settings import SETTINGS
 
 
-
-def prepare_checks(files_to_check, libraries, bits):
+def prepare_checks(files_to_check, libraries, bits, cmd_max_args):
 	''' Calls scanelf for all files_to_check, then returns found libraries and dependencies
 	'''
 
@@ -23,7 +21,7 @@ def prepare_checks(files_to_check, libraries, bits):
 	dependencies = [] # list of lists of files (from file_to_check) that uses
 					  # library (for dependencies[id] and libs[id] => id==id)
 
-	for line in scan(['-M', str(bits), '-nBF', '%F %n'], files_to_check, SETTINGS['CMD_MAX_ARGS']):
+	for line in scan(['-M', str(bits), '-nBF', '%F %n'], files_to_check, cmd_max_args):
 	#call_program(['scanelf', '-M', str(bits), '-nBF', '%F %n',]+files_to_check).strip().split('\n'):
 		r = line.strip().split(' ')
 		if len(r) < 2: # no dependencies?
@@ -116,7 +114,8 @@ def main_checks(found_libs, broken, dependencies, logger):
 	return broken_pathes
 
 
-def analyse(logger=logging, libraries=None, la_libraries=None, libraries_links=None, binaries=None, _libs_to_check=set()):
+def analyse(settings=None, logger=None, libraries=None, la_libraries=None,
+		libraries_links=None, binaries=None, _libs_to_check=set()):
 	"""Main program body.  It will collect all info and determine the
 	pkgs needing rebuilding.
 
@@ -132,9 +131,9 @@ def analyse(logger=logging, libraries=None, la_libraries=None, libraries_links=N
 		#TODO: add partial cache (for ex. only libraries) when found for some reason
 
 		logger.warn(green(' * ') + bold('Collecting system binaries and libraries'))
-		bin_dirs, lib_dirs = prepare_search_dirs(logger)
+		bin_dirs, lib_dirs = prepare_search_dirs(logger, settings)
 
-		masked_dirs, masked_files, ld = parse_revdep_config()
+		masked_dirs, masked_files, ld = parse_revdep_config(settings['REVDEP_CONFDIR'])
 		lib_dirs = lib_dirs.union(ld)
 		bin_dirs = bin_dirs.union(ld)
 		masked_dirs = masked_dirs.union(set(['/lib/modules', '/lib32/modules', '/lib64/modules',]))
@@ -143,7 +142,7 @@ def analyse(logger=logging, libraries=None, la_libraries=None, libraries_links=N
 		libraries, la_libraries, libraries_links, symlink_pairs = collect_libraries_from_dir(lib_dirs, masked_dirs, logger)
 		binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logger)
 
-		if SETTINGS['USE_TMP_FILES']:
+		if settings['USE_TMP_FILES']:
 			save_cache(to_save={'libraries':libraries, 'la_libraries':la_libraries, 'libraries_links':libraries_links, 'binaries':binaries})
 
 
@@ -170,10 +169,10 @@ def analyse(logger=logging, libraries=None, la_libraries=None, libraries_links=N
 
 	for av_bits in glob.glob('/lib[0-9]*') or ('/lib32',):
 		bits = int(av_bits[4:])
-		_libraries = scan(['-M', str(bits), '-BF', '%F'], libraries+libraries_links, SETTINGS['CMD_MAX_ARGS'])
+		_libraries = scan(['-M', str(bits), '-BF', '%F'], libraries+libraries_links, settings['CMD_MAX_ARGS'])
 		#call_program(['scanelf', '-M', str(bits), '-BF', '%F',] + libraries+libraries_links).strip().split('\n')
 
-		found_libs, dependencies = prepare_checks(libs_and_bins, _libraries, bits)
+		found_libs, dependencies = prepare_checks(libs_and_bins, _libraries, bits, settings['CMD_MAX_ARGS'])
 
 		broken = find_broken(found_libs, _libraries, _libs_to_check)
 		broken_la = extract_dependencies_from_la(la_libraries, _libraries, _libs_to_check, logger)
@@ -186,7 +185,7 @@ def analyse(logger=logging, libraries=None, la_libraries=None, libraries_links=N
 
 	logger.warn(green(' * ') + bold('Assign files to packages'))
 
-	return assign_packages(broken_pathes, logger)
+	return assign_packages(broken_pathes, logger, settings)
 
 
 
