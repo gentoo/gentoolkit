@@ -169,13 +169,14 @@ def rebuild(logger, assigned, settings):
 
 
 # Runs from here
-def main(settings=None):
+def main(settings=None, logger=None):
 
 	if settings is None:
 		print("NO Input settings, using defaults...")
 		settings = DEFAULTS.copy()
 
-	logger = init_logger(settings)
+	if logger is None:
+		logger = init_logger(settings)
 
 	_libs_to_check = settings['library']
 
@@ -199,9 +200,15 @@ def main(settings=None):
 		settings['PRETEND'] = True
 
 	analyze_cache = {}
-	if settings['USE_TMP_FILES'] and check_temp_files():
-		libraries, la_libraries, libraries_links, binaries = read_cache()
-		assigned = analyse(libraries=libraries, la_libraries=la_libraries, 
+	if settings['USE_TMP_FILES'] \
+			and check_temp_files(settings['DEFAULT_TMP_DIR']):
+		libraries, la_libraries, libraries_links, binaries = read_cache(
+			settings['DEFAULT_TMP_DIR'])
+		assigned = analyse(
+			settings=settings,
+			logger=logger,
+			libraries=libraries,
+			la_libraries=la_libraries, 
 			libraries_links=libraries_links,
 			binaries=binaries,
 			_libs_to_check=_libs_to_check)

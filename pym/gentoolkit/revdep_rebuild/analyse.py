@@ -3,8 +3,8 @@
 import os
 import re
 import platform
-import logging
 import glob
+
 from portage.output import bold, red, blue, yellow, green, nocolor
 
 from stuff import scan
@@ -114,7 +114,7 @@ def main_checks(found_libs, broken, dependencies, logger):
 	return broken_pathes
 
 
-def analyse(settings=None, logger=None, libraries=None, la_libraries=None,
+def analyse(settings, logger, libraries=None, la_libraries=None,
 		libraries_links=None, binaries=None, _libs_to_check=set()):
 	"""Main program body.  It will collect all info and determine the
 	pkgs needing rebuilding.
@@ -143,7 +143,12 @@ def analyse(settings=None, logger=None, libraries=None, la_libraries=None,
 		binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logger)
 
 		if settings['USE_TMP_FILES']:
-			save_cache(to_save={'libraries':libraries, 'la_libraries':la_libraries, 'libraries_links':libraries_links, 'binaries':binaries})
+			save_cache(logger=logger, 
+				to_save={'libraries':libraries, 'la_libraries':la_libraries,
+					'libraries_links':libraries_links, 'binaries':binaries
+				},
+			temp_path=settings['DEFAULT_TMP_DIR']
+			)
 
 
 	logger.debug('Found '+ str(len(libraries)) + ' libraries (+' + str(len(libraries_links)) + ' symlinks) and ' + str(len(binaries)) + ' binaries')
