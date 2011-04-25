@@ -31,7 +31,6 @@ def scan(params, files, max_args):
 	return out
 
 
-
 def exithandler(signum, frame):
 	sys.exit(1)
 
@@ -42,6 +41,15 @@ def get_masking_status(ebuild):
 	except KeyError:
 		status = ['unavailable']
 	return status
+
+
+def _match_str_in_list(lst, stri):
+	for l in lst:
+		if stri.endswith(l):
+			return l
+	return False
+
+
 
 if __name__ == '__main__':
 	print "There is nothing to run here."
