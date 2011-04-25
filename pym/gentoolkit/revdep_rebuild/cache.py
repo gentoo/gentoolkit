@@ -4,10 +4,10 @@ import os
 import time
 import logging
 from portage.output import red
-from settings import SETTINGS
+from settings import DEFAULTS
 
 
-def read_cache(temp_path=SETTINGS['DEFAULT_TMP_DIR']):
+def read_cache(temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 	''' Reads cache information needed by analyse function.
 		This function does not checks if files exists nor timestamps,
 		check_temp_files should be called first
@@ -29,7 +29,7 @@ def read_cache(temp_path=SETTINGS['DEFAULT_TMP_DIR']):
 	return (ret['libraries'], ret['la_libraries'], ret['libraries_links'], ret['binaries'])
 
 
-def save_cache(logger=logging, to_save={}, temp_path=SETTINGS['DEFAULT_TMP_DIR']):
+def save_cache(logger=logging, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 	''' Tries to store caching information.
 		@param logger
 		@param to_save have to be dict with keys: libraries, la_libraries, libraries_links and binaries
@@ -53,7 +53,7 @@ def save_cache(logger=logging, to_save={}, temp_path=SETTINGS['DEFAULT_TMP_DIR']
 
 
 
-def check_temp_files(temp_path=SETTINGS['DEFAULT_TMP_DIR'], max_delay=3600):
+def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600):
 	''' Checks if temporary files from previous run are still available
 		and if they aren't too old
 		@param temp_path is directory, where temporary files should be found
