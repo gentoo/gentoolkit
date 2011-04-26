@@ -40,6 +40,15 @@ def prepare_checks(files_to_check, libraries, bits, cmd_max_args):
 
 def extract_dependencies_from_la(la, libraries, to_check, logger):
 	broken = []
+
+	libnames = []
+	for l in libraries:
+		m = re.match('.+\/(.+)\.(so|la|a)(\..+)?', l)
+		if m is not None:
+			ln = m.group(1)
+			if ln not in libnames:
+				libnames += [ln, ]
+
 	for f in la:
 		if not os.path.exists(f):
 			continue
@@ -51,10 +60,12 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 				if m is not None:
 					for el in m.group(1).split(' '):
 						el = el.strip()
-						if len(el) < 1 or el.startswith('-'):
+						if len(el) < 1 or el.startswith('-L'):
 							continue
 
-						if el in la or el in libraries:
+						if el.startswith('-l') and 'lib'+el[2:] in libnames:
+							pass
+						elif el in la or el in libraries:
 							pass
 						else:
 							if to_check:
@@ -66,7 +77,7 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 								if not _break:
 									continue
 
-							logger.info(yellow(' * ') + f + ' is broken (requires: ' + bold(el))
+							logger.info(yellow(' * ') + f + ' is broken (requires: ' + bold(el)+')')
 							broken.append(f)
 	return broken
 
@@ -178,12 +189,14 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		#call_program(['scanelf', '-M', str(bits), '-BF', '%F',] + libraries+libraries_links).strip().split('\n')
 
 		found_libs, dependencies = prepare_checks(libs_and_bins, _libraries, bits, settings['CMD_MAX_ARGS'])
-
+		#print dependencies
 		broken = find_broken(found_libs, _libraries, _libs_to_check)
-		broken_la = extract_dependencies_from_la(la_libraries, _libraries, _libs_to_check, logger)
 
 		bits /= 2
 		bits = int(bits)
+
+	broken_la = extract_dependencies_from_la(la_libraries, libraries+libraries_links, _libs_to_check, logger)
+
 
 	broken_pathes = main_checks(found_libs, broken, dependencies, logger)
 	broken_pathes += broken_la
