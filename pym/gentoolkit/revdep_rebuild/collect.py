@@ -172,7 +172,7 @@ def collect_libraries_from_dir(dirs, mask, logger):
 									prv & stat.S_IXOTH == stat.S_IXOTH:
 								found_files.append(l)
 		except Exception as ex:
-			logger.debug(yellow('Exception during collecting libraries: %s' %str(ex)))
+			logger.debug(yellow('Exception during collecting libraries: ' + blue('%s')  %str(ex)))
 
 
 	if found_directories:
@@ -219,7 +219,7 @@ def collect_binaries_from_dir(dirs, mask, logger):
 								prv & stat.S_IXOTH == stat.S_IXOTH:
 							found_files.append(l)
 		except Exception as e:
-			logger.debug(yellow('Exception during binaries collecting: %s' %str(e)))
+			logger.debug(yellow('Exception during binaries collecting: '+blue('%s') %str(e)))
 
 	if found_directories:
 		found_files += collect_binaries_from_dir(found_directories, mask, logger)
@@ -240,7 +240,7 @@ if __name__ == '__main__':
 	libraries, la_libraries, libraries_links, symlink_pairs = collect_libraries_from_dir(lib_dirs, masked_dirs, logging)
 	binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logging)
 
-	print 'Found: %i binaries and %i libraries.' %(len(binaries), len(libraries))
+	logging.debug('Found: %i binaries and %i libraries.' %(len(binaries), len(libraries)))
 
 
 

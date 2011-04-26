@@ -32,7 +32,7 @@ from settings import DEFAULTS
 
 
 APP_NAME = sys.argv[0]
-VERSION = '0.1-r6'
+VERSION = '0.1-r7'
 
 __productname__ = "revdep-ng"
 
@@ -232,5 +232,5 @@ def main(settings=None, logger=None):
 			'again or manually emerge given packages.')
 
 	success = rebuild(logger, assigned, settings)
-	logger.debug("rebuild return code =", success)
+	logger.debug("rebuild return code = %i" %success)
 	return success
