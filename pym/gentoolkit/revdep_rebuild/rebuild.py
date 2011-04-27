@@ -92,6 +92,9 @@ def init_logger(settings):
 def parse_options():
 	"""Parses the command line options an sets settings accordingly"""
 
+	# @TODO: Verify: options: no-ld-path, no-order, no-progress are not appliable 
+	# for revdep-ng
+
 	settings = DEFAULTS.copy()
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], 
@@ -155,11 +158,11 @@ def rebuild(logger, assigned, settings):
 		logger.warn(bold('\nThere is nothing to emerge. Exiting.'))
 		return 0
 
-	emerge_command = args + ' --oneshot ' + emerge_command
+	emerge_command = emerge_command
 
-	logger.warn(yellow('\nemerge') + bold(emerge_command))
+	logger.warn(yellow('\nemerge') + args + ' --oneshot ' + bold(emerge_command))
 	
-	success = os.system('emerge ' + emerge_command)
+	success = os.system('emerge ' + args + ' --oneshot ' + emerge_command)
 	return success
 
 
