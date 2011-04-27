@@ -35,6 +35,7 @@ def prepare_checks(files_to_check, libraries, bits, cmd_max_args):
 			else:
 				libs.append(d)
 				dependencies.append([r[0],])
+	
 	return (libs, dependencies)
 
 
@@ -176,6 +177,13 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 	found_libs = []
 	dependencies = []
 
+	if _libs_to_check:
+		nltc = []
+		for ltc in _libs_to_check:
+			if os.path.isfile(ltc):
+				ltc = scan(['-nBSF', '%S'], [ltc,], settings['CMD_MAX_ARGS'])[0].split()[0]
+			nltc += [ltc,]
+		_libs_to_check = nltc
 
 	_bits, linkg = platform.architecture()
 	if _bits.startswith('32'):
@@ -183,13 +191,15 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 	elif _bits.startswith('64'):
 		bits = 64
 
+	import time
+	broken = []
 	for av_bits in glob.glob('/lib[0-9]*') or ('/lib32',):
 		bits = int(av_bits[4:])
-		_libraries = scan(['-M', str(bits), '-BF', '%F'], libraries+libraries_links, settings['CMD_MAX_ARGS'])
-		#call_program(['scanelf', '-M', str(bits), '-BF', '%F',] + libraries+libraries_links).strip().split('\n')
+
+		#_libraries = scan(['-M', str(bits), '-BF', '%F'], libraries+libraries_links, settings['CMD_MAX_ARGS'])
+		_libraries = libraries+libraries_links
 
 		found_libs, dependencies = prepare_checks(libs_and_bins, _libraries, bits, settings['CMD_MAX_ARGS'])
-		#print dependencies
 		broken = find_broken(found_libs, _libraries, _libs_to_check)
 
 		bits /= 2
