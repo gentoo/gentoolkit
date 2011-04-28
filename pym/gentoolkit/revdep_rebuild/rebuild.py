@@ -211,7 +211,7 @@ def main(settings=None, logger=None):
 			binaries=binaries,
 			_libs_to_check=_libs_to_check)
 	else:
-		assigned = analyse(settings, logger)
+		assigned = analyse(settings, logger, _libs_to_check=_libs_to_check)
 
 	if not assigned:
 		logger.warn('\n' + bold('Your system is consistent'))
