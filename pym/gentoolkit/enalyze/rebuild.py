@@ -18,12 +18,12 @@ import sys
 
 import gentoolkit
 from gentoolkit.dbapi import PORTDB, VARDB
-from gentoolkit.analyse.base import ModuleBase
+from gentoolkit.enalyze.base import ModuleBase
 from gentoolkit import pprinter as pp
-from gentoolkit.analyse.lib import (get_installed_use, get_flags, FlagAnalyzer,
+from gentoolkit.enalyze.lib import (get_installed_use, get_flags, FlagAnalyzer,
 	KeywordAnalyser)
 from gentoolkit.flag import reduce_flags
-from gentoolkit.analyse.output import RebuildPrinter
+from gentoolkit.enalyze.output import RebuildPrinter
 from gentoolkit.atom import Atom
 
 
@@ -42,16 +42,16 @@ def cpv_all_diff_use(
 	and the currently installed pkgs recorded USE flag settings
 
 	@type cpvs: list
-	@param cpvs: optional list of [cat/pkg-ver,...] to analyse or
+	@param cpvs: optional list of [cat/pkg-ver,...] to analyze or
 			defaults to entire installed pkg db
 	@type: system_flags: list
 	@param system_flags: the current default USE flags as defined
 			by portage.settings["USE"].split()
 	@type _get_flags: function
 	@param _get_flags: ovride-able for testing,
-			defaults to gentoolkit.analyse.lib.get_flags
+			defaults to gentoolkit.enalyze.lib.get_flags
 	@param _get_used: ovride-able for testing,
-			defaults to gentoolkit.analyse.lib.get_installed_use
+			defaults to gentoolkit.enalyze.lib.get_installed_use
 	@rtype dict. {cpv:['flag1', '-flag2',...]}
 	"""
 	if cpvs is None:
@@ -91,9 +91,9 @@ def cpv_all_diff_keywords(
 		keywords=portage.settings["ACCEPT_KEYWORDS"],
 		analyser = None
 		):
-	"""Analyse the installed pkgs 'keywords' for difference from ACCEPT_KEYWORDS
+	"""Analyze the installed pkgs 'keywords' for difference from ACCEPT_KEYWORDS
 
-	@param cpvs: optional list of [cat/pkg-ver,...] to analyse or
+	@param cpvs: optional list of [cat/pkg-ver,...] to analyze or
 			defaults to entire installed pkg db
 	@param system_keywords: list of the system keywords
 	@param keywords: user defined list of keywords to check and report on
@@ -182,11 +182,11 @@ class Rebuild(ModuleBase):
 		]
 		self.formatted_args = [
 			("    use",
-			"causes the action to analyse the installed packages USE flags"),
+			"causes the action to analyze the installed packages USE flags"),
 			("    keywords",
-			"causes the action to analyse the installed packages keywords"),
+			"causes the action to analyze the installed packages keywords"),
 			("    unmask",
-			"causes the action to analyse the installed packages " + \
+			"causes the action to analyze the installed packages " + \
 			"current mask status")
 		]
 		self.short_opts = "hepsv"
@@ -269,7 +269,7 @@ class Rebuild(ModuleBase):
 	def rebuild_keywords(self):
 		print("Module action not yet available")
 		print()
-		"""This will scan the installed packages db and analyse the
+		"""This will scan the installed packages db and analyze the
 		keywords used for installation and produce a report on them.
 		"""
 		system_keywords = portage.settings["ACCEPT_KEYWORDS"].split()
@@ -357,7 +357,7 @@ class Rebuild(ModuleBase):
 
 
 def main(input_args):
-	"""Common starting method by the analyse master
+	"""Common starting method by the analyze master
 	unless all modules are converted to this class method.
 
 	@param input_args: input args as supplied by equery master module.

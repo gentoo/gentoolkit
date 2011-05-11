@@ -14,11 +14,11 @@ import sys
 
 import gentoolkit
 from gentoolkit.dbapi import PORTDB, VARDB
-from gentoolkit.analyse.base import ModuleBase
+from gentoolkit.enalyze.base import ModuleBase
 from gentoolkit import pprinter as pp
 from gentoolkit.flag import get_installed_use, get_flags
-from gentoolkit.analyse.lib import FlagAnalyzer, KeywordAnalyser
-from gentoolkit.analyse.output import nl, AnalysisPrinter
+from gentoolkit.enalyze.lib import FlagAnalyzer, KeywordAnalyser
+from gentoolkit.enalyze.output import nl, AnalysisPrinter
 from gentoolkit.package import Package
 from gentoolkit.helpers import get_installed_cpvs
 
@@ -35,10 +35,10 @@ def gather_flags_info(
 		_get_flags=get_flags,
 		_get_used=get_installed_use
 		):
-	"""Analyse the installed pkgs USE flags for frequency of use
+	"""Analyze the installed pkgs USE flags for frequency of use
 
 	@type cpvs: list
-	@param cpvs: optional list of [cat/pkg-ver,...] to analyse or
+	@param cpvs: optional list of [cat/pkg-ver,...] to analyze or
 			defaults to entire installed pkg db
 	@type: system_flags: list
 	@param system_flags: the current default USE flags as defined
@@ -46,13 +46,13 @@ def gather_flags_info(
 	@type include_unset: bool
 	@param include_unset: controls the inclusion of unset USE flags in the report.
 	@type target: string
-	@param target: the environment variable being analysed
+	@param target: the environment variable being analyzed
 			one of ["USE", "PKGUSE"]
 	@type _get_flags: function
 	@param _get_flags: ovride-able for testing,
-			defaults to gentoolkit.analyse.lib.get_flags
+			defaults to gentoolkit.enalyze.lib.get_flags
 	@param _get_used: ovride-able for testing,
-			defaults to gentoolkit.analyse.lib.get_installed_use
+			defaults to gentoolkit.enalyze.lib.get_installed_use
 	@rtype dict. {flag:{"+":[cat/pkg-ver,...], "-":[cat/pkg-ver,...], "unset":[]}
 	"""
 	if cpvs is None:
@@ -103,9 +103,9 @@ def gather_keywords_info(
 		keywords=portage.settings["ACCEPT_KEYWORDS"],
 		analyser = None
 		):
-	"""Analyse the installed pkgs 'keywords' for frequency of use
+	"""Analyze the installed pkgs 'keywords' for frequency of use
 
-	@param cpvs: optional list of [cat/pkg-ver,...] to analyse or
+	@param cpvs: optional list of [cat/pkg-ver,...] to analyze or
 			defaults to entire installed pkg db
 	@param system_keywords: list of the system keywords
 	@param keywords: user defined list of keywords to check and report on
@@ -166,7 +166,7 @@ class Analyse(ModuleBase):
 	"""
 	def __init__(self):
 		ModuleBase.__init__(self)
-		self.module_name = "analyse"
+		self.module_name = "enalyze"
 		self.options = {
 			"flags": False,
 			"keywords": False,
@@ -193,14 +193,14 @@ class Analyse(ModuleBase):
 		}
 		self.formatted_options = [
 			("  -h, --help",  "Outputs this useage message"),
-			("  -a, --analyse",
+			("  -a, --analyze",
 			"Action, sets the module to gather data and output the"),
 			("", "formatted stats/information to the screen"),
 			("  -u, --unset",
 			"Additionally include any unset USE flags and the packages"),
 			("", "that could use them"),
 			("  -v, --verbose",
-			"Used in the analyse action to output more detailed information"),
+			"Used in the analyze action to output more detailed information"),
 			("  -p, --prefix",
 			"Used for testing purposes only, runs report using " +
 			"a prefix keyword and 'prefix' USE flag"),
@@ -210,15 +210,15 @@ class Analyse(ModuleBase):
 		]
 		self.formatted_args = [
 			("  use",
-			"Causes the action to analyse the installed packages USE flags"),
+			"Causes the action to analyze the installed packages USE flags"),
 			("  pkguse",
-			"Causes the action to analyse the installed packages PKGUSE flags"),
+			"Causes the action to analyze the installed packages PKGUSE flags"),
 			("  ",
 			"These are flags that have been set in /etc/portage/package.use"),
 			("  keywords",
-			"Causes the action to analyse the installed packages keywords"),
+			"Causes the action to analyze the installed packages keywords"),
 			("  packages",
-			"Causes the action to analyse the installed packages and the"),
+			"Causes the action to analyze the installed packages and the"),
 			("  ",
 			"USE flags they were installed with"),
 		]
@@ -251,12 +251,12 @@ class Analyse(ModuleBase):
 			self.analyse_packages()
 
 	def analyse_flags(self, target):
-		"""This will scan the installed packages db and analyse the
+		"""This will scan the installed packages db and analyze the
 		USE flags used for installation and produce a report on how
 		they were used.
 
 		@type target: string
-		@param target: the target to be analysed, one of ["use", "pkguse"]
+		@param target: the target to be analyzed, one of ["use", "pkguse"]
 		"""
 		system_use = portage.settings["USE"].split()
 		self.printer = AnalysisPrinter(
@@ -307,7 +307,7 @@ class Analyse(ModuleBase):
 
 
 	def analyse_keywords(self, keywords=None):
-		"""This will scan the installed packages db and analyse the
+		"""This will scan the installed packages db and analyze the
 		keywords used for installation and produce a report on them.
 		"""
 		print()
@@ -390,11 +390,11 @@ class Analyse(ModuleBase):
 
 
 	def analyse_packages(self):
-		"""This will scan the installed packages db and analyse the
+		"""This will scan the installed packages db and analyze the
 		USE flags used for installation and produce a report.
 
 		@type target: string
-		@param target: the target to be analysed, one of ["use", "pkguse"]
+		@param target: the target to be analyzed, one of ["use", "pkguse"]
 		"""
 		system_use = portage.settings["USE"].split()
 		if self.options["verbose"]:
@@ -437,7 +437,7 @@ class Analyse(ModuleBase):
 
 
 def main(input_args):
-	"""Common starting method by the analyse master
+	"""Common starting method by the analyze master
 	unless all modules are converted to this class method.
 
 	@param input_args: input args as supplied by equery master module.
