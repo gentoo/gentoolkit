@@ -384,6 +384,16 @@ get_useflaglist_ebuild() {
 	local pkg=$(echo ${1} | cut -d/ -f2)
 	declare append
 	for portdir in ${ALL_PORTDIRS[@]}; do
+		if [[ $portdir == $PORTDIR ]]; then 
+			overlay=""
+		else
+			if [[ -s $(dirname ${portdir}/repo_name) ]]; then
+				overlay="$(cat "${portdir}/profiles/repo_name")"
+			else
+				# XXX: May be better to use full path
+				overlay="$(basename "${portdir}")"
+			fi
+		fi
 		# Open the ebuild file and retrieve defined USE flags
 		[[ ! -d "$portdir/${1}" ]] && continue
 		if [[ ! -d "$portdir/metadata/cache" ]]; then
@@ -397,16 +407,6 @@ get_useflaglist_ebuild() {
 			| sed -e "s:$portdir/metadata/cache/${1}-::g" \
 			| while read -d $'\n' version; do
 				IFS=$'\n'
-				if [[ $portdir == $PORTDIR ]]; then 
-					overlay=""
-				else
-					if [[ -s $(dirname ${portdir}/repo_name) ]]; then
-						overlay="$(cat "${portdir}/profiles/repo_name")"
-					else
-						# XXX: May be better to use full path
-						overlay="$(basename "${portdir}")"
-					fi
-				fi
 				if [[ ! -e "$portdir/metadata/cache/${1}-$version" ]]; then
 					# Repo does not have this particular package
 					continue
