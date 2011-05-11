@@ -629,7 +629,7 @@ get_search_env() {
 		for file in "${FILES[@]}"; do
 			if [ -e "$file" ]; then
 				chown ${uid}:portage "$file"
-				chmod 700 "$file"
+				chmod 600 "$file"
 			fi
 		done
 	fi
