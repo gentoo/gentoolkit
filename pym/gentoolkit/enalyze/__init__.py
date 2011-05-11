@@ -16,7 +16,7 @@
 __docformat__ = 'epytext'
 # version is dynamically set by distutils sdist
 __version__ = "svn"
-__productname__ = "analyse"
+__productname__ = "enalyze"
 __authors__ = (
 	'Brian Dolbec, <brian.dolbec@gmail.com>'
 
@@ -48,15 +48,15 @@ from gentoolkit.formatters import format_options
 
 
 NAME_MAP = {
-	'a': 'analyse',
+	'a': 'analyze',
 	'r': 'rebuild'
 }
 
 FORMATTED_OPTIONS = (
-		("    (a)nalyse",
-		"analyses the installed PKG database USE flag or keyword useage"),
+		("    (a)nalyze",
+		"analyzes the installed PKG database USE flag or keyword useage"),
 		("    (r)ebuild",
-		"analyses the Installed PKG database and generates files suitable"),
+		"analyzes the Installed PKG database and generates files suitable"),
 		("  ",
 		"to replace corrupted or missing /etc/portage/package.* files")
 	)

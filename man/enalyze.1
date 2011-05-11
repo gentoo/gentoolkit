@@ -1,13 +1,13 @@
-.TH "ANALYSE" "22" "Febuary 2010" "GENTOOLKIT" ""
+.TH "ENALYZE" "22" "Febuary 2010" "GENTOOLKIT" ""
 .SH "NAME"
-analyse \- Gentoo Installed Package Analysis Tool
+enalyze \- Gentoo Installed Package Analysis Tool
 
 .SH "SYNOPSIS"
-.BI "analyse " "[global\-options] " "module " "[local\-options]" "TARGET"
+.BI "enalyze " "[global\-options] " "module " "[local\-options]" "TARGET"
 
 .SH "DESCRIPTION"
-.B Analyse
-Is a collection of modules for analysing the state of installed Gentoo packages for
+.B Enalyze
+Is a collection of modules for analyzing the state of installed Gentoo packages for
 USE flags or keywords used for installation, and their current masking status.
 .br 
 It can also optionally (re)generate new /etc/portage/package.* files.
@@ -15,7 +15,7 @@ It can also optionally (re)generate new /etc/portage/package.* files.
 
 .br 
 .B CAUTION:
-This is beta software and is not yet feature complete. Some features, options or its name
+This is beta software and is not yet feature complete. Some features, options 
 may change in the future.   Any files that it generates are saved to your home directory
 and will not harm your system without effort on your part.
 .br 
@@ -37,7 +37,7 @@ Do not colorize output.
 .B \-N, \-\-no\-pipe
 .br 
 Turn off automatic pipe detection. Use this option if you do not want
-.B analyse
+.B enalyze
 To detect if the output is being directed to the screen or to another program
 and adjust color and verbosity accordingly.
 .HP
@@ -48,7 +48,7 @@ Display \fBGentoolkit\fP's version. Please include this in all bug reports. (see
 below)
 
 .SH "MODULES"
-.B Analyse
+.B Enalyze
 Uses a system of modules. Each module has both a long and short name. 
 The list below uses the notation "\fBmodule (m)\fP", where \fIm\fP is the short name
 and \fImodule\fP is the long name.
@@ -58,11 +58,11 @@ You can view the
 message for a specific module by using
 .BR "\-h" ", " "\-\-help "
 as either a global option (after
-.B analyse
+.B enalyze
 and before the module name) or as a local option (after the module name).
 
 .SS
-.BI "analyse (a) [OPTIONS] TARGET"
+.BI "analyze (a) [OPTIONS] TARGET"
 Report on all installed packages for \fITARGET\fP.
 .P
 
@@ -70,20 +70,20 @@ Report on all installed packages for \fITARGET\fP.
 .HP
 .B use
 .br 
-Will analyse the installed with USE flags for output results.
+Will analyze the installed with USE flags for output results.
 .HP
 .B pkguse
 .br 
-Will analyse the USE flags information from the installed pkg's 'PKGUSE' file which contains 
+Will analyze the USE flags information from the installed pkg's 'PKGUSE' file which contains 
 only flags settings from /etc/portage/package.use at the time of installation.
 .HP
 .B keywords
 .br 
-Will analyse the recorded keywords for output results.
+Will analyze the recorded keywords for output results.
 .HP
 .B unmask
 .br 
-Will analyse the installed packages and portage trees for pkgs that require unmasking and report them.
+Will analyze the installed packages and portage trees for pkgs that require unmasking and report them.
 .br 
 .P
 .I R "LOCAL OPTIONS" ":"
@@ -100,7 +100,7 @@ Gives more detail about the results found and the current task being performed.
 .I R "EXAMPLES" ":"
 .EX
 .HP
-analyse a \-\-verbose \-\-unset use
+enalyze a \-\-verbose \-\-unset use
 .EE
 .br 
 Report on all use flags used to install the packages.  (\-\-unset) Include in the report all flags
@@ -120,15 +120,15 @@ other than the default settings.
 .HP
 .B use
 .br 
-Will analyse the USE flags for output results.
+Will analyze the USE flags for output results.
 .HP
 .B keywords
 .br 
-Will analyse the keywords for output results.
+Will analyze the keywords for output results.
 .HP
 .B unmask
 .br 
-Will analyse the installed packages and portage trees for pkgs that require
+Will analyze the installed packages and portage trees for pkgs that require
 unmasking and produce output/a new /etc/portage/package.unmask file.
 .P
 .I R "LOCAL OPTIONS" ":"
@@ -154,10 +154,10 @@ Gives more detail about the results found and the current task being performed.
 .I R "EXAMPLES" ":"
 .EX
 .HP
-analyse rebuild \-p use
+enalyze rebuild \-p use
 .EE
 .br 
-Analyse the installed packages database and current system USE flag settings
+Analyze the installed packages database and current system USE flag settings
  and output the results in the form of:
 .br 
    
@@ -174,17 +174,17 @@ for the current settings and pkg ebuild. (not Implemented yet)
 .HP
 .B use
 .br 
-Will analyse the USE flags and /etc/portage/package.use file(s) for entries that
+Will analyze the USE flags and /etc/portage/package.use file(s) for entries that
 are redundant or no longer used by the pkg.
 .HP
 .B keywords
 .br 
-Will analyse the keywords and /etc/portage/package.keywords file(s) for entries
+Will analyze the keywords and /etc/portage/package.keywords file(s) for entries
 that are no longer needed.
 .HP
 .B unmask
 .br 
-Will analyse the installed packages, /etc/portage/package.unmask file(s) and
+Will analyze the installed packages, /etc/portage/package.unmask file(s) and
 portage trees for pkgs that no longer require unmasking.
 .P
 .I R "LOCAL OPTIONS" ":"

@@ -6,7 +6,7 @@
 #
 # $Header: $
 
-"""Analyse Base Module class to hold common module operation functions
+"""Enalyze Base Module class to hold common module operation functions
 """
 
 from __future__ import print_function
@@ -25,7 +25,7 @@ from gentoolkit.base import mod_usage
 from gentoolkit import CONFIG
 
 class ModuleBase(object):
-	"""Analyse base module class to parse module options print module help, etc.."""
+	"""Enalyze base module class to parse module options print module help, etc.."""
 
 	def __init__(self):
 		self.module_name = None
