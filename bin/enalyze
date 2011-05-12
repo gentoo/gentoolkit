@@ -6,7 +6,7 @@
 #
 # $Header$
 
-"""'analyse' is a flexible utility for Gentoo linux which can display various
+"""'enalyze' is a flexible utility for Gentoo linux which can display various
 information about installed packages, such as the USE flags used and the
 packages that use them.  It can also be used to help rebuild /etc/portage/package.*
 files in the event of corruption, and possibly more.
@@ -33,10 +33,10 @@ except KeyboardInterrupt:
 	print()
 	sys.exit(1)
 
-from gentoolkit import analyse, errors
+from gentoolkit import enalyze, errors
 
 try:
-	analyse.main()
+	enalyze.main()
 except errors.GentoolkitException as err:
 	if '--debug' in sys.argv:
 		raise
