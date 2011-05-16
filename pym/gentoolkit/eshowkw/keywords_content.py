@@ -8,8 +8,8 @@ from portage.output import colorize
 
 __all__ = ['keywords_content']
 
-from display_pretty import colorize_string
-from display_pretty import align_string
+from gentoolkit.eshowkw.display_pretty import colorize_string
+from gentoolkit.eshowkw.display_pretty import align_string
 
 class keywords_content:
 	class RedundancyChecker:
@@ -101,7 +101,7 @@ class keywords_content:
 		def __getVersions(self, packages):
 			"""Obtain properly aligned version strings without colors."""
 			revlength = max([len(self.__getRevision(x)) for x in packages])
-			return map(lambda x: self.__separateVersion(x, revlength), packages)
+			return  [self.__separateVersion(x, revlength) for x in packages]
 
 		def __getRevision(self, cpv):
 			"""Get revision informations for each package for nice further alignment"""
