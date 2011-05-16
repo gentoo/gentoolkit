@@ -3,7 +3,10 @@
 # Distributed under the terms of the GNU General Public License v2
 
 from portage.output import colorize
-from itertools import izip_longest
+try: # newer python versions
+	from itertools import zip_longest
+except ImportError: # older python naming
+	from itertools import izip_longest as zip_longest
 
 __all__ = ['string_rotator', 'colorize_string', 'align_string', 'rotate_dash', 'print_content', 'display']
 
@@ -17,14 +20,14 @@ def display(plain_list, rotated_list, plain_width, rotated_height, cp, toplist =
 	if toplist != 'archlist':
 		corner_image.extend(plain_list)
 	data_printout = ['%s%s' % (x, y)
-		for x, y in izip_longest(corner_image, rotated_list, fillvalue=corner_image[0])]
+		for x, y in zip_longest(corner_image, rotated_list, fillvalue=corner_image[0])]
 	if toplist == 'archlist':
 		data_printout.extend(plain_list)
 	output.extend(data_printout)
 	print(print_content(output))
 
 def align_string(string, align, length):
-	"""Align string to the specified alignment (left or right, and after rotation it becames top and bottom)"""
+	"""Align string to the specified alignment (left or right, and after rotation it becomes top and bottom)"""
 	if align == 'top' or align == 'left':
 		string = string.ljust(length)
 	else:
