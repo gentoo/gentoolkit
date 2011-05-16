@@ -275,6 +275,7 @@ def parse_global_options(global_opts, args):
 			pp.output.nocolor()
 		elif opt in ('-N', '--no-pipe'):
 			CONFIG['piping'] = False
+			CONFIG['termWidth'] = 400
 		elif opt in ('-V', '--version'):
 			print_version()
 			sys.exit(0)
