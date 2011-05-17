@@ -221,6 +221,9 @@ def initialize_configuration():
 
 	if CONFIG['piping']:
 		CONFIG['verbose'] = False
+		# set extra wide, should disable wrapping unless 
+		# there is some extra long text 
+		CONFIG['termWidth'] = 600
 
 	CONFIG['debug'] = bool(os.getenv('DEBUG', False))
 
@@ -275,7 +278,6 @@ def parse_global_options(global_opts, args):
 			pp.output.nocolor()
 		elif opt in ('-N', '--no-pipe'):
 			CONFIG['piping'] = False
-			CONFIG['termWidth'] = 400
 		elif opt in ('-V', '--version'):
 			print_version()
 			sys.exit(0)
