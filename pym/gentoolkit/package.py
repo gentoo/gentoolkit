@@ -36,7 +36,7 @@ __all__ = (
 
 FORMAT_TMPL_VARS = (
 	'$location', '$mask', '$mask2', '$cp', '$cpv', '$category', '$name',
-	'$version', '$revision', '$fullversion', '$slot', '$repo'
+	'$version', '$revision', '$fullversion', '$slot', '$repo', '$keywords'
 ) 
 
 # =======
@@ -470,6 +470,7 @@ class PackageFormatter(object):
 			"fullversion")
 		fmt_vars.addLazySingleton("slot", self.format_slot)
 		fmt_vars.addLazySingleton("repo", self.pkg.repo_name)
+		fmt_vars.addLazySingleton("keywords", self.format_keywords)
 
 	def format_package_location(self):
 		"""Get the install status (in /var/db/?) and origin (from an overlay
@@ -567,6 +568,13 @@ class PackageFormatter(object):
 		value = self.pkg.environment("SLOT")
 		if self._do_format:
 			return pp.slot(value)
+		else:
+			return value
+
+	def format_keywords(self):
+		value = self.pkg.environment("KEYWORDS")
+		if self._do_format:
+			return pp.keyword(value)
 		else:
 			return value
 
