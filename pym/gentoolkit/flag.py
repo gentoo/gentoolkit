@@ -36,7 +36,8 @@ def get_iuse(cpv):
 	@returns [] or the list of IUSE flags
 	"""
 	try:
-		return PORTDB.aux_get(cpv, ["IUSE"])[0].split()
+		# aux_get might return dupes, so run them through set() to remove them
+		return list(set(PORTDB.aux_get(cpv, ["IUSE"])[0].split()))
 	except:
 		return []
 
