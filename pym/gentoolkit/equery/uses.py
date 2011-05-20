@@ -175,7 +175,7 @@ def get_output_descriptions(pkg, global_usedesc):
 		local_usedesc = pkg.metadata.use()
 
 	iuse, final_use = get_flags(pkg.cpv, final_setting=True)
-	usevar = reduce_flags(iuse)
+	usevar = uniqify(reduce_flags(iuse))
 	usevar.sort()
 	
 
