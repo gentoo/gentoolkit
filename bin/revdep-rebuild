@@ -1111,8 +1111,8 @@ setup_search_paths_and_masks() {
 ##
 # Rebuild packages owning broken binaries
 rebuild() {
-	if [[ -r $LIST.5_order && -s $LIST.5_order ]]; then
-		REBUILD_LIST=( $(<"$LIST.5_order") )
+	if [[ -r $ORDER_FILE && -s $ORDER_FILE ]]; then
+		REBUILD_LIST=( $(<"$ORDER_FILE") )
 		REBUILD_LIST="${REBUILD_LIST[@]/#/=}"
 	else
 		REBUILD_LIST=$(sort -u "$EBUILDS_FILE")
