@@ -151,7 +151,7 @@ class TestCheckLimits(unittest.TestCase):
 				print("Error getting test data for index:", i)
 			#self.target_class.set_data(self.set_limits(test))
 			size_chk, time_chk, exclude = test["params"]
-			checks = self.target_class._get_default_checks(size_chk, time_chk, exclude)
+			checks = self.target_class._get_default_checks(size_chk, time_chk, exclude, False)
 			clean_me = self.target_class._check_limits(self.workdir, checks, clean_me)
 			results = sorted(clean_me)
 			run_results.append(results)

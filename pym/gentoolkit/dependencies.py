@@ -115,7 +115,7 @@ class Dependencies(Query):
 		max_depth=1,
 		printer_fn=None,
 		# The rest of these are only used internally:
-		depth=0,
+		depth=1,
 		seen=None,
 		depcache=None,
 		result=None
@@ -151,32 +151,29 @@ class Dependencies(Query):
 			except KeyError:
 				pkgdep = Query(dep.atom).find_best()
 				depcache[dep.atom] = pkgdep
-			if pkgdep and pkgdep.cpv in seen:
+			if not pkgdep:
 				continue
-			if depth < max_depth or max_depth <= 0:
-
+			elif pkgdep.cpv in seen:
+				continue
+			if depth <= max_depth or max_depth == 0:
 				if printer_fn is not None:
 					printer_fn(depth, pkgdep, dep)
-				if not pkgdep:
-					continue
+				result.append((depth,pkgdep))
 
 				seen.add(pkgdep.cpv)
-				result.append((
-					depth,
-					pkgdep.deps.graph_depends(
-						max_depth=max_depth,
-						printer_fn=printer_fn,
-						# The rest of these are only used internally:
-						depth=depth+1,
-						seen=seen,
-						depcache=depcache,
-						result=result
-					)
-				))
-
-		if depth == 0:
-			return result
-		return pkgdep
+				if depth < max_depth or max_depth == 0:
+					# result is passed in and added to directly
+					# so rdeps is disposable
+					rdeps = pkgdep.deps.graph_depends(
+							max_depth=max_depth,
+							printer_fn=printer_fn,
+							# The rest of these are only used internally:
+							depth=depth+1,
+							seen=seen,
+							depcache=depcache,
+							result=result
+						)
+		return result
 
 	def graph_reverse_depends(
 		self,

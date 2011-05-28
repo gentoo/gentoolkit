@@ -629,7 +629,7 @@ get_search_env() {
 		for file in "${FILES[@]}"; do
 			if [ -e "$file" ]; then
 				chown ${uid}:portage "$file"
-				chmod 700 "$file"
+				chmod 600 "$file"
 			fi
 		done
 	fi
@@ -979,15 +979,19 @@ get_build_order() {
 				fi
 			fi
 			RAW_REBUILD_LIST="${RAW_REBUILD_LIST[@]}"
-			REBUILD_GREP=$(emerge --nodeps $RAW_REBUILD_LIST | sed 's/\[[^]]*\]//g')
-			if (( ${PIPESTATUS[0]} == 0 )); then
-				emerge --deep $RAW_REBUILD_LIST |
-					sed 's/\[[^]]*\]//g' |
-					grep -F "$REBUILD_GREP" > "$ORDER_FILE"
-			fi
 
-			# Here we use the PIPESTATUS from the second emerge, the --deep one.
-			if (( ${PIPESTATUS[0]} != 0 )); then
+			# We no longer determine the package order ourselves.  Instead we call emerge
+			# with --complete-graph=y in the rebuild function.
+			if false ; then
+				REBUILD_GREP=$(emerge --nodeps $RAW_REBUILD_LIST | sed 's/\[[^]]*\]//g')
+				if (( ${PIPESTATUS[0]} == 0 )); then
+					emerge --deep $RAW_REBUILD_LIST |
+						sed 's/\[[^]]*\]//g' |
+						grep -F "$REBUILD_GREP" > "$ORDER_FILE"
+				fi
+
+				# Here we use the PIPESTATUS from the second emerge, the --deep one.
+				if (( ${PIPESTATUS[0]} != 0 )); then
 					eerror
 					eerror 'Warning: Failed to resolve package order.'
 					eerror 'Will merge in arbitrary order'
@@ -1000,6 +1004,9 @@ get_build_order() {
 					EOF
 					countdown 5
 					rm -f "$ORDER_FILE"
+				fi
+			else
+				echo "$RAW_REBUILD_LIST" > "$ORDER_FILE"
 			fi
 			export EMERGE_DEFAULT_OPTS="$OLD_EMERGE_DEFAULT_OPTS"
 		else
@@ -1111,9 +1118,12 @@ setup_search_paths_and_masks() {
 ##
 # Rebuild packages owning broken binaries
 rebuild() {
-	if [[ -r $LIST.5_order && -s $LIST.5_order ]]; then
-		REBUILD_LIST=( $(<"$LIST.5_order") )
-		REBUILD_LIST="${REBUILD_LIST[@]/#/=}"
+	if [[ -r $ORDER_FILE && -s $ORDER_FILE ]]; then
+		# The rebuild list contains category/package:slot atoms.
+		# Do not prepend with an '=' sign.
+		# REBUILD_LIST=( $(<"$ORDER_FILE") )
+		# REBUILD_LIST="${REBUILD_LIST[@]/#/=}"
+		REBUILD_LIST=$(<"$ORDER_FILE")
 	else
 		REBUILD_LIST=$(sort -u "$EBUILDS_FILE")
 	fi
@@ -1121,7 +1131,7 @@ rebuild() {
 	trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 
 	[[ $QUIET -ne 1 ]] && einfo 'All prepared. Starting rebuild'
-	echo "emerge --oneshot ${EMERGE_DEFAULT_OPTS} ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
+	echo "emerge --complete-graph=y --oneshot ${EMERGE_DEFAULT_OPTS} ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
 
 	is_real_merge && countdown 10
 
@@ -1130,7 +1140,7 @@ rebuild() {
 
 	# Run in background to correctly handle Ctrl-C
 	{
-		emerge --oneshot ${EMERGE_DEFAULT_OPTS} ${EMERGE_OPTIONS[@]} $REBUILD_LIST <&6
+		emerge --complete-graph=y --oneshot ${EMERGE_DEFAULT_OPTS} ${EMERGE_OPTIONS[@]} $REBUILD_LIST <&6
 		echo $? > "$STATUS_FILE"
 	} &
 	wait

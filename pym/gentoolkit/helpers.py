@@ -333,7 +333,7 @@ class FileOwner(object):
 
 		osp = os.path
 		paths.extend([osp.realpath(x) for x in paths
-			if osp.islink(x) and osp.realpath(x) not in paths])
+			if osp.realpath(x) not in paths])
 
 		return paths
 

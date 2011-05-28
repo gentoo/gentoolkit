@@ -14,10 +14,10 @@ from portage import config as portc
 from portage import portdbapi as portdbapi
 from portage import db as portdb
 
-from .keywords_header import keywords_header
-from .keywords_content import keywords_content
-from .display_pretty import string_rotator
-from .display_pretty import display
+from gentoolkit.eshowkw.keywords_header import keywords_header
+from gentoolkit.eshowkw.keywords_content import keywords_content
+from gentoolkit.eshowkw.display_pretty import string_rotator
+from gentoolkit.eshowkw.display_pretty import display
 
 ignore_slots = False
 bold = False
@@ -25,6 +25,7 @@ order = 'bottom'
 topper = 'versionlist'
 
 def process_display(package, keywords, dbapi):
+
 	portdata = keywords_content(package, keywords.keywords, dbapi, ignore_slots, order, bold, topper)
 	if topper == 'archlist':
 		header = string_rotator().rotateContent(keywords.content, keywords.length, bold)
@@ -108,7 +109,8 @@ def main(argv, indirect = False):
 		dbapi = portdbapi(mysettings=mysettings)
 		if not use_overlays:
 			dbapi.porttrees = [dbapi.porttree_root]
-		map(lambda x: process_display(x, keywords, dbapi), package)
+		for pkg in package:
+			process_display(pkg, keywords, dbapi)
 	else:
 		currdir = os.getcwd()
 		# check if there are actualy some ebuilds
