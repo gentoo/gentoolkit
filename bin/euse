@@ -29,10 +29,13 @@ warn() {
 	echo -e "WARNING: ${*}"
 }
 
-# /etc/make.conf can now exist in /etc/portage/make.conf, prefer it over /etc/make.conf for changes
-if [ -e "${ETC}/portage/make.conf" ]; then
+# /etc/make.conf can now exist in /etc/portage/make.conf, prefer it over
+# /etc/make.conf for changes. Since this will only be used for modifying
+# the USE variable, we need to make sure the one we pick is the one with
+# the USE variable defined.
+if [[ -n $(grep '^USE="' "${ETC}/portage/make.conf" 2>/dev/null) ]]; then
 	MAKE_CONF_PATH="${ETC}/portage/make.conf"
-elif [ -e "${ETC}/make.conf" ]; then
+elif [[ -e "${ETC}/make.conf" ]]; then
 	MAKE_CONF_PATH="${ETC}/make.conf"
 else
 	fatal "make.conf does not exist"
@@ -56,7 +59,7 @@ else
 fi
 PACKAGE_USE_PATH=${ETC}/portage/package.use
 
-[ -z "${MODE}" ] && MODE="showhelp"		# available operation modes: showhelp, showversion, showdesc, showflags, modify
+[ -z "${MODE:-}" ] && MODE="showhelp"		# available operation modes: showhelp, showversion, showdesc, showflags, modify
 
 parse_arguments() {
 	if [ -z "${1}" ]; then
@@ -74,8 +77,8 @@ parse_arguments() {
 			-E | --enable)         MODE="modify"; ACTION="add";;
 			-D | --disable)        MODE="modify"; ACTION="remove";;
 			-P | --prune | -R | --remove)
-                                               MODE="modify"; ACTION="prune";;
-			-p | --package)	       MODE="modify"; shift; PACKAGE=${1}; SCOPE="local";;
+			                       MODE="modify"; ACTION="prune";;
+			-p | --package)        MODE="modify"; shift; PACKAGE=${1}; SCOPE="local";;
 			-*)
 				echo "ERROR: unknown option ${1} specified."
 				echo
@@ -83,10 +86,10 @@ parse_arguments() {
 				;;
 			"%active")
 				get_portageuseflags
-				ARGUMENTS="${ARGUMENTS} ${ACTIVE_FLAGS[9]}"
+				ARGUMENTS="${ARGUMENTS:-} ${ACTIVE_FLAGS[9]}"
 				;;
 			*)
-				ARGUMENTS="${ARGUMENTS} ${1}"
+				ARGUMENTS="${ARGUMENTS:-} ${1}"
 				;;
 		esac
 		shift
@@ -128,6 +131,7 @@ check_sanity() {
 	done
 	[ "${MODE}" == "modify" -a ! -w "${MAKE_CONF_PATH}" ] && fatal ""${MAKE_CONF_PATH}" is not writable"
 	[ "${MODE}" == "modify" -a -s "${PACKAGE_USE_PATH}" -a ! -w "${PACKAGE_USE_PATH}" ] && fatal ""${PACKAGE_USE_PATH}" is not writable"
+	return 0
 } # }}}
 
 showhelp() {
@@ -181,7 +185,7 @@ VER
 #       worth another look to avoid calling python unnecessariy. Or we could
 #       just write the whole thing in python. ;)
 reduce_incrementals() {
-	echo $@ | python -c "import sys
+	echo $@ | python -c "from __future__ import print_function;import sys
 r=[]
 for x in sys.stdin.read().split():
 	if x[0] == '-' and x[1:] in r:
@@ -192,14 +196,14 @@ for x in sys.stdin.read().split():
 		r.append(x)
 	elif x == '-*': r = ['-*']
 	elif x not in r: r.append(x)
-print ' '.join(r)" 
+print(' '.join(r))" 
 } # }}}
 
 # Function: reduce_incrementals_trump {{{
 # Similar to reduce_incrementals but negative flags trump positive
 # flags, regardless of which follows which
 reduce_incrementals_trump() {
-	echo $@ | python -c "import sys
+	echo $@ | python -c "from __future__ import print_function;import sys
 r=[]
 for x in sys.stdin.read().split():
 	if x[0] == '-' and x[1:] in r:
@@ -207,7 +211,7 @@ for x in sys.stdin.read().split():
 		r.append(x)
 	elif x == '-*': r = ['-*']
 	elif x not in r and not '-'+x in r: r.append(x)
-print ' '.join(r)" 
+print(' '.join(r))" 
 } # }}}
 
 # Function: reduce_package_use {{{
@@ -218,7 +222,7 @@ print ' '.join(r)"
 # * - Lines of package atom followed by flags
 #     (app-editors/vim flag1 flag2 -flag3)
 reduce_package_use() {
-	echo "${@}" | python -c "import sys,re
+	echo "${@}" | python -c "from __future__ import print_function;import sys,re
 h={}; getflags=re.compile(r'(-?[\w*-]+)')
 for x in sys.stdin.read().split('\n'):
 	if not x: continue
@@ -238,7 +242,7 @@ for x in sys.stdin.read().split('\n'):
 		elif x == '-*': r = h[pkg] = ['-*']
 		elif x not in r:
 			r.append(x)
-print '\n'.join(['%s %s' % (pkg,' '.join(flgs)) for pkg,flgs in h.iteritems() if len(flgs)])"
+print('\n'.join(['%s %s' % (pkg,' '.join(flgs)) for pkg,flgs in h.items() if len(flgs)]))"
 } # }}}
 
 # Function: get_useflags {{{
@@ -380,6 +384,12 @@ get_useflaglist_ebuild() {
 	local pkg=$(echo ${1} | cut -d/ -f2)
 	declare append
 	for portdir in ${ALL_PORTDIRS[@]}; do
+		if [[ -s $(dirname ${portdir}/repo_name) ]]; then
+			overlay="$(cat "${portdir}/profiles/repo_name")"
+		else
+			# XXX: May be better to use full path
+			overlay="$(basename "${portdir}")"
+		fi
 		# Open the ebuild file and retrieve defined USE flags
 		[[ ! -d "$portdir/${1}" ]] && continue
 		if [[ ! -d "$portdir/metadata/cache" ]]; then
@@ -393,16 +403,6 @@ get_useflaglist_ebuild() {
 			| sed -e "s:$portdir/metadata/cache/${1}-::g" \
 			| while read -d $'\n' version; do
 				IFS=$'\n'
-				if [[ $portdir == $PORTDIR ]]; then 
-					overlay=""
-				else
-					if [[ -s $(dirname ${portdir}/repo_name) ]]; then
-						overlay="$(cat "${portdir}/profiles/repo_name")"
-					else
-						# XXX: May be better to use full path
-						overlay="$(basename "${portdir}")"
-					fi
-				fi
 				if [[ ! -e "$portdir/metadata/cache/${1}-$version" ]]; then
 					# Repo does not have this particular package
 					continue
@@ -435,7 +435,7 @@ get_all_make_conf() {
 traverse_profile() {
 	local curdir
 	local parent
-	local rvalue
+	local rvalue=""
 	
 	curdir="${2:-$(get_real_path ${MAKE_PROFILE_PATH})}"
 	
@@ -458,7 +458,7 @@ traverse_profile() {
 # Function: get_all_make_defaults {{{
 # Det all make.defaults by traversing the cascaded profile directories
 get_all_make_defaults() {
-	if [[ -z $MAKE_DEFAULTS ]]; then
+	if [[ -z ${MAKE_DEFAULTS:-} ]]; then
 		MAKE_DEFAULTS=$(traverse_profile "make.defaults")
 	fi
 	echo $MAKE_DEFAULTS
@@ -507,8 +507,8 @@ get_flagstatus_helper_pkg() {
 		if [[ -z "${atoms[@]/[<>=]*/}" ]]; then
 			atoms=($(
 				echo "${atoms[@]}" | python -c "
-import portage.dep as dep, sys
-print ' '.join(dep.match_to_list('$5-$6',sys.stdin.read().split()))"))
+from __future__ import print_function;import portage.dep as dep, sys
+print(' '.join(dep.match_to_list('$5-$6',sys.stdin.read().split()))"))
 		fi
 		flags=$(for atom in ${atoms[@]}; do
 			[[ -z $atom ]] && continue
@@ -606,7 +606,7 @@ get_flagstatus() {
 # Flag status for package.use and ebuild, slot and version, and overlay
 # the version lives is if not PORTDIR
 #
-# Full positive would be "[+PB]", full negative would be "[-pb], and full 
+# Full positive would be "[+PB]", full negative would be "[-pb]", and full 
 # missing would be "[?  ]", question because the sign will default to the 
 # sign of the global status of the flag
 get_flagstatus_pkg() {
@@ -671,8 +671,10 @@ get_flagstatus_pkg() {
 # Outputs:
 # Location of portage tree root
 get_portdir() {
-	if [ -z "${PORTDIR}" ]; then
-		use_backup="${USE}"
+	# Use a subshell so we don't have to protect the variables in
+	# the current scope
+	(
+	if [ -z "${PORTDIR:-}" ]; then
 		source "${MAKE_GLOBALS_PATH}"
 		for x in $(get_all_make_defaults); do
 			source "${x}"
@@ -680,9 +682,9 @@ get_portdir() {
 		for x in $(get_all_make_conf); do
 			source "${x}"
 		done
-		USE="${use_backup}"
 	fi
 	echo "${PORTDIR}"
+	)
 } # }}}
 # This won't change while the script is running, so cache it
 PORTDIR="$(get_portdir)"
@@ -691,10 +693,14 @@ PORTDIR="$(get_portdir)"
 # Outputs list of portage overlays as defined in the PORTDIR_OVERLAY
 # variable defined in make.conf 
 get_all_overlays() {
-	use_backup="${USE}"
-	source "${MAKE_CONF_PATH}"
-	USE="${use_backup}"
-	echo ${PORTDIR_OVERLAY}
+	# Use a subshell so we don't have to protect the variables in
+	# the current scope
+	( 
+		for x in $(get_all_make_conf); do
+			[[ -r "${x}" ]] && source "${x}"
+		done
+		echo ${PORTDIR_OVERLAY}
+	)
 } # }}}
 ALL_PORTDIRS=( "$PORTDIR" $(get_all_overlays) )
 
@@ -761,8 +767,7 @@ showdesc() {
 			if array_contains "${useflags[*]}" "$1"; then
 				get_flagstatus "${1}"
 				# XXX: Handle overlay
-				grep "^${1}  *-" ${ALL_PORTDIRS[@]/%//profiles/use.desc} 2> /dev/null \
-					| sed -re "s/^([^:]+)://"
+				grep -h "^${1}  *-" ${ALL_PORTDIRS[@]/%//profiles/use.desc} 2> /dev/null
 				foundone=1
 			fi
 		fi
@@ -773,14 +778,14 @@ showdesc() {
 				foundone=1
 			fi
 			# Fetch all the packages data using this flag
-			infos=$( grep ":${1}  *-" ${ALL_PORTDIRS[@]/%//profiles/use.local.desc} 2> /dev/null \
-				| sed -re "s/^([^:]+):([^:]+):(${1}) *- *(.+)/\1|\2|\3|\4/g")
+			infos=$( grep -h ":${1}  *-" ${ALL_PORTDIRS[@]/%//profiles/use.local.desc} 2> /dev/null \
+				| sed -re "s/^([^:]+):(${1}) *- *(.+)/\1|\2|\3/g")
 			OIFS=$IFS; IFS=$'\n'; infos=($infos); IFS=$OIFS;
 			for line in "${infos[@]}"; do
 				OIFS=$IFS; IFS="|"; line=($line); IFS=$OIFS
-				pkg=${line[1]} 
-				flag=${line[2]}
-				desc=${line[3]}
+				pkg=${line[0]} 
+				flag=${line[1]}
+				desc=${line[2]}
 				if get_flagstatus "${flag}"; then
 					ACTIVE="+"
 				else
@@ -925,18 +930,22 @@ showflags() {
 
 # two small helpers to add or remove a flag from a USE string
 add_flag() {
-	if [[ -n $(grep " -${1//-/} " <<< " ${ACTIVE_FLAGS[6]} ") ]]; then
-		error "Use flag \"${1//-/}\" is masked and should not be added" \
+	# Remove leading '-' from flag if found
+	local flag=$1
+	[[ ${flag:0:1} == "-" ]] && flag=${1:1}
+
+	if [[ -n $(grep " -${flag} " <<< " ${ACTIVE_FLAGS[6]} ") ]]; then
+		error "Use flag \"${flag}\" is masked and should not be added" \
 			  "to make.conf."
 		return 1
 	# Bug #104396 -- Only add use flags defined in use.desc and use.local.desc
-	elif [[ -z $(grep "^${1//-/}$" <<< "$(get_useflaglist)") ]]; then
-		error "Use flag \"${1//-/}\" is not defined in use.desc and should" \
+	elif [[ -z $(grep "^${flag}$" <<< "$(get_useflaglist)") ]]; then
+		error "Use flag \"${flag}\" is not defined in use.desc and should" \
 			  "not be added\nto make.conf."
 		return 1
 	else
 		NEW_MAKE_CONF_USE="${NEW_MAKE_CONF_USE} ${1}"
-		echo "Adding flag \"${1}\" to make.conf" >&2
+	echo "Adding flag \"${1}\" to make.conf" >&2
 	fi
 }
 
@@ -981,9 +990,8 @@ scrub_use_flag() {
 		elif [[ -n "${PACKAGE}" ]]; then
 			if [[ -n $(echo "${line}" | grep -Ee "${pkg_re}") ]]; then	
 				# If this is the only (remaining) use flag defined
-				# for this package, then remove the whole line
-				if [[ -z $(echo "${line}" | \
-						grep -Ee "${pkg_re} *-?${flag} *$") ]]; then
+		# for this package, then remove the whole line
+		if [[ -z $(echo "${line}" | grep -Ee "${pkg_re} *-?${flag} *$") ]]; then
 					# Remove flag from this line
 					echo "${line}" | sed -re "s/ *-?\b${flag}\b//"
 				fi
@@ -1231,6 +1239,7 @@ modify() {
 		fi
 	done
 
+	# Bail if there is no need to modify make.conf
 	[[ ${make_conf_modified} == 1 ]] || return
 	# make a backup just in case the user doesn't like the new make.conf
 	cp -p "${MAKE_CONF_PATH}" "${MAKE_CONF_BACKUP_PATH}"

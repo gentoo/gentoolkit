@@ -6,8 +6,8 @@ __all__ = ['keywords_header']
 
 from portage import settings as ports
 from portage.output import colorize
-from display_pretty import colorize_string
-from display_pretty import align_string
+from gentoolkit.eshowkw.display_pretty import colorize_string
+from gentoolkit.eshowkw.display_pretty import align_string
 
 class keywords_header:
 	__IMPARCHS = [ 'arm', 'amd64', 'x86' ]

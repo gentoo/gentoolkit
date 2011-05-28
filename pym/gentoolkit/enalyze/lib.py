@@ -6,7 +6,7 @@
 #
 
 
-"""Provides support functions to analyse modules"""
+"""Provides support functions to enalyze modules"""
 
 import sys
 
@@ -69,7 +69,7 @@ class FlagAnalyzer(object):
 		return self._analyse(installed, iuse)
 
 	def _analyse(self, installed, iuse):
-		"""Analyses the supplied info and returns the flag settings
+		"""Analyzes the supplied info and returns the flag settings
 		that differ from the defaults
 
 		@type installed: set
