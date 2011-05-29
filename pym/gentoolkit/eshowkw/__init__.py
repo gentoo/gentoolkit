@@ -56,7 +56,7 @@ def process_args(argv):
 
 	parser.add_argument('package', nargs='*', default=None, help='Packages to check.')
 
-	parser.add_argument('-a', '--arch', nargs='+', default=[], help='Display only specified arch(s)')
+	parser.add_argument('-a', '--arch', nargs=1, default=[], help='Display only specified arch(s)')
 
 	parser.add_argument('-A', '--align', nargs='?', default='bottom', choices=['top', 'bottom'],
 		help='Specify alignment for descriptions.')
