@@ -7,6 +7,11 @@ SUPPORTED_VCS="cvs svn git"
 VCSTEST="echangelog-test/vcstest"
 _ROOT=$(pwd)
 
+
+# bug 373421
+unset GENTOO_AUTHOR_NAME GENTOO_AUTHOR_EMAIL \
+	GENTOO_COMMITTER_NAME GENTOO_COMMITTER_EMAIL
+
 export ECHANGELOG_USER="Just a test <echangelogtest@gentoo.org>"
 
 MD5_INIT="21ac109c53cf02378593a4f613b2bb55"
