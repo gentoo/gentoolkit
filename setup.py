@@ -28,7 +28,7 @@ except ImportError:
 # Bash files that need `VERSION=""` subbed, relative to this dir:
 bash_scripts = [os.path.join(cwd, path) for path in (
 	'bin/euse',
-	'bin/revdep-rebuild'
+	'bin/revdep-rebuild.sh'
 )]
 
 # Python files that need `__version__ = ""` subbed, relative to this dir:
@@ -39,7 +39,8 @@ python_scripts = [os.path.join(cwd, path) for path in (
 	'pym/gentoolkit/eclean/cli.py',
 	'pym/gentoolkit/enalyze/__init__.py',
 	'pym/gentoolkit/equery/__init__.py',
-	'pym/gentoolkit/eshowkw/__init__.py'
+	'pym/gentoolkit/eshowkw/__init__.py',
+	'pym/gentoolkit/revdep_rebuild/__init__.py'
 )]
 
 
