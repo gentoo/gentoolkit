@@ -133,7 +133,7 @@ some files which are not registered by the ebuilds, like OpenOffice.org i18n fil
 ("helpcontent_33_unix.tgz" for instance).  Another example are sources you want to protect
 that do not have an ebuild in the tree or any currently installed overlays.
 .IP o
-eclean will also inform you of any deprecated installed packages that are on your system as well
+eclean will also inform you of any unavailable installed packages that are on your system as well
 as if it was able to locate the source filename(s) in order to protect them.  If you want to protect
 all installed distfile sources, run elcelan in pretend mode first.  Then check which sources it was
 not able to find the filename(s) for and add entries for them in the distfiles.exclude file before
@@ -167,10 +167,7 @@ mode but protecting files less than a week old, every sunday at 1am:
 .B 0 1 * * sun \ \ eclean \-C \-q packages ; eclean \-C \-q \-d \-t1w distfiles
 .SH "NOTE"
 .TP 
-While running and searching distfiles for cleaning, elcean will report any deprecated packages
-it finds installed on your system.  Those sources may not be protected if the SRC_URI is not recorded
-in the installed package database.  The SRC_URI is no longer recorded by recent portage/pkgcore versions.
-."
+While running and searching distfiles for cleaning, elcean will report any unavailable packages it finds installed on your system. An unavailable package is a package that is installed on the system, but there is not a corresponding ebuild available. Those sources may not be protected if the SRC_URI is not recorded in the installed package database.  The SRC_URI is no longer recorded by recent portage/pkgcore versions.
 .SH "BUGS"
 .".TP 
 ."The policy used to decide if a distfile can be removed or not relies on the SRC_URI variables ."of ebuilds.  It means that if an ebuild uses files that are not part of its SRC_URI, eclean will ."probably remove them.  This are ebuilds bugs, please report them as such on ."http://bugs.gentoo.org. 
