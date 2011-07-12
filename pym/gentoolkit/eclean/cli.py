@@ -421,14 +421,14 @@ def doAction(action,options,exclude={}, output=None):
 		output.einfo("Your "+action+" directory was already clean.")
 	if saved and not options['quiet']:
 		print()
-		print( (pp.emph("   The following ") + yellow("Deprecated") +
+		print( (pp.emph("   The following ") + yellow("unavailable") +
 			pp.emph(" files were saved from cleaning due to exclusion file entries")))
 		output.set_colors('deprecated')
 		clean_size = cleaner.pretend_clean(saved)
 		output.total('deprecated', clean_size, len(saved), verb, action)
 	if deprecated and not options['quiet']:
 		print()
-		print( (pp.emph("   The following ") + yellow("Deprecated") +
+		print( (pp.emph("   The following ") + yellow("unavailable") +
 			pp.emph(" installed packages were found")))
 		output.set_colors('deprecated')
 		output.list_pkgs(deprecated)
