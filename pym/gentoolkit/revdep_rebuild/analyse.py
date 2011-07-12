@@ -61,7 +61,7 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 				if m is not None:
 					for el in m.group(1).split(' '):
 						el = el.strip()
-						if len(el) < 1 or el.startswith('-L'):
+						if len(el) < 1 or el.startswith('-L') or el.startswith('-R'):
 							continue
 
 						if el.startswith('-l') and 'lib'+el[2:] in libnames:
