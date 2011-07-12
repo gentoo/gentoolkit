@@ -161,9 +161,9 @@ def rebuild(logger, assigned, settings):
 
 	emerge_command = emerge_command
 
-	logger.warn(yellow('\nemerge') + args + ' --oneshot ' + bold(emerge_command))
+	logger.warn(yellow('\nemerge') + args + ' --oneshot --complete-graph=y ' + bold(emerge_command))
 	
-	success = os.system('emerge ' + args + ' --oneshot ' + emerge_command)
+	success = os.system('emerge ' + args + ' --oneshot --complete-graph=y ' + emerge_command)
 	return success
 
 
@@ -193,10 +193,7 @@ def main(settings=None, logger=None):
 			yellow('This is a development version, '
 				'so it may not work correctly'))
 		logger.warn(blue(' * ') + 
-			yellow('Adding --pretend to portage options anyway'))
-		logger.info(blue(' * ') + 
-			'If you\'re sure, you can add --no-pretend to revdep options')
-		settings['PRETEND'] = True
+			yellow('The original revdep-rebuild script is installed as revdep-rebuild.sh'))
 
 	analyze_cache = {}
 	if settings['USE_TMP_FILES'] \
