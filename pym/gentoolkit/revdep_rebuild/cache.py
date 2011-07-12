@@ -84,7 +84,7 @@ def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600):
 
 
 if __name__ == '__main__':
-	print 'Preparing cache ... '
+	print('Preparing cache ... ')
 
 	from collect import *
 	import logging
@@ -104,4 +104,4 @@ if __name__ == '__main__':
 			'libraries_links':libraries_links, 'binaries':binaries}
 		)
 
-	print 'Done.'
+	print('Done.')

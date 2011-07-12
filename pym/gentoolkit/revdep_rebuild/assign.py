@@ -89,4 +89,4 @@ def get_slotted_cps(cpvs, logger):
 
 
 if __name__ == '__main__':
-	print 'Nothing to call here'
+	print('Nothing to call here')

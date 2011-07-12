@@ -29,10 +29,11 @@ from stuff import exithandler, get_masking_status
 from cache import check_temp_files, read_cache
 from assign import get_slotted_cps
 from settings import DEFAULTS
+from gentoolkit.revdep_rebuild import __version__
 
 
 APP_NAME = sys.argv[0]
-VERSION = '0.1-r7'
+VERSION = __version__
 
 __productname__ = "revdep-ng"
 
@@ -40,16 +41,16 @@ __productname__ = "revdep-ng"
 # functions
 
 def print_usage():
-	print APP_NAME + ': (' + VERSION +')'
+	print( APP_NAME + ': (' + VERSION +')')
 	print
-	print 'This is free software; see the source for copying conditions.'
+	print('This is free software; see the source for copying conditions.')
 	print
-	print 'Usage: ' + APP_NAME + ' [OPTIONS] [--] [EMERGE_OPTIONS]'
+	print('Usage: ' + APP_NAME + ' [OPTIONS] [--] [EMERGE_OPTIONS]')
 	print
-	print 'Broken reverse dependency rebuilder, python implementation.'
+	print('Broken reverse dependency rebuilder, python implementation.')
 	print
-	print 'Available options:'
-	print '''
+	print('Available options:')
+	print('''
   -C, --nocolor         Turn off colored output
   -d, --debug           Print debug informations
   -e, --exact           Emerge based on exact package version
@@ -66,9 +67,9 @@ def print_usage():
                         (also passed to emerge command)
   -q, --quiet           Be less verbose (also passed to emerge command)
   -v, --verbose         Be more verbose (also passed to emerge command)
-'''
-	print 'Calls emerge, options after -- are ignored by ' + APP_NAME
-	print 'and passed directly to emerge.'
+''')
+	print( 'Calls emerge, options after -- are ignored by ' + APP_NAME)
+	print('and passed directly to emerge.')
 
 
 def init_logger(settings):
