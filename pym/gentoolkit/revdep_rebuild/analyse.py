@@ -218,4 +218,4 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 
 
 if __name__ == '__main__':
-	print "This script shouldn't be called directly"
+	print("This script shouldn't be called directly")
