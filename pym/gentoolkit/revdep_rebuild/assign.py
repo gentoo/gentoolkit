@@ -19,7 +19,7 @@ def assign_packages(broken, logger, settings):
 			if os.path.exists(f):
 				try:
 					with open(f, 'r') as cnt:
-						for line in cnt.readlines():
+						for line in cnt:
 							m = re.match('^obj (/[^ ]+)', line)
 							if m is not None:
 								m = m.group(1)

@@ -92,9 +92,9 @@ if __name__ == '__main__':
 	bin_dirs, lib_dirs = prepare_search_dirs()
 
 	masked_dirs, masked_files, ld = parse_revdep_config()
-	lib_dirs = lib_dirs.union(ld)
-	bin_dirs = bin_dirs.union(ld)
-	masked_dirs = masked_dirs.union(set(['/lib/modules', '/lib32/modules', '/lib64/modules',]))
+	lib_dirs.update(ld)
+	bin_dirs.update(ld)
+	masked_dirs = masked_dirs.update(['/lib/modules', '/lib32/modules', '/lib64/modules',])
 
 	libraries, la_libraries, libraries_links, symlink_pairs = collect_libraries_from_dir(lib_dirs, masked_dirs, logging)
 	binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logging)
