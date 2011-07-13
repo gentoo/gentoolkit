@@ -6,10 +6,9 @@
 #
 # $Header$
 
-"""'analyse' is a flexible utility for Gentoo linux which can display various
-information about installed packages, such as the USE flags used and the
-packages that use them.  It can also be used to help rebuild /etc/portage/package.*
-files in the event of corruption, and possibly more.
+"""'revdep-rebuild' scans libraries and binaries for missing shared library dependencies and attempts to fix them by re-emerging
+those broken binaries and shared libraries. It is useful when an upgraded package breaks other software packages that are
+dependent upon the upgraded package.
 """
 
 from __future__ import print_function

@@ -2,26 +2,33 @@
 # -*- coding: utf-8 -*-
 
 
-# Author: Sławomir Lis <lis.slawek@gmail.com>
-# revdep-rebuild original author: Stanislav Brabec
-# revdep-rebuild original rewrite Author: Michael A. Smith
-# Current Maintainer: Paul Varner <fuzzyray@gentoo.org>
+""" Rebuild module
 
-# Creation date: 2010/10/17
-# License: BSD
+Main program, cli parsing and api program control and operation
 
+Author: Sławomir Lis <lis.slawek@gmail.com>
+	revdep-rebuild original author: Stanislav Brabec
+	revdep-rebuild original rewrite Author: Michael A. Smith
+Current Maintainer: Paul Varner <fuzzyray@gentoo.org>
+Creation date: 2010/10/17
+License: BSD
+"""
+
+from __future__ import print_function
+
+import subprocess
 import os
 import sys
 import getopt
 import logging
 from portage.output import bold, red, blue, yellow, green, nocolor
 
-from analyse import analyse
-from stuff import exithandler, get_masking_status
-from cache import check_temp_files, read_cache
-from assign import get_slotted_cps
-from settings import DEFAULTS
-from gentoolkit.revdep_rebuild import __version__
+from .analyse import analyse
+from .stuff import exithandler, get_masking_status
+from .cache import check_temp_files, read_cache
+from .assign import get_slotted_cps
+from .settings import DEFAULTS
+from . import __version__
 
 
 APP_NAME = sys.argv[0]
@@ -35,13 +42,13 @@ __productname__ = "revdep-ng"
 def print_usage():
 	"""Outputs the help message"""
 	print( APP_NAME + ': (' + VERSION +')')
-	print
+	print()
 	print('This is free software; see the source for copying conditions.')
-	print
+	print()
 	print('Usage: ' + APP_NAME + ' [OPTIONS] [--] [EMERGE_OPTIONS]')
-	print
+	print()
 	print('Broken reverse dependency rebuilder, python implementation.')
-	print
+	print()
 	print('Available options:')
 	print('''
   -C, --nocolor         Turn off colored output

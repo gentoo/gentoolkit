@@ -2,6 +2,8 @@
 
 """Data collection module"""
 
+from __future__ import print_function
+
 import re
 import os
 import glob
@@ -19,7 +21,7 @@ def parse_conf(conf_file, visited=None, logger=None):
 	lib_dirs = set()
 	to_parse = set()
 
-	if isinstance(conf_file, basestring):
+	if isinstance(conf_file, str):
 		conf_file = [conf_file]
 
 	for conf in conf_file:

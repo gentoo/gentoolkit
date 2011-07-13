@@ -1,5 +1,9 @@
 #!/usr/bin/python
 
+"""Analysis module"""
+
+from __future__ import print_function
+
 import os
 import re
 import platform
@@ -7,10 +11,10 @@ import glob
 
 from portage.output import bold, red, blue, yellow, green, nocolor
 
-from stuff import scan
-from collect import prepare_search_dirs, parse_revdep_config, collect_libraries_from_dir, collect_binaries_from_dir
-from assign import assign_packages
-from cache import save_cache
+from .stuff import scan
+from .collect import prepare_search_dirs, parse_revdep_config, collect_libraries_from_dir, collect_binaries_from_dir
+from .assign import assign_packages
+from .cache import save_cache
 
 
 def prepare_checks(files_to_check, libraries, bits, cmd_max_args):

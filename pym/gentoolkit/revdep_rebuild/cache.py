@@ -1,10 +1,16 @@
 #!/bin/bash
 
+"""Caching module
+Functions for reading, saving and verifying the data caches
+"""
+
+from __future__ import print_function
+
 import os
 import time
 
 from portage.output import red
-from settings import DEFAULTS
+from .settings import DEFAULTS
 
 
 def read_cache(temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
@@ -17,7 +23,7 @@ def read_cache(temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 
 	ret = {'libraries':[], 'la_libraries':[], 'libraries_links':[], 'binaries':[]}
 	try:
-		for key,val in ret.iteritems():
+		for key,val in list(ret.items()):
 			f = open(os.path.join(temp_path, key))
 			for line in f.readlines():
 				val.append(line.strip())
@@ -43,7 +49,7 @@ def save_cache(logger, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 		f.write(str(int(time.time())))
 		f.close()
 
-		for key,val in to_save.iteritems():
+		for key,val in list(to_save.items()):
 			f = open(os.path.join(temp_path, key), 'w')
 			for line in val:
 				f.write(line + '\n')
@@ -86,7 +92,7 @@ def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600):
 if __name__ == '__main__':
 	print('Preparing cache ... ')
 
-	from collect import *
+	from .collect import *
 	import logging
 
 	bin_dirs, lib_dirs = prepare_search_dirs()
