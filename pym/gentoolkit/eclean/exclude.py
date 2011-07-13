@@ -199,13 +199,20 @@ def exclDictExpand(exclude):
 
 def exclDictMatchCP(exclude,pkg):
 	"""Checks whether a CP matches the exclusion rules."""
+	if pkg is None:
+		return False
 	if 'anti-packages' in exclude and pkg in exclude['anti-packages']:
 		return False
 	if 'packages' in exclude and pkg in exclude['packages']:
 		return True
-	cat = pkg.split('/')[0]
+	try:
+		cat = pkg.split('/')[0]
+	except:
+		dprint( "exclude", "exclDictMatchCP: Invalid package name: " +\
+			"%s, Could not determine category" %pkg)
+		cat = ''
 	if 'categories' in exclude and cat in exclude['categories']:
-		return True
+			return True
 	return False
 
 def exclDictExpandPkgname(exclude):
