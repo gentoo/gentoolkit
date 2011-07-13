@@ -23,7 +23,7 @@ def parse_conf(conf_file, visited=None, logger=None):
 	for conf in conf_file:
 		try:
 			with open(conf) as f:
-				for line in f.readlines():
+				for line in f:
 					line = line.strip()
 					if line.startswith('#'):
 						continue
@@ -36,7 +36,7 @@ def parse_conf(conf_file, visited=None, logger=None):
 							else:
 								path = included
 
-							to_parse = to_parse.union(glob.glob(path))
+							to_parse.update(glob.glob(path))
 					else:
 						lib_dirs.add(line)
 		except EnvironmentError:
@@ -45,10 +45,10 @@ def parse_conf(conf_file, visited=None, logger=None):
 	if visited is None:
 		visited = set()
 
-	visited = visited.union(conf_file)
-	to_parse = to_parse.difference(visited)
+	visited.update(conf_file)
+	to_parse.difference_update(visited)
 	if to_parse:
-		lib_dirs = lib_dirs.union(parse_conf(to_parse, visited, logger=logger))
+		lib_dirs.update(parse_conf(to_parse, visited, logger=logger))
 
 	return lib_dirs
 
@@ -63,11 +63,11 @@ def prepare_search_dirs(logger, settings):
 
 	#try:
 	with open(os.path.join(portage.root, settings['DEFAULT_ENV_FILE']), 'r') as f:
-		for line in f.readlines():
+		for line in f:
 			line = line.strip()
 			m = re.match("^export (ROOT)?PATH='([^']+)'", line)
 			if m is not None:
-				bin_dirs = bin_dirs.union(set(m.group(2).split(':')))
+				bin_dirs.update(set(m.group(2).split(':')))
 	#except EnvironmentError:
 		#logger.debug(yellow('Could not open file %s' % f))
 
@@ -233,9 +233,9 @@ if __name__ == '__main__':
 	bin_dirs, lib_dirs = prepare_search_dirs(logging)
 
 	masked_dirs, masked_files, ld = parse_revdep_config()
-	lib_dirs = lib_dirs.union(ld)
-	bin_dirs = bin_dirs.union(ld)
-	masked_dirs = masked_dirs.union(set(['/lib/modules', '/lib32/modules', '/lib64/modules',]))
+	lib_dirs.update(ld)
+	bin_dirs.update(ld)
+	masked_dirs.update(['/lib/modules', '/lib32/modules', '/lib64/modules'])
 
 	libraries, la_libraries, libraries_links, symlink_pairs = collect_libraries_from_dir(lib_dirs, masked_dirs, logging)
 	binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logging)
