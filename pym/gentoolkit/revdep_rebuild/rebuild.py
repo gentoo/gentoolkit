@@ -10,6 +10,7 @@
 # Creation date: 2010/10/17
 # License: BSD
 
+from __future__ import print_function
 import subprocess
 import os
 import sys
@@ -42,13 +43,13 @@ __productname__ = "revdep-ng"
 
 def print_usage():
 	print( APP_NAME + ': (' + VERSION +')')
-	print
+	print()
 	print('This is free software; see the source for copying conditions.')
-	print
+	print()
 	print('Usage: ' + APP_NAME + ' [OPTIONS] [--] [EMERGE_OPTIONS]')
-	print
+	print()
 	print('Broken reverse dependency rebuilder, python implementation.')
-	print
+	print()
 	print('Available options:')
 	print('''
   -C, --nocolor         Turn off colored output
