@@ -140,7 +140,7 @@ def collect_libraries_from_dir(dirs, mask, logger):
 					else:
 						found_directories.append(l)
 				elif os.path.isfile(l):
-					if l.endswith('.so') or '.so.' or l.endswith('.a') in l:
+					if l.endswith('.so') or l.endswith('.a') or '.so.' in l:
 						if l in found_files or l in found_symlinks:
 							continue
 
