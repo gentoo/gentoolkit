@@ -1,5 +1,11 @@
 #!/usr/bin/python
 
+"""Assign module
+Functions used for determining the package the broken lib belongs to.
+"""
+
+from __future__ import print_function
+
 import os
 import re
 

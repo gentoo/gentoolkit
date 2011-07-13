@@ -17,7 +17,7 @@
 unset GREP_OPTIONS
 
 # Readonly variables:
-declare -r APP_NAME="${0##*/}" # The name of this application
+declare -r APP_NAME="revdep-rebuild" # # The name of this application
 declare -r VERSION="svn"
 declare -r OIFS="$IFS"         # Save the IFS
 declare -r     ENV_FILE=0_env.rr     # Contains environment variables
