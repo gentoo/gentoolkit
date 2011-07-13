@@ -8,11 +8,11 @@ import portage
 
 # util. functions
 def call_program(args):
-	''' Calls program with specified parameters and returns stdout '''
+	''' Calls program with specified parameters and returns stdout as a str object '''
 	subp = subprocess.Popen(args, stdout=subprocess.PIPE, \
 								stderr=subprocess.PIPE)
 	stdout, stderr = subp.communicate()
-	return stdout
+	return str(stdout)
 
 
 def scan(params, files, max_args):
