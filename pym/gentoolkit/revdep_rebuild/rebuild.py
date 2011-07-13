@@ -25,12 +25,12 @@ import logging
 from portage import portdb
 from portage.output import bold, red, blue, yellow, green, nocolor
 
-from analyse import analyse
-from stuff import exithandler, get_masking_status
-from cache import check_temp_files, read_cache
-from assign import get_slotted_cps
-from settings import DEFAULTS
-from gentoolkit.revdep_rebuild import __version__
+from .analyse import analyse
+from .stuff import exithandler, get_masking_status
+from .cache import check_temp_files, read_cache
+from .assign import get_slotted_cps
+from .settings import DEFAULTS
+from . import __version__
 
 
 APP_NAME = sys.argv[0]
