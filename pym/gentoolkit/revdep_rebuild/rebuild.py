@@ -10,18 +10,10 @@
 # Creation date: 2010/10/17
 # License: BSD
 
-import subprocess
 import os
 import sys
-import re
 import getopt
-import signal
-import stat
-import time
-import glob
-import portage
 import logging
-from portage import portdb
 from portage.output import bold, red, blue, yellow, green, nocolor
 
 from analyse import analyse
@@ -41,6 +33,7 @@ __productname__ = "revdep-ng"
 # functions
 
 def print_usage():
+	"""Outputs the help message"""
 	print( APP_NAME + ': (' + VERSION +')')
 	print
 	print('This is free software; see the source for copying conditions.')
@@ -93,8 +86,8 @@ def init_logger(settings):
 def parse_options():
 	"""Parses the command line options an sets settings accordingly"""
 
-	# @TODO: Verify: options: no-ld-path, no-order, no-progress are not appliable 
-	# for revdep-ng
+	# TODO: Verify: options: no-ld-path, no-order, no-progress
+	#are not appliable
 
 	settings = DEFAULTS.copy()
 	try:
@@ -161,14 +154,25 @@ def rebuild(logger, assigned, settings):
 
 	emerge_command = emerge_command
 
-	logger.warn(yellow('\nemerge') + args + ' --oneshot --complete-graph=y ' + bold(emerge_command))
+	logger.warn(yellow(
+		'\nemerge') + args + 
+		' --oneshot --complete-graph=y ' +
+		bold(emerge_command))
 	
-	success = os.system('emerge ' + args + ' --oneshot --complete-graph=y ' + emerge_command)
+	success = os.system(
+		'emerge ' + args + 
+		' --oneshot --complete-graph=y ' + 
+		emerge_command)
 	return success
 
 
-# Runs from here
 def main(settings=None, logger=None):
+	"""Main program operation method....
+	
+	@param settings: dict.  defaults to settings.DEFAULTS
+	@param logger: python logging module defaults to init_logger(settings)
+	@return boolean  success/failure
+	"""
 
 	if settings is None:
 		print("NO Input settings, using defaults...")
@@ -193,9 +197,9 @@ def main(settings=None, logger=None):
 			yellow('This is a development version, '
 				'so it may not work correctly'))
 		logger.warn(blue(' * ') + 
-			yellow('The original revdep-rebuild script is installed as revdep-rebuild.sh'))
+			yellow('The original revdep-rebuild script is '
+				'installed as revdep-rebuild.sh'))
 
-	analyze_cache = {}
 	if settings['USE_TMP_FILES'] \
 			and check_temp_files(settings['DEFAULT_TMP_DIR']):
 		libraries, la_libraries, libraries_links, binaries = read_cache(
@@ -218,13 +222,13 @@ def main(settings=None, logger=None):
 
 	has_masked = False
 	tmp = []
-	for a in assigned:
-		if get_masking_status(a):
+	for ebuild in assigned:
+		if get_masking_status(ebuild):
 			has_masked = True
 			logger.warn('!!! ' + red('All ebuilds that could satisfy: ') + 
-				green(a) + red(' have been masked'))
+				green(ebuild) + red(' have been masked'))
 		else:
-			tmp.append(a)
+			tmp.append(ebuild)
 	assigned = tmp
 
 	if has_masked:

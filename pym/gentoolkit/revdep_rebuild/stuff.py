@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+"""Utilities submodule"""
+
+
 import subprocess
 
 import portage
@@ -27,15 +30,17 @@ def scan(params, files, max_args):
 	'''
 	out = []
 	for i in range(0, len(files), max_args):
-		out += call_program(['scanelf'] + params + files[i:i+max_args]).strip().split('\n')
+		out += call_program(
+			['scanelf'] + params + files[i:i+max_args]).strip().split('\n')
 	return out
 
 
-def exithandler(signum, frame):
-	sys.exit(1)
-
-
 def get_masking_status(ebuild):
+	"""returns the masking status of an ebuild
+	
+	@param ebuild: str
+	@return list
+	"""
 	try:
 		status = portage.getmaskingstatus(ebuild)
 	except KeyError:
@@ -44,6 +49,11 @@ def get_masking_status(ebuild):
 
 
 def _match_str_in_list(lst, stri):
+	"""
+	@param lst: list
+	@param stri: string
+	@return boolean or list menber that matches stri.endswith(member)
+	"""
 	for l in lst:
 		if stri.endswith(l):
 			return l
