@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+"""Data collection module"""
+
 import re
 import os
 import glob
@@ -22,8 +24,8 @@ def parse_conf(conf_file, visited=None, logger=None):
 
 	for conf in conf_file:
 		try:
-			with open(conf) as f:
-				for line in f:
+			with open(conf) as _file:
+				for line in _file:
 					line = line.strip()
 					if line.startswith('#'):
 						continue
@@ -62,8 +64,8 @@ def prepare_search_dirs(logger, settings):
 	lib_dirs = set(['/lib', '/usr/lib', ])
 
 	#try:
-	with open(os.path.join(portage.root, settings['DEFAULT_ENV_FILE']), 'r') as f:
-		for line in f:
+	with open(os.path.join(portage.root, settings['DEFAULT_ENV_FILE']), 'r') as _file:
+		for line in _file:
 			line = line.strip()
 			m = re.match("^export (ROOT)?PATH='([^']+)'", line)
 			if m is not None:
@@ -84,10 +86,11 @@ def parse_revdep_config(revdep_confdir):
 	masked_files = set()
 
 	#TODO: remove hard-coded path
-	for f in os.listdir(revdep_confdir):
-		for line in open(os.path.join('/etc/revdep-rebuild', f)):
+	for _file in os.listdir(revdep_confdir):
+		for line in open(os.path.join('/etc/revdep-rebuild', _file)):
 			line = line.strip()
-			if not line.startswith('#'): #first check for comment, we do not want to regex all lines
+			#first check for comment, we do not want to regex all lines
+			if not line.startswith('#'): 
 				m = re.match('LD_LIBRARY_MASK=\\"([^"]+)\\"', line)
 				if m is not None:
 					s = m.group(1).split(' ')
@@ -116,8 +119,9 @@ def collect_libraries_from_dir(dirs, mask, logger):
 		(symlink_id, library_id) for resolving dependencies
 	'''
 
-
-	found_directories = []  # contains list of directories found; allow us to reduce number of fnc calls
+	# contains list of directories found
+	# allows us to reduce number of fnc calls
+	found_directories = []  
 	found_files = []
 	found_symlinks = []
 	found_la_files = [] # la libraries
@@ -172,15 +176,17 @@ def collect_libraries_from_dir(dirs, mask, logger):
 									prv & stat.S_IXOTH == stat.S_IXOTH:
 								found_files.append(l)
 		except Exception as ex:
-			logger.debug(yellow('Exception during collecting libraries: ' + blue('%s')  %str(ex)))
+			logger.debug(
+				yellow('Exception during collecting libraries: ' + 
+				blue('%s')  %str(ex)))
 
 
 	if found_directories:
-		f,a,l,p = collect_libraries_from_dir(found_directories, mask, logger)
-		found_files+=f
-		found_la_files+=a
-		found_symlinks+=l
-		symlink_pairs+=p
+		f, a, l, p = collect_libraries_from_dir(found_directories, mask, logger)
+		found_files += f
+		found_la_files += a
+		found_symlinks += l
+		symlink_pairs += p
 
 	return (found_files, found_la_files, found_symlinks, symlink_pairs)
 
@@ -191,7 +197,9 @@ def collect_binaries_from_dir(dirs, mask, logger):
 		Returns list of binaries
 	'''
 
-	found_directories = []  # contains list of directories found; allow us to reduce number of fnc calls
+	# contains list of directories found
+	# allows us to reduce number of fnc calls
+	found_directories = []  
 	found_files = []
 
 	for d in dirs:
@@ -211,7 +219,9 @@ def collect_binaries_from_dir(dirs, mask, logger):
 					else:
 						found_directories.append(l)
 				elif os.path.isfile(l):
-					#we're looking for binaries, and with binaries we do not need links, thus we can optimize a bit
+					# we're looking for binaries
+					# and with binaries we do not need links
+					# thus we can optimize a bit
 					if not os.path.islink(l):
 						prv = os.stat(l)[stat.ST_MODE]
 						if prv & stat.S_IXUSR == stat.S_IXUSR or \
@@ -219,7 +229,9 @@ def collect_binaries_from_dir(dirs, mask, logger):
 								prv & stat.S_IXOTH == stat.S_IXOTH:
 							found_files.append(l)
 		except Exception as e:
-			logger.debug(yellow('Exception during binaries collecting: '+blue('%s') %str(e)))
+			logger.debug(
+				yellow('Exception during binaries collecting: '+
+				blue('%s') %str(e)))
 
 	if found_directories:
 		found_files += collect_binaries_from_dir(found_directories, mask, logger)
@@ -230,17 +242,20 @@ def collect_binaries_from_dir(dirs, mask, logger):
 
 if __name__ == '__main__':
 	import logging
-	bin_dirs, lib_dirs = prepare_search_dirs(logging)
+	mbin_dirs, mlib_dirs = prepare_search_dirs(logging)
 
-	masked_dirs, masked_files, ld = parse_revdep_config()
-	lib_dirs.update(ld)
-	bin_dirs.update(ld)
-	masked_dirs.update(['/lib/modules', '/lib32/modules', '/lib64/modules'])
+	mmasked_dirs, mmasked_files, mld = parse_revdep_config()
+	mlib_dirs.update(mld)
+	mbin_dirs.update(mld)
+	mmasked_dirs.update(['/lib/modules', '/lib32/modules', '/lib64/modules'])
 
-	libraries, la_libraries, libraries_links, symlink_pairs = collect_libraries_from_dir(lib_dirs, masked_dirs, logging)
-	binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logging)
+	libraries, la_libraries, libraries_links, msymlink_pairs = collect_libraries_from_dir(
+		mlib_dirs, mmasked_dirs, logging)
+	binaries = collect_binaries_from_dir(mbin_dirs, mmasked_dirs, logging)
 
-	logging.debug('Found: %i binaries and %i libraries.' %(len(binaries), len(libraries)))
+	logging.debug(
+		'Found: %i binaries and %i libraries.' %(
+		len(binaries), len(libraries)))
 
 
 
