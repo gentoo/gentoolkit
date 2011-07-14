@@ -18,9 +18,9 @@ def call_program(args):
 	@param, args: arument list to pass to subprocess
 	@return str
 	'''
-	subp = subprocess.Popen(args, stdout=subprocess.PIPE, \
-								stderr=subprocess.PIPE)
+	subp = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	stdout, stderr = subp.communicate()
+	stdout = stdout.decode('utf-8')
 	return str(stdout)
 
 
