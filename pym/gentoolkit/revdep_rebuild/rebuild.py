@@ -16,7 +16,6 @@ License: BSD
 
 from __future__ import print_function
 
-import subprocess
 import os
 import sys
 import getopt
@@ -24,7 +23,7 @@ import logging
 from portage.output import bold, red, blue, yellow, green, nocolor
 
 from .analyse import analyse
-from .stuff import exithandler, get_masking_status
+from .stuff import get_masking_status
 from .cache import check_temp_files, read_cache
 from .assign import get_slotted_cps
 from .settings import DEFAULTS
@@ -208,7 +207,7 @@ def main(settings=None, logger=None):
 				'installed as revdep-rebuild.sh'))
 
 	if settings['USE_TMP_FILES'] \
-			and check_temp_files(settings['DEFAULT_TMP_DIR']):
+			and check_temp_files(settings['DEFAULT_TMP_DIR'], logger=logger):
 		libraries, la_libraries, libraries_links, binaries = read_cache(
 			settings['DEFAULT_TMP_DIR'])
 		assigned = analyse(

@@ -10,7 +10,7 @@ import glob
 import stat
 
 import portage
-from portage.output import bold, red, blue, yellow, green, nocolor
+from portage.output import blue, yellow
 
 
 def parse_conf(conf_file, visited=None, logger=None):
@@ -66,12 +66,13 @@ def prepare_search_dirs(logger, settings):
 	lib_dirs = set(['/lib', '/usr/lib', ])
 
 	#try:
-	with open(os.path.join(portage.root, settings['DEFAULT_ENV_FILE']), 'r') as _file:
+	with open(os.path.join(
+		portage.root, settings['DEFAULT_ENV_FILE']), 'r') as _file:
 		for line in _file:
 			line = line.strip()
-			m = re.match("^export (ROOT)?PATH='([^']+)'", line)
-			if m is not None:
-				bin_dirs.update(set(m.group(2).split(':')))
+			match = re.match("^export (ROOT)?PATH='([^']+)'", line)
+			if match is not None:
+				bin_dirs.update(set(match.group(2).split(':')))
 	#except EnvironmentError:
 		#logger.debug(yellow('Could not open file %s' % f))
 
@@ -80,35 +81,34 @@ def prepare_search_dirs(logger, settings):
 
 
 def parse_revdep_config(revdep_confdir):
-	''' Parses all files under /etc/revdep-rebuild/ and returns
+	''' Parses all files under and returns
 		tuple of: (masked_dirs, masked_files, search_dirs)'''
 
 	search_dirs = set()
 	masked_dirs = set()
 	masked_files = set()
 
-	#TODO: remove hard-coded path
 	for _file in os.listdir(revdep_confdir):
-		for line in open(os.path.join('/etc/revdep-rebuild', _file)):
+		for line in open(os.path.join(revdep_confdir, _file)):
 			line = line.strip()
 			#first check for comment, we do not want to regex all lines
 			if not line.startswith('#'): 
-				m = re.match('LD_LIBRARY_MASK=\\"([^"]+)\\"', line)
-				if m is not None:
-					s = m.group(1).split(' ')
-					masked_files = masked_files.union(s)
+				match = re.match('LD_LIBRARY_MASK=\\"([^"]+)\\"', line)
+				if match is not None:
+					masks = match.group(1).split(' ')
+					masked_files = masked_files.union(masks)
 					continue
-				m = re.match('SEARCH_DIRS_MASK=\\"([^"]+)\\"', line)
-				if m is not None:
-					s = m.group(1).split(' ')
-					for ss in s:
-						masked_dirs = masked_dirs.union(glob.glob(ss))
+				match = re.match('SEARCH_DIRS_MASK=\\"([^"]+)\\"', line)
+				if match is not None:
+					searches = match.group(1).split(' ')
+					for search in searches:
+						masked_dirs = masked_dirs.union(glob.glob(search))
 					continue
-				m = re.match('SEARCH_DIRS=\\"([^"]+)\\"', line)
-				if m is not None:
-					s = m.group(1).split()
-					for ss in s:
-						search_dirs = search_dirs.union(glob.glob(ss))
+				match = re.match('SEARCH_DIRS=\\"([^"]+)\\"', line)
+				if match is not None:
+					searches = match.group(1).split()
+					for search in searches:
+						search_dirs = search_dirs.union(glob.glob(search))
 					continue
 
 	return (masked_dirs, masked_files, search_dirs)
@@ -129,54 +129,58 @@ def collect_libraries_from_dir(dirs, mask, logger):
 	found_la_files = [] # la libraries
 	symlink_pairs = []  # list of pairs symlink_id->library_id
 
-	for d in dirs:
-		if d in mask:
+	for _dir in dirs:
+		if _dir in mask:
 			continue
 
 		try:
-			for l in os.listdir(d):
-				l = os.path.join(d, l)
-				if l in mask:
+			for listing in os.listdir(_dir):
+				listing = os.path.join(_dir, listing)
+				if listing in mask:
 					continue
 
-				if os.path.isdir(l):
-					if os.path.islink(l):
+				if os.path.isdir(listing):
+					if os.path.islink(listing):
 						#we do not want scan symlink-directories
 						pass
 					else:
-						found_directories.append(l)
-				elif os.path.isfile(l):
-					if l.endswith('.so') or l.endswith('.a') or '.so.' in l:
-						if l in found_files or l in found_symlinks:
+						found_directories.append(listing)
+				elif os.path.isfile(listing):
+					if (listing.endswith('.so') or 
+						listing.endswith('.a') or 
+						'.so.' in listing
+						):
+						if listing in found_files or listing in found_symlinks:
 							continue
 
-						if os.path.islink(l):
-							found_symlinks.append(l)
-							abs_path = os.path.realpath(l)
+						if os.path.islink(listing):
+							found_symlinks.append(listing)
+							abs_path = os.path.realpath(listing)
 							if abs_path in found_files:
-								i = found_files.index(abs_path)
+								index = found_files.index(abs_path)
 							else:
 								found_files.append(abs_path)
-								i = len(found_files)-1
-							symlink_pairs.append((len(found_symlinks)-1, i,))
+								index = len(found_files)-1
+							symlink_pairs.append((len(found_symlinks)-1, index,))
 						else:
-							found_files.append(l)
+							found_files.append(listing)
 						continue
-					elif l.endswith('.la'):
-						if l in found_la_files:
+					elif listing.endswith('.la'):
+						if listing in found_la_files:
 							continue
 
-						found_la_files.append(l)
+						found_la_files.append(listing)
 					else:
-						# sometimes there are binaries in libs' subdir, for example in nagios
-						if not os.path.islink(l):
-							if l in found_files or l in found_symlinks:
+						# sometimes there are binaries in libs' subdir,
+						# for example in nagios
+						if not os.path.islink(listing):
+							if listing in found_files or listing in found_symlinks:
 								continue
-							prv = os.stat(l)[stat.ST_MODE]
+							prv = os.stat(listing)[stat.ST_MODE]
 							if prv & stat.S_IXUSR == stat.S_IXUSR or \
 									prv & stat.S_IXGRP == stat.S_IXGRP or \
 									prv & stat.S_IXOTH == stat.S_IXOTH:
-								found_files.append(l)
+								found_files.append(listing)
 		except Exception as ex:
 			logger.debug(
 				yellow('Exception during collecting libraries: ' + 
@@ -184,18 +188,20 @@ def collect_libraries_from_dir(dirs, mask, logger):
 
 
 	if found_directories:
-		f, a, l, p = collect_libraries_from_dir(found_directories, mask, logger)
-		found_files += f
-		found_la_files += a
-		found_symlinks += l
-		symlink_pairs += p
+		_file, la_file, link, pair = \
+			collect_libraries_from_dir(found_directories, mask, logger)
+		found_files += _file
+		found_la_files += la_file
+		found_symlinks += link
+		symlink_pairs += pair
 
 	return (found_files, found_la_files, found_symlinks, symlink_pairs)
 
 
 def collect_binaries_from_dir(dirs, mask, logger):
 	''' Collects all binaries from specified list of directories.
-		mask is list of pathes, that are ommited in scanning, can be eighter single file or entire directory
+		mask is list of pathes, that are ommited in scanning,
+		can be eighter single file or entire directory
 		Returns list of binaries
 	'''
 
@@ -204,36 +210,36 @@ def collect_binaries_from_dir(dirs, mask, logger):
 	found_directories = []  
 	found_files = []
 
-	for d in dirs:
-		if d in mask:
+	for _dir in dirs:
+		if _dir in mask:
 			continue
 
 		try:
-			for l in os.listdir(d):
-				l = os.path.join(d, l)
-				if d in mask:
+			for listing in os.listdir(_dir):
+				listing = os.path.join(_dir, listing)
+				if listing in mask:
 					continue
 
-				if os.path.isdir(l):
-					if os.path.islink(l):
+				if os.path.isdir(listing):
+					if os.path.islink(listing):
 						#we do not want scan symlink-directories
 						pass
 					else:
-						found_directories.append(l)
-				elif os.path.isfile(l):
+						found_directories.append(listing)
+				elif os.path.isfile(listing):
 					# we're looking for binaries
 					# and with binaries we do not need links
 					# thus we can optimize a bit
-					if not os.path.islink(l):
-						prv = os.stat(l)[stat.ST_MODE]
+					if not os.path.islink(listing):
+						prv = os.stat(listing)[stat.ST_MODE]
 						if prv & stat.S_IXUSR == stat.S_IXUSR or \
 								prv & stat.S_IXGRP == stat.S_IXGRP or \
 								prv & stat.S_IXOTH == stat.S_IXOTH:
-							found_files.append(l)
-		except Exception as e:
+							found_files.append(listing)
+		except Exception as ex:
 			logger.debug(
 				yellow('Exception during binaries collecting: '+
-				blue('%s') %str(e)))
+				blue('%s') %str(ex)))
 
 	if found_directories:
 		found_files += collect_binaries_from_dir(found_directories, mask, logger)
@@ -244,15 +250,16 @@ def collect_binaries_from_dir(dirs, mask, logger):
 
 if __name__ == '__main__':
 	import logging
-	mbin_dirs, mlib_dirs = prepare_search_dirs(logging)
+	from .settings import DEFAULTS
+	mbin_dirs, mlib_dirs = prepare_search_dirs(logging, DEFAULTS)
 
-	mmasked_dirs, mmasked_files, mld = parse_revdep_config()
+	mmasked_dirs, mmasked_files, mld = parse_revdep_config("/etc/revdep-rebuild/")
 	mlib_dirs.update(mld)
 	mbin_dirs.update(mld)
 	mmasked_dirs.update(['/lib/modules', '/lib32/modules', '/lib64/modules'])
 
-	libraries, la_libraries, libraries_links, msymlink_pairs = collect_libraries_from_dir(
-		mlib_dirs, mmasked_dirs, logging)
+	libraries, la_libraries, libraries_links, msymlink_pairs = \
+		collect_libraries_from_dir(mlib_dirs, mmasked_dirs, logging)
 	binaries = collect_binaries_from_dir(mbin_dirs, mmasked_dirs, logging)
 
 	logging.debug(

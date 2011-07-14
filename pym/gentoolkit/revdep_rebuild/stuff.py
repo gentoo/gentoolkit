@@ -12,7 +12,12 @@ import portage
 
 # util. functions
 def call_program(args):
-	''' Calls program with specified parameters and returns stdout as a str object '''
+	''' Calls program with specified parameters
+	and returns the stdout as a str object.
+	
+	@param, args: arument list to pass to subprocess
+	@return str
+	'''
 	subp = subprocess.Popen(args, stdout=subprocess.PIPE, \
 								stderr=subprocess.PIPE)
 	stdout, stderr = subp.communicate()
@@ -21,7 +26,8 @@ def call_program(args):
 
 def scan(params, files, max_args):
 	''' Calls scanelf with given params and files to scan.
-		@param params is list of parameters that should be passed into scanelf app.
+		@param params is list of parameters that should
+			be passed into scanelf app.
 		@param files list of files to scan.
 		@param max_args number of files to process at once
 
@@ -56,9 +62,9 @@ def _match_str_in_list(lst, stri):
 	@param stri: string
 	@return boolean or list menber that matches stri.endswith(member)
 	"""
-	for l in lst:
-		if stri.endswith(l):
-			return l
+	for item in lst:
+		if stri.endswith(item):
+			return item
 	return False
 
 
