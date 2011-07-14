@@ -192,19 +192,18 @@ def main(settings=None, logger=None):
 	if not settings['stdout'].isatty() or settings['nocolor']:
 		nocolor()
 
+	#TODO: Development warning
+	logger.warn(blue(' * ') + 
+		yellow('This is a development version, '
+			'so it may not work correctly'))
+	logger.warn(blue(' * ') + 
+		yellow('The original revdep-rebuild script is '
+			'installed as revdep-rebuild.sh'))
+
 	if os.getuid() != 0 and not settings['PRETEND']:
 		logger.warn(blue(' * ') + 
 			yellow('You are not root, adding --pretend to portage options'))
 		settings['PRETEND'] = True
-	elif not settings['PRETEND'] \
-			and settings['IS_DEV'] \
-			and not settings['NO_PRETEND']:
-		logger.warn(blue(' * ') + 
-			yellow('This is a development version, '
-				'so it may not work correctly'))
-		logger.warn(blue(' * ') + 
-			yellow('The original revdep-rebuild script is '
-				'installed as revdep-rebuild.sh'))
 
 	if settings['USE_TMP_FILES'] \
 			and check_temp_files(settings['DEFAULT_TMP_DIR'], logger=logger):
