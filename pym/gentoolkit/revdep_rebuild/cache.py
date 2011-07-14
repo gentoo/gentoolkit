@@ -52,8 +52,9 @@ def save_cache(logger, to_save=None, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 	if to_save is None:
 		to_save = {}
 
-	if not os.path.exists(temp_path):
-		os.makedirs(temp_path)
+# TODO: Don't blindly make the cache directory, see Bug 203414
+#	if not os.path.exists(temp_path):
+#		os.makedirs(temp_path)
 
 	try:
 		_file = open(os.path.join(temp_path, 'timestamp'), 'w')
