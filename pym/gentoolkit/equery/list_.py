@@ -74,7 +74,7 @@ def print_help(with_description=True):
 	print(format_options((
 		(" -h, --help", "display this help message"),
 		(" -d, --duplicates", "list only installed duplicate packages"),
-		(" -b, --missing-binpkgs", "list only installed packages without a corresponding binary package"),
+		(" -b, --binpkgs-missing", "list only installed packages without a corresponding binary package"),
 		(" -f, --full-regex", "query is a regular expression"),
 		(" -m, --mask-reason", "include reason for package mask"),
 		(" -I, --exclude-installed",
