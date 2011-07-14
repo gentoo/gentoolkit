@@ -18,53 +18,65 @@ def read_cache(temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 		This function does not checks if files exists nor timestamps,
 		check_temp_files should be called first
 		@param temp_path: directory where all temp files should reside
-		@return tuple with values of: libraries, la_libraries, libraries_links, symlink_pairs, binaries
+		@return tuple with values of: 
+			libraries, la_libraries, libraries_links, symlink_pairs, binaries
 	'''
 
-	ret = {'libraries':[], 'la_libraries':[], 'libraries_links':[], 'binaries':[]}
+	ret = {
+		'libraries':[],
+		'la_libraries':[],
+		'libraries_links':[],
+		'binaries':[]
+		}
 	try:
-		for key,val in list(ret.items()):
-			f = open(os.path.join(temp_path, key))
-			for line in f.readlines():
+		for key, val in list(ret.items()):
+			_file  = open(os.path.join(temp_path, key))
+			for line in _file .readlines():
 				val.append(line.strip())
 			#libraries.remove('\n')
-			f.close()
+			_file .close()
 	except EnvironmentError:
 		pass
 
-	return (ret['libraries'], ret['la_libraries'], ret['libraries_links'], ret['binaries'])
+	return (ret['libraries'], ret['la_libraries'], 
+		ret['libraries_links'], ret['binaries'])
 
 
-def save_cache(logger, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
+def save_cache(logger, to_save=None, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 	''' Tries to store caching information.
 		@param logger
-		@param to_save have to be dict with keys: libraries, la_libraries, libraries_links and binaries
+		@param to_save have to be dict with keys: 
+			libraries, la_libraries, libraries_links and binaries
 	'''
+	
+	if to_save is None:
+		to_save = {}
 
 	if not os.path.exists(temp_path):
 		os.makedirs(temp_path)
 
 	try:
-		f = open(os.path.join(temp_path, 'timestamp'), 'w')
-		f.write(str(int(time.time())))
-		f.close()
+		_file = open(os.path.join(temp_path, 'timestamp'), 'w')
+		_file.write(str(int(time.time())))
+		_file.close()
 
-		for key,val in list(to_save.items()):
-			f = open(os.path.join(temp_path, key), 'w')
+		for key, val in list(to_save.items()):
+			_file = open(os.path.join(temp_path, key), 'w')
 			for line in val:
-				f.write(line + '\n')
-			f.close()
+				_file.write(line + '\n')
+			_file.close()
 	except Exception as ex:
 		logger.warn(red('Could not save cache: %s' %str(ex)))
 
 
 
-def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600):
+def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600,
+		logger=None):
 	''' Checks if temporary files from previous run are still available
 		and if they aren't too old
 		@param temp_path is directory, where temporary files should be found
-		@param max_delay is maximum time difference (in seconds) when those files
-				are still considered fresh and useful
+		@param max_delay is maximum time difference (in seconds) 
+			when those files are still considered fresh and useful
 		returns True, when files can be used, or False, when they don't
 		exists or they are too old
 	'''
@@ -77,10 +89,13 @@ def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600):
 		return False
 
 	try:
-		f = open(timestamp_path)
-		timestamp = int(f.readline())
-		f.close()
-	except:
+		_file = open(timestamp_path)
+		timestamp = int(_file.readline())
+		_file .close()
+	except Exception as ex:
+		if logger:
+			logger.debug("check_temp_files(); error retrieving"
+				" timestamp_path:\n" + str(ex))
 		timestamp = 0
 		return False
 
@@ -92,17 +107,25 @@ def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600):
 if __name__ == '__main__':
 	print('Preparing cache ... ')
 
-	from .collect import *
+	from .collect import (prepare_search_dirs, parse_revdep_config,
+		collect_libraries_from_dir, collect_binaries_from_dir)
+
 	import logging
 
-	bin_dirs, lib_dirs = prepare_search_dirs()
+	bin_dirs, lib_dirs = prepare_search_dirs(logging, DEFAULTS)
 
-	masked_dirs, masked_files, ld = parse_revdep_config()
+	masked_dirs, masked_files, ld = parse_revdep_config("/etc/revdep-rebuild/")
 	lib_dirs.update(ld)
 	bin_dirs.update(ld)
-	masked_dirs = masked_dirs.update(['/lib/modules', '/lib32/modules', '/lib64/modules',])
+	masked_dirs = masked_dirs.update([
+			'/lib/modules',
+			'/lib32/modules', 
+			'/lib64/modules'
+			]
+		)
 
-	libraries, la_libraries, libraries_links, symlink_pairs = collect_libraries_from_dir(lib_dirs, masked_dirs, logging)
+	libraries, la_libraries, libraries_links, symlink_pairs = \
+		collect_libraries_from_dir(lib_dirs, masked_dirs, logging)
 	binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logging)
 
 	save_cache(logger=logging, 

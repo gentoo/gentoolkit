@@ -10,8 +10,9 @@ import os
 import re
 
 import portage
+from portage.versions import catpkgsplit
 from portage import portdb
-from portage.output import bold, red, blue, yellow, green, nocolor
+from portage.output import bold, red, yellow
 
 
 def assign_packages(broken, logger, settings):
@@ -21,21 +22,23 @@ def assign_packages(broken, logger, settings):
 	assigned = set()
 	for group in os.listdir(settings['PKG_DIR']):
 		for pkg in os.listdir(settings['PKG_DIR'] + group):
-			f = settings['PKG_DIR'] + group + '/' + pkg + '/CONTENTS'
-			if os.path.exists(f):
+			_file = settings['PKG_DIR'] + group + '/' + pkg + '/CONTENTS'
+			if os.path.exists(_file):
 				try:
-					with open(f, 'r') as cnt:
+					with open(_file, 'r') as cnt:
 						for line in cnt:
-							m = re.match('^obj (/[^ ]+)', line)
-							if m is not None:
-								m = m.group(1)
-								if m in broken:
+							matches = re.match('^obj (/[^ ]+)', line)
+							if matches is not None:
+								match = matches.group(1)
+								if match in broken:
 									found = group+'/'+pkg
 									if found not in assigned:
 										assigned.add(found)
-									logger.info('\t' + m + ' -> ' + bold(found))
-				except Exception as e:
-					logger.warn(red(' !! Failed to read ' + f))
+									logger.info('\t' + match + ' -> '
+										+ bold(found))
+				except Exception as ex:
+					logger.warn(red(' !! Failed to read ' + _file) +
+						" Original exception was:\n" + str(ex))
 
 	return assigned
 
@@ -54,24 +57,24 @@ def get_best_match(cpv, cp, logger):
 	logger.warn(yellow('Warning: ebuild "' + cpv + '" not found.'))
 	logger.info('Looking for %s:%s' %(cp, slot))
 	try:
-		m = portdb.match('%s:%s' %(cp, slot))
+		match = portdb.match('%s:%s' %(cp, slot))
 	except portage.exception.InvalidAtom:
-		m = None
+		match = None
 
-	if not m:
-		logger.warn(red('!!') + ' ' + yellow('Could not find ebuild for %s:%s' %(cp, slot)))
+	if not match:
+		logger.warn(red('!!') + ' ' + yellow(
+			'Could not find ebuild for %s:%s' %(cp, slot)))
 		slot = ['']
-		m = portdb.match(cp)
-		if not m:
-			logger.warn(red('!!') + ' ' + yellow('Could not find ebuild for ' + cp))
-	return m, slot
+		match = portdb.match(cp)
+		if not match:
+			logger.warn(red('!!') + ' ' + 
+				yellow('Could not find ebuild for ' + cp))
+	return match, slot
 
 
 def get_slotted_cps(cpvs, logger):
 	"""Uses portage to reduce the cpv list into a cp:slot list and returns it
 	"""
-	from portage.versions import catpkgsplit
-	from portage import portdb
 
 	cps = []
 	for cpv in cpvs:
@@ -80,9 +83,10 @@ def get_slotted_cps(cpvs, logger):
 		try:
 			slot = portdb.aux_get(cpv, ["SLOT"])
 		except KeyError:
-			m, slot = get_best_match(cpv, cp, logger)
-			if not m:
-				logger.warn(red("Installed package: %s is no longer available" %cp))
+			match, slot = get_best_match(cpv, cp, logger)
+			if not match:
+				logger.warn(red("Installed package: "
+					"%s is no longer available" %cp))
 				continue
 
 		if slot[0]:
