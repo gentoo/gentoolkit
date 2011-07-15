@@ -175,7 +175,7 @@ class ChangeLog(object):
 			if not pkg_name.strip():
 				continue
 			try:
-				entry_ver = CPV(pkg_name)
+				entry_ver = CPV(pkg_name, validate=True)
 			except errors.GentoolkitInvalidCPV:
 				if self.invalid_entry_is_fatal:
 					raise ValueError(entry_ver)
