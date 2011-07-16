@@ -47,7 +47,6 @@ import os
 from string import Template
 
 import portage
-from portage import settings
 from portage.util import LazyItemsDict
 
 import gentoolkit.pprinter as pp
@@ -58,13 +57,22 @@ from gentoolkit.keyword import determine_keyword
 from gentoolkit.flag import get_flags
 
 # =======
+# Settings
+# =======
+
+default_settings = portage.config(local_config=True)
+default_settings.lock()
+nolocal_settings = portage.config(local_config=False)
+nolocal_settings.lock()
+
+# =======
 # Classes
 # =======
 
 class Package(CPV):
 	"""Exposes the state of a given CPV."""
 
-	def __init__(self, cpv, validate=False):
+	def __init__(self, cpv, validate=False, local_config=True):
 		if isinstance(cpv, CPV):
 			self.__dict__.update(cpv.__dict__)
 		else:
@@ -75,6 +83,11 @@ class Package(CPV):
 		):
 			# CPV allows some things that Package must not
 			raise errors.GentoolkitInvalidPackage(self.cpv)
+
+		if local_config:
+			self._settings = default_settings
+		else:
+			self._settings = nolocal_settings
 
 		# Set dynamically
 		self._package_path = None
@@ -123,8 +136,8 @@ class Package(CPV):
 			self._dblink = portage.dblink(
 				self.category,
 				"%s-%s" % (self.name, self.fullversion),
-				settings["ROOT"],
-				settings
+				self._settings["ROOT"],
+				self._settings
 			)
 
 		return self._dblink
@@ -209,17 +222,16 @@ class Package(CPV):
 
 		return bool(PORTDB.cpv_exists(self.cpv))
 
-	@staticmethod
-	def settings(key):
+	def settings(self, key):
 		"""Returns the value of the given key for this package (useful
 		for package.* files."""
 
-		if settings.locked:
-			settings.unlock()
+		if self._settings.locked:
+			self._settings.unlock()
 		try:
-			result = settings[key]
+			result = self._settings[key]
 		finally:
-			settings.lock()
+			self._settings.lock()
 		return result
 
 	def mask_status(self):
@@ -234,11 +246,11 @@ class Package(CPV):
 			'missing keyword'
 		"""
 
-		if settings.locked:
-			settings.unlock()
+		if self._settings.locked:
+			self._settings.unlock()
 		try:
 			result = portage.getmaskingstatus(self.cpv,
-				settings=settings,
+				settings=self._settings,
 				portdb=PORTDB)
 		except KeyError:
 			# getmaskingstatus doesn't support packages without ebuilds in the
@@ -257,7 +269,7 @@ class Package(CPV):
 
 		try:
 			result = portage.getmaskingreason(self.cpv,
-				settings=settings,
+				settings=self._settings,
 				portdb=PORTDB,
 				return_location=True)
 			if result is None:
@@ -372,7 +384,7 @@ class Package(CPV):
 		if not ebuild:
 			return None
 		if self._portdir_path is None:
-			self._portdir_path = os.path.realpath(settings["PORTDIR"])
+			self._portdir_path = os.path.realpath(self._settings["PORTDIR"])
 		return (tree and tree != self._portdir_path)
 
 	def is_masked(self):
