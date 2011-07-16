@@ -55,15 +55,22 @@ from gentoolkit.cpv import CPV
 from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit.keyword import determine_keyword
 from gentoolkit.flag import get_flags
+from gentoolkit.eprefix import EPREFIX
 
 # =======
 # Settings
 # =======
 
-default_settings = portage.config(local_config=True)
-default_settings.lock()
-nolocal_settings = portage.config(local_config=False)
-nolocal_settings.lock()
+if EPREFIX:
+	default_settings = portage.config(local_config=True, _eprefix=EPREFIX)
+	default_settings.lock()
+	nolocal_settings = portage.config(local_config=False, _eprefix=EPREFIX)
+	nolocal_settings.lock()
+else:
+	default_settings = portage.config(local_config=True)
+	default_settings.lock()
+	nolocal_settings = portage.config(local_config=False)
+	nolocal_settings.lock()
 
 # =======
 # Classes
