@@ -508,7 +508,7 @@ get_flagstatus_helper_pkg() {
 			atoms=($(
 				echo "${atoms[@]}" | python -c "
 from __future__ import print_function;import portage.dep as dep, sys
-print(' '.join(dep.match_to_list('$5-$6',sys.stdin.read().split()))"))
+print(' '.join(dep.match_to_list('$5-$6',sys.stdin.read().split())))"))
 		fi
 		flags=$(for atom in ${atoms[@]}; do
 			[[ -z $atom ]] && continue
