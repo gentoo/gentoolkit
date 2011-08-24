@@ -439,7 +439,6 @@ traverse_profile() {
 	
 	curdir="${2:-$(get_real_path ${MAKE_PROFILE_PATH})}"
 	
-	[[ -f "${curdir}/${1}" ]] && rvalue="${curdir}/${1} ${rvalue}"
 	if [[ -f "${curdir}/parent" ]]; then
 		for parent in $(egrep -v '(^#|^ *$)' ${curdir}/parent); do
 			# Bug 231394, handle parent path being absolute
@@ -448,9 +447,10 @@ traverse_profile() {
 			else
 				pdir="$(get_real_path ${curdir}/${parent})"
 			fi
-			rvalue="$(traverse_profile ${1} ${pdir}) ${rvalue}"
+			rvalue="${rvalue} $(traverse_profile ${1} ${pdir})"
 		done
 	fi
+	[[ -f "${curdir}/${1}" ]] && rvalue="${rvalue} ${curdir}/${1}"
 
 	echo "${rvalue}"
 } # }}}
