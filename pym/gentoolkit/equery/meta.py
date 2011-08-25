@@ -22,7 +22,7 @@ from functools import partial
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
-from gentoolkit import keyword
+from gentoolkit.keyword import Keyword
 from gentoolkit.equery import format_options, mod_usage, CONFIG
 from gentoolkit.helpers import print_sequence, print_file
 from gentoolkit.textwrap_ import TextWrapper
@@ -217,7 +217,7 @@ def format_keywords(keywords):
 
 	result = []
 
-	for kw in sorted(keywords, keyword.compare_strs):
+	for kw in sorted(keywords, key=Keyword):
 		if kw.startswith('-'):
 			# arch masked
 			kw = pp.keyword(kw, stable=False, hard_masked=True)
