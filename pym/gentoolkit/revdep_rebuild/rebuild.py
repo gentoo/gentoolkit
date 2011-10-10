@@ -205,6 +205,10 @@ def main(settings=None, logger=None):
 			yellow('You are not root, adding --pretend to portage options'))
 		settings['PRETEND'] = True
 
+	if settings['library']:
+		logger.warn(green(' * ') + 
+			"Looking for libraries: %s" % (bold(', '.join(settings['library']))))
+
 	if settings['USE_TMP_FILES'] \
 			and check_temp_files(settings['DEFAULT_TMP_DIR'], logger=logger):
 		libraries, la_libraries, libraries_links, binaries = read_cache(

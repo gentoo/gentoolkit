@@ -206,6 +206,8 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		for ltc in _libs_to_check:
 			if os.path.isfile(ltc):
 				ltc = scan(['-nBSF', '%S'], [ltc,], settings['CMD_MAX_ARGS'])[0].split()[0]
+			else:
+				logger.warn(yellow(' * ') + bold('Library "%s" was not found' % ltc))
 			nltc += [ltc,]
 		_libs_to_check = nltc
 
