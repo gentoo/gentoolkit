@@ -18,7 +18,7 @@ unset GREP_OPTIONS
 
 # Readonly variables:
 declare -r APP_NAME="revdep-rebuild" # # The name of this application
-declare -r VERSION="svn"
+declare -r VERSION="vcs"
 declare -r OIFS="$IFS"         # Save the IFS
 declare -r     ENV_FILE=0_env.rr     # Contains environment variables
 declare -r   FILES_FILE=1_files.rr   # Contains a list of files to search
@@ -1151,7 +1151,8 @@ rebuild() {
 ##
 # Finish up
 cleanup() {
-	if [[ (( $(<"$STATUS_FILE") != 0 )) && ! is_real_merge ]]; then
+	EMERGE_STATUS=$(<"$STATUS_FILE")
+	if [[ (( $EMERGE_STATUS != 0 )) && is_real_merge ]]; then
 		ewarn
 		ewarn "$APP_NAME failed to emerge all packages."
 		ewarn 'you have the following choices:'
