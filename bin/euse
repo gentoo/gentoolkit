@@ -155,7 +155,7 @@ Options: -h, --help           - show this message
                                 settings
          -P, --prune          - alias for --remove
          -p, --package        - used with -E, -D, and -R to apply to a
-                                speciic package only
+                                specific package only
 
 Notes: ${PROGRAM_NAME} currently works for global flags defined
        in make.globals, make.defaults, make.conf, use.force, and use.mask 
