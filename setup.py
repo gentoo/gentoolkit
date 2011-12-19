@@ -22,7 +22,7 @@ cwd = os.getcwd()
 try: 
 	from portage.const import EPREFIX 
 except ImportError: 
-	EPREFIX='/' 
+	EPREFIX='' 
 
 
 # Bash files that need `VERSION=""` subbed, relative to this dir:
@@ -127,10 +127,10 @@ core.setup(
 	package_data = test_data,
 	scripts=(glob('bin/*')),
 	data_files=(
-		(os.path.join(EPREFIX, 'etc/env.d'), ['data/99gentoolkit-env']),
-		(os.path.join(EPREFIX, 'etc/revdep-rebuild'), ['data/revdep-rebuild/99revdep-rebuild']),
-		(os.path.join(EPREFIX, 'etc/eclean'), glob('data/eclean/*')),
-		(os.path.join(EPREFIX, 'usr/share/man/man1'), glob('man/*')),
+		(os.path.join(os.sep, EPREFIX.lstrip(os.sep), 'etc/env.d'), ['data/99gentoolkit-env']),
+		(os.path.join(os.sep, EPREFIX.lstrip(os.sep), 'etc/revdep-rebuild'), ['data/revdep-rebuild/99revdep-rebuild']),
+		(os.path.join(os.sep, EPREFIX.lstrip(os.sep), 'etc/eclean'), glob('data/eclean/*')),
+		(os.path.join(os.sep, EPREFIX.lstrip(os.sep), 'usr/share/man/man1'), glob('man/*')),
 	),
 	cmdclass={
 		'test': load_test(),
