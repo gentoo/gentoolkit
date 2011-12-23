@@ -207,7 +207,7 @@ def initialize_configuration():
 
 	# Get terminal size
 	term_width = pp.output.get_term_size()[1]
-	if term_width == -1:
+	if term_width < 1:
 		# get_term_size() failed. Set a sane default width:
 		term_width = 80
 
