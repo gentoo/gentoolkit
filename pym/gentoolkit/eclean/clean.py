@@ -125,10 +125,22 @@ class CleanUp(object):
 			try:
 				statinfo = os.stat(file_)
 			except EnvironmentError as er:
-				print( pp.error(
-					"Could not get stat info for:" + file_), file=sys.stderr)
-				print( pp.error(
-					"Error: %s" %str(er)), file=sys.stderr)
+				if not os.path.exists(os.readlink(file_)):
+					try:
+						os.remove(file_)
+						print( pp.error(
+							"Removed broken symbolic link " + file_), file=sys.stderr)
+						break
+					except EnvironmentError as er:
+						print( pp.error(
+							"Error deleting broken symbolic link " + file_), file=sys.stderr)
+						print( pp.error("Error: %s" %str(er)), file=sys.stderr)
+						break
+				else:
+					print( pp.error(
+						"Could not get stat info for:" + file_), file=sys.stderr)
+					print( pp.error(
+						"Error: %s" %str(er)), file=sys.stderr)
 			if self.controller(statinfo.st_size, key, file_, file_type):
 				# ... try to delete it.
 				try:
