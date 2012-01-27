@@ -103,10 +103,10 @@ def parse_options():
 			'keep-temp', 'library=', 'no-ld-path', 'no-order',
 			'pretend', 'no-pretend', 'no-progress', 'quiet', 'verbose'])
 
+		do_help = False
 		for key, val in opts:
 			if key in ('-h', '--help'):
-				print_usage()
-				sys.exit(0)
+				do_help = True
 			elif key in ('-q', '--quiet'):
 				settings['quiet'] = True
 				settings['VERBOSITY'] = 0
@@ -134,6 +134,9 @@ def parse_options():
 		print(red('Unrecognized option\n'))
 		print_usage()
 		sys.exit(2)
+	if do_help:
+		print_usage()
+		sys.exit(0)
 	return settings
 
 

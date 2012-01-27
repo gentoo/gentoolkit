@@ -228,12 +228,10 @@ def parseArgs(options={}):
 		"""local function for interpreting command line options
 		and setting options accordingly"""
 		return_code = True
+		do_help = False
 		for o, a in opts:
 			if o in ("-h", "--help"):
-				if action:
-					raise ParseArgsException('help-'+action)
-				else:
-					raise ParseArgsException('help')
+				do_help = True
 			elif o in ("-V", "--version"):
 				raise ParseArgsException('version')
 			elif o in ("-C", "--nocolor"):
@@ -273,6 +271,11 @@ def parseArgs(options={}):
 					print( pp.error(
 						"--%s only makes sense in --destructive mode." % opt), file=sys.stderr)
 				options[opt] = False
+		if do_help:
+			if action:
+				raise ParseArgsException('help-'+action)
+			else:
+				raise ParseArgsException('help')
 		return return_code
 
 	# here are the different allowed command line options (getopt args)
