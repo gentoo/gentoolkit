@@ -56,9 +56,9 @@ def print_usage():
   -h, --help            Print this usage
   -i, --ignore          Ignore temporary files from previous runs
                         (also won't create any)
-  -L, --library NAME    Emerge existing packages that use
-                        the library with NAME
-       --library=NAME   NAME can be a full or partial library name
+  -L, --library NAME    Unconditionally emerge existing packages that use
+      --library=NAME    the library with NAME. NAME can be a full or partial
+                        library name
   -l, --no-ld-path      Do not set LD_LIBRARY_PATH
   -o, --no-order        Do not check the build order
                         (Saves time, but may cause breakage.)

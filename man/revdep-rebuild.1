@@ -27,7 +27,7 @@ Delete temporary files from previous runs.
 Force revdep\-rebuild not to delete temporary files after it successfully rebuilds packages. This option will NOT prevent revdep\-rebuild from deleting inconsistent or out\-of\-date temporary files.
 .TP 
 .B \-\-library NAME | \-L NAME
-Search for reverse dependencies for a particular library or group of libraries, rather than every library on the system. Emerge packages that use the named library. NAME can be a full path to a library or basic regular expression.  (See regex(7).)
+Search for reverse dependencies for a particular library or group of libraries, rather than every library on the system. This option will unconditionally emerge packages that use the named library. \fBNote:\fR This option is used to force packages using the named library to be rebuilt even if they are not broken. NAME can be a full path to a library or basic regular expression.  (See regex(7).)
 .TP 
 .B \-l | \-\-no\-ld\-path
 Do not set LD_LIBRARY_PATH. \fBNote:\fR Using this option will cause revdep\-rebuild to report some false positives.
