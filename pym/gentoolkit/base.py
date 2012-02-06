@@ -108,14 +108,15 @@ def parse_global_options(global_opts, args, module_info, formatted_options):
 	"""
 
 	need_help = False
+	do_help = False
 	opts = (opt[0] for opt in global_opts)
 	for opt in opts:
 		if opt in ('-h', '--help'):
+			do_help = True
 			if args:
 				need_help = True
 			else:
-				print_help( module_info, formatted_options)
-				sys.exit(0)
+				do_help = True
 		elif opt in ('-q','--quiet'):
 			gentoolkit.CONFIG['quiet'] = True
 		elif opt in ('-C', '--no-color', '--nocolor'):
@@ -128,6 +129,9 @@ def parse_global_options(global_opts, args, module_info, formatted_options):
 			sys.exit(0)
 		elif opt in ('--debug'):
 			gentoolkit.CONFIG['debug'] = True
+	if do_help:
+		print_help( module_info, formatted_options)
+		sys.exit(0)
 	return need_help
 
 

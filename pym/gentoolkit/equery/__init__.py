@@ -263,14 +263,14 @@ def parse_global_options(global_opts, args):
 	"""
 
 	need_help = False
+	do_help = False
 	opts = (opt[0] for opt in global_opts)
 	for opt in opts:
 		if opt in ('-h', '--help'):
 			if args:
 				need_help = True
 			else:
-				print_help()
-				sys.exit(0)
+				do_help = True
 		elif opt in ('-q','--quiet'):
 			CONFIG['quiet'] = True
 		elif opt in ('-C', '--no-color', '--nocolor'):
@@ -283,7 +283,9 @@ def parse_global_options(global_opts, args):
 			sys.exit(0)
 		elif opt in ('--debug'):
 			CONFIG['debug'] = True
-
+	if do_help:
+		print_help()
+		sys.exit(0)
 	return need_help
 
 
