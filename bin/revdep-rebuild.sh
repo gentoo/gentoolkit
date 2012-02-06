@@ -180,9 +180,9 @@ Broken reverse dependency rebuilder.
   -h, --help           Print this usage
   -i, --ignore         Ignore temporary files from previous runs
   -k, --keep-temp      Do not delete temporary files on exit
-  -L, --library NAME   Emerge existing packages that use the library with NAME
-      --library=NAME   NAME can be a full path to the library or a basic
-                       regular expression (man grep)
+  -L, --library NAME   Unconditionally emerge existing packages that use the
+      --library=NAME   library with NAME. NAME can be a full path to the
+                       library or a basic regular expression (man grep)
   -l, --no-ld-path     Do not set LD_LIBRARY_PATH
   -o, --no-order       Do not check the build order
                        (Saves time, but may cause breakage.)
