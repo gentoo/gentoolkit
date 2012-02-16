@@ -1152,42 +1152,44 @@ rebuild() {
 # Finish up
 cleanup() {
 	EMERGE_STATUS=$(<"$STATUS_FILE")
-	if [[ (( $EMERGE_STATUS != 0 )) && is_real_merge ]]; then
-		ewarn
-		ewarn "$APP_NAME failed to emerge all packages."
-		ewarn 'you have the following choices:'
-		einfo "- If emerge failed during the build, fix the problems and re-run $APP_NAME."
-		einfo '- Use /etc/portage/package.keywords to unmask a newer version of the package.'
-		einfo "  (and remove $ORDER_FILE to be evaluated again)"
-		einfo '- Modify the above emerge command and run it manually.'
-		einfo '- Compile or unmerge unsatisfied packages manually,'
-		einfo '  remove temporary files, and try again.'
-		einfo '  (you can edit package/ebuild list first)'
-		einfo
-		einfo 'To remove temporary files, please run:'
-		einfo "rm ${WORKING_DIR}/*.rr"
-		show_unowned_files
-		exit $EMERGE_STATUS
-	elif is_real_merge; then
-		trap_cmd() {
-			eerror "terminated. Please remove the temporary files manually:"
-			eerror "rm ${WORKING_DIR}/*.rr"
-			exit 1
-		}
-		[[ "${SKIP_LIST[@]}" != "" ]] && list_skipped_packages
-		trap trap_cmd SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
-		einfo 'Build finished correctly. Removing temporary files...'
-		einfo
-		einfo 'You can re-run revdep-rebuild to verify that all libraries and binaries'
-		einfo 'are fixed. Possible reasons for remaining inconsistencies include:'
-		einfo '  orphaned files'
-		einfo '  deep dependencies'
-		einfo "  packages installed outside of portage's control"
-		einfo '  specially-evaluated libraries'
-		if [[ -r "$OWNERS_FILE" && -s "$OWNERS_FILE" ]]; then
+	if is_real_merge; then
+		if [[ (( $EMERGE_STATUS != 0 )) ]]; then
+			ewarn
+			ewarn "$APP_NAME failed to emerge all packages."
+			ewarn 'you have the following choices:'
+			einfo "- If emerge failed during the build, fix the problems and re-run $APP_NAME."
+			einfo '- Use /etc/portage/package.keywords to unmask a newer version of the package.'
+			einfo "  (and remove $ORDER_FILE to be evaluated again)"
+			einfo '- Modify the above emerge command and run it manually.'
+			einfo '- Compile or unmerge unsatisfied packages manually,'
+			einfo '  remove temporary files, and try again.'
+			einfo '  (you can edit package/ebuild list first)'
+			einfo
+			einfo 'To remove temporary files, please run:'
+			einfo "rm ${WORKING_DIR}/*.rr"
 			show_unowned_files
+			exit $EMERGE_STATUS
+		else
+			trap_cmd() {
+				eerror "terminated. Please remove the temporary files manually:"
+				eerror "rm ${WORKING_DIR}/*.rr"
+				exit 1
+			}
+			[[ "${SKIP_LIST[@]}" != "" ]] && list_skipped_packages
+			trap trap_cmd SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+			einfo 'Build finished correctly. Removing temporary files...'
+			einfo
+			einfo 'You can re-run revdep-rebuild to verify that all libraries and binaries'
+			einfo 'are fixed. Possible reasons for remaining inconsistencies include:'
+			einfo '  orphaned files'
+			einfo '  deep dependencies'
+			einfo "  packages installed outside of portage's control"
+			einfo '  specially-evaluated libraries'
+			if [[ -r "$OWNERS_FILE" && -s "$OWNERS_FILE" ]]; then
+				show_unowned_files
+			fi
+			[[ $KEEP_TEMP ]] || rm -f "${FILES[@]}"
 		fi
-		[[ $KEEP_TEMP ]] || rm -f "${FILES[@]}"
 	else
 		einfo 'Now you can remove -p (or --pretend) from arguments and re-run revdep-rebuild.'
 	fi
