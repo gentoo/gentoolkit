@@ -387,7 +387,7 @@ get_useflaglist_ebuild() {
 		if [[ -s "${portdir}/profiles/repo_name" ]]; then
 			overlay="$(cat "${portdir}/profiles/repo_name")"
 		else
-			# XXX: May be better to use full path
+			# XXX: Portage uses "x-<basename of the overlay>
 			overlay="x-$(basename "${portdir}")"
 		fi
 		# Open the ebuild file and retrieve defined USE flags
