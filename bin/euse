@@ -384,7 +384,7 @@ get_useflaglist_ebuild() {
 	local pkg=$(echo ${1} | cut -d/ -f2)
 	declare append
 	for portdir in ${ALL_PORTDIRS[@]}; do
-		if [[ -s $(dirname ${portdir}/repo_name) ]]; then
+		if [[ -s "${portdir}/profiles/repo_name" ]]; then
 			overlay="$(cat "${portdir}/profiles/repo_name")"
 		else
 			# XXX: May be better to use full path
