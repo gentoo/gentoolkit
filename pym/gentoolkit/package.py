@@ -62,9 +62,9 @@ from gentoolkit.eprefix import EPREFIX
 # =======
 
 if EPREFIX:
-	default_settings = portage.config(local_config=True, _eprefix=EPREFIX)
+	default_settings = portage.config(local_config=True, eprefix=EPREFIX)
 	default_settings.lock()
-	nolocal_settings = portage.config(local_config=False, _eprefix=EPREFIX)
+	nolocal_settings = portage.config(local_config=False, eprefix=EPREFIX)
 	nolocal_settings.lock()
 else:
 	default_settings = portage.config(local_config=True)
