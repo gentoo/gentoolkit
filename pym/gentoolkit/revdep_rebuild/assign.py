@@ -21,6 +21,11 @@ def assign_packages(broken, logger, settings):
 	'''
 	assigned = set()
 	for group in os.listdir(settings['PKG_DIR']):
+		if os.path.isfile(settings['PKG_DIR'] + group):
+			if not group.startswith('.keep_'):
+				logger.warn(yellow(" * Invalid category found in the installed pkg db: ") +
+					bold(settings['PKG_DIR'] + group))
+			continue
 		for pkg in os.listdir(settings['PKG_DIR'] + group):
 			_file = settings['PKG_DIR'] + group + '/' + pkg + '/CONTENTS'
 			if os.path.exists(_file):
