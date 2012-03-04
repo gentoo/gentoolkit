@@ -14,6 +14,8 @@ from portage.versions import catpkgsplit
 from portage import portdb
 from portage.output import bold, red, yellow
 
+# ignore these files or directories if found
+IGNORED = ['.cache', 'world', 'world~', 'world.bak']
 
 def assign_packages(broken, logger, settings):
 	''' Finds and returns packages that owns files placed in broken.
@@ -21,12 +23,18 @@ def assign_packages(broken, logger, settings):
 	'''
 	assigned = set()
 	for group in os.listdir(settings['PKG_DIR']):
-		if os.path.isfile(settings['PKG_DIR'] + group):
+		if group in IGNORED:
+			continue
+		elif os.path.isfile(settings['PKG_DIR'] + group):
 			if not group.startswith('.keep_'):
 				logger.warn(yellow(" * Invalid category found in the installed pkg db: ") +
 					bold(settings['PKG_DIR'] + group))
 			continue
 		for pkg in os.listdir(settings['PKG_DIR'] + group):
+			if '-MERGING-' in pkg:
+				logger.warn(yellow(" * Invalid/incomplete package merge found in the installed pkg db: ") +
+						bold(settings['PKG_DIR'] + pkg))
+				continue
 			_file = settings['PKG_DIR'] + group + '/' + pkg + '/CONTENTS'
 			if os.path.exists(_file):
 				try:
