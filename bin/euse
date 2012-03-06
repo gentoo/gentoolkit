@@ -1,4 +1,6 @@
 #!/bin/bash
+# Disable globbing because "-*" and such is valid as a use flag. 
+set -f
 
 # $Header$
 
@@ -252,6 +254,7 @@ print('\n'.join(['%s %s' % (pkg,' '.join(flgs)) for pkg,flgs in h.items() if len
 # 5: ebuild IUSE, 6: use.mask, 7: use.force, 
 # 9: flags indicated active by emerge --info (get_portageuseflags)
 get_useflags() {
+	set +f
 	if [[ -z ${ACTIVE_FLAGS[4]} && ( $SCOPE == "local" || -z $SCOPE ) ]]; then
 		# Parse through /etc/portage/package.use
 		if [[ -d ${PACKAGE_USE_PATH} ]]; then
@@ -306,6 +309,7 @@ get_useflags() {
 			| sed -re "/^#.*$/ {d}"))
 
 	USE_FLAGS_CALCULATED=1
+	set -f
 } # }}}
 
 # Function: get_portageuseflags # {{{
@@ -398,7 +402,7 @@ get_useflaglist_ebuild() {
 			echo "!!! to generate metadata for your overlays" >&2
 			return 1
 		fi
-		append=$(ls $portdir/metadata/cache/${1}-* \
+		append=$(set +f; ls $portdir/metadata/cache/${1}-* \
 			| egrep "${1}-[0-9.]+" \
 			| sed -e "s:$portdir/metadata/cache/${1}-::g" \
 			| while read -d $'\n' version; do
@@ -739,7 +743,6 @@ showdesc() {
 	local found_one
 	local args
 	
-	set -f
 	args="${*:-*}"
 
 	if [ -z "${SCOPE}" ]; then
@@ -754,7 +757,6 @@ showdesc() {
 	[ "${SCOPE}" == "global" ] && echo "global use flags (searching: ${args})"
 	[ "${SCOPE}" == "local" ] && echo "local use flags (searching: ${args})"
 	echo "************************************************************"
-	set +f
 	if [ "${args}" == "*" ]; then
 		args="${useflags[*]}"
 	fi
@@ -1280,11 +1282,8 @@ modify() {
 
 ##### main program comes now #####
 
-# disable globbing as it fucks up with args=*
-set -f
 parse_arguments "$@"
 check_sanity
-set +f
 
 eval ${MODE} ${ARGUMENTS}
 
