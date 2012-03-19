@@ -30,7 +30,10 @@ from gentoolkit.query import Query
 # Globals
 # =======
 
-QUERY_OPTS = {"include_masked": False}
+QUERY_OPTS = {
+	"include_masked": False,
+	"ebuild":False
+	}
 
 # =========
 # Functions
@@ -51,9 +54,17 @@ def print_help(with_description=True):
 	print(pp.command("options"))
 	print(format_options((
 		(" -h, --help", "display this help message"),
-		(" -m, --include-masked", "return highest version ebuild available")
+		(" -m, --include-masked", "return highest version ebuild available"),
+		(" -e, --ebuild", "print the ebuild")
 	)))
 
+def print_ebuild(ebuild_path):
+	"""Output the ebuild to std_out"""
+	with open(ebuild_path) as f:
+		lines = f.readlines()
+		print("\n\n")
+		print("".join(lines))
+		print("\n")
 
 def parse_module_options(module_opts):
 	"""Parse module options and update QUERY_OPTS"""
@@ -65,13 +76,15 @@ def parse_module_options(module_opts):
 			sys.exit(0)
 		elif opt in ('-m', '--include-masked'):
 			QUERY_OPTS['include_masked'] = True
+		elif opt in ('-e', '--ebuild'):
+			QUERY_OPTS['ebuild'] = True
 
 
 def main(input_args):
 	"""Parse input and run the program"""
 
-	short_opts = "hm"
-	long_opts = ('help', 'include-masked')
+	short_opts = "hme"
+	long_opts = ('help', 'include-masked', 'ebuild')
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
@@ -97,6 +110,8 @@ def main(input_args):
 			ebuild_path = pkg.ebuild_path()
 			if ebuild_path:
 				pp.uprint(os.path.normpath(ebuild_path))
+				if QUERY_OPTS['ebuild']:
+					print_ebuild(ebuild_path)
 			else:
 				sys.stderr.write(
 					pp.warn("No ebuilds to satisfy %s" % pkg.cpv)
