@@ -1036,7 +1036,7 @@ scrub_use_flag() {
 modify_package() {
 	get_useflags
 
-	local atom_re="^[<>]?=?([a-z][\da-z/-]+[a-z])(-[0-9pr._*-]+)?"
+	local atom_re="^[<>]?=?([a-z][0-9a-z/-]+[a-z])(-[0-9pr._*-]+)?"
 	local pkg=$(echo "${PACKAGE}" | sed -re "s/${atom_re}/\1/")
 	local V=$(echo "${PACKAGE}" | sed -re "s/${atom_re}/\2/")
 	local pkg_re="[<>]?=?${pkg}(-[\dpr._*-]+)?"
