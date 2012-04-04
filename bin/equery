@@ -35,7 +35,7 @@ except KeyboardInterrupt:
 from gentoolkit import equery, errors
 
 try:
-	equery.main()
+	equery.main(sys.argv)
 except errors.GentoolkitNonZeroExit as err:
 	sys.exit(err.return_code)
 except errors.GentoolkitException as err:

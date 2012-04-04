@@ -305,7 +305,7 @@ def split_arguments(args):
 	return args.pop(0), args
 
 
-def main():
+def main(argv):
 	"""Parse input and run the program."""
 
 	short_opts = "hqCNV"
@@ -316,7 +316,7 @@ def main():
 	initialize_configuration()
 
 	try:
-		global_opts, args = getopt(sys.argv[1:], short_opts, long_opts)
+		global_opts, args = getopt(argv[1:], short_opts, long_opts)
 	except GetoptError as err:
 		sys.stderr.write(pp.error("Global %s" % err))
 		print_help(with_description=False)
@@ -359,4 +359,4 @@ def main():
 			raise
 
 if __name__ == '__main__':
-	main()
+	main(sys.argv)
