@@ -106,7 +106,7 @@ sub version {
 	exit 0;
 }
 
-sub getenv($) {
+sub getenv {
     my $key = shift;
 
     # Ensure our variable exist
@@ -116,7 +116,7 @@ sub getenv($) {
             return $ENV{$key};
         }
     }
-    return undef;
+    return;
 }
 
 # Bug 264146.
@@ -135,9 +135,8 @@ sub getenv($) {
 sub text_fill {
 	my ($ip, $xp, @raw) = @_;
 	my @para;
-	my $pp;
 
-	for $pp ( split(/\n\s+/, join("\n", @raw)) ) {
+	for my $pp ( split(/\n\s+/, join("\n", @raw)) ) {
 		$pp =~ s/[\x09\x0B\x0C\x20]+/ /g;
 		my $x = Text::Wrap::wrap($ip, $xp, $pp);
 		push(@para, $x);
@@ -149,29 +148,29 @@ sub text_fill {
 	return join ($ps, @para);
 }
 
-sub changelog_info(%) {
+sub changelog_info {
 	my %changed = @_;
 
-	open(INFO, '>', 'ChangeLog.new');
+	open(my $fh, '>', 'ChangeLog.new');
 
-	print(INFO "\n");
-	print(INFO "# Please enter the ChangeLog message for your changes. Lines starting\n");
-	print(INFO "# with '#' will be ignored, and an empty message aborts the ChangeLog.\n");
-	print(INFO "#\n# Changes:\n");
+	print($fh "\n");
+	print($fh "# Please enter the ChangeLog message for your changes. Lines starting\n");
+	print($fh "# with '#' will be ignored, and an empty message aborts the ChangeLog.\n");
+	print($fh "#\n# Changes:\n");
 
 	foreach my $key (keys(%changed)) {
 		if ($changed{$key} eq "+") {
-			printf(INFO "# new file:\t%s\n", $key);
+			printf($fh "# new file:\t%s\n", $key);
 		}
 		elsif ($changed{$key} eq "-") {
-			printf(INFO "# deleted:\t%s\n", $key);
+			printf($fh "# deleted:\t%s\n", $key);
 		}
 		else {
-			printf(INFO "# modified:\t%s\n", $key);
+			printf($fh "# modified:\t%s\n", $key);
 		}
 	}
 
-	close(INFO);
+	close($fh);
 }
 
 sub update_cat_pn {
@@ -202,7 +201,7 @@ sub check_vcs_dir {
 }
 
 # Just to ensure we don't get duplicate entries.
-sub mypush(\@@) {
+sub mypush {
 	my $aref = shift;
 
 	foreach my $value (@_) {
@@ -381,8 +380,8 @@ while (<C>) {
 }
 
 sub git_unknown_objects {
-	open(GIT, "-|", "${vcs} ls-files --exclude-standard --others");
-	while(defined( my $line = <GIT> )) {
+	open(my $ph, "-|", "${vcs} ls-files --exclude-standard --others");
+	while(defined( my $line = <$ph> )) {
 		chomp($line);
 
 		# IMHO we can skip those files, even if they're untracked
@@ -390,7 +389,7 @@ sub git_unknown_objects {
 
 		push(@unknown, $line);
 	}
-	close(GIT);
+	close($ph);
 }
 
 # git only shows files already added so we need to check for unknown files
@@ -431,7 +430,7 @@ EOT
 
 # Sort the list of files as portage does.  None of the operations through
 # the rest of the script should break this sort.
-sub sortfunc($$) {
+sub sortfunc {
 	my ($a, $b) = @_;
 	(my $va = $a) =~ s/.*?-(\d.*?)(?:\.ebuild)?$/$1/;
 	(my $vb = $b) =~ s/.*?-(\d.*?)(?:\.ebuild)?$/$1/;
@@ -798,7 +797,7 @@ if ($vcs eq "cvs") {
 		system("svn add ChangeLog") unless (scalar grep /ChangeLog/, <F>);
 	}
 } else {
-	system("$vcs{$vcs}{add} ChangeLog 2>&1 >> /dev/null");
+	system("$vcs{$vcs}{add} ChangeLog 2>&1 > /dev/null");
 }
 
 # vim: set ts=4 sw=4 tw=0:
