@@ -106,7 +106,7 @@ sub version {
 	exit 0;
 }
 
-sub getenv {
+sub getenv($) {
     my $key = shift;
 
     # Ensure our variable exist
@@ -201,7 +201,7 @@ sub check_vcs_dir {
 }
 
 # Just to ensure we don't get duplicate entries.
-sub mypush {
+sub mypush(\@@) {
 	my $aref = shift;
 
 	foreach my $value (@_) {
@@ -430,7 +430,7 @@ EOT
 
 # Sort the list of files as portage does.  None of the operations through
 # the rest of the script should break this sort.
-sub sortfunc {
+sub sortfunc($$) {
 	my ($a, $b) = @_;
 	(my $va = $a) =~ s/.*?-(\d.*?)(?:\.ebuild)?$/$1/;
 	(my $vb = $b) =~ s/.*?-(\d.*?)(?:\.ebuild)?$/$1/;
