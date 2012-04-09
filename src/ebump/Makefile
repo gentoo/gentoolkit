@@ -10,11 +10,11 @@ include ../../makedefs.mak
 all: 
 
 dist: 
-	mkdir -p ../../$(distdir)/src/ebump/
-	cp Makefile AUTHORS README ChangeLog ebump ebump.1 ../../$(distdir)/src/ebump/
+	mkdir -p ../../$(DISTDIR)/src/ebump/
+	cp Makefile AUTHORS README ChangeLog ebump ebump.1 ../../$(DISTDIR)/src/ebump/
 
 install: all
-	install -m 0755 ebump $(bindir)/
-	install -d $(docdir)/ebump
-	install -m 0644 AUTHORS README ChangeLog $(docdir)/ebump/
-	install -m 0644 ebump.1 $(mandir)/
+	install -m 0755 ebump $(BINDIR)/
+	install -d $(DOCDIR)/ebump
+	install -m 0644 AUTHORS README ChangeLog $(DOCDIR)/ebump/
+	install -m 0644 ebump.1 $(MAN1DIR)/

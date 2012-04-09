@@ -9,10 +9,10 @@ include ../../makedefs.mak
 all:
 
 dist:
-	mkdir -p ../../$(distdir)/src/<TOOL>/
-	cp Makefile <TOOL> <TOOL>.1 ../../$(distdir)/src/<TOOL>/
+	mkdir -p ../../$(DISTDIR)/src/<TOOL>/
+	cp Makefile <TOOL> <TOOL>.1 ../../$(DISTDIR)/src/<TOOL>/
 
 install: all
-	install -m 0755 <TOOL> $(bindir)/
-	install -m 0644 <TOOL>.1 $(mandir)/
+	install -m 0755 <TOOL> $(BINDIR)/
+	install -m 0644 <TOOL>.1 $(MAN1DIR)/
 

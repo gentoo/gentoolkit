@@ -9,10 +9,10 @@ include ../../makedefs.mak
 all:
 
 dist:
-	mkdir -p ../../$(distdir)/src/eshowkw/
-	cp Makefile eshowkw eshowkw.1 ../../$(distdir)/src/eshowkw/
+	mkdir -p ../../$(DISTDIR)/src/eshowkw/
+	cp Makefile eshowkw eshowkw.1 ../../$(DISTDIR)/src/eshowkw/
 
 install: all
-	install -m 0755 eshowkw $(bindir)/
-	install -m 0644 eshowkw.1 $(mandir)/
+	install -m 0755 eshowkw $(BINDIR)/
+	install -m 0644 eshowkw.1 $(MAN1DIR)/
 

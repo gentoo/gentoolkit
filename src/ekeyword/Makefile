@@ -13,14 +13,14 @@ include ../../makedefs.mak
 all: ekeyword.1
 
 dist: ekeyword.1
-	mkdir -p ../../$(distdir)/src/ekeyword
-	cp Makefile AUTHORS README ChangeLog ekeyword ekeyword.1 ../../$(distdir)/src/ekeyword/
+	mkdir -p ../../$(DISTDIR)/src/ekeyword
+	cp Makefile AUTHORS README ChangeLog ekeyword ekeyword.1 ../../$(DISTDIR)/src/ekeyword/
 
 install: all
-	install -m 0755 ekeyword $(bindir)/
-	install -d $(docdir)/ekeyword
-	install -m 0644 AUTHORS README ChangeLog $(docdir)/ekeyword/
-	install -m 0644 ekeyword.1 $(mandir)/
+	install -m 0755 ekeyword $(BINDIR)/
+	install -d $(DOCDIR)/ekeyword
+	install -m 0644 AUTHORS README ChangeLog $(DOCDIR)/ekeyword/
+	install -m 0644 ekeyword.1 $(MAN1DIR)/
 
 clean:
 	$(RM) ekeyword.1

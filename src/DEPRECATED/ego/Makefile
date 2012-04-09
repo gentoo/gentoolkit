@@ -9,10 +9,10 @@ include ../../makedefs.mak
 all:
 
 dist:
-	mkdir -p ../../$(distdir)/src/ego/
-	cp Makefile AUTHORS README ChangeLog ego ../../$(distdir)/src/ego/
+	mkdir -p ../../$(DISTDIR)/src/ego/
+	cp Makefile AUTHORS README ChangeLog ego ../../$(DISTDIR)/src/ego/
 
 install: all
-	install -d $(docdir)/ego	
-	install -m 0644 AUTHORS README ego $(docdir)/ego/
+	install -d $(DOCDIR)/ego
+	install -m 0644 AUTHORS README ego $(DOCDIR)/ego/
 

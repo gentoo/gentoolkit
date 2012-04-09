@@ -14,13 +14,13 @@ test:
 	cd test; sh test.sh
 
 dist:
-	mkdir -p ../../$(distdir)/src/echangelog/test/templates
-	cp Makefile AUTHORS README ChangeLog echangelog echangelog.1 ../../$(distdir)/src/echangelog/
-	cp test/TEST.pm test/test.sh ../../$(distdir)/src/echangelog/test/
-	cp test/templates/test.patch test/templates/vcstest-0.0.1.ebuild ../../$(distdir)/src/echangelog/test/templates
+	mkdir -p ../../$(DISTDIR)/src/echangelog/test/templates
+	cp Makefile AUTHORS README ChangeLog echangelog echangelog.1 ../../$(DISTDIR)/src/echangelog/
+	cp test/TEST.pm test/test.sh ../../$(DISTDIR)/src/echangelog/test/
+	cp test/templates/test.patch test/templates/vcstest-0.0.1.ebuild ../../$(DISTDIR)/src/echangelog/test/templates
 
 install: all
-	install -m 0755 echangelog $(bindir)/
-	install -d $(docdir)/echangelog	
-	install -m 0644 AUTHORS README $(docdir)/echangelog/
-	install -m 0644 echangelog.1 $(mandir)/
+	install -m 0755 echangelog $(BINDIR)/
+	install -d $(DOCDIR)/echangelog
+	install -m 0644 AUTHORS README $(DOCDIR)/echangelog/
+	install -m 0644 echangelog.1 $(MAN1DIR)/

@@ -5,16 +5,16 @@
 include makedefs.mak
 
 TOOLS=ebump echangelog ekeyword eviewcvs imlate
-RELEASE="gentoolkit-dev-$(VERSION)$(RELEASE_TAG)"
 
 all:
-	@echo "YARMOUTH (vb.) To shout at foreigners in the belief that the louder you speak, the better they'll understand you." 
+	@echo "YARMOUTH (vb.) To shout at foreigners in the belief that the louder you speak, the better they'll understand you."
 	@echo "PYVERSION=$(PYVERSION)"
 	@echo "VERSION=$(VERSION)"
-	@echo "docdir=$(docdir)"
-	@echo "bindir=$(bindir)"
-	@echo "sbindir=$(sbindir)"
-	@echo "mandir=$(mandir)"
+	@echo "DOCDIR=$(DOCDIR)"
+	@echo "BINDIR=$(BINDIR)"
+	@echo "SBINDIR=$(SBINDIR)"
+	@echo "MANDIR=$(MANDIR)"
+	@echo "MAN1DIR=$(MAN1DIR)"
 
 # use $(TOOLS) if we have more than one test
 test:
@@ -29,7 +29,7 @@ clean:
 dist:
 	mkdir -p release/gentoolkit-dev-$(VERSION)$(RELEASE_TAG)
 	@for tool in $(TOOLS); do \
-		( $(MAKE) -C src/$${tool} distdir=release/$(RELEASE) dist ) \
+		( $(MAKE) -C src/$${tool} DISTDIR=release/$(RELEASE) dist ) \
 	done
 
 	cp Makefile AUTHORS README README.Developer TODO COPYING NEWS ChangeLog release/$(RELEASE)/
@@ -43,11 +43,11 @@ dist:
 install: install-gentoolkit-dev
 
 install-gentoolkit-dev:
-	install -d $(docdir)
-	install -d $(bindir)
-	install -d $(mandir)
+	install -d $(DOCDIR)
+	install -d $(BINDIR)
+	install -d $(MAN1DIR)
 
-	install -m 0644 AUTHORS ChangeLog COPYING NEWS README README.Developer TODO $(docdir)/
+	install -m 0644 AUTHORS ChangeLog COPYING NEWS README README.Developer TODO $(DOCDIR)/
 
 	@for tool in $(TOOLS); do \
 		( $(MAKE) -C src/$${tool} DESTDIR=$(DESTDIR) install ) \

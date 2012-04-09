@@ -9,10 +9,10 @@ include ../../makedefs.mak
 all:
 
 dist:
-	mkdir -p ../../$(distdir)/src/imlate/
-	cp Makefile imlate imlate.1 ../../$(distdir)/src/imlate/
+	mkdir -p ../../$(DISTDIR)/src/imlate/
+	cp Makefile imlate imlate.1 ../../$(DISTDIR)/src/imlate/
 
 install: all
-	install -m 0755 imlate $(bindir)/
-	install -m 0644 imlate.1 $(mandir)/
+	install -m 0755 imlate $(BINDIR)/
+	install -m 0644 imlate.1 $(MAN1DIR)/
 

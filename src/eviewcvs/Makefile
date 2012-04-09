@@ -12,14 +12,14 @@ include ../../makedefs.mak
 all: eviewcvs.1
 
 dist: eviewcvs.1
-	mkdir -p ../../$(distdir)/src/eviewcvs/
-	cp Makefile AUTHORS README eviewcvs eviewcvs.pod eviewcvs.1 ../../$(distdir)/src/eviewcvs/
+	mkdir -p ../../$(DISTDIR)/src/eviewcvs/
+	cp Makefile AUTHORS README eviewcvs eviewcvs.pod eviewcvs.1 ../../$(DISTDIR)/src/eviewcvs/
 
 install: all
-	install -m 0755 eviewcvs $(bindir)/
-	install -d $(docdir)/eviewcvs	
-	install -m 0644 AUTHORS README $(docdir)/eviewcvs/
-	install -m 0644 eviewcvs.1 $(mandir)/
+	install -m 0755 eviewcvs $(BINDIR)/
+	install -d $(DOCDIR)/eviewcvs
+	install -m 0644 AUTHORS README $(DOCDIR)/eviewcvs/
+	install -m 0644 eviewcvs.1 $(MAN1DIR)/
 
 clean:
 	$(RM) eviewcvs.1
