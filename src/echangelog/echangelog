@@ -239,16 +239,14 @@ if($opt_strict) {
 # Figure out what kind of repo we are in.
 # Respect $PATH while looking for the VCS
 if(! defined($opt_force_vcs)) {
-	if (getenv("PATH")) {
-		foreach my $path ( split(":", getenv("PATH")) ) {
-			foreach my $_vcs (sort(keys(%vcs))) {
-				if ( -X "${path}/${_vcs}" ) {
-					$vcs = $_vcs if check_vcs_dir($vcs{$_vcs}{directory});
-					last if $vcs;
-				}
+	foreach my $path ( split(":", (getenv("PATH") || "/bin:/usr/bin:/usr/local/bin")) ) {
+		foreach my $_vcs (sort(keys(%vcs))) {
+			if ( -X "${path}/${_vcs}" ) {
+				$vcs = $_vcs if check_vcs_dir($vcs{$_vcs}{directory});
+				last if $vcs;
 			}
-			last if $vcs;
 		}
+		last if $vcs;
 	}
 }
 else {
