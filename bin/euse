@@ -1126,7 +1126,7 @@ modify_package() {
 			echo "Adding \"${PACKAGE}[${flag}]\" use flag in \"${filename}\""
 			local added=0
 		 	while read line; do
-				if [[ -n $(echo "${line}" | egrep -re "^[^#]*${PACKAGE} ") ]]; then
+				if [[ -n $(echo "${line}" | egrep -e "^[^#]*${PACKAGE} ") ]]; then
 					echo $(reduce_package_use "${line} ${flag}")
 					added=1
 				else
