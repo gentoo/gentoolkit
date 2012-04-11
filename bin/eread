@@ -6,13 +6,16 @@
 # Author: Donnie Berkholz <spyderous@gentoo.org>
 # Updated by: Uwe Klosa <uwe.klosa@gmail.com>
 
+# Get prefix
+EPREFIX=${EPREFIX:-$(portageq envvar EPREFIX)}
+
 # set decent PATH for bug 172969
 
-PATH=/usr/bin:/bin:${PATH}
+PATH=${EPREFIX}/usr/bin:${EPREFIX}/bin:${PATH}
 
 # Set ELOGDIR
 PORT_LOGDIR="$(portageq envvar PORT_LOGDIR)"
-[ "$PORT_LOGDIR" = "" ] && PORT_LOGDIR="/var/log/portage"
+[ "$PORT_LOGDIR" = "" ] && PORT_LOGDIR="${EPREFIX}/var/log/portage"
 ELOGDIR="$PORT_LOGDIR/elog"
 
 # Verify that ELOGDIR exists
