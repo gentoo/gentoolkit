@@ -154,7 +154,7 @@ class keywords_content:
 
 		def __init__(self, packages):
 			"""Query all relevant data for version data formatting"""
-			self.vartree = port.db[port.settings['ROOT']]['vartree'].dbapi
+			self.vartree = port.db[port.root]['vartree'].dbapi
 			self.mysettings = port.config(local_config=False)
 			self.versions = self.__getVersions(packages)
 			self.masks = map(lambda x: self.__getMaskStatus(x), packages)
