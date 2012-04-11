@@ -618,11 +618,15 @@ Display the path to the ebuild that would be used by Portage with the current co
 .B \-m, \-\-include\-masked
 .br 
 Return the path to the hightest version ebuild available.
+.HP
+.B \-e, \-\-ebuild
+.br
+Print the contents of the ebuild
 .P
 .I R "EXAMPLES" ":"
 .EX
 .HP
-less $(equery which xorg\-server)
+equery which \-e xorg\-server)
 .EE
 .br 
 View the most recent installable ebuild.
