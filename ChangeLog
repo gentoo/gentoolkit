@@ -1,9 +1,11 @@
-2011-03-24: Christian Ruppert <idl0r@gentoo.org>
-	* echangelog: Remove duplicate sort calls.
-		Improve the VCS check by adding a fallback/default PATH in case $PATH is
-		empty.
+2012-04-09: Christian Ruppert <idl0r@gentoo.org>
+	* echangelog: Improve the VCS check by adding a fallback/default PATH in
+		case $PATH is empty.
 		Don't modify the initial copyright year when updating e.g. 1999-2012,
 		bug 380325.
+
+2011-03-24: Christian Ruppert <idl0r@gentoo.org>
+	* echangelog: Remove duplicate sort calls.
 
 2011-03-23: Christian Ruppert <idl0r@gentoo.org>
 	* echangelog: Fix update_copyright loop to check/update ebuilds again.
