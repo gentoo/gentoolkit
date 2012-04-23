@@ -141,6 +141,12 @@ for my $f (@ARGV) {
 			# replace -* with -STAR for our convenience below
 			$quoted =~ s/-\*/-STAR/;
 
+			# Pre sort/unique
+			# NOTE: It will not detect duplicates where one is e.g. ~amd64 and
+			# one amd64
+			my %hash = map { $_, 1 } split(/\s+/, $quoted);
+			$quoted = join(" ", keys(%hash));
+
 			for my $k (@kw) {
 				my ($leader, $arch, $star) = ($k =~ /$kw_re/o);
 

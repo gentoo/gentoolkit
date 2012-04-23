@@ -1,5 +1,7 @@
 2012-04-23: Christian Ruppert <idl0r@gentoo.org>
 	* ekeyword: Some cleanup
+		Do a basic pre sort to get a rid of duplicates, bug 399575.
+		NOTE: e.g. ~amd64 and -amd64 wouldn't be detected as duplicate!
 
 2012-04-09: Christian Ruppert <idl0r@gentoo.org>
 	* echangelog: Improve the VCS check by adding a fallback/default PATH in
