@@ -112,7 +112,6 @@ for my $f (@ARGV) {
 
 	open(my $fh_in, "<", $f) or die "Can't read $f: $!\n";
 	open(my $fh_out, ">", "${f}.new") or die "Can't create ${f}.new: ${!}\n";
-	select($fh_out);
 
 	my $count = 0;
 	while(<$fh_in>) {
@@ -121,10 +120,10 @@ for my $f (@ARGV) {
 	seek($fh_in, 0, 0);
 
 	while (<$fh_in>) {
-		if (/^\s*KEYWORDS=/) {
+		if (m/^\s*KEYWORDS=/) {
 
 			# extract the quoted section from KEYWORDS
-			while (not /^\s*KEYWORDS=["'].*?["']/) {
+			while (not m/^\s*KEYWORDS=["'].*?["']/) {
 				chomp;
 				my $next = <$fh_in>;
 				$_ = join " ", $_, $next;
@@ -134,7 +133,7 @@ for my $f (@ARGV) {
 			if($count > 1 && length($quoted) eq 0) {
 				# Skip empty KEYWORDS variables in case they occur more than
 				# once, bug 321475.
-				print $_;
+				print $fh_out $_;
 				next;
 			}
 
@@ -218,15 +217,15 @@ for my $f (@ARGV) {
 			# re-insert quoted to KEYWORDS
 			s/(["']).*?["']/$1$quoted$1/;
 
-			print $_ or die "Can't write $f.new: $!\n";
+			print $fh_out $_ or die "Can't write $f.new: $!\n";
 		} else {
-			print, next;
+			print $fh_out $_;
+			next;
 		}
 	}
 
 	close($fh_in);
 	close($fh_out);
-	select STDOUT;
 
 	system("diff -U 0 ${f} ${f}.new");
 	rename("$f.new", "$f") or die "Can't rename: $!\n";
