@@ -10,6 +10,8 @@
 #     - ppc sparc x86
 #     + ~alpha ppc sparc x86
 
+use strict;
+
 my ($kw_re) = '^(?:([-~^]?)(\w[\w-]*)|([-^]\*))$';
 my (@kw);
 
@@ -25,8 +27,8 @@ sub file_parse {
 		exit(1);
 	}
 
-	open(FILE, '<', $fname);
-	while(defined(my $line = <FILE>)) {
+	open(my $fh, '<', $fname);
+	while(defined(my $line = <$fh>)) {
 		chomp($line);
 		$line =~ s/^\s*//g;
 		$line =~ s/\s*$//g;
@@ -37,15 +39,15 @@ sub file_parse {
 
 		push(@content, $line);
 	}
-	close(FILE);
+	close($fh);
 
 	return @content;
 }
 
-sub get_portdir() {
-	open(PORTAGEQ, '-|', 'portageq portdir');
-	chomp(my $portdir = <PORTAGEQ>);
-	close(PORTAGEQ);
+sub get_portdir {
+	open(my $ph, '-|', 'portageq portdir');
+	chomp(my $portdir = <$ph>);
+	close($ph);
 
 	if (length($portdir) eq 0) {
 		printf STDERR ("Error: Couldn't determine your PORTDIR...\n");
@@ -54,13 +56,13 @@ sub get_portdir() {
 	return $portdir;
 }
 
-sub get_architectures() {
+sub get_architectures {
 	foreach my $arch (file_parse("${PORTDIR}/profiles/arch.list")) {
 		$ARCH{$arch} = 0;
 	}
 }
 
-sub get_architectures_status() {
+sub get_architectures_status {
 	foreach my $line (file_parse("${PORTDIR}/profiles/profiles.desc")) {
 		my ($arch, undef, $status) = split(/\s/, $line, 3);
 
@@ -108,23 +110,23 @@ for my $f (@ARGV) {
 
 	print "$f\n";
 
-	open I, "<$f"       or die "Can't read $f: $!\n";
-	open O, ">$f.new"   or die "Can't create $f.new: $!\n";
-	select O;
+	open(my $fh_in, "<", $f) or die "Can't read $f: $!\n";
+	open(my $fh_out, ">", "${f}.new") or die "Can't create ${f}.new: ${!}\n";
+	select($fh_out);
 
 	my $count = 0;
-	while(<I>) {
+	while(<$fh_in>) {
 		$count++ if m/^\s*KEYWORDS=/;
 	}
-	seek(I, 0, 0);
+	seek($fh_in, 0, 0);
 
-	while (<I>) {
+	while (<$fh_in>) {
 		if (/^\s*KEYWORDS=/) {
 
 			# extract the quoted section from KEYWORDS
 			while (not /^\s*KEYWORDS=["'].*?["']/) {
 				chomp;
-				my $next = <I>;
+				my $next = <$fh_in>;
 				$_ = join " ", $_, $next;
 			}
 			(my $quoted = $_) =~ s/^.*?["'](.*?)["'].*/$1/s;
@@ -222,8 +224,8 @@ for my $f (@ARGV) {
 		}
 	}
 
-	close I;
-	close O;
+	close($fh_in);
+	close($fh_out);
 	select STDOUT;
 
 	system("diff -U 0 ${f} ${f}.new");

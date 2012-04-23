@@ -1,3 +1,6 @@
+2012-04-23: Christian Ruppert <idl0r@gentoo.org>
+	* ekeyword: Some cleanup
+
 2012-04-09: Christian Ruppert <idl0r@gentoo.org>
 	* echangelog: Improve the VCS check by adding a fallback/default PATH in
 		case $PATH is empty.
