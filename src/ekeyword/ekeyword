@@ -161,7 +161,7 @@ for my $f (@ARGV) {
 					if ($arch eq 'all') {
 						$quoted = '';
 					} else {
-						$quoted =~ s/[-~]?\Q$arch\E\b//;
+						$quoted =~ s/[-~]?\Q$arch\E(\s|$)/$1/;
 					}
 
 				# add or modify keywords
