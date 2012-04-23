@@ -93,6 +93,7 @@ get_architectures();
 get_architectures_status();
 
 my $files = 0;
+my $line;
 for my $f (@ARGV) {
 	if ($f =~ m/$kw_re/o) {
 		my $arch = $2;
@@ -104,7 +105,7 @@ for my $f (@ARGV) {
 			}
 		}
 
-		push @kw, $f;
+		push(@kw, $f);
 		next;
 	}
 
@@ -114,26 +115,26 @@ for my $f (@ARGV) {
 	open(my $fh_out, ">", "${f}.new") or die "Can't create ${f}.new: ${!}\n";
 
 	my $count = 0;
-	while(<$fh_in>) {
-		$count++ if m/^\s*KEYWORDS=/;
+	while($line = <$fh_in>) {
+		$count++ if $line =~ m/^\s*KEYWORDS=/;
 	}
 	seek($fh_in, 0, 0);
 
-	while (<$fh_in>) {
-		if (m/^\s*KEYWORDS=/) {
+	while ($line = <$fh_in>) {
+		if ($line =~ m/^\s*KEYWORDS=/) {
 
 			# extract the quoted section from KEYWORDS
-			while (not m/^\s*KEYWORDS=["'].*?["']/) {
-				chomp;
+			while ($line !~ m/^\s*KEYWORDS=["'](?:.+)?["']/) {
+				chomp($line);
 				my $next = <$fh_in>;
-				$_ = join " ", $_, $next;
+				$line = join(" ", $line, $next);
 			}
-			(my $quoted = $_) =~ s/^.*?["'](.*?)["'].*/$1/s;
+			(my $quoted = $line) =~ s/^.*?["'](.*?)["'].*/$1/s;
 
 			if($count > 1 && length($quoted) eq 0) {
 				# Skip empty KEYWORDS variables in case they occur more than
 				# once, bug 321475.
-				print $fh_out $_;
+				print $fh_out $line;
 				next;
 			}
 
@@ -145,7 +146,7 @@ for my $f (@ARGV) {
 
 				# handle -* and ^*
 				if (defined $star) {
-					$leader = substr $star,0,1;
+					$leader = substr($star, 0, 1);
 					$arch = 'STAR';
 				}
 
@@ -212,14 +213,14 @@ for my $f (@ARGV) {
 				$sa =~ s/([a-z0-9]+)-([a-z0-9]*)/$2-$1/g;
 				$sb =~ s/([a-z0-9]+)-([a-z0-9]*)/$2-$1/g;
 				$sa cmp $sb;
-			} split " ", $quoted;
+			} split(/\s+/, $quoted);
 
 			# re-insert quoted to KEYWORDS
-			s/(["']).*?["']/$1$quoted$1/;
+			$line =~ s/(["']).*?["']/$1$quoted$1/;
 
-			print $fh_out $_ or die "Can't write $f.new: $!\n";
+			print $fh_out $line or die "Can't write $f.new: $!\n";
 		} else {
-			print $fh_out $_;
+			print $fh_out $line;
 			next;
 		}
 	}
