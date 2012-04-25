@@ -5,6 +5,7 @@
 #
 # Author: Donnie Berkholz <spyderous@gentoo.org>
 # Updated by: Uwe Klosa <uwe.klosa@gmail.com>
+# Updated by: Slawomir Nizio <slawomir.nizio@sabayon.org>
 
 # Get prefix
 EPREFIX=${EPREFIX:-$(portageq envvar EPREFIX)}
@@ -30,9 +31,33 @@ fi
 # Set up select prompt
 PS3="Choice? "
 
+SORT=${EREAD_SORT_ORDER}
+
+find_unsorted() {
+	find . -type f | sed -e "s:\./::g"
+}
+find_by_name() {
+	find . -type f | sort | sed -e "s:\./::g"
+}
+find_by_time() {
+	find . -type f | sort -k 3 -t : | sed -e "s:\./::g"
+}
+find_files() {
+	case ${SORT} in
+		alphabet)
+			find_by_name
+			;;
+		time)
+			find_by_time
+			;;
+		*)
+			find_unsorted
+		;;
+	esac
+}
+
 select_loop() {
-	ANY_FILES=$(find . -type f)
-	ANY_FILES=$(echo ${ANY_FILES} | sed -e "s:\./::g")
+	ANY_FILES=$(find_files)
 
 	if [[ -z ${ANY_FILES} ]]; then
 		echo "No log items to read"
@@ -50,6 +75,12 @@ select_loop() {
 				echo "Quitting"
 				QUIT="yes"
 				break
+				;;
+			a)
+				SORT="alphabet"
+				;;
+			t)
+				SORT="time"
 				;;
 			*)
 				if [ -f "$FILE" ]; then

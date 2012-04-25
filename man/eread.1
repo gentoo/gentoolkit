@@ -8,5 +8,18 @@ eread
 .SH "DESCRIPTION"
 .LP 
 This tool is used to display and manage ELOG files produced by portage version 2.1 and higher.
+.SH "USAGE"
+.LP
+You can use the following commands:
+.TP
+.B "q"
+Quit
+.TP
+.B "a"
+Sort alphabetically
+.TP
+.B "t"
+Sort by time
 .SH "ENVIRONMENT VARIABLES"
 The eread utility uses the PAGER environment variable to display the ELOG files. If the variable is not set, it defaults to /usr/bin/less.
+Another environment variable is EREAD_SORT_ORDER which can be set to specify default sort order of ELOG files. Values \fBalphabet\fP and \fBtime\fP are recognized. If EREAD_SORT_ORDER is not set or has another value, the output is unsorted.
