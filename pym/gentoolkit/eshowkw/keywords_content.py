@@ -23,10 +23,11 @@ class keywords_content:
 		def __listRedundantSlots(self, masks, keywords, slots):
 			"""Search for redundant packages walking per keywords for specified slot."""
 			output = list()
+			zipped = list(zip(masks, keywords, slots))
 			for slot in self.__uniq(slots):
 				ms = list()
 				ks = list()
-				for m, k, s in zip(masks, keywords, slots):
+				for m, k, s in zipped:
 					if slot == s:
 						ms.append(m)
 						ks.append(k)
@@ -157,7 +158,7 @@ class keywords_content:
 			self.vartree = port.db[port.root]['vartree'].dbapi
 			self.mysettings = port.config(local_config=False)
 			self.versions = self.__getVersions(packages)
-			self.masks = map(lambda x: self.__getMaskStatus(x), packages)
+			self.masks = list(map(lambda x: self.__getMaskStatus(x), packages))
 
 	@staticmethod
 	def __packages_sort(package_content):
