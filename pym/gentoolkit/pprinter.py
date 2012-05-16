@@ -116,7 +116,7 @@ def subsection(string):
 
 def useflag(string, enabled=True):
 	"""Returns a USE flag string."""
-	return output.blue(string) if enabled else output.red(string)
+	return output.red(string) if enabled else output.blue(string)
 
 def keyword(string, stable=True, hard_masked=False):
 	"""Returns a keyword string."""
