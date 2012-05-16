@@ -176,7 +176,6 @@ class keywords_content:
 				return port.versions.vercmp(ver_map[cpv1[0]], ver_map[cpv2[0]])
 
 			package_content.sort(key=port.util.cmp_sort_key(cmp_cpv))
-			package_content.sort(key=itemgetter(2))
 
 	def __xmatch(self, pdb, package):
 		"""xmatch function that searches for all packages over all repos"""
