@@ -60,7 +60,7 @@ def center(text, width):
 	"""
 	if len(text) >= width:
 		return text
-	margin = (width-len(text))/2
+	margin = (width-len(text))//2
 	rValue = " "*margin
 	rValue += text
 	if 2*margin + len(text) == width:
