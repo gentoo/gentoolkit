@@ -42,9 +42,25 @@ QUERY_OPTS = {
 	'herd': False,
 	'keywords': False,
 	'maintainer': False,
+	'stablereq': False,
 	'useflags': False,
 	'upstream': False,
 	'xml': False
+}
+
+STABLEREQ_arches = {
+	'alpha': 'alpha@gentoo.org',
+	'amd64': 'amd64@gentoo.org',
+	'arm': 'arm@gentoo.org',
+	'hppa': 'hppa@gentoo.org',
+	'ia64': 'ia64@gentoo.org',
+	'm68k': 'm68k@gentoo.org',
+	'ppc64': 'ppc64@gentoo.org',
+	'ppc': 'ppc@gentoo.org',
+	's390': 's390@gentoo.org',
+	'sh': 'sh@gentoo.org',
+	'sparc': 'sparc@gentoo.org',
+	'x86': 'x86@gentoo.org',
 }
 
 # =========
@@ -71,11 +87,31 @@ def print_help(with_description=True, with_usage=True):
 		(" -H, --herd", "show the herd(s) for the package"),
 		(" -k, --keywords", "show keywords for all matching package versions"),
 		(" -m, --maintainer", "show the maintainer(s) for the package"),
+		(" -S, --stablreq", "show STABLEREQ arches (cc's) for all matching package versions"),
 		(" -u, --useflags", "show per-package USE flag descriptions"),
 		(" -U, --upstream", "show package's upstream information"),
 		(" -x, --xml", "show the plain metadata.xml file")
 	)))
 
+def stablereq(matches):
+	"""Produce the list of cc's for a STABLREQ bug
+	@type matches: array
+	@param matches: set of L{gentoolkit.package.Package} instances whose
+		'key' are all the same.
+	@rtype: dict
+	@return: a dict with L{gentoolkit.package.Package} instance keys and
+		'array of cc's to be added to a STABLEREQ bug.
+	"""
+	result = {}
+	for pkg in matches:
+		keywords_str = pkg.environment(('KEYWORDS'), prefer_vdb=False)
+		# get any unstable keywords
+		keywords = set([x.lstrip('~') for x in keywords_str.split() if'~' in x])
+		stable_arches = set(list(STABLEREQ_arches))
+		cc_keywords = stable_arches.intersection(keywords)
+		# add cc's
+		result[pkg] = [STABLEREQ_arches[x] for x in cc_keywords]
+	return result
 
 def filter_keywords(matches):
 	"""Filters non-unique keywords per slot.
@@ -329,6 +365,19 @@ def call_format_functions(best_match, matches):
 		useflags = format_useflags(best_match.metadata.use())
 		print_sequence(format_list(useflags))
 
+	if QUERY_OPTS["stablereq"]:
+		# Get {<Package 'dev-libs/glib-2.20.5'>: [u'ia64', u'm68k', ...], ...}
+		stablereq_map = stablereq(matches)
+		for match in matches:
+			slot = match.environment('SLOT')
+			verstr_len = len(match.fullversion) + len(slot)
+			fmtd_ccs = ','.join(sorted(stablereq_map[match]))
+			stablereq_line = format_keywords_line(
+				match, fmtd_ccs, slot, verstr_len
+			)
+			#print("STABLEREQ:", )
+			pp.uprint(stablereq_line)
+
 	if QUERY_OPTS["xml"]:
 		print_file(os.path.join(best_match.package_path(), 'metadata.xml'))
 
@@ -448,6 +497,8 @@ def parse_module_options(module_opts):
 			QUERY_OPTS["maintainer"] = True
 		elif opt in ('-k', '--keywords'):
 			QUERY_OPTS["keywords"] = True
+		elif opt in ('-S', '--stablereq'):
+			QUERY_OPTS["stablereq"] = True
 		elif opt in ('-u', '--useflags'):
 			QUERY_OPTS["useflags"] = True
 		elif opt in ('-U', '--upstream'):
@@ -459,9 +510,9 @@ def parse_module_options(module_opts):
 def main(input_args):
 	"""Parse input and run the program."""
 
-	short_opts = "hdHkmuUx"
+	short_opts = "hdHkmSuUx"
 	long_opts = ('help', 'description', 'herd', 'keywords', 'maintainer',
-		'useflags', 'upstream', 'xml')
+		'stablereq', 'useflags', 'upstream', 'xml')
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
