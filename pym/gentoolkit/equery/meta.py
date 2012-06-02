@@ -280,6 +280,12 @@ def format_keywords_line(pkg, fmtd_keywords, slot, verstr_len):
 	return result
 
 
+def format_stablereq_line(pkg, fmtd_ccs, slot):
+	"""Format the entire stablereq line for display (no indented linewrapping)
+	"""
+	return "%s:%s: %s" % (pkg.fullversion, pp.slot(slot), fmtd_ccs)
+
+
 def format_homepage(homepage):
 	"""format the homepage(s) entries for dispaly"""
 	result = []
@@ -372,8 +378,8 @@ def call_format_functions(best_match, matches):
 			slot = match.environment('SLOT')
 			verstr_len = len(match.fullversion) + len(slot)
 			fmtd_ccs = ','.join(sorted(stablereq_map[match]))
-			stablereq_line = format_keywords_line(
-				match, fmtd_ccs, slot, verstr_len
+			stablereq_line = format_stablereq_line(
+				match, fmtd_ccs, slot
 			)
 			#print("STABLEREQ:", )
 			pp.uprint(stablereq_line)
