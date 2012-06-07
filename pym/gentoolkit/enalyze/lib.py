@@ -14,7 +14,7 @@ from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit import errors
 from gentoolkit.keyword import reduce_keywords
 from gentoolkit.flag import (reduce_flags, get_flags, get_all_cpv_use,
-	filter_flags, get_installed_use, get_iuse)
+	filter_flags, get_installed_use, get_iuse, defaulted_flags)
 #from gentoolkit.package import Package
 
 import portage
@@ -65,10 +65,12 @@ class FlagAnalyzer(object):
 		@return (plus, minus, unset) sets of USE flags
 		"""
 		installed = set(self.get_used(cpv, self.target))
-		iuse =  set(reduce_flags(self.get_flags(cpv)))
-		return self._analyse(installed, iuse)
+		_iuse = self.get_flags(cpv)
+		iuse =  set(reduce_flags(_iuse))
+		iuse_defaults = defaulted_flags(_iuse)
+		return self._analyse(installed, iuse, iuse_defaults)
 
-	def _analyse(self, installed, iuse):
+	def _analyse(self, installed, iuse, iuse_defaults):
 		"""Analyzes the supplied info and returns the flag settings
 		that differ from the defaults
 
@@ -78,6 +80,9 @@ class FlagAnalyzer(object):
 		@param iuse: the current ebuilds IUSE
 		"""
 		defaults = self.system.intersection(iuse)
+		# update defaults with iuse_defaults
+		defaults.update(iuse_defaults['+'])
+		defaults = defaults.difference(iuse_defaults['-'])
 		usedflags = iuse.intersection(set(installed))
 		if self.filter_defaults:
 			plus = usedflags.difference(defaults)
@@ -98,10 +103,12 @@ class FlagAnalyzer(object):
 		@return (plus, minus, unset) sets of USE flags
 		"""
 		installed = set(self.pkg_used(pkg))
-		print("installed =", installed)
-		iuse =  set(reduce_flags(self.pkg_flags(pkg)))
-		print("iuse =", iuse)
-		return self._analyse(installed, iuse)
+		#print("installed =", installed)
+		_iuse =  self.pkg_flags(pkg)
+		iuse =  set(reduce_flags(_iuse))
+		iuse_defaults = defaulted_flags(_iuse)
+		#print("iuse =", iuse)
+		return self._analyse(installed, iuse, iuse_defaults)
 
 	def pkg_used(self, pkg):
 		if self.target == "USE":

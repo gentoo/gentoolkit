@@ -13,6 +13,7 @@ __all__ = (
 	'get_installed_use',
 	'reduce_flag',
 	'reduce_flags',
+	'defaulted_flags',
 	'filter_flags',
 	'get_all_cpv_use',
 	'get_flags'
@@ -81,6 +82,21 @@ def reduce_flags(the_list):
 	r=[]
 	for member in the_list:
 		r.append(reduce_flag(member))
+	return r
+
+
+def defaulted_flags(the_list):
+	"""Absolute value function for a USE flag list
+
+	@type the_list: list
+	@param the_list: the use flags to get defaulted ones from.
+	@rtype: dict of lists
+	@return defaulted USE flags {'+': [...], '-': [...]}
+	"""
+	r={"+":[], "-": []}
+	for member in the_list:
+		if member[0] in  ["+","-"]:
+			r[member[0]].append(member[1:])
 	return r
 
 
