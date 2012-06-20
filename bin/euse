@@ -16,6 +16,10 @@ EPREFIX=${EPREFIX:-$(portageq envvar EPREFIX)}
 ETC="${EPREFIX}/etc"
 USR_SHARE_PORTAGE="${EPREFIX}/usr/share/portage"
 
+# Arrays containing the known repository names and repository profile paths
+PORTAGE_REPOS=( $(portageq get_repos ${EPREFIX}/) )
+PORTAGE_REPO_PATHS=( $(portageq get_repo_path ${EPREFIX}/ ${PORTAGE_REPOS[@]}) )
+
 # define error functions so they can be used immediately
 fatal() {
 	echo -e "ERROR: ${*}"
@@ -433,6 +437,12 @@ get_all_make_conf() {
 # General method of collecting the contents of a profile
 # component by traversing through the cascading profile
 #
+# Bug #414961 allows ':' shorthand to resolve to the ${PORTDIR}/profiles
+# A value before the ':' references the repository, no value means gentoo
+#
+# Example: local:base would refer to the profiles directory in the repository
+# path owned by the 'local' repository
+#
 # Arguments:
 # $1 - Filename (make.profile)
 # [$2] - Current directory (unspecified means to start at the top)
@@ -446,10 +456,25 @@ traverse_profile() {
 	if [[ -f "${curdir}/parent" ]]; then
 		for parent in $(egrep -v '(^#|^ *$)' ${curdir}/parent); do
 			# Bug 231394, handle parent path being absolute
+			index=$(expr index "${parent}" :)
 			if [[ ${parent:0:1} == "/" ]]; then
 				pdir="$(get_real_path ${parent})"
-			else
+			elif [[ $index -eq 0 ]]; then
 				pdir="$(get_real_path ${curdir}/${parent})"
+			else
+				# We have a path with a colon shortcut
+				let i=$index-1
+				repo="${parent:0:${i}}"
+				[[ -z "${repo}" ]] && repo="gentoo"
+				parent="${parent:$index}"
+				limit=${#PORTAGE_REPOS[@]}
+				for ((i=0; i < limit ; i++)); do
+					if [[ ${repo} == ${PORTAGE_REPOS[i]} ]]; then
+						parent="${PORTAGE_REPO_PATHS[i]}/profiles/${parent}"
+						break
+					fi
+				done
+				pdir="$(get_real_path ${parent})"
 			fi
 			rvalue="${rvalue} $(traverse_profile ${1} ${pdir})"
 		done
