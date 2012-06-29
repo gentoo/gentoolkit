@@ -5,6 +5,7 @@
 
 * eclean
   Original author: Thomas de Grenier de Latour (tgl) <degrenier@easyconnect.fr>
+  re-write author Brian Dolbec <dolsen@gentoo.org>
 
 * epkginfo
   Author: Ned Ludd <solar@gentoo.org>
@@ -14,6 +15,7 @@
 * equery
   Original author: Karl Trygve Kalleberg <karltk@gentoo.org>
   0.3.0 author: Douglas Anderson <douglasjanderson@gmail.com>
+  api rewrite work for 0.3.0 Brian Dolbec <dolsen@gentoo.org
 
 * eread
   Original author: Donnie Berkholz <dberkholz@gentoo.org>
@@ -27,3 +29,6 @@
 * revdep-rebuild
   Original author: Stanislav Brabec
   Rewrite author: Michael A. Smith
+
+* enalyze
+  Original author: Brian Dolbec <dolsen@gentoo.org>
