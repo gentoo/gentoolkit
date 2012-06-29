@@ -6,7 +6,7 @@
 #
 # $Header: $
 
-"""Enalyze Base Module class to hold common module operation functions
+"""General Base Module class to hold common module operation functions
 """
 
 from __future__ import print_function
@@ -25,7 +25,7 @@ from gentoolkit.base import mod_usage
 from gentoolkit import CONFIG
 
 class ModuleBase(object):
-	"""Enalyze base module class to parse module options print module help, etc.."""
+	"""E-app base module class to parse module options print module help, etc.."""
 
 	def __init__(self):
 		self.module_name = None
@@ -95,11 +95,11 @@ class ModuleBase(object):
 			return
 		if self.saved_verbose:
 			# detected a switch
-			verbose = self.options['verbose'] 
+			verbose = self.options['verbose']
 			self.options['verbose']  = self.saved_verbose
 			self.saved_verbose = verbose
 		elif quiet:
-			self.saved_verbose = self.options['verbose'] 
+			self.saved_verbose = self.options['verbose']
 			self.options['verbose'] = False
 		self.options['quiet'] = quiet
 		return
