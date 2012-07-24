@@ -113,7 +113,7 @@ class Package(CPV):
 		return key in self.cpv
 
 	def __str__(self):
-		return self.cpv
+		return str(self.cpv)
 
 	@property
 	def metadata(self):
