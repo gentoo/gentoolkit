@@ -5,7 +5,16 @@
 #
 # $Header$
 
-"""Provides access to Portage database api"""
+"""Provides access to Portage database api
+	Note: this file is deprecated, please replace all use
+	of these variable with the assigned calls.  That will
+	take advantage of them being lazy-loaded.
+"""
+
+from __future__ import print_function
+
+print("gentoolkit.dbapi is deprecated.\n",
+	"Please migrate to using the assigned calls directly")
 
 import portage
 
