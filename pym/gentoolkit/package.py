@@ -37,7 +37,7 @@ __all__ = (
 FORMAT_TMPL_VARS = (
 	'$location', '$mask', '$mask2', '$cp', '$cpv', '$category', '$name',
 	'$version', '$revision', '$fullversion', '$slot', '$repo', '$keywords'
-) 
+)
 
 # =======
 # Imports
@@ -52,7 +52,6 @@ from portage.util import LazyItemsDict
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
 from gentoolkit.cpv import CPV
-from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit.keyword import determine_keyword
 from gentoolkit.flag import get_flags
 from gentoolkit.eprefix import EPREFIX
@@ -199,23 +198,23 @@ class Package(CPV):
 			envvars = (envvars,)
 		if prefer_vdb:
 			try:
-				result = VARDB.aux_get(self.cpv, envvars)
+				result = portage.db[portage.root]["vartree"].dbapi.aux_get(self.cpv, envvars)
 			except KeyError:
 				try:
 					if not fallback:
 						raise KeyError
-					result = PORTDB.aux_get(self.cpv, envvars)
+					result = portage.db[portage.root]["porttree"].dbapi.aux_get(self.cpv, envvars)
 				except KeyError:
 					err = "aux_get returned unexpected results"
 					raise errors.GentoolkitFatalError(err)
 		else:
 			try:
-				result = PORTDB.aux_get(self.cpv, envvars)
+				result = portage.db[portage.root]["porttree"].dbapi.aux_get(self.cpv, envvars)
 			except KeyError:
 				try:
 					if not fallback:
 						raise KeyError
-					result = VARDB.aux_get(self.cpv, envvars)
+					result = portage.db[portage.root]["vartree"].dbapi.aux_get(self.cpv, envvars)
 				except KeyError:
 					err = "aux_get returned unexpected results"
 					raise errors.GentoolkitFatalError(err)
@@ -227,7 +226,7 @@ class Package(CPV):
 	def exists(self):
 		"""Return True if package exists in the Portage tree, else False"""
 
-		return bool(PORTDB.cpv_exists(self.cpv))
+		return bool(portage.db[portage.root]["porttree"].dbapi.cpv_exists(self.cpv))
 
 	def settings(self, key):
 		"""Returns the value of the given key for this package (useful
@@ -258,7 +257,7 @@ class Package(CPV):
 		try:
 			result = portage.getmaskingstatus(self.cpv,
 				settings=self._settings,
-				portdb=PORTDB)
+				portdb=portage.db[portage.root]["porttree"].dbapi)
 		except KeyError:
 			# getmaskingstatus doesn't support packages without ebuilds in the
 			# Portage tree.
@@ -277,7 +276,7 @@ class Package(CPV):
 		try:
 			result = portage.getmaskingreason(self.cpv,
 				settings=self._settings,
-				portdb=PORTDB,
+				portdb=portage.db[portage.root]["porttree"].dbapi,
 				return_location=True)
 			if result is None:
 				result = tuple()
@@ -299,8 +298,8 @@ class Package(CPV):
 		"""
 
 		if in_vartree:
-			return VARDB.findname(self.cpv)
-		return PORTDB.findname(self.cpv)
+			return portage.db[portage.root]["vartree"].dbapi.findname(self.cpv)
+		return portage.db[portage.root]["porttree"].dbapi.findname(self.cpv)
 
 	def package_path(self, in_vartree=False):
 		"""Return the path to where the ebuilds and other files reside."""
@@ -387,7 +386,7 @@ class Package(CPV):
 	def is_overlay(self):
 		"""Returns True if the package is in an overlay."""
 
-		ebuild, tree = PORTDB.findname2(self.cpv)
+		ebuild, tree = portage.db[portage.root]["porttree"].dbapi.findname2(self.cpv)
 		if not ebuild:
 			return None
 		if self._portdir_path is None:
@@ -400,7 +399,7 @@ class Package(CPV):
 		@note: We blindly assume that the package actually exists on disk.
 		"""
 
-		unmasked = PORTDB.xmatch("match-visible", self.cpv)
+		unmasked = portage.db[portage.root]["porttree"].dbapi.xmatch("match-visible", self.cpv)
 		return self.cpv not in unmasked
 
 

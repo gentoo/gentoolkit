@@ -29,7 +29,6 @@ from gentoolkit import helpers
 from gentoolkit import pprinter as pp
 from gentoolkit.atom import Atom
 from gentoolkit.cpv import CPV
-from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit.package import Package
 from gentoolkit.sets import get_set_atoms, SETPREFIX
 
@@ -189,11 +188,11 @@ class Query(CPV):
 
 		try:
 			if include_masked:
-				matches = PORTDB.xmatch("match-all", self.query)
+				matches = portage.db[portage.root]["porttree"].dbapi.xmatch("match-all", self.query)
 			else:
-				matches = PORTDB.match(self.query)
+				matches = portage.db[portage.root]["porttree"].dbapi.match(self.query)
 			if in_installed:
-				matches.extend(VARDB.match(self.query))
+				matches.extend(portage.db[portage.root]["vartree"].dbapi.match(self.query))
 		except portage.exception.InvalidAtom as err:
 			message = "query.py: find(), query=%s, InvalidAtom=%s" %(
 				self.query, str(err))
@@ -205,12 +204,12 @@ class Query(CPV):
 		"""Return a list of Package objects that matched the search key."""
 
 		try:
-			matches = VARDB.match(self.query)
+			matches = portage.db[portage.root]["vartree"].dbapi.match(self.query)
 		# catch the ambiguous package Exception
 		except portage.exception.AmbiguousPackageName as err:
 			matches = []
 			for pkgkey in err.args[0]:
-				matches.extend(VARDB.match(pkgkey))
+				matches.extend(portage.db[portage.root]["vartree"].dbapi.match(pkgkey))
 		except portage.exception.InvalidAtom as err:
 			raise errors.GentoolkitInvalidAtom(err)
 
@@ -231,7 +230,7 @@ class Query(CPV):
 
 		best = keyworded = masked = None
 		try:
-			best = PORTDB.xmatch("bestmatch-visible", self.query)
+			best = portage.db[portage.root]["porttree"].dbapi.xmatch("bestmatch-visible", self.query)
 		except portage.exception.InvalidAtom as err:
 			message = "query.py: find_best(), bestmatch-visible, " + \
 				"query=%s, InvalidAtom=%s" %(self.query, str(err))
@@ -241,7 +240,7 @@ class Query(CPV):
 			if not (include_keyworded or include_masked):
 				return None
 			try:
-				matches = PORTDB.xmatch("match-all", self.query)
+				matches = portage.db[portage.root]["porttree"].dbapi.xmatch("match-all", self.query)
 			except portage.exception.InvalidAtom as err:
 				message = "query.py: find_best(), match-all, query=%s, InvalidAtom=%s" %(
 					self.query, str(err))
