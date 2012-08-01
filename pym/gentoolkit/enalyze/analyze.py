@@ -13,7 +13,6 @@ from __future__ import print_function
 import sys
 
 import gentoolkit
-from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit.module_base import ModuleBase
 from gentoolkit import pprinter as pp
 from gentoolkit.flag import get_installed_use, get_flags
@@ -56,7 +55,7 @@ def gather_flags_info(
 	@rtype dict. {flag:{"+":[cat/pkg-ver,...], "-":[cat/pkg-ver,...], "unset":[]}
 	"""
 	if cpvs is None:
-		cpvs = VARDB.cpv_all()
+		cpvs = portage.db[portage.root]["vartree"].dbapi.cpv_all()
 	# pass them in to override for tests
 	flags = FlagAnalyzer(system_flags,
 		filter_defaults=False,
@@ -115,7 +114,7 @@ def gather_keywords_info(
 	@rtype dict. {keyword:{"stable":[cat/pkg-ver,...], "testing":[cat/pkg-ver,...]}
 	"""
 	if cpvs is None:
-		cpvs = VARDB.cpv_all()
+		cpvs = portage.db[portage.root]["vartree"].dbapi.cpv_all()
 	keyword_users = {}
 	for cpv in cpvs:
 		if cpv.startswith("virtual"):
@@ -264,7 +263,7 @@ class Analyse(ModuleBase):
 				self.options["verbose"],
 				system_use)
 		if self.options["verbose"]:
-			cpvs = VARDB.cpv_all()
+			cpvs = portage.db[portage.root]["vartree"].dbapi.cpv_all()
 			#cpvs = get_installed_cpvs()
 			#print "Total number of installed ebuilds =", len(cpvs)
 			flag_users = gather_flags_info(cpvs, system_use,
@@ -324,7 +323,7 @@ class Analyse(ModuleBase):
 				"keywords",
 				self.options["verbose"],
 				system_keywords)
-		self.analyser = KeywordAnalyser( arch, system_keywords, VARDB)
+		self.analyser = KeywordAnalyser( arch, system_keywords, portage.db[portage.root]["vartree"].dbapi)
 		#self.analyser.set_order(portage.settings["USE"].split())
 		# only for testing
 		test_use = portage.settings["USE"].split()
@@ -337,7 +336,7 @@ class Analyse(ModuleBase):
 		# /end testing
 
 		if self.options["verbose"]:
-			cpvs = VARDB.cpv_all()
+			cpvs = portage.db[portage.root]["vartree"].dbapi.cpv_all()
 			#print "Total number of installed ebuilds =", len(cpvs)
 			keyword_users = gather_keywords_info(
 				cpvs=cpvs,
@@ -398,7 +397,7 @@ class Analyse(ModuleBase):
 		"""
 		system_use = portage.settings["USE"].split()
 		if self.options["verbose"]:
-			cpvs = VARDB.cpv_all()
+			cpvs = portage.db[portage.root]["vartree"].dbapi.cpv_all()
 			key_width = 45
 		else:
 			cpvs = get_installed_cpvs()

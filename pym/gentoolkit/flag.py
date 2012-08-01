@@ -22,8 +22,6 @@ __all__ = (
 
 import sys
 
-from gentoolkit.dbapi import PORTDB, VARDB
-
 import portage
 
 
@@ -38,7 +36,7 @@ def get_iuse(cpv):
 	"""
 	try:
 		# aux_get might return dupes, so run them through set() to remove them
-		return list(set(PORTDB.aux_get(cpv, ["IUSE"])[0].split()))
+		return list(set(portage.db[portage.root]["porttree"].dbapi.aux_get(cpv, ["IUSE"])[0].split()))
 	except:
 		return []
 
@@ -54,7 +52,7 @@ def get_installed_use(cpv, use="USE"):
 	@rtype list
 	@returns [] or the list of IUSE flags
 	"""
-	return VARDB.aux_get(cpv,[use])[0].split()
+	return portage.db[portage.root]["vartree"].dbapi.aux_get(cpv,[use])[0].split()
 
 
 def reduce_flag(flag):
@@ -144,20 +142,20 @@ def get_all_cpv_use(cpv):
 	@return  use, use_expand_hidden, usemask, useforce
 	"""
 	use = None
-	PORTDB.settings.unlock()
+	portage.db[portage.root]["porttree"].dbapi.settings.unlock()
 	try:
-		PORTDB.settings.setcpv(cpv, mydb=portage.portdb)
+		portage.db[portage.root]["porttree"].dbapi.settings.setcpv(cpv, mydb=portage.portdb)
 		use = portage.settings['PORTAGE_USE'].split()
 		use_expand_hidden = portage.settings["USE_EXPAND_HIDDEN"].split()
-		usemask = list(PORTDB.settings.usemask)
-		useforce =  list(PORTDB.settings.useforce)
+		usemask = list(portage.db[portage.root]["porttree"].dbapi.settings.usemask)
+		useforce =  list(portage.db[portage.root]["porttree"].dbapi.settings.useforce)
 	except KeyError:
-		PORTDB.settings.reset()
-		PORTDB.settings.lock()
+		portage.db[portage.root]["porttree"].dbapi.settings.reset()
+		portage.db[portage.root]["porttree"].dbapi.settings.lock()
 		return [], [], [], []
 	# reset cpv filter
-	PORTDB.settings.reset()
-	PORTDB.settings.lock()
+	portage.db[portage.root]["porttree"].dbapi.settings.reset()
+	portage.db[portage.root]["porttree"].dbapi.settings.lock()
 	return use, use_expand_hidden, usemask, useforce
 
 

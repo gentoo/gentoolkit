@@ -10,7 +10,6 @@
 
 import sys
 
-from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit import errors
 from gentoolkit.keyword import reduce_keywords
 from gentoolkit.flag import (reduce_flags, get_flags, get_all_cpv_use,
@@ -158,7 +157,7 @@ class KeywordAnalyser(object):
 	@param arch: the system ARCH setting
 	@type  accept_keywords: list
 	@param accept_keywords: eg. ['x86', '~x86']
-	@type  get_aux: function, defaults to: VARDB.aux_get
+	@type  get_aux: function, defaults to: portage.db[portage.root]["vartree"].dbapi.aux_get
 	@param vardb: vardb class of functions, needed=aux_get()
 		to return => KEYWORDS & USE flags for a cpv
 		= aux_get(cpv, ["KEYWORDS", "USE"])
@@ -170,7 +169,7 @@ class KeywordAnalyser(object):
 	parse_range = list(range(len(normal_order)))
 
 
-	def __init__(self, arch, accept_keywords, vardb=VARDB):
+	def __init__(self, arch, accept_keywords, vardb=portage.db[portage.root]["vartree"].dbapi):
 		self.arch = arch
 		self.accept_keywords = accept_keywords
 		self.vardb = vardb
@@ -356,6 +355,6 @@ class KeywordAnalyser(object):
 			self.parse_order = self.normal_order
 			self.keyword = self.arch
 		#print "SET_ORDER() completed: prefix =", self.prefix, ", keyword =", \
-		#	self.keyword, "parse order =",self.parse_order
+		#   self.keyword, "parse order =",self.parse_order
 		#print
 

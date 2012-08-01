@@ -32,11 +32,12 @@ import codecs
 from functools import partial
 from itertools import chain
 
+import portage
+
 from gentoolkit import pprinter as pp
 from gentoolkit import errors
 from gentoolkit.atom import Atom
 from gentoolkit.cpv import CPV
-from gentoolkit.dbapi import BINDB, PORTDB, VARDB
 from gentoolkit.versionmatch import VersionMatch
 # This has to be imported below to stop circular import.
 #from gentoolkit.package import Package
@@ -387,11 +388,11 @@ def get_cpvs(predicate=None, include_installed=True):
 	"""
 
 	if predicate:
-		all_cps = iter(x for x in PORTDB.cp_all() if predicate(x))
+		all_cps = iter(x for x in portage.db[portage.root]["porttree"].dbapi.cp_all() if predicate(x))
 	else:
-		all_cps = PORTDB.cp_all()
+		all_cps = portage.db[portage.root]["porttree"].dbapi.cp_all()
 
-	all_cpvs = chain.from_iterable(PORTDB.cp_list(x) for x in all_cps)
+	all_cpvs = chain.from_iterable(portage.db[portage.root]["porttree"].dbapi.cp_list(x) for x in all_cps)
 	all_installed_cpvs = set(get_installed_cpvs(predicate))
 
 	if include_installed:
@@ -423,11 +424,11 @@ def get_installed_cpvs(predicate=None):
 	"""
 
 	if predicate:
-		installed_cps = iter(x for x in VARDB.cp_all() if predicate(x))
+		installed_cps = iter(x for x in portage.db[portage.root]["vartree"].dbapi.cp_all() if predicate(x))
 	else:
-		installed_cps = VARDB.cp_all()
+		installed_cps = portage.db[portage.root]["vartree"].dbapi.cp_all()
 
-	for cpv in chain.from_iterable(VARDB.cp_list(x) for x in installed_cps):
+	for cpv in chain.from_iterable(portage.db[portage.root]["vartree"].dbapi.cp_list(x) for x in installed_cps):
 		yield cpv
 
 
@@ -442,11 +443,11 @@ def get_bintree_cpvs(predicate=None):
 	"""
 
 	if predicate:
-		installed_cps = iter(x for x in BINDB.cp_all() if predicate(x))
+		installed_cps = iter(x for x in portage.db[portage.root]["bintree"].dbapi.cp_all() if predicate(x))
 	else:
-		installed_cps = BINDB.cp_all()
+		installed_cps = portage.db[portage.root]["bintree"].dbapi.cp_all()
 
-	for cpv in chain.from_iterable(BINDB.cp_list(x) for x in installed_cps):
+	for cpv in chain.from_iterable(portage.db[portage.root]["bintree"].dbapi.cp_list(x) for x in installed_cps):
 		yield cpv
 
 

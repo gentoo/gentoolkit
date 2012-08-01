@@ -20,7 +20,6 @@ from gentoolkit import errors
 from gentoolkit.atom import Atom
 from gentoolkit.cpv import CPV
 from gentoolkit.helpers import uniqify
-from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit.query import Query
 
 # =======
@@ -69,10 +68,10 @@ class Dependencies(Query):
 		# Try to use the Portage tree first, since emerge only uses the tree
 		# when calculating dependencies
 		try:
-			result = PORTDB.aux_get(self.cpv, envvars)
+			result = portage.db[portage.root]["porttree"].dbapi.aux_get(self.cpv, envvars)
 		except KeyError:
 			try:
-				result = VARDB.aux_get(self.cpv, envvars)
+				result = portage.db[portage.root]["vartree"].dbapi.aux_get(self.cpv, envvars)
 			except KeyError:
 				return []
 		return result

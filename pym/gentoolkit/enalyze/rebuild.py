@@ -17,7 +17,6 @@ import os
 import sys
 
 import gentoolkit
-from gentoolkit.dbapi import PORTDB, VARDB
 from gentoolkit.module_base import ModuleBase
 from gentoolkit import pprinter as pp
 from gentoolkit.enalyze.lib import (get_installed_use, get_flags, FlagAnalyzer,
@@ -55,7 +54,7 @@ def cpv_all_diff_use(
 	@rtype dict. {cpv:['flag1', '-flag2',...]}
 	"""
 	if cpvs is None:
-		cpvs = VARDB.cpv_all()
+		cpvs = portage.db[portage.root]["vartree"].dbapi.cpv_all()
 	cpvs.sort()
 	data = {}
 	cp_counts = {}
@@ -69,7 +68,7 @@ def cpv_all_diff_use(
 	for cpv in cpvs:
 		plus, minus, unset = flags.analyse_cpv(cpv)
 		atom = Atom("="+cpv)
-		atom.slot = VARDB.aux_get(atom.cpv, ["SLOT"])[0]
+		atom.slot = portage.db[portage.root]["vartree"].dbapi.aux_get(atom.cpv, ["SLOT"])[0]
 		for flag in minus:
 			plus.add("-"+flag)
 		if len(plus):
@@ -104,7 +103,7 @@ def cpv_all_diff_keywords(
 						   "testing":[cat/pkg-ver,...]}
 	"""
 	if cpvs is None:
-		cpvs = VARDB.cpv_all()
+		cpvs = portage.db[portage.root]["vartree"].dbapi.cpv_all()
 	keyword_users = {}
 	cp_counts = {}
 	for cpv in cpvs:
@@ -125,13 +124,13 @@ def cpv_all_diff_keywords(
 				cp_counts[atom.cp] = 0
 			if key in ["~"]:
 				atom.keyword = keyword
-				atom.slot = VARDB.aux_get(atom.cpv, ["SLOT"])[0]
+				atom.slot = portage.db[portage.root]["vartree"].dbapi.aux_get(atom.cpv, ["SLOT"])[0]
 				keyword_users[atom.cp].append(atom)
 				cp_counts[atom.cp] += 1
 			elif key in ["-"]:
 				#print "adding cpv to missing:", cpv
 				atom.keyword = "**"
-				atom.slot = VARDB.aux_get(atom.cpv, ["SLOT"])[0]
+				atom.slot = portage.db[portage.root]["vartree"].dbapi.aux_get(atom.cpv, ["SLOT"])[0]
 				keyword_users[atom.cp].append(atom)
 				cp_counts[atom.cp] += 1
 	return keyword_users, cp_counts
@@ -283,7 +282,7 @@ class Rebuild(ModuleBase):
 		if self.options["verbose"] or self.options["prefix"]:
 			print("Current system ARCH =", arch)
 			print("Current system ACCEPT_KEYWORDS =", system_keywords)
-		self.analyser = KeywordAnalyser( arch, system_keywords, VARDB)
+		self.analyser = KeywordAnalyser( arch, system_keywords, portage.db[portage.root]["vartree"].dbapi)
 		#self.analyser.set_order(portage.settings["USE"].split())
 		# only for testing
 		test_use = portage.settings["USE"].split()
@@ -295,7 +294,7 @@ class Rebuild(ModuleBase):
 		self.analyser.set_order(test_use)
 		# /end testing
 
-		cpvs = VARDB.cpv_all()
+		cpvs = portage.db[portage.root]["vartree"].dbapi.cpv_all()
 		#print "Total number of installed ebuilds =", len(cpvs)
 		pkgs, cp_counts = cpv_all_diff_keywords(
 			cpvs=cpvs,
