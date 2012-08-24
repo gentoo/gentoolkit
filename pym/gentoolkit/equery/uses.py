@@ -94,6 +94,11 @@ def display_useflags(output):
 			flag_name += " " + color[in_makeconf](flag.ljust(maxflag_len))
 			flag_name += " : "
 
+			# Strip initial whitespace at the start of the description
+			# Bug 432530
+			if desc:
+				desc = desc.lstrip()
+
 			# print description
 			if restrict:
 				restrict = "(%s %s)" % (pp.emph("Restricted to"),
