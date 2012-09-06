@@ -215,8 +215,8 @@ def initialize_configuration():
 	CONFIG['termWidth'] = term_width - 1
 
 	# Guess color output
-	if (CONFIG['color'] == -1 and (not sys.stdout.isatty() or
-		os.getenv("NOCOLOR") in ("yes", "true")) or CONFIG['color'] == 0):
+	if (CONFIG['color'] == -1 and os.getenv("NOCOLOR") in ("yes", "true") or
+		CONFIG['color'] == 0):
 		pp.output.nocolor()
 
 	if CONFIG['piping']:
