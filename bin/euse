@@ -35,11 +35,9 @@ warn() {
 	echo -e "WARNING: ${*}"
 }
 
-# /etc/make.conf can now exist in /etc/portage/make.conf, prefer it over
-# /etc/make.conf for changes. Since this will only be used for modifying
-# the USE variable, we need to make sure the one we pick is the one with
-# the USE variable defined.
-if [[ -n $(grep '^USE="' "${ETC}/portage/make.conf" 2>/dev/null) ]]; then
+# /etc/make.conf now exists as /etc/portage/make.conf by default, prefer
+# it over /etc/make.conf for changes.
+if [[ -e "${ETC}/portage/make.conf" ]]; then
 	MAKE_CONF_PATH="${ETC}/portage/make.conf"
 elif [[ -e "${ETC}/make.conf" ]]; then
 	MAKE_CONF_PATH="${ETC}/make.conf"
