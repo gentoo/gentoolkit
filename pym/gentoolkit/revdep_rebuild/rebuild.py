@@ -170,9 +170,11 @@ def rebuild(logger, assigned, settings):
 def main(settings=None, logger=None):
 
 	if settings is None:
-		print("NO Input settings, using defaults...")
+#		print("NO Input settings, using defaults...")
 		settings = DEFAULTS.copy()
 
+	parse_options()
+	
 	if logger is None:
 		logger = init_logger(settings)
 
@@ -237,3 +239,8 @@ def main(settings=None, logger=None):
 	success = rebuild(logger, assigned, settings)
 	logger.debug("rebuild return code = %i" %success)
 	return success
+
+
+if __name__ == '__main__':
+	main()
+
