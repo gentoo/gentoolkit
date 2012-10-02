@@ -173,8 +173,6 @@ def main(settings=None, logger=None):
 #		print("NO Input settings, using defaults...")
 		settings = DEFAULTS.copy()
 
-	parse_options()
-	
 	if logger is None:
 		logger = init_logger(settings)
 
@@ -242,5 +240,5 @@ def main(settings=None, logger=None):
 
 
 if __name__ == '__main__':
-	main()
+	main(rebuild.parse_options())
 
