@@ -21,6 +21,11 @@ def prepare_checks(files_to_check, libraries, bits, cmd_max_args):
 	dependencies = [] # list of lists of files (from file_to_check) that uses
 					  # library (for dependencies[id] and libs[id] => id==id)
 
+
+#	from runner import ScanRunner
+#	sr = ScanRunner(['-M', str(bits), '-nBF', '%F %n'], files_to_check, cmd_max_args)
+#	sr.wait()
+
 	for line in scan(['-M', str(bits), '-nBF', '%F %n'], files_to_check, cmd_max_args):
 	#call_program(['scanelf', '-M', str(bits), '-nBF', '%F %n',]+files_to_check).strip().split('\n'):
 		r = line.strip().split(' ')
