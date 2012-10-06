@@ -115,7 +115,7 @@ def main():
 
 	try:
 		loaded_module = __import__(
-			expanded_module_name, globals(), locals(), [], -1
+			expanded_module_name, globals(), locals(), [], 1
 		)
 		loaded_module.main(module_args)
 	except portage.exception.AmbiguousPackageName as err:
