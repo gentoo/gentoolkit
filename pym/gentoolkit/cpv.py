@@ -33,7 +33,7 @@ from gentoolkit import errors
 isvalid_version_re = re.compile("^(?:cvs\\.)?(?:\\d+)(?:\\.\\d+)*[a-z]?"
 	"(?:_(p(?:re)?|beta|alpha|rc)\\d*)*$")
 isvalid_cat_re = re.compile("^(?:[a-zA-Z0-9][-a-zA-Z0-9+._]*(?:/(?!$))?)+$")
-_pkg_re = re.compile("^[a-zA-Z0-9+_]+$")
+_pkg_re = re.compile("^[a-zA-Z0-9+._]+$")
 # Prefix specific revision is of the form -r0<digit>+.<digit>+
 isvalid_rev_re = re.compile(r'(\d+|0\d+\.\d+)')
 
