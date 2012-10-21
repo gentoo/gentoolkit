@@ -146,6 +146,7 @@ class Rebuild(ModuleBase):
 	"""
 	def __init__(self):
 		ModuleBase.__init__(self)
+		self.command_name = "enalyze"
 		self.module_name = "rebuild"
 		self.options = {
 			"use": False,
@@ -235,6 +236,7 @@ class Rebuild(ModuleBase):
 			print((pp.emph("  -- Found ") +  pp.number(str(pkg_count)) +
 				pp.emph(" packages that need entries")))
 			#print pp.emph("     package.use to maintain their current setting")
+		pkg_keys = []
 		if pkgs:
 			pkg_keys = sorted(pkgs)
 			#print len(pkgs)
@@ -266,8 +268,8 @@ class Rebuild(ModuleBase):
 				self.save_file(filepath, output.lines)
 
 	def rebuild_keywords(self):
-		print("Module action not yet available")
-		print()
+		#print("Module action not yet available")
+		#print()
 		"""This will scan the installed packages db and analyze the
 		keywords used for installation and produce a report on them.
 		"""
@@ -303,6 +305,7 @@ class Rebuild(ModuleBase):
 			analyser = self.analyser
 			)
 		#print([pkgs[p][0].cpv for p in pkgs])
+		pkg_keys = []
 		if pkgs:
 			pkg_keys = sorted(pkgs)
 			#print(len(pkgs))
@@ -338,8 +341,7 @@ class Rebuild(ModuleBase):
 
 
 	def rebuild_unmask(self):
-		print("Module action not yet available")
-		print()
+		self.not_implemented("unmask")
 
 
 	def save_file(self, filepath, data):

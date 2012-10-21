@@ -145,4 +145,13 @@ class ModuleBase(object):
 		return queries
 
 
+	def not_implemented(self, target):
+		"""Prints a standard module not implemented message"""
+		print()
+		print(pp.error(
+			"Sorry %s module and/or target is not implenented yet."
+			% pp.emph(self.command_name)))
+		print("module: %s, target: %s" %(pp.emph(self.module_name), pp.emph(target)))
+		print()
+
 # vim: set ts=4 sw=4 tw=79:
