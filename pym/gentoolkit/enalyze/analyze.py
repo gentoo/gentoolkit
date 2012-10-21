@@ -165,7 +165,8 @@ class Analyse(ModuleBase):
 	"""
 	def __init__(self):
 		ModuleBase.__init__(self)
-		self.module_name = "enalyze"
+		self.command_name = "enalyze"
+		self.module_name = "analyze"
 		self.options = {
 			"flags": False,
 			"keywords": False,
@@ -220,12 +221,16 @@ class Analyse(ModuleBase):
 			"Causes the action to analyze the installed packages and the"),
 			("  ",
 			"USE flags they were installed with"),
+			("  unmask",
+			"Causes the action to analyze the installed packages"),
+			("  ",
+			"for those that need to be unmasked")
 		]
 		self.short_opts = "huvpG"
 		self.long_opts = ("help", "unset", "verbose", "prefix") #, "portage")
 		self.need_queries = True
 		self.arg_spec = "Target"
-		self.arg_options = ['use', 'pkguse','keywords', 'packages']
+		self.arg_options = ['use', 'pkguse','keywords', 'packages', 'unmask']
 		self.arg_option = False
 		self.warning = (
 			"   CAUTION",
@@ -248,6 +253,8 @@ class Analyse(ModuleBase):
 			self.analyse_keywords()
 		elif query in ["packages"]:
 			self.analyse_packages()
+		elif query in ["unmask"]:
+			self.analyse_unmask()
 
 	def analyse_flags(self, target):
 		"""This will scan the installed packages db and analyze the
@@ -433,6 +440,14 @@ class Analyse(ModuleBase):
 			print("Total number of installed ebuilds =",
 				pp.output.red(str(len([x for x in cpvs]))))
 			print()
+
+
+	def analyse_unmask(self):
+		"""This will scan the installed packages db and analyze the
+		unmasking used for installation and produce a report on them.
+		"""
+		self.not_implemented("unmask")
+
 
 
 def main(input_args):

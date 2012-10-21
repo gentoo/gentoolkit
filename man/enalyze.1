@@ -1,55 +1,55 @@
-.TH "ENALYZE" "22" "Febuary 2010" "GENTOOLKIT" ""
+.TH "ENALYZE" "1" "Febuary 2010" "GENTOOLKIT" ""
 .SH "NAME"
 enalyze \- Gentoo Installed Package Analysis Tool
 
 .SH "SYNOPSIS"
-.BI "enalyze " "[global\-options] " "module " "[local\-options]" "TARGET"
+.BI "enalyze " "[global\-options] " "module " "[local\-options]" " TARGET"
 
 .SH "DESCRIPTION"
 .B Enalyze
-Is a collection of modules for analyzing the state of installed Gentoo packages for
+is a collection of modules for analyzing the state of installed Gentoo packages for
 USE flags or keywords used for installation, and their current masking status.
-.br 
+.br
 It can also optionally (re)generate new /etc/portage/package.* files.
-.br 
+.br
 
-.br 
+.br
 .B CAUTION:
-This is beta software and is not yet feature complete. Some features, options 
+This is beta software and is not yet feature complete. Some features, options
 may change in the future.   Any files that it generates are saved to your home directory
-and will not harm your system without effort on your part.
-.br 
+and will not harm your system without effort on your part.  It also does not need to be run as root.
+.br
 
 .SH "GLOBAL OPTIONS"
 .HP
 .B \-h, \-\-help
-.br 
+.br
 Output a help message.
 .HP
 .B \-q, \-\-quiet
-.br 
+.br
 Be less verbose where possible. In some modules, this option can increase the output speed.
 .HP
 .B \-C, \-\-no\-color
-.br 
+.br
 Do not colorize output.
 .HP
 .B \-N, \-\-no\-pipe
-.br 
+.br
 Turn off automatic pipe detection. Use this option if you do not want
 .B enalyze
-To detect if the output is being directed to the screen or to another program
+to detect if the output is being directed to the screen or to another program
 and adjust color and verbosity accordingly.
 .HP
 .B \-V, \-\-version
-.br 
+.br
 Display \fBGentoolkit\fP's version. Please include this in all bug reports. (see
 .B BUGS
 below)
 
 .SH "MODULES"
 .B Enalyze
-Uses a system of modules. Each module has both a long and short name. 
+uses a system of modules. Each module has both a long and short name.
 The list below uses the notation "\fBmodule (m)\fP", where \fIm\fP is the short name
 and \fImodule\fP is the long name.
 .P
@@ -69,31 +69,32 @@ Report on all installed packages for \fITARGET\fP.
 .I R "TARGET" ":"
 .HP
 .B use
-.br 
+.br
 Will analyze the installed with USE flags for output results.
 .HP
 .B pkguse
-.br 
-Will analyze the USE flags information from the installed pkg's 'PKGUSE' file which contains 
+.br
+Will analyze the USE flags information from the installed pkg's 'PKGUSE' file which contains
 only flags settings from /etc/portage/package.use at the time of installation.
 .HP
 .B keywords
-.br 
+.br
 Will analyze the recorded keywords for output results.
 .HP
 .B unmask
-.br 
+.br
 Will analyze the installed packages and portage trees for pkgs that require unmasking and report them.
-.br 
+(Not implemented yet)
+.br
 .P
 .I R "LOCAL OPTIONS" ":"
 .HP
 .B \-u, \-\-unset
-.br 
+.br
 Will also include any USE flags used that were not enabled for some packages.
 .HP
-.B \-v, \-\-verebose
-.br 
+.B \-v, \-\-verbose
+.br
 Gives more detail about the results found and the current task being performed.
 
 .P
@@ -102,14 +103,14 @@ Gives more detail about the results found and the current task being performed.
 .HP
 enalyze a \-\-verbose \-\-unset use
 .EE
-.br 
+.br
 Report on all use flags used to install the packages.  (\-\-unset) Include in the report all flags
-that have been used but also were not set enabled for some packages.  
+that have been used but also were not set enabled for some packages.
 (\-\-verbose) Also list the packages that used the USE flag setting.
 The report will break down the useage and report the USE flag up to 3 times indicating its
-setting {"+","\-"," "= unset} prepended to the flag name. 
+setting {"+","\-"," "= unset} prepended to the flag name.
 It will also color the output, red = Disabled, blue = Enabled, plain text = unset
-.br 
+.br
 
 .SS
 .BI "rebuild (r) [OPTIONS] TARGET"
@@ -119,36 +120,36 @@ other than the default settings.
 .I R "TARGET" ":"
 .HP
 .B use
-.br 
+.br
 Will analyze the USE flags for output results.
 .HP
 .B keywords
-.br 
+.br
 Will analyze the keywords for output results.
 .HP
 .B unmask
-.br 
+.br
 Will analyze the installed packages and portage trees for pkgs that require
 unmasking and produce output/a new /etc/portage/package.unmask file.
 .P
 .I R "LOCAL OPTIONS" ":"
 .HP
 .B \-a, \-\-all
-.br 
-Create files/output for all TARGET(s) found to need it. (not Implemented yet)
+.br
+Create files/output for all TARGET(s) found to need it. (Not implemented yet)
 .HP
-.B \-e, \-\-excact
-.br 
+.B \-e, \-\-exact
+.br
 Will prepend the pkg with = as well as use the version information for the entries.
-.br 
-eg.:  =CAT/PKG\-VER flag1 flag2
+.br
+e.g.:  =CAT/PKG\-VER flag1 flag2
 .HP
 .B \-p, \-\-pretend
-.br 
+.br
 Sends the output to the screen instead of a file.
 .HP
-.B \-v, \-\-verebose
-.br 
+.B \-v, \-\-verbose
+.br
 Gives more detail about the results found and the current task being performed.
 .P
 .I R "EXAMPLES" ":"
@@ -156,49 +157,49 @@ Gives more detail about the results found and the current task being performed.
 .HP
 enalyze rebuild \-p use
 .EE
-.br 
+.br
 Analyze the installed packages database and current system USE flag settings
  and output the results in the form of:
-.br 
-   
-.br 
+.br
+
+.br
 .EX
 CAT/PKG \-flag1 \-flag2 flag3 flag4...
 
 .SS
 .BI "clean (c) [OPTIONS] TARGET"
 Clean all packages for \fITARGET\fP settings that are found with obsolete settings
-for the current settings and pkg ebuild. (not Implemented yet)
+for the current settings and pkg ebuild. (Not implemented yet)
 
 .I R "TARGET" ":"
 .HP
 .B use
-.br 
+.br
 Will analyze the USE flags and /etc/portage/package.use file(s) for entries that
 are redundant or no longer used by the pkg.
 .HP
 .B keywords
-.br 
+.br
 Will analyze the keywords and /etc/portage/package.keywords file(s) for entries
 that are no longer needed.
 .HP
 .B unmask
-.br 
+.br
 Will analyze the installed packages, /etc/portage/package.unmask file(s) and
 portage trees for pkgs that no longer require unmasking.
 .P
 .I R "LOCAL OPTIONS" ":"
 .HP
 .B \-a, \-\-all
-.br 
-Clean files/output for all TARGET(s) found to need it. (not Implemented yet)
+.br
+Clean files/output for all TARGET(s) found to need it. (not implemented yet)
 .HP
 .B \-p, \-\-pretend
-.br 
+.br
 Sends the output to the screen instead of a file.
 .HP
-.B \-v, \-\-verebose
-.br 
+.B \-v, \-\-verbose
+.br
 Gives more detail about the results found and the current task being performed.
 
 
@@ -206,5 +207,5 @@ Gives more detail about the results found and the current task being performed.
 Submit bug reports to http://bugs.gentoo.org.
 
 .SH "AUTHORS"
-.br 
-Brian Dolbec <brian.dolbec@gmail.com>, 2010
+.br
+Brian Dolbec <dolsen@gentoo.org>, 2010
