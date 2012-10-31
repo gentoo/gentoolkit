@@ -178,7 +178,9 @@ class OutputControl(object):
 		@param pkgs: dict. of {cat/pkg-ver: src_uri,}
 		"""
 		indent = ' ' * 12
-		for key in pkgs:
+		keys = pkgs.keys()
+		keys.sort()
+		for key in keys:
 			if pkgs[key]:
 				saved = ""
 			else:
