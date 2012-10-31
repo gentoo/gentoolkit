@@ -178,7 +178,7 @@ class OutputControl(object):
 		@param pkgs: dict. of {cat/pkg-ver: src_uri,}
 		"""
 		indent = ' ' * 12
-		keys = pkgs.keys()
+		keys = list(pkgs.keys())
 		keys.sort()
 		for key in keys:
 			if pkgs[key]:
