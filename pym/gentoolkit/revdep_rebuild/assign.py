@@ -13,48 +13,48 @@ import portage
 from portage.versions import catpkgsplit
 from portage import portdb
 from portage.output import bold, red, yellow
+from gentoolkit.helpers import get_installed_cpvs
+from gentoolkit.package import Package
 
-# ignore these files or directories if found
-IGNORED = ['.cache', 'world', 'world~', 'world.bak']
+# Make all str conversions unicode
+try:
+	str = unicode
+except NameError:
+	pass
 
 def assign_packages(broken, logger, settings):
 	''' Finds and returns packages that owns files placed in broken.
 		Broken is list of files
 	'''
 	assigned = set()
-	for group in os.listdir(settings['PKG_DIR']):
-		if group in IGNORED:
-			continue
-		elif os.path.isfile(settings['PKG_DIR'] + group):
-			if not group.startswith('.keep_'):
-				logger.warn(yellow(" * Invalid category found in the installed pkg db: ") +
-					bold(settings['PKG_DIR'] + group))
-			continue
-		for pkg in os.listdir(settings['PKG_DIR'] + group):
-			if '-MERGING-' in pkg:
-				logger.warn(yellow(" * Invalid/incomplete package merge found in the installed pkg db: ") +
-						bold(settings['PKG_DIR'] + pkg))
-				continue
-			_file = settings['PKG_DIR'] + group + '/' + pkg + '/CONTENTS'
-			if os.path.exists(_file):
-				try:
-					with open(_file, 'r') as cnt:
-						for line in cnt:
-							matches = re.match('^obj (/[^ ]+)', line)
-							if matches is not None:
-								match = matches.group(1)
-								if match in broken:
-									found = group+'/'+pkg
-									if found not in assigned:
-										assigned.add(found)
-									logger.info('\t' + match + ' -> '
-										+ bold(found))
-				except Exception as ex:
-					logger.warn(red(' !! Failed to read ' + _file) +
-						" Original exception was:\n" + str(ex))
+	if not broken:
+		return assigned
+
+	pkgset = set(get_installed_cpvs())
+
+	# Map all files in CONTENTS database to package names
+	fname_pkg_dict = {}
+	for pkg in pkgset:
+		contents = Package(pkg).parsed_contents()
+		for fname in contents.keys():
+			if contents[fname][0] == "obj":
+				fname_pkg_dict[fname] = str(pkg)
+
+	for fname in broken:
+		realname = os.path.realpath(fname)
+		if realname in fname_pkg_dict.keys():
+			pkgname = fname_pkg_dict[realname]
+		elif fname in fname_pkg_dict.keys():
+			pkgname = fname_pkg_dict[fname]
+		else:
+			pkgname = None
+		if pkgname and pkgname not in assigned:
+			assigned.add(pkgname)
+		if not pkgname:
+			pkgname = "(none)"
+		logger.info('\t' + fname + ' -> ' + bold(pkgname))
 
 	return assigned
-
 
 def get_best_match(cpv, cp, logger):
 	"""Tries to find another version of the pkg with the same slot
