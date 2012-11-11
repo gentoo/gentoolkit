@@ -425,7 +425,7 @@ class PackageFormatter(object):
 		...     # Only print packages that are installed and from the Portage
 		...     # tree
 		...     if set('IP').issubset(pkg.location):
-		...             print pkg
+		...             print(pkg)
 		...
 		[IP-] [  ] sys-devel/gcc-4.3.2-r3 (4.3)
 
