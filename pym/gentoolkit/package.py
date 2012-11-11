@@ -170,12 +170,13 @@ class Package(CPV):
 			CONTENTS   EAPI            LDFLAGS    SLOT
 
 		Example usage:
-			>>> pkg = Package('sys-apps/portage-2.1.6.13')
+			>>> pkg = Package('sys-apps/portage-9999')
 			>>> pkg.environment('USE')
-			'elibc_glibc kernel_linux userland_GNU x86'
+			''
 			>>> pkg.environment(('USE', 'IUSE'))
-			['elibc_glibc kernel_linux userland_GNU x86',
-				'build doc epydoc selinux linguas_pl']
+			... # doctest: +NORMALIZE_WHITESPACE
+			['', 'build doc epydoc +ipc pypy1_9 python2 python3
+			 selinux xattr']
 
 		@type envvars: str or array
 		@param envvars: one or more of (DEPEND, SRC_URI, etc.)
