@@ -299,10 +299,11 @@ class Package(CPV):
 		"""Returns the complete path to the .ebuild file.
 
 		Example usage:
+			>>> pkg = Package('sys-apps/portage-9999')
 			>>> pkg.ebuild_path()
-			'/usr/portage/sys-apps/portage/portage-2.1.6.13.ebuild'
+			'/usr/portage/sys-apps/portage/portage-9999.ebuild'
 			>>> pkg.ebuild_path(in_vartree=True)
-			'/var/db/pkg/sys-apps/portage-2.1.6.13/portage-2.1.6.13.ebuild'
+			'/var/db/pkg/sys-apps/portage-9999/portage-9999.ebuild'
 		"""
 
 		if in_vartree:
