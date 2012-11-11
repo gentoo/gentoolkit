@@ -124,9 +124,9 @@ class Package(CPV):
 			)
 			try:
 				self._metadata = MetaData(metadata_path)
-			except IOError as e:
+			except IOError as error:
 				import errno
-				if e.errno != errno.ENOENT:
+				if error.errno != errno.ENOENT:
 					raise
 				return None
 
