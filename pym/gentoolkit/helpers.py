@@ -312,11 +312,11 @@ class FileOwner(object):
 
 		osp = os.path
 		expanded_paths = []
-		for p in paths:
-			if p.startswith('./'):
-				expanded_paths.append(osp.abspath(p))
+		for path in paths:
+			if path.startswith('./'):
+				expanded_paths.append(osp.abspath(path))
 			else:
-				expanded_paths.append(p)
+				expanded_paths.append(path)
 
 		return expanded_paths
 
