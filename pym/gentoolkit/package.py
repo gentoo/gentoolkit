@@ -418,16 +418,21 @@ class PackageFormatter(object):
 	information can then be easily formatted and displayed.
 
 	Example usage:
-		>>> from gentoolkit.helpers import find_packages
+		>>> from gentoolkit.query import Query
 		>>> from gentoolkit.package import PackageFormatter
-		>>> pkgs = [PackageFormatter(x) for x in find_packages('gcc')]
+		>>> import portage.output
+		>>> q = Query('gcc')
+		>>> pkgs = [PackageFormatter(x) for x in q.find()]
+		>>> havecolor = portage.output.havecolor
+		>>> portage.output.havecolor = False
 		>>> for pkg in pkgs:
 		...     # Only print packages that are installed and from the Portage
 		...     # tree
 		...     if set('IP').issubset(pkg.location):
 		...             print(pkg)
 		...
-		[IP-] [  ] sys-devel/gcc-4.3.2-r3 (4.3)
+		[IP-] [  ] sys-devel/gcc-4.5.4:4.5
+		>>> portage.output.havecolor = havecolor
 
 	@type pkg: L{gentoolkit.package.Package}
 	@param pkg: package to format
