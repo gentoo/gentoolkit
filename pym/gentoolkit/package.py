@@ -366,9 +366,9 @@ class Package(CPV):
 
 		seen = set()
 		size = n_files = n_uncounted = 0
-		for f in self.parsed_contents():
+		for path in self.parsed_contents():
 			try:
-				st = os.lstat(f)
+				st = os.lstat(path)
 			except OSError:
 				continue
 
