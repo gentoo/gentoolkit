@@ -198,26 +198,36 @@ class Package(CPV):
 			envvars = (envvars,)
 		if prefer_vdb:
 			try:
-				result = portage.db[portage.root]["vartree"].dbapi.aux_get(self.cpv, envvars)
+				result = portage.db[portage.root][
+					'vartree'].dbapi.aux_get(
+					self.cpv, envvars)
 			except KeyError:
 				try:
 					if not fallback:
 						raise KeyError
-					result = portage.db[portage.root]["porttree"].dbapi.aux_get(self.cpv, envvars)
+					result = portage.db[portage.root][
+						'porttree'].dbapi.aux_get(
+						self.cpv, envvars)
 				except KeyError:
-					err = "aux_get returned unexpected results"
-					raise errors.GentoolkitFatalError(err)
+					raise errors.GentoolkitFatalError(
+						'aux_get returned unexpected '
+						'results')
 		else:
 			try:
-				result = portage.db[portage.root]["porttree"].dbapi.aux_get(self.cpv, envvars)
+				result = portage.db[portage.root][
+					'porttree'].dbapi.aux_get(
+					self.cpv, envvars)
 			except KeyError:
 				try:
 					if not fallback:
 						raise KeyError
-					result = portage.db[portage.root]["vartree"].dbapi.aux_get(self.cpv, envvars)
+					result = portage.db[portage.root][
+						'vartree'].dbapi.aux_get(
+						self.cpv, envvars)
 				except KeyError:
-					err = "aux_get returned unexpected results"
-					raise errors.GentoolkitFatalError(err)
+					raise errors.GentoolkitFatalError(
+						'aux_get returned unexpected '
+						'results')
 
 		if got_string:
 			return result[0]
@@ -399,7 +409,8 @@ class Package(CPV):
 		@note: We blindly assume that the package actually exists on disk.
 		"""
 
-		unmasked = portage.db[portage.root]["porttree"].dbapi.xmatch("match-visible", self.cpv)
+		unmasked = portage.db[portage.root]['porttree'].dbapi.xmatch(
+			'match-visible', self.cpv)
 		return self.cpv not in unmasked
 
 
