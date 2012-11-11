@@ -388,11 +388,16 @@ def get_cpvs(predicate=None, include_installed=True):
 	"""
 
 	if predicate:
-		all_cps = iter(x for x in portage.db[portage.root]["porttree"].dbapi.cp_all() if predicate(x))
+		all_cps = iter(
+			x for x
+			in portage.db[portage.root]["porttree"].dbapi.cp_all()
+			if predicate(x))
 	else:
 		all_cps = portage.db[portage.root]["porttree"].dbapi.cp_all()
 
-	all_cpvs = chain.from_iterable(portage.db[portage.root]["porttree"].dbapi.cp_list(x) for x in all_cps)
+	all_cpvs = chain.from_iterable(
+		portage.db[portage.root]["porttree"].dbapi.cp_list(x)
+		for x in all_cps)
 	all_installed_cpvs = set(get_installed_cpvs(predicate))
 
 	if include_installed:
@@ -424,11 +429,17 @@ def get_installed_cpvs(predicate=None):
 	"""
 
 	if predicate:
-		installed_cps = iter(x for x in portage.db[portage.root]["vartree"].dbapi.cp_all() if predicate(x))
+		installed_cps = iter(
+			x for x
+			in portage.db[portage.root]["vartree"].dbapi.cp_all()
+			if predicate(x))
 	else:
-		installed_cps = portage.db[portage.root]["vartree"].dbapi.cp_all()
+		installed_cps = (
+			portage.db[portage.root]["vartree"].dbapi.cp_all())
 
-	for cpv in chain.from_iterable(portage.db[portage.root]["vartree"].dbapi.cp_list(x) for x in installed_cps):
+	for cpv in chain.from_iterable(
+		portage.db[portage.root]["vartree"].dbapi.cp_list(x)
+		for x in installed_cps):
 		yield cpv
 
 
@@ -443,11 +454,17 @@ def get_bintree_cpvs(predicate=None):
 	"""
 
 	if predicate:
-		installed_cps = iter(x for x in portage.db[portage.root]["bintree"].dbapi.cp_all() if predicate(x))
+		installed_cps = iter(
+			x for x
+			in portage.db[portage.root]["bintree"].dbapi.cp_all()
+			if predicate(x))
 	else:
-		installed_cps = portage.db[portage.root]["bintree"].dbapi.cp_all()
+		installed_cps = (
+			portage.db[portage.root]["bintree"].dbapi.cp_all())
 
-	for cpv in chain.from_iterable(portage.db[portage.root]["bintree"].dbapi.cp_list(x) for x in installed_cps):
+	for cpv in chain.from_iterable(
+		portage.db[portage.root]["bintree"].dbapi.cp_list(x)
+		for x in installed_cps):
 		yield cpv
 
 
