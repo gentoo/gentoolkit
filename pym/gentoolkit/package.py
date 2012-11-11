@@ -13,13 +13,13 @@ tree and VARDB (/var/db/), provide rich comparison and sorting, and expose
 important parts of Portage's back-end.
 
 Example usage:
-	>>> portage = Package('sys-apps/portage-2.1.6.13')
+	>>> portage = Package('sys-apps/portage-9999')
 	>>> portage.ebuild_path()
-	'/usr/portage/sys-apps/portage/portage-2.1.6.13.ebuild'
+	'/usr/portage/sys-apps/portage/portage-9999.ebuild'
 	>>> portage.is_masked()
-	False
-	>>> portage.is_installed()
 	True
+	>>> portage.is_installed()
+	False
 """
 
 __all__ = (
