@@ -26,7 +26,6 @@ __docformat__ = 'epytext'
 # =======
 
 import os
-import sys
 import re
 import codecs
 from functools import partial
