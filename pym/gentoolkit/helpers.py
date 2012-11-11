@@ -223,8 +223,8 @@ class FileOwner(object):
 	Example usage:
 		>>> from gentoolkit.helpers import FileOwner
 		>>> findowner = FileOwner()
-		>>> findowner(('/usr/bin/vim',))
-		[(<Package app-editors/vim-7.2.182>, '/usr/bin/vim')]
+		>>> findowner(('/bin/grep',))
+		[(<Package 'sys-apps/grep-2.12'>, '/bin/grep')]
 	"""
 	def __init__(self, is_regex=False, early_out=False, printer_fn=None):
 		"""Instantiate function.
