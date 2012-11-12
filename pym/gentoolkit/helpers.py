@@ -51,11 +51,12 @@ class ChangeLog(object):
 	Example usage:
 		>>> from gentoolkit.helpers import ChangeLog
 		>>> portage = ChangeLog('/usr/portage/sys-apps/portage/ChangeLog')
-		>>> print portage.latest.strip()
-		*portage-2.2_rc50 (15 Nov 2009)
-
-		  15 Nov 2009; Zac Medico <zmedico@gentoo.org> +portage-2.2_rc50.ebuild:
-		  2.2_rc50 bump. This includes all fixes in 2.1.7.5.
+		>>> print(portage.latest.strip())
+		*portage-2.2.0_alpha142 (26 Oct 2012)
+		<BLANKLINE>
+		  26 Oct 2012; Zac Medico <zmedico@gentoo.org> +portage-2.2.0_alpha142.ebuild:
+		  2.2.0_alpha142 version bump. This includes all of the fixes in 2.1.11.31. Bug
+		  #210077 tracks all bugs fixed since portage-2.1.x.
 		>>> len(portage.full)
 		75
 		>>> len(portage.entries_matching_range(
