@@ -16,11 +16,6 @@ from tempfile import NamedTemporaryFile, mkdtemp
 import unittest
 import re
 
-try:
-	from test import test_support
-except ImportError:
-	from test import support as test_support
-
 from gentoolkit.test.eclean.distsupport import *
 import gentoolkit.eclean.search as search
 from gentoolkit.eclean.search import DistfilesSearch
@@ -618,14 +613,13 @@ class TestRemoveProtected(unittest.TestCase):
 
 
 def test_main():
-
-	# Run tests
-	test_support.run_unittest(TestCheckLimits('test_check_limits'))
-	test_support.run_unittest( TestFetchRestricted('test__fetch_restricted'))
-	test_support.run_unittest( TestFetchRestricted('test_unrestricted'))
-	test_support.run_unittest( TestNonDestructive('test_non_destructive'))
-	test_support.run_unittest( TestNonDestructive('test_destructive'))
-	test_support.run_unittest( TestRemoveProtected('test_remove_protected'))
+	suite = unittest.TestLoader()
+	suite.loadTestsFromTestCase(TestCheckLimits)
+	suite.loadTestsFromTestCase(TestFetchRestricted)
+	suite.loadTestsFromTestCase(TestNonDestructive)
+	suite.loadTestsFromTestCase(TestRemoveProtected)
+	unittest.TextTestRunner(verbosity=2).run(suite)
+test_main.__test__ = False
 
 
 if __name__ == '__main__':
