@@ -373,7 +373,7 @@ def get_cpvs(predicate=None, include_installed=True):
 		>>> len(set(get_cpvs()))
 		26065
 		>>> fn = lambda x: x.startswith('app-portage')
-		>>> len(get_cpvs(fn, include_installed=False))
+		>>> len(set(get_cpvs(fn, include_installed=False)))
 		112
 
 	@type predicate: function
