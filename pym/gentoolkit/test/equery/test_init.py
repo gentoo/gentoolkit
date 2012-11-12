@@ -1,8 +1,4 @@
 import unittest
-try:
-	from test import test_support
-except ImportError:
-	from test import support as test_support
 
 from gentoolkit import equery
 
@@ -44,7 +40,9 @@ class TestEqueryInit(unittest.TestCase):
 
 
 def test_main():
-	test_support.run_unittest(TestEqueryInit)
+	suite = unittest.TestLoader().loadTestsFromTestCase(TestEqueryInit)
+	unittest.TextTestRunner(verbosity=2).run(suite)
+test_main.__test__ = False
 
 
 if __name__ == '__main__':
