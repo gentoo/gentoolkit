@@ -371,10 +371,10 @@ def get_cpvs(predicate=None, include_installed=True):
 	Example usage:
 		>>> from gentoolkit.helpers import get_cpvs
 		>>> len(set(get_cpvs()))
-		26065
+		33518
 		>>> fn = lambda x: x.startswith('app-portage')
 		>>> len(set(get_cpvs(fn, include_installed=False)))
-		112
+		137
 
 	@type predicate: function
 	@param predicate: a function to filter the package list with
