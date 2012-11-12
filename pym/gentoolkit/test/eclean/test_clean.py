@@ -19,10 +19,6 @@ import os
 import sys
 
 import gentoolkit.pprinter as pp
-try:
-	from test import test_support
-except ImportError:
-	from test import support as test_support
 
 from gentoolkit.eclean.clean import CleanUp
 
