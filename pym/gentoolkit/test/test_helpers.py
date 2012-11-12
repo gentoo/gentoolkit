@@ -115,7 +115,11 @@ class TestFileOwner(unittest.TestCase):
 
 
 def test_main():
-	test_support.run_unittest(TestGentoolkitHelpers2)
+	suite = unittest.TestLoader()
+	suite.loadTestsFromTestCase(TestChangeLog)
+	suite.loadTestsFromTestCase(TestFileOwner)
+	unittest.TextTestRunner(verbosity=2).run(suite)
+test_main.__test__ = False
 
 
 if __name__ == '__main__':
