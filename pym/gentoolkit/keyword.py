@@ -95,8 +95,11 @@ def reduce_keywords(keywords):
 	"""Reduce a list of keywords to a unique set of stable keywords.
 
 	Example usage:
-		>>> reduce_keywords(['~amd64', 'x86', '~x86'])
-		set(['amd64', 'x86'])
+		>>> kw = reduce_keywords(['~amd64', 'x86', '~x86'])
+		>>> isinstance(kw, set)
+		True
+		>>> sorted(kw)
+		['amd64', 'x86']
 
 	@type keywords: array
 	@rtype: set
