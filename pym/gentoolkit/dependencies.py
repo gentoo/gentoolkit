@@ -31,12 +31,14 @@ class Dependencies(Query):
 
 	Example usage:
 		>>> from gentoolkit.dependencies import Dependencies
-		>>> portage = Dependencies('sys-apps/portage-2.1.6.13')
+		>>> portage = Dependencies('sys-apps/portage-9999')
 		>>> portage
-		<Dependencies 'sys-apps/portage-2.1.6.13'>
+		<Dependencies 'sys-apps/portage-9999'>
 		>>> # All methods return gentoolkit.atom.Atom instances
 		... portage.get_depend()
-		[<Atom '>=dev-lang/python-2.5'>, <Atom '<dev-lang/python-3.0'>, ...]
+		... # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+		[<Atom 'python3? =dev-lang/python-3*'>,
+		 <Atom '!python3? >=dev-lang/python-2.7'>, ...]
 
 	"""
 	def __init__(self, query, parser=None):
