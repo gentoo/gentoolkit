@@ -12,7 +12,7 @@
 		>>> pkg_md
 		<MetaData '/usr/portage/app-misc/gourmet/metadata.xml'>
 		>>> pkg_md.herds()
-		['no-herd']
+		[]
 		>>> for maint in pkg_md.maintainers():
 		...     print('{0} ({1})'.format(maint.email, maint.name))
 		...
