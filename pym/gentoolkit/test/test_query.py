@@ -1,10 +1,6 @@
 import unittest
 import warnings
 from tempfile import NamedTemporaryFile, mktemp
-try:
-	from test import test_support
-except ImportError:
-	from test import support as test_support
 
 from gentoolkit import query
 from gentoolkit import errors
@@ -102,7 +98,9 @@ class TestQuery(unittest.TestCase):
 
 
 def test_main():
-	test_support.run_unittest(TestGentoolkitHelpers2)
+	suite = unittest.TestLoader().loadTestsFromTestCase(TestQuery)
+	unittest.TextTestRunner(verbosity=2).run(suite)
+test_main.__test__ = False
 
 
 if __name__ == '__main__':
