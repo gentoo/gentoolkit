@@ -192,18 +192,18 @@ class Dependencies(Query):
 
 		Example usage:
 			>>> from gentoolkit.dependencies import Dependencies
-			>>> ffmpeg = Dependencies('media-video/ffmpeg-0.5_p20373')
+			>>> ffmpeg = Dependencies('media-video/ffmpeg-9999')
 			>>> # I only care about installed packages that depend on me:
 			... from gentoolkit.helpers import get_installed_cpvs
 			>>> # I want to pass in a sorted list. We can pass strings or
 			... # Package or Atom types, so I'll use Package to sort:
 			... from gentoolkit.package import Package
-			>>> installed = sorted(Package(x) for x in get_installed_cpvs())
+			>>> installed = sorted(get_installed_cpvs())
 			>>> deptree = ffmpeg.graph_reverse_depends(
 			...     only_direct=False,  # Include indirect revdeps
 			...     pkgset=installed)   # from installed pkgset
 			>>> len(deptree)
-			44
+			24
 
 		@type pkgset: iterable
 		@keyword pkgset: sorted pkg cpv strings or anything sublassing
