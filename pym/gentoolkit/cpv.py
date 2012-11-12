@@ -178,6 +178,7 @@ def compare_strs(pkg1, pkg2):
 	as: package_list.sort(cpv.compare_strs)
 
 	An alternative is to use the CPV descriptor from gentoolkit.cpv:
+	>>> package_list = ['sys-apps/portage-9999', 'media-video/ffmpeg-9999']
 	>>> cpvs = sorted(CPV(x) for x in package_list)
 
 	@see: >>> help(cmp)
