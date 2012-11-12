@@ -2,10 +2,6 @@ import sys
 import unittest
 import warnings
 from tempfile import NamedTemporaryFile
-try:
-	from test import test_support
-except ImportError:
-	from test import support as test_support
 
 from gentoolkit import keyword
 from gentoolkit.test import cmp
@@ -50,7 +46,10 @@ class TestGentoolkitKeyword(unittest.TestCase):
 
 
 def test_main():
-	test_support.run_unittest(TestGentoolkitHelpers2)
+	suite = unittest.TestLoader().loadTestsFromTestCase(
+		TestGentoolkitKeyword)
+	unittest.TextTestRunner(verbosity=2).run(suite)
+test_main.__test__ = False
 
 
 if __name__ == '__main__':
