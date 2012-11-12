@@ -75,6 +75,7 @@ def compare_strs(kw1, kw2):
 	as: keyword_list.sort(keyword.compare_strs)
 
 	An alternative is to use the Keyword descriptor directly:
+	>>> keyword_list = ['~x86', '~amd64', 'x86']
 	>>> kwds = sorted(Keyword(x) for x in keyword_list)
 
 	@see: >>> help(cmp)
