@@ -23,10 +23,12 @@
 		rtf -> Enable export to RTF
 		gnome-print -> Enable pretty Python printing with gnome-print
 		>>> upstream = pkg_md.upstream()
-		>>> upstream
-		[<_Upstream {'docs': [], 'remoteid': [], 'maintainer':
-		 [<_Maintainer 'Thomas_Hinkle@alumni.brown.edu'>], 'bugtracker': [],
-		 'changelog': []}>]
+		>>> upstream  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
+		[<_Upstream {'node': <Element 'upstream' at 0x...>,
+		  'remoteids': [], 'docs': [],
+		  'maintainers':
+		  [<_Maintainer 'Thomas_Hinkle@alumni.brown.edu'>],
+		  'changelogs': [], 'bugtrackers': []}>]
 		>>> upstream[0].maintainer[0].name
 		'Thomas Mills Hinkle'
 """
