@@ -21,7 +21,7 @@
 		...     print(flag.name, '->', flag.description)
 		...
 		rtf -> Enable export to RTF
-		gnome-print -> Enable printing support using gnome-print
+		gnome-print -> Enable pretty Python printing with gnome-print
 		>>> upstream = pkg_md.upstream()
 		>>> upstream
 		[<_Upstream {'docs': [], 'remoteid': [], 'maintainer':
