@@ -58,12 +58,11 @@ class ChangeLog(object):
 		  2.2.0_alpha142 version bump. This includes all of the fixes in 2.1.11.31. Bug
 		  #210077 tracks all bugs fixed since portage-2.1.x.
 		>>> len(portage.full)
-		75
+		270
 		>>> len(portage.entries_matching_range(
-		...     from_ver='2.2_rc40',
-		...     to_ver='2.2_rc50'))
-		11
-
+		...     from_ver='2.1.11.31',
+		...     to_ver='9999'))
+		140
 	"""
 	def __init__(self, changelog_path, invalid_entry_is_fatal=False):
 		if not (os.path.isfile(changelog_path) and
