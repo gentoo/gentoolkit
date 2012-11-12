@@ -27,7 +27,10 @@ class TestForSyntaxErrors(unittest.TestCase):
 
 
 def test_main():
-	test_support.run_unittest(TestGentoolkitHelpers2)
+	suite = unittest.TestLoader().loadTestsFromTestCase(
+		TestForSyntaxErrors)
+	unittest.TextTestRunner(verbosity=2).run(suite)
+test_main.__test__ = False
 
 
 if __name__ == '__main__':
