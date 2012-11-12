@@ -29,7 +29,7 @@
 		  'maintainers':
 		  [<_Maintainer 'Thomas_Hinkle@alumni.brown.edu'>],
 		  'changelogs': [], 'bugtrackers': []}>]
-		>>> upstream[0].maintainer[0].name
+		>>> upstream[0].maintainers[0].name
 		'Thomas Mills Hinkle'
 """
 
