@@ -14,11 +14,11 @@
 		>>> pkg_md.herds()
 		['no-herd']
 		>>> for maint in pkg_md.maintainers():
-		...     print "{0} ({1})".format(maint.email, maint.name)
+		...     print('{0} ({1})'.format(maint.email, maint.name))
 		...
 		nixphoeni@gentoo.org (Joe Sapp)
 		>>> for flag in pkg_md.use():
-		...     print flag.name, "->", flag.description
+		...     print(flag.name, '->', flag.description)
 		...
 		rtf -> Enable export to RTF
 		gnome-print -> Enable printing support using gnome-print
