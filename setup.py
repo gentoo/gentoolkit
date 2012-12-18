@@ -14,7 +14,7 @@ import io
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'pym'))
 
-__version__ = os.getenv('VERSION', default='9999')
+__version__ = os.getenv('VERSION', default=os.getenv('PVR', default='9999'))
 
 cwd = os.getcwd()
 
