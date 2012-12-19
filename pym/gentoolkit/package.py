@@ -58,16 +58,14 @@ from gentoolkit.eprefix import EPREFIX
 # Settings
 # =======
 
-if EPREFIX:
-	default_settings = portage.config(local_config=True, eprefix=EPREFIX)
-	default_settings.lock()
-	nolocal_settings = portage.config(local_config=False, eprefix=EPREFIX)
-	nolocal_settings.lock()
-else:
-	default_settings = portage.config(local_config=True)
-	default_settings.lock()
-	nolocal_settings = portage.config(local_config=False)
-	nolocal_settings.lock()
+def _NewPortageConfig(local_config):
+	ret = portage.config(local_config=local_config,
+			eprefix=EPREFIX if EPREFIX else None,
+			target_root=os.environ.get('ROOT', None))
+	ret.lock()
+	return ret
+default_settings = _NewPortageConfig(local_config=True)
+nolocal_settings = _NewPortageConfig(local_config=False)
 
 # =======
 # Classes
@@ -350,14 +348,25 @@ class Package(CPV):
 		iuse, final_flags = get_flags(self.cpv, final_setting=True)
 		return final_flags
 
-	def parsed_contents(self):
+	def parsed_contents(self, prefix_root=False):
 		"""Returns the parsed CONTENTS file.
 
 		@rtype: dict
 		@return: {'/full/path/to/obj': ['type', 'timestamp', 'md5sum'], ...}
 		"""
 
-		return self.dblink.getcontents()
+		contents = self.dblink.getcontents()
+
+		# Portage will automatically prepend ROOT.  Undo that.
+		if not prefix_root:
+			myroot = self._settings["ROOT"]
+			if myroot != '/':
+				ret = {}
+				for key, val in self.dblink.getcontents().iteritems():
+					ret['/' + os.path.relpath(key, myroot)] = val
+				contents = ret
+
+		return contents
 
 	def size(self):
 		"""Estimates the installed size of the contents of this package.
@@ -368,7 +377,7 @@ class Package(CPV):
 
 		seen = set()
 		size = n_files = n_uncounted = 0
-		for path in self.parsed_contents():
+		for path in self.parsed_contents(prefix_root=True):
 			try:
 				st = os.lstat(path)
 			except OSError:

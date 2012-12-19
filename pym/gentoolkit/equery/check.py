@@ -105,26 +105,27 @@ class VerifyContents(object):
 		for cfile in files:
 			n_checked += 1
 			ftype = files[cfile][0]
-			if not os.path.exists(cfile):
+			real_cfile = os.environ.get('ROOT', '') + cfile
+			if not os.path.exists(real_cfile):
 				errs.append("%s does not exist" % cfile)
 				continue
 			elif ftype == "dir":
-				if not os.path.isdir(cfile):
+				if not os.path.isdir(real_cfile):
 					err = "%(cfile)s exists, but is not a directory"
 					errs.append(err % locals())
 					continue
 			elif ftype == "obj":
-				obj_errs = self._verify_obj(files, cfile, errs)
+				obj_errs = self._verify_obj(files, cfile, real_cfile, errs)
 				if len(obj_errs) > len(errs):
 					errs = obj_errs[:]
 					continue
 			elif ftype == "sym":
 				target = files[cfile][2].strip()
-				if not os.path.islink(cfile):
+				if not os.path.islink(real_cfile):
 					err = "%(cfile)s exists, but is not a symlink"
 					errs.append(err % locals())
 					continue
-				tgt = os.readlink(cfile)
+				tgt = os.readlink(real_cfile)
 				if tgt != target:
 					err = "%(cfile)s does not point to %(target)s"
 					errs.append(err % locals())
@@ -137,14 +138,14 @@ class VerifyContents(object):
 
 		return n_passed, n_checked, errs
 
-	def _verify_obj(self, files, cfile, errs):
+	def _verify_obj(self, files, cfile, real_cfile, errs):
 		"""Verify the MD5 sum and/or mtime and return any errors."""
 
 		obj_errs = errs[:]
 		if self.check_sums:
 			md5sum = files[cfile][2]
 			try:
-				cur_checksum = checksum.perform_md5(cfile, calc_prelink=1)
+				cur_checksum = checksum.perform_md5(real_cfile, calc_prelink=1)
 			except IOError:
 				err = "Insufficient permissions to read %(cfile)s"
 				obj_errs.append(err % locals())
@@ -155,7 +156,7 @@ class VerifyContents(object):
 				return obj_errs
 		if self.check_timestamps:
 			mtime = int(files[cfile][1])
-			st_mtime = int(os.lstat(cfile).st_mtime)
+			st_mtime = int(os.lstat(real_cfile).st_mtime)
 			if st_mtime != mtime:
 				err = (
 					"%(cfile)s has wrong mtime (is %(st_mtime)d, should be "
