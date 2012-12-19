@@ -85,7 +85,7 @@ def print_help(with_description=True):
         ("              TMPL",
 			"a format template using (see man page):")
 	)))
-	print(" " * 24, ', '.join(pp.emph(x) for x in FORMAT_TMPL_VARS))			
+	print(" " * 24, ', '.join(pp.emph(x) for x in FORMAT_TMPL_VARS))
 
 
 def get_duplicates(matches):

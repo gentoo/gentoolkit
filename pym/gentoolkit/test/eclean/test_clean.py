@@ -26,7 +26,7 @@ from gentoolkit.eclean.clean import CleanUp
 class Controllers(object):
 	"""Contains controller methods for use in testing
 	the clean module methods"""
-	
+
 	def __init__(self):
 		self.gathered_data = []
 		self.authorize = True
@@ -35,7 +35,7 @@ class Controllers(object):
 
 	def authorize_all_controller(self, size, key, clean_list):
 		"""data gatherering controller.
-		
+
 		@rtype: Boolean
 		@returns: self.authorize which controls the cleaning method
 		"""
@@ -45,18 +45,18 @@ class Controllers(object):
 	def authorize_list_controller(self, size, key, clean_list):
 		"""data gathering and controller which
 		authorizes acoring to a pre-determined list
-		
+
 		@rtype: Boolean
 		@return self.authorize_list[self.authorize_index]"""
 		self.gathered_data.append([size, key, clean_list])
 		index = self.authorize_index
 		self.authorize_index =+ 1
 		return self.authorize_list[index]
-		
+
 
 #class TestCleanUp(unittest.TestCase):
 #	"""Test module for the various CleanUp class methods
-#	
+#
 #	@param options: dict of module options
 #	@param testdata: dict. of path and test parameters
 #			as created by the TestDirCreation class"""
@@ -64,7 +64,7 @@ class Controllers(object):
 #	def __init__(self, options, testdata):
 #		self.options = options
 #		self.tesdata = testdata
-#		
+#
 #
 #	def test_symlink_clean():
 #		"""Tests the symbolic link portion of the distfiles
@@ -88,7 +88,7 @@ class Controllers(object):
 #		clean = CleanUp(controller)
 #		clean.pretend_clean(self.dist_clean)
 #		data = controller.gathered_data
-		
+
 
 
 def useage():
@@ -114,7 +114,7 @@ def useage():
 
 def parse_opts():
 	"""Parse the options dict
-	
+
 	@return options: dictionary of module options"""
 	try:
 		opts, args = getopt(sys.argv[1:], 'acDkpPS', ["version",
@@ -131,10 +131,10 @@ def parse_opts():
 
 def main(cmdline=False):
 	"""parse options and run the tests"""
-	
+
 	if cmdline:
 		options = parse_opts()
-	
+
 
 if __name__ == "__main__":
 	"""actually call main() if launched as a script"""

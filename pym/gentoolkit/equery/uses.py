@@ -182,7 +182,7 @@ def get_output_descriptions(pkg, global_usedesc):
 	iuse, final_use = get_flags(pkg.cpv, final_setting=True)
 	usevar = reduce_flags(iuse)
 	usevar.sort()
-	
+
 
 	if pkg.is_installed():
 		used_flags = pkg.use().split()

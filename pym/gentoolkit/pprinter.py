@@ -155,8 +155,8 @@ except NameError:
 
 def uprint(*args, **kw):
 	"""Replacement for the builtin print function.
-	
-	This version gracefully handles characters not representable in the 
+
+	This version gracefully handles characters not representable in the
 	user's current locale (through the errors='replace' handler).
 
 	@see: >>> help(print)

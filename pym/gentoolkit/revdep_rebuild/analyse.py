@@ -19,7 +19,7 @@ from .cache import save_cache
 
 
 def prepare_checks(files_to_check, libraries, bits, cmd_max_args):
-	''' Calls scanelf for all files_to_check, 
+	''' Calls scanelf for all files_to_check,
 	then returns found libraries and dependencies
 	'''
 
@@ -45,7 +45,7 @@ def prepare_checks(files_to_check, libraries, bits, cmd_max_args):
 			else:
 				libs.append(dep)
 				dependencies.append([parts[0],])
-	
+
 	return (libs, dependencies)
 
 
@@ -90,7 +90,7 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 								if not _break:
 									continue
 
-							logger.info(yellow(' * ') + _file + 
+							logger.info(yellow(' * ') + _file +
 								' is broken (requires: ' + bold(el)+')')
 							broken.append(_file)
 	return broken
@@ -152,13 +152,13 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 	"""
 
 	if libraries and la_libraries and libraries_links and binaries:
-		logger.info(blue(' * ') + 
+		logger.info(blue(' * ') +
 			bold('Found a valid cache, skipping collecting phase'))
 	else:
 		#TODO: add partial cache (for ex. only libraries)
 		# when found for some reason
 
-		logger.warn(green(' * ') + 
+		logger.warn(green(' * ') +
 			bold('Collecting system binaries and libraries'))
 		bin_dirs, lib_dirs = prepare_search_dirs(logger, settings)
 
@@ -180,7 +180,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logger)
 
 		if settings['USE_TMP_FILES']:
-			save_cache(logger=logger, 
+			save_cache(logger=logger,
 				to_save={'libraries':libraries, 'la_libraries':la_libraries,
 					'libraries_links':libraries_links, 'binaries':binaries
 				},
@@ -188,7 +188,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 			)
 
 
-	logger.debug('Found '+ str(len(libraries)) + 
+	logger.debug('Found '+ str(len(libraries)) +
 		' libraries (+' + str(len(libraries_links)) +
 		' symlinks) and ' + str(len(binaries)) +
 		' binaries')

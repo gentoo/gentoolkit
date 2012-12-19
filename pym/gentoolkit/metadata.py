@@ -62,7 +62,7 @@ class _Maintainer(object):
 	@type restrict: str or None
 	@ivar restrict: e.g. &gt;=portage-2.2 means only maintains versions
 		of Portage greater than 2.2. Should be DEPEND string with < and >
-		converted to &lt; and &gt; respectively. 
+		converted to &lt; and &gt; respectively.
 	@type status: str or None
 	@ivar status: If set, either 'active' or 'inactive'. Upstream only.
 	"""
