@@ -65,10 +65,10 @@ class TestFileOwner(unittest.TestCase):
 
 	def test_expand_abspaths(self):
 		expand_abspaths = helpers.FileOwner.expand_abspaths
-		
+
 		initial_file_list = ['foo0', '/foo1', '~/foo2', './foo3']
 		# This function should only effect foo3, and not ordering:
-		
+
 		final_file_list = [
 			'foo0',
 			'/foo1',

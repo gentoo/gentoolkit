@@ -1,4 +1,4 @@
-# Copyright(c) 2005 Jason Stubbs <jstubbs@gentoo.org>                         
+# Copyright(c) 2005 Jason Stubbs <jstubbs@gentoo.org>
 # Copyright(c) 2005-2006 Brian Harring <ferringb@gmail.com>
 # Copyright(c) 2009-2010 Gentoo Foundation
 #

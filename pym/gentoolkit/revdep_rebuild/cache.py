@@ -18,7 +18,7 @@ def read_cache(temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 		This function does not checks if files exists nor timestamps,
 		check_temp_files should be called first
 		@param temp_path: directory where all temp files should reside
-		@return tuple with values of: 
+		@return tuple with values of:
 			libraries, la_libraries, libraries_links, symlink_pairs, binaries
 	'''
 
@@ -38,17 +38,17 @@ def read_cache(temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 	except EnvironmentError:
 		pass
 
-	return (ret['libraries'], ret['la_libraries'], 
+	return (ret['libraries'], ret['la_libraries'],
 		ret['libraries_links'], ret['binaries'])
 
 
 def save_cache(logger, to_save=None, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 	''' Tries to store caching information.
 		@param logger
-		@param to_save have to be dict with keys: 
+		@param to_save have to be dict with keys:
 			libraries, la_libraries, libraries_links and binaries
 	'''
-	
+
 	if to_save is None:
 		to_save = {}
 
@@ -76,7 +76,7 @@ def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600,
 	''' Checks if temporary files from previous run are still available
 		and if they aren't too old
 		@param temp_path is directory, where temporary files should be found
-		@param max_delay is maximum time difference (in seconds) 
+		@param max_delay is maximum time difference (in seconds)
 			when those files are still considered fresh and useful
 		returns True, when files can be used, or False, when they don't
 		exists or they are too old
@@ -120,7 +120,7 @@ if __name__ == '__main__':
 	bin_dirs.update(ld)
 	masked_dirs = masked_dirs.update([
 			'/lib/modules',
-			'/lib32/modules', 
+			'/lib32/modules',
 			'/lib64/modules'
 			]
 		)
@@ -129,8 +129,8 @@ if __name__ == '__main__':
 		collect_libraries_from_dir(lib_dirs, masked_dirs, logging)
 	binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logging)
 
-	save_cache(logger=logging, 
-		to_save={'libraries':libraries, 'la_libraries':la_libraries, 
+	save_cache(logger=logging,
+		to_save={'libraries':libraries, 'la_libraries':la_libraries,
 			'libraries_links':libraries_links, 'binaries':binaries}
 		)
 

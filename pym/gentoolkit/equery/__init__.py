@@ -221,8 +221,8 @@ def initialize_configuration():
 
 	if CONFIG['piping']:
 		CONFIG['verbose'] = False
-		# set extra wide, should disable wrapping unless 
-		# there is some extra long text 
+		# set extra wide, should disable wrapping unless
+		# there is some extra long text
 		CONFIG['termWidth'] = 600
 
 	CONFIG['debug'] = bool(os.getenv('DEBUG', False))

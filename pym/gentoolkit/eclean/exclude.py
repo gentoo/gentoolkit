@@ -156,8 +156,8 @@ def cp_all(categories, portdb=portage.portdb ):
 		"""
 		try:
 			cps = portdb.cp_all(categories)
-			# NOTE: the following backup code should be removed 
-			# when all available versions of portage have the 
+			# NOTE: the following backup code should be removed
+			# when all available versions of portage have the
 			# categories parameter in cp_all()
 		except:  # new behaviour not available
 			#~ message =  "Exception: eclean.exclude.cp_all() " +\

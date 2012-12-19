@@ -182,7 +182,7 @@ def main(input_args):
 				print_entries(changelog.entries_matching_atom(atom)[:end])
 
 		first_run = False
-	
+
 	if not got_match:
 		sys.exit(1)
 

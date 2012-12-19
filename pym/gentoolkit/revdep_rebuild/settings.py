@@ -17,12 +17,12 @@ DEFAULTS = {
 		'DEFAULT_TMP_DIR': os.path.join(portage.root, '/var/cache/revdep-rebuild'), #cache default location
 
 		# number of maximum allowed files to be parsed at once
-		'CMD_MAX_ARGS': 1000, 
+		'CMD_MAX_ARGS': 1000,
 
 		'PRETEND': False,     #pretend only
 		'EXACT': False,      #exact package version
 		#if program should use temporary files from previous run
-		'USE_TMP_FILES': True, 
+		'USE_TMP_FILES': True,
 
 		#True for dev. version, False for stable
 		#used when IS_DEV is True, False forces to call emerge with --pretend
@@ -30,7 +30,7 @@ DEFAULTS = {
 		'IS_DEV': True,
 		'NO_PRETEND': False,
 		'VERBOSITY': 1,
-		
+
 		'quiet': False,
 		'nocolor': False,
 		'library': set(),

@@ -92,7 +92,7 @@ def parse_revdep_config(revdep_confdir):
 		for line in open(os.path.join(revdep_confdir, _file)):
 			line = line.strip()
 			#first check for comment, we do not want to regex all lines
-			if not line.startswith('#'): 
+			if not line.startswith('#'):
 				match = re.match('LD_LIBRARY_MASK=\\"([^"]+)\\"', line)
 				if match is not None:
 					masks = match.group(1).split(' ')
@@ -123,7 +123,7 @@ def collect_libraries_from_dir(dirs, mask, logger):
 
 	# contains list of directories found
 	# allows us to reduce number of fnc calls
-	found_directories = []  
+	found_directories = []
 	found_files = []
 	found_symlinks = []
 	found_la_files = [] # la libraries
@@ -146,8 +146,8 @@ def collect_libraries_from_dir(dirs, mask, logger):
 					else:
 						found_directories.append(listing)
 				elif os.path.isfile(listing):
-					if (listing.endswith('.so') or 
-						listing.endswith('.a') or 
+					if (listing.endswith('.so') or
+						listing.endswith('.a') or
 						'.so.' in listing
 						):
 						if listing in found_files or listing in found_symlinks:
@@ -183,7 +183,7 @@ def collect_libraries_from_dir(dirs, mask, logger):
 								found_files.append(listing)
 		except Exception as ex:
 			logger.debug(
-				yellow('Exception during collecting libraries: ' + 
+				yellow('Exception during collecting libraries: ' +
 				blue('%s')  %str(ex)))
 
 
@@ -207,7 +207,7 @@ def collect_binaries_from_dir(dirs, mask, logger):
 
 	# contains list of directories found
 	# allows us to reduce number of fnc calls
-	found_directories = []  
+	found_directories = []
 	found_files = []
 
 	for _dir in dirs:

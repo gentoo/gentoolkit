@@ -80,7 +80,7 @@ def get_best_match(cpv, cp, logger):
 		slot = ['']
 		match = portdb.match(cp)
 		if not match:
-			logger.warn(red('!!') + ' ' + 
+			logger.warn(red('!!') + ' ' +
 				yellow('Could not find ebuild for ' + cp))
 	return match, slot
 

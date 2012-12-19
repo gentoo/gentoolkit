@@ -14,7 +14,7 @@ import portage
 def call_program(args):
 	''' Calls program with specified parameters
 	and returns the stdout as a str object.
-	
+
 	@param, args: arument list to pass to subprocess
 	@return str
 	'''
@@ -45,7 +45,7 @@ def scan(params, files, max_args):
 
 def get_masking_status(ebuild):
 	"""returns the masking status of an ebuild
-	
+
 	@param ebuild: str
 	@return list
 	"""

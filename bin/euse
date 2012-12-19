@@ -1,5 +1,5 @@
 #!/bin/bash
-# Disable globbing because "-*" and such is valid as a use flag. 
+# Disable globbing because "-*" and such is valid as a use flag.
 set -f
 
 # $Header$
@@ -117,13 +117,13 @@ check_sanity() {
 	local make_conf
 
 	[[ ! -d "${MAKE_PROFILE_PATH}" || ! -r "${MAKE_PROFILE_PATH}" ]] && error "${MAKE_PROFILE_PATH} is not readable"
-	# 
+	#
 	for make_conf in $(get_all_make_conf); do
 		[ ! -r "${make_conf}" ] && fatal "${make_conf} is not readable"
 	done
 
 	descdir="$(get_portdir)/profiles"
-	
+
 	[ ! -r "${MAKE_GLOBALS_PATH}" ] && fatal "${MAKE_GLOBALS_PATH} is not readable"
 	[ -z "$(get_portdir)" ] && fatal "\$PORTDIR couldn't be determined"
 	[ ! -d "${descdir}" ] && fatal "${descdir} does not exist or is not a directory"
@@ -155,16 +155,16 @@ Options: -h, --help           - show this message
          -E, --enable         - enable the given useflags
          -D, --disable        - disable the given useflags
          -R, --remove         - remove all references to the given flags from
-                                make.conf and package.use to revert to default 
+                                make.conf and package.use to revert to default
                                 settings
          -P, --prune          - alias for --remove
          -p, --package        - used with -E, -D, and -R to apply to a
                                 specific package only
 
 Notes: ${PROGRAM_NAME} currently works for global flags defined
-       in make.globals, make.defaults, make.conf, use.force, and use.mask 
+       in make.globals, make.defaults, make.conf, use.force, and use.mask
        and local flags defined in package.use and individual package ebuilds.
-       It might have issues with cascaded profiles. If multiple options are 
+       It might have issues with cascaded profiles. If multiple options are
        specified only the last one will be used.
 HELP
 }
@@ -200,7 +200,7 @@ for x in sys.stdin.read().split():
 		r.append(x)
 	elif x == '-*': r = ['-*']
 	elif x not in r: r.append(x)
-print(' '.join(r))" 
+print(' '.join(r))"
 } # }}}
 
 # Function: reduce_incrementals_trump {{{
@@ -215,7 +215,7 @@ for x in sys.stdin.read().split():
 		r.append(x)
 	elif x == '-*': r = ['-*']
 	elif x not in r and not '-'+x in r: r.append(x)
-print(' '.join(r))" 
+print(' '.join(r))"
 } # }}}
 
 # Function: reduce_package_use {{{
@@ -250,10 +250,10 @@ print('\n'.join(['%s %s' % (pkg,' '.join(flgs)) for pkg,flgs in h.items() if len
 } # }}}
 
 # Function: get_useflags {{{
-# Creates a bash array ACTIVE_FLAGS that contains the global use flags, 
-# indexed by origin: 0: environment, 1: make.conf, 2: make.defaults, 
-# 3: make.globals, and local use flags, indexed by origin: 4: package.use, 
-# 5: ebuild IUSE, 6: use.mask, 7: use.force, 
+# Creates a bash array ACTIVE_FLAGS that contains the global use flags,
+# indexed by origin: 0: environment, 1: make.conf, 2: make.defaults,
+# 3: make.globals, and local use flags, indexed by origin: 4: package.use,
+# 5: ebuild IUSE, 6: use.mask, 7: use.force,
 # 9: flags indicated active by emerge --info (get_portageuseflags)
 get_useflags() {
 	set +f
@@ -279,7 +279,7 @@ get_useflags() {
 
 	# backup portdir so get_portdir() doesn't give false results later
 	portdir_backup="${PORTDIR}"
-	
+
 	ACTIVE_FLAGS[0]="$(reduce_incrementals "${USE}")"
 	USE=""
 	for x in $(get_all_make_conf); do
@@ -302,7 +302,7 @@ get_useflags() {
 
 	#
 	# Traverse through use.mask and use.force (0.5s)
-	# Flip signs of use.mask (it's interpreted oppositely), 
+	# Flip signs of use.mask (it's interpreted oppositely),
 	ACTIVE_FLAGS[6]=$(reduce_incrementals_trump \
 		$(cat $(traverse_profile "use.mask") | sed -re "/^#.*$/{d}") \
 			| sed -re "s/(^| )-[^ ]*//g" -e "s/(^| )([a-z0-9])/ -\2/g")
@@ -327,12 +327,12 @@ get_portageuseflags() {
 } # }}}
 
 # Function: get_useflaglist {{{
-# Get the list of all known USE flags by reading use.desc and/or 
-# use.local.desc (depending on the value of $SCOPE). Also searches any 
+# Get the list of all known USE flags by reading use.desc and/or
+# use.local.desc (depending on the value of $SCOPE). Also searches any
 # registered overlays after searching the main portage tree first.
 # Use flags visible in both the main tree and overlays are trumped by
-# the main tree. Overlays are indicated by brackets [xxx] at the 
-# beginning of the description. 
+# the main tree. Overlays are indicated by brackets [xxx] at the
+# beginning of the description.
 #
 # Returns:
 # (written to stdout) Sorted, unique list of system-wide USE flags and
@@ -349,24 +349,24 @@ get_useflaglist() {
 		descdir="${profiledir}/profiles"
 		if [[ -z ${SCOPE} || ${SCOPE} == "global" ]]; then
 			[[ ! -s "${descdir}/use.desc" ]] && continue
-			egrep "^[^# ]+ +-" "${descdir}/use.desc" 
+			egrep "^[^# ]+ +-" "${descdir}/use.desc"
 		fi
 		if [[ -z ${SCOPE} || ${SCOPE} == "local" ]]; then
 			[[ ! -s "${descdir}/use.local.desc" ]] && continue
 			egrep "^[^# :]+:[^ ]+ +-" "${descdir}/use.local.desc" \
-				| cut -d: -f 2 
+				| cut -d: -f 2
 		fi
 	done | cut -d " "  -f1 | sort --field=":" --key=1,1 --unique
 } # }}}
 
 # Function: get_useflaglist_ebuild {{{
-# Builds USE flag information for specified package atom into 
-# ACTIVE_FLAGS[5]. For the atom, the versions available are found, and 
-# for each, the corresponding SLOT, IUSE are stored along with which 
-# overlay the ebuild lives in. Considering that the pieces of information 
-# may be required in any order or any subsets, it is intended for the 
-# function to cache the information and it be retrieved from 
-# ACTIVE_FLAGS[5]. So the format of ACTIVE_FLAGS[5] is newline-separated 
+# Builds USE flag information for specified package atom into
+# ACTIVE_FLAGS[5]. For the atom, the versions available are found, and
+# for each, the corresponding SLOT, IUSE are stored along with which
+# overlay the ebuild lives in. Considering that the pieces of information
+# may be required in any order or any subsets, it is intended for the
+# function to cache the information and it be retrieved from
+# ACTIVE_FLAGS[5]. So the format of ACTIVE_FLAGS[5] is newline-separated
 # list of:
 #
 # category/packge;version;SLOT;IUSE;overlay
@@ -460,9 +460,9 @@ traverse_profile() {
 	local curdir
 	local parent
 	local rvalue=""
-	
+
 	curdir="${2:-$(get_real_path ${MAKE_PROFILE_PATH})}"
-	
+
 	if [[ -f "${curdir}/parent" ]]; then
 		for parent in $(egrep -v '(^#|^ *$)' ${curdir}/parent); do
 			# Bug 231394, handle parent path being absolute
@@ -505,8 +505,8 @@ get_all_make_defaults() {
 MAKE_DEFAULTS=$(get_all_make_defaults)
 
 # Function: get_flagstatus_helper # {{{
-# Little helper function to get the status of a given flag in one of the 
-# ACTIVE_FLAGS elements. 
+# Little helper function to get the status of a given flag in one of the
+# ACTIVE_FLAGS elements.
 #
 # Returns:
 # (Written to STDOUT) Flag active status (+/-) or default string given
@@ -518,7 +518,7 @@ MAKE_DEFAULTS=$(get_all_make_defaults)
 # 3 - echo value for positive (and as lowercase for negative) test result
 # 4 - (optional) echo value for "missing" test result, defaults to blank
 get_flagstatus_helper() {
-	if [[ -z ${flags} ]]; then 
+	if [[ -z ${flags} ]]; then
 		local flags=${ACTIVE_FLAGS[${2}]}
 	fi
 	local flag=$(echo " $flags " | grep -Eo " [+-]?${1} ")
@@ -577,7 +577,7 @@ print(' '.join(dep.match_to_list('$5-$6',sys.stdin.read().split())))"))
 # 3 - echo value for positive (and as lowercase for negative) test result
 # 4 - (optional) echo value for "missing" test result, defaults to blank space
 get_flagstatus_helper_ebuild() {
-	local flags=$(echo $2 | cut -d\" -f2) 
+	local flags=$(echo $2 | cut -d\" -f2)
 	local flag=$(echo " $flags " | grep -Eo " [+-]?$1 ")
 	if [[ ${flag:1:1} == "+" ]]; then
 		echo -en "${3}"
@@ -592,7 +592,7 @@ get_flagstatus_helper_ebuild() {
 
 # Function: get_flagstatus {{{
 # Prints a status string for the given flag, each column indicating the presence
-# for portage, in the environment, in make.conf, in make.defaults, in 
+# for portage, in the environment, in make.conf, in make.defaults, in
 # make.globals, and in use.force and flipped in use.mask.
 #
 # Arguments:
@@ -622,7 +622,7 @@ get_flagstatus() {
 		if [[ ${!location} == $location ]]; then
 			ACTIVE="+"
 			break
-		elif [[ ${!location} != " " ]]; then 
+		elif [[ ${!location} != " " ]]; then
 			ACTIVE="-"
 			break
 		fi
@@ -645,17 +645,17 @@ get_flagstatus() {
 # Flag status for package.use and ebuild, slot and version, and overlay
 # the version lives is if not PORTDIR
 #
-# Full positive would be "[+PB]", full negative would be "[-pb]", and full 
-# missing would be "[?  ]", question because the sign will default to the 
+# Full positive would be "[+PB]", full negative would be "[-pb]", and full
+# missing would be "[?  ]", question because the sign will default to the
 # sign of the global status of the flag
 get_flagstatus_pkg() {
 	#
 	# Pre-cache the use flags declared in ebuilds first.
 	# This is required as calling it inside a $() seems to
 	# prevent caching of results into $ACTIVE_FLAGS array
-	get_useflaglist_ebuild ${2} 
+	get_useflaglist_ebuild ${2}
 	#
-	# Get list of ebuilds available for this package. The 
+	# Get list of ebuilds available for this package. The
 	# get_useflaglist_ebuild() function stores them in $ACTIVE_FLAGS[5]
 	# with the package name leading the lines. The other information
 	# is in the same line, semi-colon (;) separated. The fields are
@@ -671,14 +671,14 @@ get_flagstatus_pkg() {
 		[[ -n $4 && $4 != $version ]] && continue
 		local slot=${INFO[2]}
 		local iuse=${INFO[3]}
-		if [[ $slot == '0' || $slot == "" ]]; then 
-			slot=""; 
+		if [[ $slot == '0' || $slot == "" ]]; then
+			slot="";
 		else
 			slot="($(echo ${slot} | cut -d\" -f2)) "
 		fi
 		local overlay=${INFO[4]}
 		[[ -n $overlay ]] && overlay="[$overlay]"
-		# 
+		#
 		# Fetch enabled status for this version
 		local P=$(get_flagstatus_helper_pkg "${1}" "${atoms}" "P" "" "${2}" "${version}")
 		local B=$(get_flagstatus_helper_ebuild "${1}" "${iuse}" "B" "" "${2}" "${version}")
@@ -687,10 +687,10 @@ get_flagstatus_pkg() {
 		for location in "P" "B"; do
 			if [[ ${!location} == $location ]]; then
 				ACTIVE="+"
-			elif [[ ${!location} == "!" ]]; then 
+			elif [[ ${!location} == "!" ]]; then
 				UNUSED=1
 				break
-			elif [[ ${!location} != " " ]]; then 
+			elif [[ ${!location} != " " ]]; then
 				ACTIVE="-"
 				break
 			fi
@@ -730,11 +730,11 @@ PORTDIR="$(get_portdir)"
 
 # Function: get_all_overlays {{{
 # Outputs list of portage overlays as defined in the PORTDIR_OVERLAY
-# variable defined in make.conf 
+# variable defined in make.conf
 get_all_overlays() {
 	# Use a subshell so we don't have to protect the variables in
 	# the current scope
-	( 
+	(
 		for x in $(get_all_make_conf); do
 			[[ -r "${x}" ]] && source "${x}"
 		done
@@ -758,7 +758,7 @@ array_contains() {
 } # }}}
 
 # Function: showdesc {{{
-# This function takes a list of use flags and shows the status and 
+# This function takes a list of use flags and shows the status and
 # the description for each one, honoring $SCOPE
 #
 # Arguments:
@@ -777,7 +777,7 @@ showdesc() {
 	local current_desc
 	local found_one
 	local args
-	
+
 	args="${*:-*}"
 
 	if [ -z "${SCOPE}" ]; then
@@ -786,9 +786,9 @@ showdesc() {
 		SCOPE="local" showdesc ${args}
 		return
 	fi
-	
+
 	local useflags=( $(echo "$(get_useflaglist)") )
-	
+
 	[ "${SCOPE}" == "global" ] && echo "global use flags (searching: ${args})"
 	[ "${SCOPE}" == "local" ] && echo "local use flags (searching: ${args})"
 	echo "************************************************************"
@@ -820,7 +820,7 @@ showdesc() {
 			OIFS=$IFS; IFS=$'\n'; infos=($infos); IFS=$OIFS;
 			for line in "${infos[@]}"; do
 				OIFS=$IFS; IFS="|"; line=($line); IFS=$OIFS
-				pkg=${line[0]} 
+				pkg=${line[0]}
 				flag=${line[1]}
 				desc=${line[2]}
 				if get_flagstatus "${flag}"; then
@@ -836,7 +836,7 @@ showdesc() {
 		fi
 		shift
 	done
-	
+
 	if [[ ${foundone} == 0 ]]; then
 		echo "no matching entries found"
 	fi
@@ -855,7 +855,7 @@ showdesc() {
 #		  Empty means to display both
 #
 # Outputs:
-# (STDOUT) Flag description(s) for given USE flags along with installed 
+# (STDOUT) Flag description(s) for given USE flags along with installed
 # packages
 #
 showinstdesc() {
@@ -946,7 +946,7 @@ showflags() {
 
 	set ${args}
 	get_portageuseflags
-	
+
 	while [ -n "${1}" ]; do
 		if echo " ${ACTIVE_FLAGS[9]} " | grep " ${1} " > /dev/null; then
 			printf "%-20s" ${1}
@@ -1004,7 +1004,7 @@ fi
 
 # Function: scrub_use_flag {{{
 # Utility to remove a use flag from a file in package.use[/]
-# 
+#
 # Arguments:
 # 1 - File
 # 2 - Use flag
@@ -1025,7 +1025,7 @@ scrub_use_flag() {
 			echo "${line}"
 		# Detect if requested package is defined on this line
 		elif [[ -n "${PACKAGE}" ]]; then
-			if [[ -n $(echo "${line}" | grep -Ee "${pkg_re}") ]]; then	
+			if [[ -n $(echo "${line}" | grep -Ee "${pkg_re}") ]]; then
 				# If this is the only (remaining) use flag defined
 		# for this package, then remove the whole line
 		if [[ -z $(echo "${line}" | grep -Ee "${pkg_re} *-?${flag} *$") ]]; then
@@ -1036,7 +1036,7 @@ scrub_use_flag() {
 				# Passthru
 				echo "${line}"
 			fi
-		# If line only has this use flag, let it be removed 
+		# If line only has this use flag, let it be removed
 		# (used if PACKAGE is not defined -- from pruning)
 		elif [[ -n $(echo "${line}" | \
 				egrep "^[^#]*${atom_re}.*-?${flag}") ]]; then
@@ -1050,7 +1050,7 @@ scrub_use_flag() {
 			# Passthru
 			echo "${line}"
 		fi
-	done > "${filename}.new" < "${filename}" 
+	done > "${filename}.new" < "${filename}"
 	mv "${filename}.new" "${filename}"
 } # }}}
 
@@ -1058,7 +1058,7 @@ scrub_use_flag() {
 # Adds and removes USE flags from individual packages by modifying
 # files in package.use. It supports package.use both as a file and
 # and as a folder. Also handles "enabling" as removing a disabled flag from
-# a file, and "disabling" a globally enabled flag by adding a negative to 
+# a file, and "disabling" a globally enabled flag by adding a negative to
 # a file. Also warns about unused and unknown flags, and about flags
 # already enabled, disabled, or masked.
 #
@@ -1151,7 +1151,7 @@ modify_package() {
 					echo "Adding \"${PACKAGE}[${flag}]\" use flag to new file ""${filename}"""
 					continue
 				fi
-			else	
+			else
 				# Add to package.use file instead
 				filename="${PACKAGE_USE_PATH}"
 				# Create as necessary
@@ -1203,7 +1203,7 @@ modify_package() {
 } # }}}
 
 # Function: modify {{{
-# USE flag modification function. Mainly a loop with calls to add_flag and 
+# USE flag modification function. Mainly a loop with calls to add_flag and
 # remove_flag to create a new USE string which is then inserted into make.conf.
 modify() {
 	if [[ -n "${PACKAGE}" ]]; then

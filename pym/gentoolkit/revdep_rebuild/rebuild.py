@@ -97,8 +97,8 @@ def parse_options():
 
 	settings = DEFAULTS.copy()
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 
-			'dehiklopqvCL:P', 
+		opts, args = getopt.getopt(sys.argv[1:],
+			'dehiklopqvCL:P',
 			['nocolor', 'debug', 'exact', 'help', 'ignore',
 			'keep-temp', 'library=', 'no-ld-path', 'no-order',
 			'pretend', 'no-pretend', 'no-progress', 'quiet', 'verbose'])
@@ -142,7 +142,7 @@ def parse_options():
 
 def rebuild(logger, assigned, settings):
 	"""rebuilds the assigned pkgs"""
-	
+
 	args = settings['pass_through_options']
 	if settings['EXACT']:
 		emerge_command = '=' + ' ='.join(assigned)
@@ -164,20 +164,20 @@ def rebuild(logger, assigned, settings):
 	emerge_command = emerge_command
 
 	logger.warn(yellow(
-		'\nemerge') + args + 
+		'\nemerge') + args +
 		' --oneshot --complete-graph=y ' +
 		bold(emerge_command))
-	
+
 	success = os.system(
-		'emerge ' + args + 
-		' --oneshot --complete-graph=y ' + 
+		'emerge ' + args +
+		' --oneshot --complete-graph=y ' +
 		emerge_command)
 	return success
 
 
 def main(settings=None, logger=None):
 	"""Main program operation method....
-	
+
 	@param settings: dict.  defaults to settings.DEFAULTS
 	@param logger: python logging module defaults to init_logger(settings)
 	@return boolean  success/failure
@@ -196,20 +196,20 @@ def main(settings=None, logger=None):
 		nocolor()
 
 	#TODO: Development warning
-	logger.warn(blue(' * ') + 
+	logger.warn(blue(' * ') +
 		yellow('This is a development version, '
 			'so it may not work correctly'))
-	logger.warn(blue(' * ') + 
+	logger.warn(blue(' * ') +
 		yellow('The original revdep-rebuild script is '
 			'installed as revdep-rebuild.sh'))
 
 	if os.getuid() != 0 and not settings['PRETEND']:
-		logger.warn(blue(' * ') + 
+		logger.warn(blue(' * ') +
 			yellow('You are not root, adding --pretend to portage options'))
 		settings['PRETEND'] = True
 
 	if settings['library']:
-		logger.warn(green(' * ') + 
+		logger.warn(green(' * ') +
 			"Looking for libraries: %s" % (bold(', '.join(settings['library']))))
 
 	if settings['USE_TMP_FILES'] \
@@ -220,7 +220,7 @@ def main(settings=None, logger=None):
 			settings=settings,
 			logger=logger,
 			libraries=libraries,
-			la_libraries=la_libraries, 
+			la_libraries=la_libraries,
 			libraries_links=libraries_links,
 			binaries=binaries,
 			_libs_to_check=_libs_to_check)
@@ -237,14 +237,14 @@ def main(settings=None, logger=None):
 	for ebuild in assigned:
 		if get_masking_status(ebuild):
 			has_masked = True
-			logger.warn('!!! ' + red('All ebuilds that could satisfy: ') + 
+			logger.warn('!!! ' + red('All ebuilds that could satisfy: ') +
 				green(ebuild) + red(' have been masked'))
 		else:
 			tmp.append(ebuild)
 	assigned = tmp
 
 	if has_masked:
-		logger.info(red(' * ') + 
+		logger.info(red(' * ') +
 			'Unmask all ebuild(s) listed above and call revdep-rebuild '
 			'again or manually emerge given packages.')
 
