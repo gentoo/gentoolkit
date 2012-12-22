@@ -6,7 +6,7 @@ from __future__ import print_function
 import re
 import sys
 import distutils
-from distutils import core, log
+from distutils import core #, log
 from glob import glob
 
 import os
@@ -18,11 +18,11 @@ __version__ = os.getenv('VERSION', default=os.getenv('PVR', default='9999'))
 
 cwd = os.getcwd()
 
-# Load EPREFIX from Portage, fall back to the empty string if it fails 
-try: 
-	from portage.const import EPREFIX 
-except ImportError: 
-	EPREFIX='' 
+# Load EPREFIX from Portage, fall back to the empty string if it fails
+try:
+	from portage.const import EPREFIX
+except ImportError:
+	EPREFIX=''
 
 
 # Bash files that need `VERSION=""` subbed, relative to this dir:
@@ -57,7 +57,7 @@ class set_version(core.Command):
 
 	def run(self):
 		ver = 'svn' if __version__ == '9999' else __version__
-		print("Settings version to %s" % ver)
+		print("Setting version to %s" % ver)
 		def sub(files, pattern):
 			for f in files:
 				updated_file = []
@@ -65,10 +65,12 @@ class set_version(core.Command):
 					for line in s:
 						newline = re.sub(pattern, '"%s"' % ver, line, 1)
 						if newline != line:
-							log.info("%s: %s" % (f, newline))
+							#log.info("%s: %s" % (f, newline))
+							print("%s: %s" % (f, newline))
 						updated_file.append(newline)
 				with io.open(f, 'w', 1, 'utf_8') as s:
 					s.writelines(updated_file)
+
 		quote = r'[\'"]{1}'
 		bash_re = r'(?<=VERSION=)' + quote + '[^\'"]*' + quote
 		sub(bash_scripts, bash_re)
