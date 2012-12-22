@@ -228,6 +228,7 @@ def checks_printer(cpv, data, verbose=True, only_failures=False):
 		n_checked = pp.number(str(n_checked))
 		info = "   %(n_passed)s out of %(n_checked)s files passed"
 		print(info % locals())
+		print()
 	else:
 		print("failed(%s)" % n_failed)
 
