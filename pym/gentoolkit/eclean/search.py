@@ -45,7 +45,7 @@ def get_distdir():
 	if not os.path.isdir(d):
 		e = pp.error("%s does not appear to be a directory.\n" % d)
 		e += pp.error("Please set DISTDIR to a sane value.\n")
-		e += pp.error("(Check your /etc/make.conf and environment).")
+		e += pp.error("(Check your make.conf file and environment).")
 		print( e, file=sys.stderr)
 		exit(1)
 	return d
@@ -533,7 +533,7 @@ def findPackages(
 		del test
 	except EnvironmentError as er:
 		print( pp.error("Error accessing PKGDIR." ), file=sys.stderr)
-		print( pp.error("(Check your /etc/make.conf and environment)."), file=sys.stderr)
+		print( pp.error("(Check your make.conf file and environment)."), file=sys.stderr)
 		print( pp.error("Error: %s" %str(er)), file=sys.stderr)
 		exit(1)
 	for root, dirs, files in os.walk(pkgdir):
