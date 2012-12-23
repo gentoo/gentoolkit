@@ -32,7 +32,7 @@ bash_scripts = [os.path.join(cwd, path) for path in (
 )]
 
 # Python files that need `__version__ = ""` subbed, relative to this dir:
-python_scripts = [os.path.join(cwd, path) for path in (
+python_scripts = [(os.path.join(cwd, path), None) for path in (
 	'bin/eclean',
 	'bin/epkginfo',
 	'bin/glsa-check',
@@ -43,6 +43,17 @@ python_scripts = [os.path.join(cwd, path) for path in (
 	'pym/gentoolkit/revdep_rebuild/__init__.py'
 )]
 
+manpages = [(os.path.join(cwd, path[0]), path[1]) for path in (
+	('man/eclean.1', 'ECLEAN'),
+	('man/enalyze.1', 'ENALYZE'),
+	('man/epkginfo.1', 'EPKGINFO'),
+	('man/equery.1', 'EQUERY'),
+	('man/eread.1', 'EREAD'),
+	('man/eshowkw.1', 'ESHOWKW'),
+	('man/euse.1', 'EUSE'),
+	('man/glsa-check.1', 'GLSA-CHECK'),
+	('man/revdep-rebuild.1', 'REVDEP-REBUILD'),
+)]
 
 class set_version(core.Command):
 	"""Set python __version__ and bash VERSION to our __version__."""
@@ -61,9 +72,13 @@ class set_version(core.Command):
 		def sub(files, pattern):
 			for f in files:
 				updated_file = []
-				with io.open(f, 'r', 1, 'utf_8') as s:
+				with io.open(f[0], 'r', 1, 'utf_8') as s:
+					if f[1]:
+						_pattern = pattern % f[1]
+					else:
+						_pattern = pattern
 					for line in s:
-						newline = re.sub(pattern, '"%s"' % ver, line, 1)
+						newline = re.sub(_pattern, '"%s"' % ver, line, 1)
 						if newline != line:
 							#log.info("%s: %s" % (f, newline))
 							print("%s: %s" % (f, newline))
@@ -76,6 +91,8 @@ class set_version(core.Command):
 		sub(bash_scripts, bash_re)
 		python_re = r'(?<=^__version__ = )' + quote + '[^\'"]*' + quote
 		sub(python_scripts, python_re)
+		man_re = r'(?<=^.TH "[.*]" "[0-9]" )' + quote + '[^\'"]*' + quote
+		sub(manpages, man_re)
 
 
 def	load_test():
