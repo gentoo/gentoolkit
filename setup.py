@@ -26,13 +26,13 @@ except ImportError:
 
 
 # Bash files that need `VERSION=""` subbed, relative to this dir:
-bash_scripts = [os.path.join(cwd, path) for path in (
+bash_scripts = [(os.path.join(cwd, path), 'VERSION=') for path in (
 	'bin/euse',
 	'bin/revdep-rebuild.sh'
 )]
 
 # Python files that need `__version__ = ""` subbed, relative to this dir:
-python_scripts = [(os.path.join(cwd, path), None) for path in (
+python_scripts = [(os.path.join(cwd, path), '__version__ = ') for path in (
 	'bin/eclean',
 	'bin/epkginfo',
 	'bin/glsa-check',
@@ -67,31 +67,27 @@ class set_version(core.Command):
 		pass
 
 	def run(self):
-		ver = 'svn' if __version__ == '9999' else __version__
+		ver = 'git' if __version__ == '9999' else __version__
 		print("Setting version to %s" % ver)
 		def sub(files, pattern):
 			for f in files:
 				updated_file = []
 				with io.open(f[0], 'r', 1, 'utf_8') as s:
-					if f[1]:
-						_pattern = pattern % f[1]
-					else:
-						_pattern = pattern
 					for line in s:
-						newline = re.sub(_pattern, '"%s"' % ver, line, 1)
+						newline = re.sub(pattern %f[1], '"%s"' % ver, line, 1)
 						if newline != line:
 							#log.info("%s: %s" % (f, newline))
-							print("%s: %s" % (f, newline))
+							print("%s: %s" % (f[0], newline.strip('\n')))
 						updated_file.append(newline)
-				with io.open(f, 'w', 1, 'utf_8') as s:
+				with io.open(f[0], 'w', 1, 'utf_8') as s:
 					s.writelines(updated_file)
 
 		quote = r'[\'"]{1}'
-		bash_re = r'(?<=VERSION=)' + quote + '[^\'"]*' + quote
+		bash_re = r'(?<=%s)' + quote + '[^\'"]*' + quote
 		sub(bash_scripts, bash_re)
-		python_re = r'(?<=^__version__ = )' + quote + '[^\'"]*' + quote
+		python_re = r'(?<=^%s)' + quote + '[^\'"]*' + quote
 		sub(python_scripts, python_re)
-		man_re = r'(?<=^.TH "[.*]" "[0-9]" )' + quote + '[^\'"]*' + quote
+		man_re = r'(?<=^.TH "%s" "[0-9]" )' + quote + '[^\'"]*' + quote
 		sub(manpages, man_re)
 
 
