@@ -3,4 +3,4 @@
 # Copyright 2003-2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-__version__ = "svn"
+__version__ = "git"

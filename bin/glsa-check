@@ -15,7 +15,7 @@ from getopt import getopt, GetoptError
 
 __program__ = "glsa-check"
 __author__ = "Marius Mauch <genone@gentoo.org>"
-__version__ = "svn"
+__version__ = "git"
 
 optionmap = [
 ["-l", "--list", "list the GLSAs"],

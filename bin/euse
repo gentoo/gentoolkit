@@ -10,7 +10,7 @@ set -f
 # Licensed under the GPL v2
 
 PROGRAM_NAME=euse
-VERSION="svn"
+VERSION="git"
 
 EPREFIX=${EPREFIX:-$(portageq envvar EPREFIX)}
 ETC="${EPREFIX}/etc"
