@@ -15,7 +15,7 @@ __all__ = (
 )
 __docformat__ = 'epytext'
 # version is dynamically set by distutils sdist
-__version__ = "svn"
+__version__ = "git"
 
 # =======
 # Imports

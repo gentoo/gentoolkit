@@ -15,7 +15,7 @@
 
 __docformat__ = 'epytext'
 # version is dynamically set by distutils sdist
-__version__ = "svn"
+__version__ = "git"
 __productname__ = "enalyze"
 __authors__ = (
 	'Brian Dolbec, <brian.dolbec@gmail.com>'

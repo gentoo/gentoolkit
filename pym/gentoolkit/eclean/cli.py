@@ -11,7 +11,7 @@ __author__ = "Thomas de Grenier de Latour (tgl), " + \
 	"modular re-write by: Brian Dolbec (dol-sen)"
 __email__ = "degrenier@easyconnect.fr, " + \
 	"brian.dolbec@gmail.com"
-__version__ = "svn"
+__version__ = "git"
 __productname__ = "eclean"
 __description__ = "A cleaning tool for Gentoo distfiles and binaries."
 
