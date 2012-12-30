@@ -36,7 +36,10 @@ def get_iuse(cpv):
 	"""
 	try:
 		# aux_get might return dupes, so run them through set() to remove them
-		return list(set(portage.db[portage.root]["porttree"].dbapi.aux_get(cpv, ["IUSE"])[0].split()))
+		iuse = set(portage.db[portage.root]["porttree"].dbapi.aux_get(cpv, ["IUSE"])[0].split())
+		# there could still be dupes due to IUSE defaults
+		iuse = [x for x in iuse if '+'+x not in iuse and '-'+x not in iuse]
+		return list(iuse)
 	except:
 		return []
 
@@ -173,7 +176,6 @@ def get_flags(cpv, final_setting=False):
 	"""
 	final_use, use_expand_hidden, usemasked, useforced = get_all_cpv_use(cpv)
 	iuse_flags = filter_flags(get_iuse(cpv), use_expand_hidden, usemasked, useforced)
-	#flags = filter_flags(use_flags, use_expand_hidden, usemasked, useforced)
 	if final_setting:
 		final_flags = filter_flags(final_use,  use_expand_hidden, usemasked, useforced)
 		return iuse_flags, final_flags
