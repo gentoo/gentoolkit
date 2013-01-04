@@ -89,7 +89,11 @@ class Query(CPV):
 			cat_str = ""
 			pkg_str = pp.emph(self.query)
 		else:
-			cat, pkg = self.category, self.name + self.fullversion
+			try:
+				cat, pkg = self.category, self.name + self.fullversion
+			except errors.GentoolkitInvalidCPV:
+				cat = ''
+				pkg = self.atom
 			if cat and not self.is_regex:
 				cat_str = "in %s " % pp.emph(cat.lstrip('><=~!'))
 			else:
@@ -303,7 +307,10 @@ class Query(CPV):
 		if show_progress and not CONFIG["piping"]:
 			self.print_summary()
 
-		cat = CPV(self.query).category
+		try:
+			cat = CPV(self.query).category
+		except errors.GentoolkitInvalidCPV:
+			cat = ''
 
 		pre_filter = []
 		# The "get_" functions can pre-filter against the whole package key,
@@ -322,6 +329,10 @@ class Query(CPV):
 
 		# Post-filter
 		if self.is_regex:
+			try:
+				re.compile(self.query)
+			except re.error:
+				raise errors.GentoolkitInvalidRegex(self.query)
 			predicate = lambda x: re.search(self.query, x)
 		else:
 			if cat:

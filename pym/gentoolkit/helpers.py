@@ -386,17 +386,15 @@ def get_cpvs(predicate=None, include_installed=True):
 		Portage tree
 	"""
 
-	if predicate:
-		all_cps = iter(
-			x for x
-			in portage.db[portage.root]["porttree"].dbapi.cp_all()
-			if predicate(x))
-	else:
-		all_cps = portage.db[portage.root]["porttree"].dbapi.cp_all()
+	if not predicate:
+		predicate = lambda x: x
 
-	all_cpvs = chain.from_iterable(
+	all_cps = portage.db[portage.root]["porttree"].dbapi.cp_all()
+
+	all_cpvs = iter(x for x in chain.from_iterable(
 		portage.db[portage.root]["porttree"].dbapi.cp_list(x)
-		for x in all_cps)
+		for x in all_cps) if predicate(x))
+
 	all_installed_cpvs = set(get_installed_cpvs(predicate))
 
 	if include_installed:
@@ -427,18 +425,16 @@ def get_installed_cpvs(predicate=None):
 		from VARDB
 	"""
 
-	if predicate:
-		installed_cps = iter(
-			x for x
-			in portage.db[portage.root]["vartree"].dbapi.cp_all()
-			if predicate(x))
-	else:
-		installed_cps = (
-			portage.db[portage.root]["vartree"].dbapi.cp_all())
+	if not predicate:
+		predicate = lambda x: x
 
-	for cpv in chain.from_iterable(
+	installed_cps = portage.db[portage.root]["vartree"].dbapi.cp_all()
+
+	installed_cpvs = iter(x for x in chain.from_iterable(
 		portage.db[portage.root]["vartree"].dbapi.cp_list(x)
-		for x in installed_cps):
+		for x in installed_cps) if predicate(x))
+
+	for cpv in installed_cpvs:
 		yield cpv
 
 
@@ -452,18 +448,16 @@ def get_bintree_cpvs(predicate=None):
 		from BINDB
 	"""
 
-	if predicate:
-		installed_cps = iter(
-			x for x
-			in portage.db[portage.root]["bintree"].dbapi.cp_all()
-			if predicate(x))
-	else:
-		installed_cps = (
-			portage.db[portage.root]["bintree"].dbapi.cp_all())
+	if not predicate:
+		predicate = lambda x: x
 
-	for cpv in chain.from_iterable(
+	installed_cps = portage.db[portage.root]["bintree"].dbapi.cp_all()
+
+	installed_cpvs = iter(x for x in chain.from_iterable(
 		portage.db[portage.root]["bintree"].dbapi.cp_list(x)
-		for x in installed_cps):
+		for x in installed_cps) if predicate(x))
+
+	for cpv in installed_cpvs:
 		yield cpv
 
 
