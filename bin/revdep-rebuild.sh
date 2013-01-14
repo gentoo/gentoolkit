@@ -61,6 +61,7 @@ declare EMERGE_DEFAULT_OPTS    # String of options portage assumes to be set
 declare EMERGE_OPTIONS         # Array of options to pass to portage
 declare PORTAGE_NICENESS       # Renice to this value
 declare PORTAGE_ROOT           # The root path for portage
+declare REVDEP_DEFAULT_OPTS    # String of default emerge options for revdep-rebuild
 
 # Customizable incremental variables:
 # These variables can be prepended to either by setting the variable in
@@ -441,6 +442,12 @@ get_opts() {
 	SONAME="not found"
 	SEARCH_BROKEN=1
 	FULL_LD_PATH=1
+
+	# Add the revdep-rebuild default options
+	if [[ -n ${REVDEP_DEFAULT_OPTS} ]]; then
+		EMERGE_OPTIONS+=("$REVDEP_DEFAULT_OPTS")
+	fi
+
 	while [[ $1 ]]; do
 		case $1 in
 			--) shift
@@ -1032,16 +1039,19 @@ portage_settings() {
 	local ORIG_SEARCH_DIRS="$SEARCH_DIRS"
 	local ORIG_SEARCH_DIRS_MASK="$SEARCH_DIRS_MASK"
 	local ORIG_LD_LIBRARY_MASK="$LD_LIBRARY_MASK"
+	local ORIG_REVDEP_DEFAULT_OPTS="$REVDEP_DEFAULT_OPTS"
 	unset SEARCH_DIRS
 	unset SEARCH_DIRS_MASK
 	unset LD_LIBRARY_MASK
+	unset REVDEP_DEFAULT_OPTS
 
-	eval $(portageq envvar -v PORTAGE_ROOT PORTAGE_NICENESS EMERGE_DEFAULT_OPTS NOCOLOR SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK)
+	eval $(portageq envvar -v PORTAGE_ROOT PORTAGE_NICENESS EMERGE_DEFAULT_OPTS NOCOLOR SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK REVDEP_DEFAULT_OPTS)
 	export NOCOLOR
 
 	SEARCH_DIRS="$ORIG_SEARCH_DIRS $SEARCH_DIRS"
 	SEARCH_DIRS_MASK="$ORIG_SEARCH_DIRS_MASK $SEARCH_DIRS_MASK"
 	LD_LIBRARY_MASK="$ORIG_LD_LIBRARY_MASK $LD_LIBRARY_MASK"
+	REVDEP_DEFAULT_OPTS="$ORIG_REVDEP_DEFAULT_OPTS $REVDEP_DEFAULT_OPTS"
 }
 
 ##
