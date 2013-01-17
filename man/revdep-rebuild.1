@@ -72,9 +72,9 @@ While a user can edit and modify the files in the /etc/revdep\-rebuild directory
 An entry of "\-*" means to clear the variable from that point forward.
 Example: SEARCH_DIRS="/usr/bin \-*" will set SEARCH_DIRS to contain only /usr/bin
 
-REVDEP_DEFAULT_OPTS \- List of default emerge options for revdep-rebuild
+REVDEP_REBUILD_DEFAULT_OPTS \- List of default emerge options for revdep-rebuild
 
-The REVDEP_DEFAULT_OPTS variable can be used to override EMERGE_DEFAULT_OPTIONS and to default emerge options to revdep\-rebuild. This variable is appended to the values of EMERGE_DEFAULT_OPTIONS and can still be overridden by command line options. Please note that this variable is only for options to pass to emerge and not options for revdep\-rebuild itself.
+The REVDEP_REBUILD_DEFAULT_OPTS variable can be used to override EMERGE_DEFAULT_OPTS for revdep\-rebuild. This variable replaces the values of EMERGE_DEFAULT_OPTS and can still be overridden by command line options. Please note that this variable is only for options to pass to emerge and not options for revdep\-rebuild itself.
 
 revdep\-rebuild honors the NOCOLOR and PORTAGE_NICENESS variables from /etc/make.conf
 .SH "EXAMPLES"
