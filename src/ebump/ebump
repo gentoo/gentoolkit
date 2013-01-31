@@ -89,7 +89,7 @@ splitname() {
 		;;
 		name)
 			name=$(echo ${2} | sed -r "s/(.*)-[0-9].*/\1/")
-			if [ ${name} == ${2} ] ; then
+			if [ ${name} = ${2} ] ; then
 				if [ $(echo ${2} | grep "^[0-9].*") ] ; then
 					# The filename starts with a version number, thus it has no
 					# name
@@ -104,14 +104,14 @@ splitname() {
 		;;
 		revision)
 			rev=$(echo ${2} | sed -r "s/.*-r([0-9][0-9]*)/\1/")
-			if [ ${rev} == ${2} ] ; then
+			if [ ${rev} = ${2} ] ; then
 				rev=0
 			fi
 			echo ${rev}
 		;;
 		vernorev)
 			ver=$(echo ${2} | sed -r "s/.*-([0-9].*)-r[0-9]+/\1/")
-			if [ ${ver} == ${2} ] ; then
+			if [ ${ver} = ${2} ] ; then
 				ver=$(echo ${2} | sed -r "s/.*-([0-9].*)/\1/")
 			fi
 			echo ${ver}
@@ -157,13 +157,13 @@ process_ebuild() {
 		local PV=$(splitname version ${PF})
 		local rev=$(splitname revision ${PF})
 		local PV_norev=$(splitname vernorev ${PF})
-		local newPF=${PN}-${PV_norev}-r$[rev+1]
+		local newPF=${PN}-${PV_norev}-r$((rev+1))
 
 #		echo $PF / $PN / $PV / $rev / $PV_norev / $newPF
 
 		einfo "Bumped ${PF}.ebuild to ${newPF}.ebuild"
 
-		if [ "${vcs}" == "svn" ]; then
+		if [ "${vcs}" = "svn" ]; then
 			svn cp ${PF}.ebuild ${newPF}.ebuild
 		else
 			cp ${PF}.ebuild ${newPF}.ebuild
@@ -179,7 +179,7 @@ process_ebuild() {
 		#
 		# (Optional) Bump relevant files in files/
 		#
-		if [ "${opt_bump_auxfiles}" == "y" ] ; then
+		if [ "${opt_bump_auxfiles}" = "y" ] ; then
 			# Gather list of auxiliary files in files/ that has a versioned
 			# filename, where the version matches our current version.
 			local bumplist=""
@@ -205,9 +205,9 @@ process_ebuild() {
 				# Special case for when we have no name part; filename
 				# is just a version number
 				if [ -z "${PN}" ] ; then
-					newbn=${PV_norev}-r$[rev+1]
+					newbn=${PV_norev}-r$((rev+1))
 				else
-					newbn=${PN}-${PV_norev}-r$[rev+1]
+					newbn=${PN}-${PV_norev}-r$((rev+1))
 				fi
 
 				if [ -d ${dn}/${bn} ] ; then
@@ -236,7 +236,7 @@ process_ebuild() {
 	#
 	# (Optional) Add VCS entry for all new files
 	#
-	if [ "${opt_add_vcs}" == "y" ] ; then
+	if [ "${opt_add_vcs}" = "y" ] ; then
 #		for x in ${addfiles} ; do
 #			if [ -d ${x} ] ; then
 #				find ${x} -exec ${vcs} add {} ';'
@@ -253,19 +253,19 @@ process_ebuild() {
 	# (Optional) Delete previous entry
 	#
 	# Could we use 'rm' instead of remove for all vcs?
-	if [ "${opt_delete_old}" == "y" ] ; then
+	if [ "${opt_delete_old}" = "y" ] ; then
 #		for x in ${delfiles} ; do
-#			if [ "${vcs}" == "cvs" ]; then
+#			if [ "${vcs}" = "cvs" ]; then
 #				${vcs} remove -f ${x}
-#			elif [ "${vcs}" == "git" ]; then
+#			elif [ "${vcs}" = "git" ]; then
 #				${vcs} rm ${x}
 #			else
 #				${vcs} remove ${x}
 #			fi
 #		done
-		if [ "${vcs}" == "cvs" ]; then
+		if [ "${vcs}" = "cvs" ]; then
 			$vcs remove -f $delfiles
-		elif [ "${vcs}" == "git" ]; then
+		elif [ "${vcs}" = "git" ]; then
 			$vcs rm $delfiles
 		else
 			$vcs remove $delfiles
@@ -276,7 +276,7 @@ process_ebuild() {
 	#
 	# (Optional) Add ChangeLog entry
 	#
-	if [ "${opt_add_changelog}" == "y" ] && [ "${opt_add_vcs}" == "y" ]; then
+	if [ "${opt_add_changelog}" = "y" ] && [ "${opt_add_vcs}" = "y" ]; then
 		# FIXME: remove this warning in 2-3 releases
 		if [ -n "${AUTHORNAME}" ] || [ -n "${AUTHOREMAIL}" ]; then
 			echo "Warning: AUTHORNAME and AUTHOREMAIL is deprecated!" >&2
