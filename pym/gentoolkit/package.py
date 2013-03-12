@@ -61,6 +61,7 @@ from gentoolkit.eprefix import EPREFIX
 def _NewPortageConfig(local_config):
 	ret = portage.config(local_config=local_config,
 			eprefix=EPREFIX if EPREFIX else None,
+			config_root=os.environ.get('PORTAGE_CONFIGROOT', None),
 			target_root=os.environ.get('ROOT', None))
 	ret.lock()
 	return ret
