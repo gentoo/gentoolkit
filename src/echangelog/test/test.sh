@@ -12,7 +12,8 @@ _ROOT=$(pwd)
 unset GENTOO_AUTHOR_NAME GENTOO_AUTHOR_EMAIL \
 	GENTOO_COMMITTER_NAME GENTOO_COMMITTER_EMAIL
 
-export ECHANGELOG_USER="Just a test <echangelogtest@gentoo.org>"
+export GENTOO_COMMITTER_NAME="Just a test"
+export GENTOO_COMMITTER_EMAIL="echangelogtest@gentoo.org"
 
 MD5_INIT="21ac109c53cf02378593a4f613b2bb55"
 MD5_PATCH="f3fa1cacae3bf51d6188278e6a5fd0c6"
@@ -56,6 +57,11 @@ make_test() {
 
 	if [ "${vcs}" = "git" ]; then
 		git init
+
+		# bug 454782
+		git config user.name "${GENTOO_COMMITTER_NAME}"
+		git config user.email "${GENTOO_COMMITTER_EMAIL}"
+
 		touch .gitignore
 		git add .gitignore
 		git commit -a -m 'Initial Commit'
