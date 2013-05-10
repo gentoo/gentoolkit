@@ -34,8 +34,8 @@ dist:
 
 	cp Makefile AUTHORS README README.Developer TODO COPYING NEWS ChangeLog release/$(RELEASE)/
 
-	@sed -e "s/^VERSION=.*/VERSION=$(VERSION)/" \
-		-e "s/^RELEASE_TAG=.*/RELEASE_TAG=$(RELEASE_TAG)/" \
+	@sed -e "s/^VERSION ?= .*/VERSION ?= $(VERSION)/" \
+		-e "s/^RELEASE_TAG ?= .*/RELEASE_TAG ?= $(RELEASE_TAG)/" \
 		makedefs.mak > release/$(RELEASE)/makedefs.mak
 
 	( cd release ; tar zcf $(RELEASE).tar.gz $(RELEASE)/ )
