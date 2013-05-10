@@ -518,29 +518,28 @@ sub sortfunc($$) {
 @ebuilds = grep(/\.ebuild$/, @files);
 @files = grep(!/\.ebuild$/, @files);
 
+my $fh;
 if (@ebuilds) {
 	if ($vcs eq "git") {
-		open C, $vcs{$vcs}{diff}." HEAD -- @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
+		open($fh, $vcs{$vcs}{diff}." HEAD -- @ebuilds 2>&1 |") or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
 	} else {
-		open C, $vcs{$vcs}{diff}." @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
+		open($fh, $vcs{$vcs}{diff}." @ebuilds 2>&1 |") or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
 	}
 
-	$_ = <C>;
-
-	while (defined $_) {
+	while (defined(my $line = <$fh>)) {
 		# only possible with cvs
-		if (/^$vcs diff: (([^\/]*?)\.ebuild) was removed/) {
+		if ($line =~ m/^$vcs diff: (([^\/]*?)\.ebuild) was removed/) {
 			mypush(@ebuilds, $1);
 		}
 		# We assume GNU diff output format here.
 		# git format: diff --git a/app-doc/repodoc/metadata.xml b/app-doc/repodoc/metadata.xml
-		elsif (/$vcs{$vcs}{regex}/) {
+		elsif ($line =~ m/$vcs{$vcs}{regex}/) {
 			my ($file, $version) = ($1, $2);
 
 			if ($vcs eq "git") {
-				while (<C>) {
-					last if /^deleted file mode|^index/;
-					if (/^new file mode/) {
+				while (defined($line = <$fh>)) {
+					last if $line =~ m/^deleted file mode|^index/;
+					if ($line =~ m/^new file mode/) {
 						mypush(@ebuilds, $file);
 						mypush(@new_versions, $version);
 						last;
@@ -549,12 +548,12 @@ if (@ebuilds) {
 			}
 
 			if ($vcs eq "bzr") {
-				if (/^=== added file/) {
+				if ($line =~ m/^=== added file/) {
 					mypush(@ebuilds, $file);
 					mypush(@new_versions, $version);
 					last;
 				}
-				elsif(/^=== renamed file '.+\/([^\/]+\.ebuild)' => '.+\/(([^\/]+)\.ebuild)'/) {
+				elsif($line =~ /^=== renamed file '.+\/([^\/]+\.ebuild)' => '.+\/(([^\/]+)\.ebuild)'/) {
 					mypush(@ebuilds, $1, $2);
 					mypush(@new_versions, $3);
 					last;
@@ -564,31 +563,36 @@ if (@ebuilds) {
 			# check if more than just copyright date changed.
 			# skip some lines (vcs dependent)
 			foreach(1..$vcs{$vcs}{skip}) {
-				$_ = <C>;
+				$line = <$fh>;
 			}
 
-			while (<C>) {
-				last if /^[A-Za-z]/;
-				if (/^[-+](?!# Copyright)/) {
+
+			my $copy_only = 1;
+			while(defined($line = <$fh>)) {
+				# We just want to check/compare the differences so anything beginning with +/-
+				if ($line =~ m/^[-+](?!# Copyright)/m) {
 					mypush(@ebuilds, $file);
+					$copy_only = 0;
 					last;
 				}
 			}
 
-			# at this point we've either added $f to @ebuilds or not,
-			# and we have the next line in $_ for processing
+			# Only the Copyright has been changed so lets remove the file from the array
+			if ($copy_only) {
+				@ebuilds = grep(!/\Q${file}\E/, @ebuilds);
+			}
+
+			# At this point all ebuilds where more than just the copyright has been changed have been added to @ebuilds.
+			# So lets go ahead with the next diff.
 			next;
 		}
-		elsif (/^$vcs.*?: (([^\/]*?)\.ebuild) is a new entry/) {
+		elsif ($line =~ m/^$vcs.*?: (([^\/]*?)\.ebuild) is a new entry/) {
 			mypush(@ebuilds, $1);
 			mypush(@new_versions, $2);
 		}
-
-		# other cvs output is ignored
-		$_ = <C>;
 	}
 }
-close C;
+close($fh);
 
 # Subversion diff doesn't identify new versions. So use the status command
 if (($vcs eq "svn" or $vcs eq "hg") and (@ebuilds)) {

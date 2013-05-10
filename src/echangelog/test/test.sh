@@ -17,9 +17,9 @@ export ECHANGELOG_USER="Just a test <echangelogtest@gentoo.org>"
 MD5_INIT="21ac109c53cf02378593a4f613b2bb55"
 MD5_PATCH="f3fa1cacae3bf51d6188278e6a5fd0c6"
 MD5_REVBUMP="e474aa136f06e2a001320240b2ae92bd"
-MD5_COPYRIGHT="17e3e9a3ec855f5229815cbfd327b634"
-MD5_OBSOLETE="9424da75f53c5212f58cf11a614a97c5"
-MD5_FINAL="3f770e0c13a31653fd0f4ff71598ba6f"
+MD5_COPYRIGHT="9ce45576db5489c4f109ed9ef9ffe05e"
+MD5_OBSOLETE="f0079450e03e69741502776a6b8138dc"
+MD5_FINAL="a3954786368fd92d8466bc65cbf689fc"
 
 UPDATE_MD5=0
 
@@ -138,7 +138,7 @@ make_test() {
 		eerror "WRONG MD5_OBSOLETE!"
 	fi
 
-	echo>>vcstest-0.0.1.ebuild
+	echo "foobar" >> vcstest-0.0.1.ebuild
 	ech ${echangelog} --vcs $vcs "Revbump...; Just copyright changed; Removed obsolete patch; Modified more then just the copyright."
 
 	if [ "${MD5_FINAL}" != "$(md5 ChangeLog MD5_FINAL)" ]; then
