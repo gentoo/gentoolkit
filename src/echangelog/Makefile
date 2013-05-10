@@ -10,6 +10,9 @@ include ../../makedefs.mak
 
 all:
 
+clean:
+	$(RM) -r test/tmp
+
 test:
 	cd test; sh test.sh
 
