@@ -39,6 +39,9 @@ dist:
 		makedefs.mak > release/$(RELEASE)/makedefs.mak
 
 	( cd release ; tar zcf $(RELEASE).tar.gz $(RELEASE)/ )
+	@echo
+	@echo "Now test and then copy the release tarball to the distfiles dir on dev.gentoo.org"
+	@echo "scp release/$(RELEASE).tar.gz dev.gentoo.org:/space/distfiles-local/"
 
 install: install-gentoolkit-dev
 
