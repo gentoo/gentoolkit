@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 #
 # echangelog: Update the ChangeLog for an ebuild.  For example:
 #
@@ -8,13 +8,14 @@
 #   >   Add ~alpha to KEYWORDS
 #   >
 
+use warnings;
 use strict;
-use POSIX qw(strftime getcwd setlocale);
+use POSIX qw(locale_h strftime getcwd setlocale);
 use File::Basename;
 use Getopt::Long;
 
 # Fix bug 21022 by restricting to C locale
-setlocale(&POSIX::LC_ALL, "C");
+setlocale(LC_ALL, "C");
 
 use Text::Wrap;
 $Text::Wrap::columns = 80;
