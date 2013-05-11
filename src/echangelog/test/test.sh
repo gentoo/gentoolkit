@@ -160,7 +160,7 @@ ebegin "Preparing echangelog"
 
 if [ -e "../echangelog" ]; then
 	cp ../echangelog "${_ROOT}/tmp" || set $?
-	sed -i -e 's:use POSIX qw.*:use POSIX qw(setlocale getcwd);\nuse TEST qw(strftime);:' "${_ROOT}/tmp/echangelog" || set $?
+	sed -i -e 's:use POSIX qw.*:use POSIX qw(locale_h setlocale getcwd);\nuse TEST qw(strftime);:' "${_ROOT}/tmp/echangelog" || set $?
 	eend ${1:-0} || exit ${1}
 else
 	eerror "error"
