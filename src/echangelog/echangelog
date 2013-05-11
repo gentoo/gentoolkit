@@ -520,8 +520,8 @@ sub sortfunc($$) {
 @ebuilds = grep(/\.ebuild$/, @files);
 @files = grep(!/\.ebuild$/, @files);
 
-my $ph_diff;
 if (@ebuilds) {
+	my $ph_diff;
 	if ($vcs eq "git") {
 		open($ph_diff, "-|", $vcs{$vcs}{diff}." HEAD -- @ebuilds 2>&1") or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
 	} else {
@@ -593,8 +593,8 @@ if (@ebuilds) {
 			mypush(@new_versions, $2);
 		}
 	}
+	close($ph_diff);
 }
-close($ph_diff) if $ph_diff;
 
 # Subversion diff doesn't identify new versions. So use the status command
 if (($vcs eq "svn" or $vcs eq "hg") and (@ebuilds)) {
