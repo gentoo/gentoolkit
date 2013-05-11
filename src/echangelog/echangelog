@@ -23,6 +23,7 @@ $Text::Wrap::unexpand = 0;
 # Global variables
 my (@files, @ebuilds, @conflicts, @trivial, @unknown, @new_versions, %actions);
 my ($input, $editor, $entry, $user, $date, $text, $vcs);
+my ($fh);
 my ($opt_help, $opt_nostrict, $opt_force_vcs, $opt_version, $opt_strict);
 
 $date = strftime("%d %b %Y", gmtime);
@@ -260,23 +261,23 @@ if ( ! $vcs ) {
 
 # Read the current ChangeLog
 if (-f 'ChangeLog') {
-	open(I, '<', 'ChangeLog') or die "Can't open ChangeLog for input: $!\n";
-	{ local $/ = undef; $text = <I>; }
-	close(I);
+	open($fh, '<', 'ChangeLog') or die "Can't open ChangeLog for input: $!\n";
+	{ local $/ = undef; $text = <$fh>; }
+	close($fh);
 } else {
 	# No ChangeLog here, maybe we should make one...
 	if (<*.ebuild>) {
-		open(C, '-|', "portageq portdir") or die "portageq returned with an error: $!\n";
-		my $portdir = <C>;
+		open(my $ph, '-|', "portageq portdir") or die "portageq returned with an error: $!\n";
+		my $portdir = <$ph>;
 		$portdir =~ s/\s+$//;
-		close(C);
+		close($ph);
 
 		die "Can't find PORTDIR\n" if (length $portdir == 0);
 
-		open(I, '<', "$portdir/skel.ChangeLog")
+		open($fh, '<', "$portdir/skel.ChangeLog")
 			or die "Can't open $portdir/skel.ChangeLog for input: $!\n";
-		{ local $/ = undef; $text = <I>; }
-		close(I);
+		{ local $/ = undef; $text = <$fh>; }
+		close($fh);
 
 		$text =~ s/^\*.*//ms; # don't need the fake entry
 	} else {
@@ -295,8 +296,8 @@ if (<*.ebuild>) {
 }
 
 # Figure out what has changed around here
-open C, $vcs{$vcs}{status}.' 2>&1 |' or die "Can't run ".$vcs{$vcs}{status}.": $!\n";
-while (<C>) {
+open(my $ph_status, $vcs{$vcs}{status}.' 2>&1 |') or die "Can't run ".$vcs{$vcs}{status}.": $!\n";
+while (<$ph_status>) {
 	# I don't want mess our existing stuff with the horrible bazaar stuff.
 	# TODO: add stuff for untracked/conflicting files.
 	if ($vcs eq "bzr") {
@@ -356,9 +357,9 @@ while (<C>) {
 		my ($status, $filename) = ($1,$2);
 
 		if($vcs eq "git") {
-			open(P, '-|', "git rev-parse --sq --show-prefix");
-			my $prefix = <P>;
-			close(P);
+			open(my $ph, '-|', "git rev-parse --sq --show-prefix");
+			my $prefix = <$ph>;
+			close($ph);
 
 			if (defined($prefix)) {
 				chomp($prefix);
@@ -378,6 +379,7 @@ while (<C>) {
 		($actions{$filename} = $status) =~ tr/DARM/-+-/d;
 	}
 }
+close($ph_status);
 
 sub git_unknown_objects {
 	open(my $ph, "-|", "${vcs} ls-files --exclude-standard --others");
@@ -518,15 +520,15 @@ sub sortfunc($$) {
 @ebuilds = grep(/\.ebuild$/, @files);
 @files = grep(!/\.ebuild$/, @files);
 
-my $fh;
+my $ph_diff;
 if (@ebuilds) {
 	if ($vcs eq "git") {
-		open($fh, $vcs{$vcs}{diff}." HEAD -- @ebuilds 2>&1 |") or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
+		open($ph_diff, $vcs{$vcs}{diff}." HEAD -- @ebuilds 2>&1 |") or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
 	} else {
-		open($fh, $vcs{$vcs}{diff}." @ebuilds 2>&1 |") or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
+		open($ph_diff, $vcs{$vcs}{diff}." @ebuilds 2>&1 |") or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
 	}
 
-	while (defined(my $line = <$fh>)) {
+	while (defined(my $line = <$ph_diff>)) {
 		# only possible with cvs
 		if ($line =~ m/^$vcs diff: (([^\/]*?)\.ebuild) was removed/) {
 			mypush(@ebuilds, $1);
@@ -537,7 +539,7 @@ if (@ebuilds) {
 			my ($file, $version) = ($1, $2);
 
 			if ($vcs eq "git") {
-				while (defined($line = <$fh>)) {
+				while (defined($line = <$ph_diff>)) {
 					last if $line =~ m/^deleted file mode|^index/;
 					if ($line =~ m/^new file mode/) {
 						mypush(@ebuilds, $file);
@@ -563,12 +565,12 @@ if (@ebuilds) {
 			# check if more than just copyright date changed.
 			# skip some lines (vcs dependent)
 			foreach(1..$vcs{$vcs}{skip}) {
-				$line = <$fh>;
+				$line = <$ph_diff>;
 			}
 
 
 			my $copy_only = 1;
-			while(defined($line = <$fh>)) {
+			while(defined($line = <$ph_diff>)) {
 				# We just want to check/compare the differences so anything beginning with +/-
 				if ($line =~ m/^[-+](?!# Copyright)/m) {
 					mypush(@ebuilds, $file);
@@ -592,21 +594,19 @@ if (@ebuilds) {
 		}
 	}
 }
-close($fh) if $fh;
+close($ph_diff) if $ph_diff;
 
 # Subversion diff doesn't identify new versions. So use the status command
 if (($vcs eq "svn" or $vcs eq "hg") and (@ebuilds)) {
-	open C, $vcs{$vcs}{status}." @ebuilds 2>&1 |" or die "Can't run: ".$vcs{$vcs}{status}."$!\n";
-	$_ = <C>;
+	open(my $ph_status, $vcs{$vcs}{status}." @ebuilds 2>&1 |") or die "Can't run: ".$vcs{$vcs}{status}."$!\n";
 
-	while (defined $_) {
-		if (/^A\s+\+?\s*(([^\s]*)\.ebuild)/) {
+	while (defined(my $line = <$ph_status>)) {
+		if ($line =~ m/^A\s+\+?\s*(([^\s]*)\.ebuild)/) {
 			mypush(@ebuilds, $1);
 			mypush(@new_versions, $2);
 		}
-
-		$_ = <C>;
 	}
+	close($ph_status);
 }
 
 # When a package move occurs, the versions appear to be new even though they are
@@ -660,10 +660,10 @@ if ($ARGV[0]) {
 			print STDERR "Editor died!  Reverting to stdin method.\n";
 			undef $editor;
 		} else {
-			if (open I, "<ChangeLog.new") {
+			if (open($fh, "<ChangeLog.new")) {
 				local $/ = undef;
-				$input = <I>;
-				close(I);
+				$input = <$fh>;
+				close($fh);
 
 				# Remove comments from changelog_info().
 				local $/ = "\n";
@@ -756,18 +756,18 @@ for my $e (grep(!/\.(patch|diff)$/, @files), @ebuilds) {
 	if (-s $e && ! -B $e) {
 		my ($etext, $netext);
 
-		open E, "<$e" or warn("Can't read $e to update copyright year\n"), next;
-		{ local $/ = undef; $etext = <E>; }
-		close E;
+		open($fh, "<", $e) or warn("Can't read $e to update copyright year\n"), next;
+		{ local $/ = undef; $etext = <$fh>; }
+		close($fh);
 
 		# Attempt the substitution and compare
 		$netext = update_copyright($etext);
 		next if $netext eq $etext; # skip this file if no change.
 
 		# Write the new ebuild
-		open E, ">$e.new" or warn("Can't open $e.new\n"), next;
-		print E $netext and
-		close E or warn("Can't write $e.new\n"), next;
+		open($fh, ">", "${e}.new") or warn("Can't open $e.new\n"), next;
+		print $fh $netext and
+		close($fh) or warn("Can't write $e.new\n"), next;
 
 		# Move things around and show the diff
 		system "diff -U 0 $e $e.new";
@@ -781,9 +781,9 @@ for my $e (grep(!/\.(patch|diff)$/, @files), @ebuilds) {
 }
 
 # Write the new ChangeLog
-open O, '>ChangeLog.new' or die "Can't open ChangeLog.new for output: $!\n";
-print O $text            or die "Can't write ChangeLog.new: $!\n";
-close O                  or die "Can't close ChangeLog.new: $!\n";
+open($fh, ">", 'ChangeLog.new') or die "Can't open ChangeLog.new for output: $!\n";
+print $fh $text or die "Can't write ChangeLog.new: $!\n";
+close($fh) or die "Can't close ChangeLog.new: $!\n";
 
 # Move things around and show the ChangeLog diff
 system 'diff -Nu ChangeLog ChangeLog.new';
@@ -793,12 +793,14 @@ rename 'ChangeLog.new', 'ChangeLog' or die "Can't rename ChangeLog.new: $!\n";
 # The text will be added just like with any other ChangeLog below.
 # Add the new ChangeLog to vcs before continuing.
 if ($vcs eq "cvs") {
-	if (open F, "CVS/Entries") {
-		system("cvs -f add ChangeLog") unless (scalar grep /^\/ChangeLog\//, <F>);
+	if (open($fh, "<", "CVS/Entries")) {
+		system("cvs -f add ChangeLog") unless (scalar grep /^\/ChangeLog\//, <$fh>);
+		close($fh);
 	}
 } elsif ($vcs eq "svn") {
-	if (open F, ".svn/entries") {
-		system("svn add ChangeLog") unless (scalar grep /ChangeLog/, <F>);
+	if (open($fh, "<", ".svn/entries")) {
+		system("svn add ChangeLog") unless (scalar grep /ChangeLog/, <$fh>);
+		close($fh);
 	}
 } else {
 	system("$vcs{$vcs}{add} ChangeLog 2>&1 > /dev/null");
