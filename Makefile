@@ -42,6 +42,7 @@ dist:
 	@echo
 	@echo "Now test and then copy the release tarball to the distfiles dir on dev.gentoo.org"
 	@echo "scp release/$(RELEASE).tar.gz dev.gentoo.org:/space/distfiles-local/"
+	@echo "And create a new git tag: git tag $(RELEASE); git push origin $(RELEASE)"
 
 install: install-gentoolkit-dev
 
