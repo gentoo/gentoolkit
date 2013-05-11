@@ -266,7 +266,7 @@ if (-f 'ChangeLog') {
 	close($fh);
 } else {
 	# No ChangeLog here, maybe we should make one...
-	if (<*.ebuild>) {
+	if (glob("*.ebuild")) {
 		open(my $ph, '-|', "portageq portdir") or die "portageq returned with an error: $!\n";
 		my $portdir = <$ph>;
 		$portdir =~ s/\s+$//;
@@ -291,12 +291,12 @@ $text = update_copyright($text);
 # New packages and/or ones that have moved around often have stale data here.
 # But only do that in places where ebuilds are around (as echangelog can be
 # used in profiles/ and such places).
-if (<*.ebuild>) {
+if (glob("*.ebuild")) {
 	$text = update_cat_pn($text);
 }
 
 # Figure out what has changed around here
-open(my $ph_status, $vcs{$vcs}{status}.' 2>&1 |') or die "Can't run ".$vcs{$vcs}{status}.": $!\n";
+open(my $ph_status, "-|", $vcs{$vcs}{status}.' 2>&1 |') or die "Can't run ".$vcs{$vcs}{status}.": $!\n";
 while (<$ph_status>) {
 	# I don't want mess our existing stuff with the horrible bazaar stuff.
 	# TODO: add stuff for untracked/conflicting files.
@@ -523,9 +523,9 @@ sub sortfunc($$) {
 my $ph_diff;
 if (@ebuilds) {
 	if ($vcs eq "git") {
-		open($ph_diff, $vcs{$vcs}{diff}." HEAD -- @ebuilds 2>&1 |") or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
+		open($ph_diff, "-|", $vcs{$vcs}{diff}." HEAD -- @ebuilds 2>&1 |") or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
 	} else {
-		open($ph_diff, $vcs{$vcs}{diff}." @ebuilds 2>&1 |") or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
+		open($ph_diff, "-|", $vcs{$vcs}{diff}." @ebuilds 2>&1 |") or die "Can't run: ".$vcs{$vcs}{diff}."$!\n";
 	}
 
 	while (defined(my $line = <$ph_diff>)) {
@@ -598,7 +598,7 @@ close($ph_diff) if $ph_diff;
 
 # Subversion diff doesn't identify new versions. So use the status command
 if (($vcs eq "svn" or $vcs eq "hg") and (@ebuilds)) {
-	open(my $ph_status, $vcs{$vcs}{status}." @ebuilds 2>&1 |") or die "Can't run: ".$vcs{$vcs}{status}."$!\n";
+	open(my $ph_status, "-|", $vcs{$vcs}{status}." @ebuilds 2>&1 |") or die "Can't run: ".$vcs{$vcs}{status}."$!\n";
 
 	while (defined(my $line = <$ph_status>)) {
 		if ($line =~ m/^A\s+\+?\s*(([^\s]*)\.ebuild)/) {
@@ -660,7 +660,7 @@ if ($ARGV[0]) {
 			print STDERR "Editor died!  Reverting to stdin method.\n";
 			undef $editor;
 		} else {
-			if (open($fh, "<ChangeLog.new")) {
+			if (open($fh, "<", "ChangeLog.new")) {
 				local $/ = undef;
 				$input = <$fh>;
 				close($fh);
