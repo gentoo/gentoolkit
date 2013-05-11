@@ -592,7 +592,7 @@ if (@ebuilds) {
 		}
 	}
 }
-close($fh);
+close($fh) if $fh;
 
 # Subversion diff doesn't identify new versions. So use the status command
 if (($vcs eq "svn" or $vcs eq "hg") and (@ebuilds)) {
