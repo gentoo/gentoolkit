@@ -448,7 +448,7 @@ get_all_make_conf() {
 # component by traversing through the cascading profile
 #
 # Bug #414961 allows ':' shorthand to resolve to the ${PORTDIR}/profiles
-# A value before the ':' references the repository, no value means gentoo
+# A value before the ':' references the repository, no value means same repo
 #
 # Example: local:base would refer to the profiles directory in the repository
 # path owned by the 'local' repository
@@ -475,12 +475,15 @@ traverse_profile() {
 				# We have a path with a colon shortcut
 				let i=$index-1
 				repo="${parent:0:${i}}"
-				[[ -z "${repo}" ]] && repo="gentoo"
 				parent="${parent:$index}"
 				limit=${#PORTAGE_REPOS[@]}
 				for ((i=0; i < limit ; i++)); do
-					if [[ ${repo} == ${PORTAGE_REPOS[i]} ]]; then
-						parent="${PORTAGE_REPO_PATHS[i]}/profiles/${parent}"
+					repo_profiles="${PORTAGE_REPO_PATHS[i]}/profiles"
+					if [[ "${repo}" == ${PORTAGE_REPOS[i]} ]] || \
+						( [[ -z "${repo}" ]] &&
+						[[ "${curdir}" == ${repo_profiles}/* ]] )
+					then
+						parent="${repo_profiles}/${parent}"
 						break
 					fi
 				done
