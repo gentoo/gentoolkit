@@ -112,19 +112,19 @@ def printUsage(_error=None, help=None):
 	'merged-distfiles-options') or help:
 		print( "Available global", yellow("options")+":", file=out)
 		print( yellow(" -C, --nocolor")+
-			"            - turn off colors on output", file=out)
-		print( yellow(" -d, --destructive")+
-			"        - only keep the minimum for a reinstallation", file=out)
+			"             - turn off colors on output", file=out)
+		print( yellow(" -d, --deep")+
+			"                - only keep the minimum for a reinstallation", file=out)
 		print( yellow(" -e, --exclude-file=<path>")+
 			" - path to the exclusion file", file=out)
 		print( yellow(" -i, --interactive")+
-			"        - ask confirmation before deletions", file=out)
+			"         - ask confirmation before deletions", file=out)
 		print( yellow(" -n, --package-names")+
-			"      - protect all versions (when --destructive)", file=out)
+			"       - protect all versions (when --deep", file=out)
 		print( yellow(" -p, --pretend")+
-			"            - only display what would be cleaned", file=out)
+			"             - only display what would be cleaned", file=out)
 		print( yellow(" -q, --quiet")+
-			"              - be as quiet as possible", file=out)
+			"               - be as quiet as possible", file=out)
 		print( yellow(" -t, --time-limit=<time>")+
 			"   - don't delete files modified since "+yellow("<time>"), file=out)
 		print( "   "+yellow("<time>"), "is a duration: \"1y\" is"+
@@ -132,9 +132,9 @@ def printUsage(_error=None, help=None):
 		print( "   "+"Units are: y (years), m (months), w (weeks), "+
 				"d (days) and h (hours).", file=out)
 		print( yellow(" -h, --help")+ \
-			"               - display the help screen", file=out)
+			"                - display the help screen", file=out)
 		print( yellow(" -V, --version")+
-			"            - display version info", file=out)
+			"             - display version info", file=out)
 		print( file=out)
 	if _error == 'actions' or help == 'all':
 		print( "Available", green("actions")+":", file=out)
@@ -154,7 +154,7 @@ def printUsage(_error=None, help=None):
 		print("Available", yellow("options"),"for the",
 				green("distfiles"),"action:", file=out)
 		print( yellow(" -f, --fetch-restricted")+
-			"   - protect fetch-restricted files (when --destructive)", file=out)
+			"   - protect fetch-restricted files (when --deep)", file=out)
 		print( yellow(" -s, --size-limit=<size>")+
 			"  - don't delete distfiles bigger than "+yellow("<size>"), file=out)
 		print( "   "+yellow("<size>"), "is a size specification: "+
@@ -237,7 +237,7 @@ def parseArgs(options={}):
 			elif o in ("-C", "--nocolor"):
 				options['nocolor'] = True
 				pp.output.nocolor()
-			elif o in ("-d", "--destructive"):
+			elif o in ("-d", "--deep", "--destructive"):
 				options['destructive'] = True
 			elif o in ("-D", "--deprecated"):
 				options['deprecated'] = True
@@ -264,12 +264,12 @@ def parseArgs(options={}):
 					options['verbose'] = True
 			else:
 				return_code = False
-		# sanity check of --destructive only options:
+		# sanity check of --deep only options:
 		for opt in ('fetch-restricted', 'package-names'):
 			if (not options['destructive']) and options[opt]:
 				if not options['quiet']:
 					print( pp.error(
-						"--%s only makes sense in --destructive mode." % opt), file=sys.stderr)
+						"--%s only makes sense in --deep mode." % opt), file=sys.stderr)
 				options[opt] = False
 		if do_help:
 			if action:
@@ -281,7 +281,7 @@ def parseArgs(options={}):
 	# here are the different allowed command line options (getopt args)
 	getopt_options = {'short':{}, 'long':{}}
 	getopt_options['short']['global'] = "CdDipqe:t:nhVv"
-	getopt_options['long']['global'] = ["nocolor", "destructive",
+	getopt_options['long']['global'] = ["nocolor", "deep", "destructive",
 		"deprecated", "interactive", "pretend", "quiet", "exclude-file=",
 		"time-limit=", "package-names", "help", "version",  "verbose"]
 	getopt_options['short']['distfiles'] = "fs:"
