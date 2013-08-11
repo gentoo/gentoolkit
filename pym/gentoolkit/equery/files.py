@@ -43,7 +43,8 @@ QUERY_OPTS = {
 }
 
 FILTER_RULES = (
-	'dir', 'obj', 'sym', 'dev', 'path', 'conf', 'cmd', 'doc', 'man', 'info'
+	'dir', 'obj', 'sym', 'dev', 'path', 'conf', 'cmd', 'doc', 'man', 'info',
+	'fifo'
 )
 
 # =========
@@ -199,6 +200,17 @@ def filter_by_conf(contents):
 	return filtered_content
 
 
+def filter_by_fifo(contents):
+	"""Return a copy of content filtered by fifo entries."""
+
+	filtered_content = {}
+	for path in contents:
+		if contents[path][0] in ['fif']:
+			filtered_content[path] = contents[path]
+
+	return filtered_content
+
+
 def filter_contents(contents):
 	"""Filter files by type if specified by the user.
 
@@ -228,6 +240,8 @@ def filter_contents(contents):
 		filtered_content.update(filter_by_conf(contents))
 	if frozenset(('doc' ,'man' ,'info')).intersection(content_filter):
 		filtered_content.update(filter_by_doc(contents, content_filter))
+	if "fifo" in content_filter:
+		filtered_content.update(filter_by_fifo(contents))
 
 	return filtered_content
 

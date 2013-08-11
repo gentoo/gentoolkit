@@ -145,7 +145,7 @@ def format_filetype(path, fdesc, show_type=False, show_md5=False,
 	@param path: the path
 	@type fdesc: list
 	@param fdesc: [file_type, timestamp, MD5 sum/symlink target]
-		file_type is one of dev, dir, obj, sym.
+		file_type is one of dev, dir, obj, sym, fif.
 		If file_type is dir, there is no timestamp or MD5 sum.
 		If file_type is sym, fdesc[2] is the target of the symlink.
 	@type show_type: bool
@@ -178,6 +178,9 @@ def format_filetype(path, fdesc, show_type=False, show_md5=False,
 			fpath = pp.path_symlink(path + " -> " + tgt)
 	elif fdesc[0] == "dev":
 		ftype = "dev"
+		fpath = path
+	elif fdesc[0] == "fif":
+		ftype = "fifo"
 		fpath = path
 	else:
 		sys.stderr.write(
