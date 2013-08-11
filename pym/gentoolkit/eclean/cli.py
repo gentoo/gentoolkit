@@ -394,6 +394,10 @@ def doAction(action,options,exclude={}, output=None):
 			size_limit=options['size-limit'],
 			deprecate = options['deprecated']
 		)
+
+	# initialize our cleaner
+	cleaner = CleanUp( output.progress_controller)
+
 	# actually clean files if something was found
 	if clean_me:
 		# verbose pretend message
@@ -403,7 +407,6 @@ def doAction(action,options,exclude={}, output=None):
 		elif not options['quiet']:
 			output.einfo("Cleaning " + files_type  +"...")
 		# do the cleanup, and get size of deleted files
-		cleaner = CleanUp( output.progress_controller)
 		if  options['pretend']:
 			clean_size = cleaner.pretend_clean(clean_me)
 		elif action in ['distfiles']:
@@ -419,7 +422,7 @@ def doAction(action,options,exclude={}, output=None):
 		# display freed space
 		if not options['quiet']:
 			output.total('normal', clean_size, len(clean_me), verb, action)
-	# nothing was found, return
+	# nothing was found
 	elif not options['quiet']:
 		output.einfo("Your "+action+" directory was already clean.")
 	if saved and not options['quiet']:
