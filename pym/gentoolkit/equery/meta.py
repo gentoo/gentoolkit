@@ -41,6 +41,7 @@ QUERY_OPTS = {
 	'description': False,
 	'herd': False,
 	'keywords': False,
+	'license': False,
 	'maintainer': False,
 	'stablereq': False,
 	'useflags': False,
@@ -86,6 +87,7 @@ def print_help(with_description=True, with_usage=True):
 		(" -d, --description", "show an extended package description"),
 		(" -H, --herd", "show the herd(s) for the package"),
 		(" -k, --keywords", "show keywords for all matching package versions"),
+		(" -l, --license", "show licenses for the best maching version"),
 		(" -m, --maintainer", "show the maintainer(s) for the package"),
 		(" -S, --stablreq", "show STABLEREQ arches (cc's) for all matching package versions"),
 		(" -u, --useflags", "show per-package USE flag descriptions"),
@@ -371,6 +373,13 @@ def call_format_functions(best_match, matches):
 		useflags = format_useflags(best_match.metadata.use())
 		print_sequence(format_list(useflags))
 
+	_license = best_match.environment(["LICENSE"])
+	if QUERY_OPTS["license"]:
+		_license = format_list(_license)
+	else:
+		_license = format_list(_license, "License:     ", " " * 13)
+	print_sequence(_license)
+
 	if QUERY_OPTS["stablereq"]:
 		# Get {<Package 'dev-libs/glib-2.20.5'>: [u'ia64', u'm68k', ...], ...}
 		stablereq_map = stablereq(matches)
@@ -499,6 +508,8 @@ def parse_module_options(module_opts):
 			QUERY_OPTS["description"] = True
 		elif opt in ('-H', '--herd'):
 			QUERY_OPTS["herd"] = True
+		elif opt in ('-l', '--license'):
+			QUERY_OPTS["license"] = True
 		elif opt in ('-m', '--maintainer'):
 			QUERY_OPTS["maintainer"] = True
 		elif opt in ('-k', '--keywords'):
@@ -516,9 +527,9 @@ def parse_module_options(module_opts):
 def main(input_args):
 	"""Parse input and run the program."""
 
-	short_opts = "hdHkmSuUx"
-	long_opts = ('help', 'description', 'herd', 'keywords', 'maintainer',
-		'stablereq', 'useflags', 'upstream', 'xml')
+	short_opts = "hdHklmSuUx"
+	long_opts = ('help', 'description', 'herd', 'keywords', 'license',
+		'maintainer', 'stablereq', 'useflags', 'upstream', 'xml')
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
