@@ -942,7 +942,7 @@ list_skipped_packages() {
 	ewarn
 }
 get_build_order() {
-	local -r OLD_EMERGE_DEFAULT_OPTS="$EMERGE_DEFAULT_OPTS"
+	local -a OLD_EMERGE_DEFAULT_OPTS=("${EMERGE_DEFAULT_OPTS[@]}")
 	local RAW_REBUILD_LIST
 	local REBUILD_GREP
 	local i
@@ -957,7 +957,7 @@ get_build_order() {
 		clean_trap "$ORDER_FILE"
 		RAW_REBUILD_LIST=$(<"$EBUILDS_FILE")
 		if [[ $RAW_REBUILD_LIST ]]; then
-			export EMERGE_DEFAULT_OPTS="--nospinner --pretend --oneshot --quiet"
+			EMERGE_DEFAULT_OPTS=(--nospinner --pretend --oneshot --quiet)
 			RAW_REBUILD_LIST=($RAW_REBUILD_LIST) # convert into array
 			# If PACKAGE_NAMES is defined we're using slots, not versions
 			if [[ $PACKAGE_NAMES ]]; then
@@ -1010,7 +1010,7 @@ get_build_order() {
 			else
 				echo "$RAW_REBUILD_LIST" > "$ORDER_FILE"
 			fi
-			export EMERGE_DEFAULT_OPTS="$OLD_EMERGE_DEFAULT_OPTS"
+			EMERGE_DEFAULT_OPTS=("${OLD_EMERGE_DEFAULT_OPTS[@]}")
 		else
 			einfo 'Nothing to rebuild.'
 			die 1 '(The program should have already quit, so this is a minor bug.)'
@@ -1043,6 +1043,8 @@ portage_settings() {
 	eval $(portageq envvar -v PORTAGE_ROOT PORTAGE_NICENESS EMERGE_DEFAULT_OPTS NOCOLOR SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK REVDEP_REBUILD_DEFAULT_OPTS)
 	export NOCOLOR
 
+	# Convert quoted paths to array.
+	eval "EMERGE_DEFAULT_OPTS=(${EMERGE_DEFAULT_OPTS})"
 	SEARCH_DIRS="$ORIG_SEARCH_DIRS $SEARCH_DIRS"
 	SEARCH_DIRS_MASK="$ORIG_SEARCH_DIRS_MASK $SEARCH_DIRS_MASK"
 	LD_LIBRARY_MASK="$ORIG_LD_LIBRARY_MASK $LD_LIBRARY_MASK"
@@ -1142,7 +1144,7 @@ rebuild() {
 	trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 
 	[[ $QUIET -ne 1 ]] && einfo 'All prepared. Starting rebuild'
-	echo "emerge --complete-graph=y --oneshot ${EMERGE_DEFAULT_OPTS} ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
+	echo "emerge --complete-graph=y --oneshot ${EMERGE_DEFAULT_OPTS[@]} ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
 
 	is_real_merge && countdown 10
 
@@ -1151,7 +1153,7 @@ rebuild() {
 
 	# Run in background to correctly handle Ctrl-C
 	{
-		emerge --complete-graph=y --oneshot ${EMERGE_DEFAULT_OPTS} ${EMERGE_OPTIONS[@]} $REBUILD_LIST <&6
+		emerge --complete-graph=y --oneshot "${EMERGE_DEFAULT_OPTS[@]}" ${EMERGE_OPTIONS[@]} $REBUILD_LIST <&6
 		echo $? > "$STATUS_FILE"
 	} &
 	wait
