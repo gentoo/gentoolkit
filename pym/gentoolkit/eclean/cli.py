@@ -304,12 +304,12 @@ def parseArgs(options={}):
 	action = None
 	# temp print line to ensure it is the svn/branch code running, etc..
 	#print(  "###### svn/branch/gentoolkit_eclean ####### ==> ", os.path.basename(sys.argv[0]))
-	if os.path.basename(sys.argv[0]) in \
-			(__productname__+'-pkg', __productname__+'-packages'):
-		action = 'packages'
-	elif os.path.basename(sys.argv[0]) in \
-			(__productname__+'-dist', __productname__+'-distfiles'):
-		action = 'distfiles'
+	if os.path.basename(sys.argv[0]).startswith(__productname__+'-pkg') or \
+		os.path.basename(sys.argv[0]).startswith(__productname__+'-packages'):
+			action = 'packages'
+	elif os.path.basename(sys.argv[0]).startswith(__productname__+'-dist') or \
+		os.path.basename(sys.argv[0]).startswith(__productname__+'distfiles'):
+			action = 'distfiles'
 	# prepare for the first getopt
 	if action:
 		short_opts = getopt_options['short']['global'] \
