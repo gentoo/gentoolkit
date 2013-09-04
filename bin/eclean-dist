@@ -1,0 +1,49 @@
+#!/usr/bin/python
+
+"""Copyright 2003-2010 Gentoo Foundation
+Distributed under the terms of the GNU General Public License v2
+"""
+
+from __future__ import print_function
+
+
+# Meta:
+__author__ = "Thomas de Grenier de Latour (tgl), " + \
+	"modular re-write by: Brian Dolbec (dol-sen)"
+__email__ = "degrenier@easyconnect.fr, " + \
+	"brian.dolbec@gmail.com"
+__version__ = "git"
+__productname__ = "eclean"
+__description__ = "A cleaning tool for Gentoo distfiles and binaries."
+
+
+import sys
+
+# This block ensures that ^C interrupts are handled quietly.
+try:
+	import signal
+
+	def exithandler(signum,frame):
+		signal.signal(signal.SIGINT, signal.SIG_IGN)
+		signal.signal(signal.SIGTERM, signal.SIG_IGN)
+		print()
+		sys.exit(1)
+
+	signal.signal(signal.SIGINT, exithandler)
+	signal.signal(signal.SIGTERM, exithandler)
+	signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
+except KeyboardInterrupt:
+	print()
+	sys.exit(1)
+
+
+from gentoolkit.eclean.cli import main
+
+try:
+	main()
+except KeyboardInterrupt:
+	print("Aborted.")
+	sys.exit(130)
+sys.exit(0)
+
