@@ -37,6 +37,8 @@ bash_scripts = [(os.path.join(cwd, path), 'VERSION=') for path in (
 # Python files that need `__version__ = ""` subbed, relative to this dir:
 python_scripts = [(os.path.join(cwd, path), '__version__ = ') for path in (
 	'bin/eclean',
+	'bin/eclean-dist',
+	'bin/eclean-pkg',
 	'bin/epkginfo',
 	'bin/glsa-check',
 	'pym/gentoolkit/eclean/cli.py',
