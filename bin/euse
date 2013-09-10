@@ -712,6 +712,10 @@ get_flagstatus_pkg() {
 #
 # Outputs:
 # Location of portage tree root
+#
+# OBSOLETE: newer versions of portage do not define PORTDIR
+# in make.defaults or make.conf anymore. Add fallback to 
+#portageq to handle that situation.
 get_portdir() {
 	# Use a subshell so we don't have to protect the variables in
 	# the current scope
@@ -724,6 +728,10 @@ get_portdir() {
 		for x in $(get_all_make_conf); do
 			source "${x}"
 		done
+	fi
+
+	if [ -z "${PORTDIR:-}" ]; then
+		eval $(portageq envvar -v PORTDIR)
 	fi
 	echo "${PORTDIR}"
 	)
