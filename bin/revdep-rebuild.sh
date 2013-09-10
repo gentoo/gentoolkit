@@ -1052,6 +1052,7 @@ portage_settings() {
 	if [[ -n ${REVDEP_REBUILD_DEFAULT_OPTS} ]]; then
 		EMERGE_DEFAULT_OPTS=("${REVDEP_REBUILD_DEFAULT_OPTS[@]}")
 	fi
+
 }
 
 ##
@@ -1138,7 +1139,7 @@ rebuild() {
 		REBUILD_LIST=$(sort -u "$EBUILDS_FILE")
 	fi
 
-	trap - SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+	trap "kill 0" SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
 
 	[[ $QUIET -ne 1 ]] && einfo 'All prepared. Starting rebuild'
 	echo "emerge --complete-graph=y --oneshot ${EMERGE_DEFAULT_OPTS[@]} ${EMERGE_OPTIONS[@]} $REBUILD_LIST"
