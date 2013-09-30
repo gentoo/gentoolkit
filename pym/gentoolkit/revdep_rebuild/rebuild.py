@@ -240,5 +240,5 @@ def main(settings=None, logger=None):
 
 
 if __name__ == '__main__':
-	main(rebuild.parse_options())
+	main(parse_options())
 
