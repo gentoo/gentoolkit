@@ -1,3 +1,20 @@
+Contributing:
+=============
+Gentoo Developers have full priviledges to the gentoolkit repository and
+any Gentoo developer can do work on the gentoolkit source.
+
+We only have several requirements.  If you want to do a major change (i.e
+rewrite/refactor something), please talk to us before pushing any
+commits. If you break something, please fix it.
+
+If you want a new release of gentoolkit or gentoolkit-dev, please coordinate
+it with fuzzyray (gentoolkit) or idl0r (gentoolkit-dev).
+
+Any non Gentoo developers who wish to contribute, the best way to get
+started is by pulling a copy of the repository and submitting patches to
+bugzilla.  Additionally, we can be found in the #gentoo-portage IRC
+channel.
+
 Adding or modifying code:
 =========================
 - If you add new code, best practice is to write a test for it.
