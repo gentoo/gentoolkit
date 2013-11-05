@@ -714,26 +714,14 @@ get_flagstatus_pkg() {
 # Location of portage tree root
 #
 # OBSOLETE: newer versions of portage do not define PORTDIR
-# in make.defaults or make.conf anymore. Add fallback to 
-#portageq to handle that situation.
+# in make.defaults or make.conf anymore and can be overridden
+# in repos.conf.  Use portageq to determine the correct value.
 get_portdir() {
 	# Use a subshell so we don't have to protect the variables in
 	# the current scope
 	(
-	if [ -z "${PORTDIR:-}" ]; then
-		source "${MAKE_GLOBALS_PATH}"
-		for x in $(get_all_make_defaults); do
-			source "${x}"
-		done
-		for x in $(get_all_make_conf); do
-			source "${x}"
-		done
-	fi
-
-	if [ -z "${PORTDIR:-}" ]; then
 		eval $(portageq envvar -v PORTDIR)
-	fi
-	echo "${PORTDIR}"
+		echo "${PORTDIR}"
 	)
 } # }}}
 # This won't change while the script is running, so cache it
