@@ -787,7 +787,7 @@ main_checks() {
 				fi
 			elif [[ $SEARCH_BROKEN ]]; then
 				# Look for broken .la files
-				la_SEARCH_DIRS="$SEARCH_DIRS"
+				la_SEARCH_DIRS="$(parse_ld_so_conf)"
 				la_search_dir=""
 				la_broken=""
 				la_lib=""
