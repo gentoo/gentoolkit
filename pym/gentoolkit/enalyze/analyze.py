@@ -193,9 +193,6 @@ class Analyse(ModuleBase):
 		}
 		self.formatted_options = [
 			("  -h, --help",  "Outputs this useage message"),
-			("  -a, --analyze",
-			"Action, sets the module to gather data and output the"),
-			("", "formatted stats/information to the screen"),
 			("  -u, --unset",
 			"Additionally include any unset USE flags and the packages"),
 			("", "that could use them"),
