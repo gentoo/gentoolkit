@@ -190,15 +190,15 @@ def process_keywords(keywords, ops, arch_status=None):
 	return new_keywords
 
 
-def process_content(ebuild, data, ops, arch_status=None, verbose=False,
-                    quiet=False, format='color-inline'):
+def process_content(ebuild, data, ops, arch_status=None, verbose=0,
+                    quiet=0, format='color-inline'):
 	"""Process |ops| for |data|"""
 	# Set up the user display style based on verbose/quiet settings.
-	if verbose:
+	if verbose > 1:
 		disp_name = ebuild
 		def logit(msg):
 			print('%s: %s' % (disp_name, msg))
-	elif quiet:
+	elif quiet > 1:
 		def logit(msg):
 			pass
 	else:
@@ -225,7 +225,7 @@ def process_content(ebuild, data, ops, arch_status=None, verbose=False,
 			old_keywords, ops, arch_status=arch_status)
 
 		# Finally let's present the results to the user.
-		if new_keywords != old_keywords:
+		if (new_keywords != old_keywords) or verbose:
 			# Only do the diff work if something actually changed.
 			updated = True
 			old_keywords = sort_keywords(old_keywords)
@@ -256,7 +256,7 @@ def process_content(ebuild, data, ops, arch_status=None, verbose=False,
 	return updated, content
 
 
-def process_ebuild(ebuild, ops, arch_status=None, verbose=False, quiet=False,
+def process_ebuild(ebuild, ops, arch_status=None, verbose=0, quiet=0,
                    dry_run=False, format='color-inline'):
 	"""Process |ops| for |ebuild|"""
 	with open(ebuild, 'rb') as f:
@@ -369,9 +369,9 @@ def get_parser():
 		formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument('-n', '--dry-run', default=False, action='store_true',
 		help='Show what would be changed, but do not commit')
-	parser.add_argument('-v', '--verbose', default=False, action='store_true',
+	parser.add_argument('-v', '--verbose', action='count',
 		help='Be verbose while processing things')
-	parser.add_argument('-q', '--quiet', default=False, action='store_true',
+	parser.add_argument('-q', '--quiet', action='count',
 		help='Be quiet while processing things (only show errors)')
 	parser.add_argument('--format', default='auto',
 		choices=('auto', 'color-inline', 'inline', 'short-multi', 'long-multi'),

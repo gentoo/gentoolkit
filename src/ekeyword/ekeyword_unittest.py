@@ -245,7 +245,7 @@ class TestProcessContent(unittest.TestCase):
 		self.assertFalse(updated)
 		self.assertEqual(ret, [' KEYWORDS=\n'])
 
-	def _testSmoke(self, format='color-inline', verbose=False, quiet=False):
+	def _testSmoke(self, format='color-inline', verbose=0, quiet=0):
 		ops = (
 			ekeyword.Op(None, 'arm', None),
 			ekeyword.Op('~', 'sparc', None),
@@ -256,11 +256,11 @@ class TestProcessContent(unittest.TestCase):
 
 	def testSmokeQuiet(self):
 		"""Smoke test for quiet mode"""
-		self._testSmoke(quiet=True)
+		self._testSmoke(quiet=10)
 
 	def testSmokeVerbose(self):
 		"""Smoke test for verbose mode"""
-		self._testSmoke(verbose=True)
+		self._testSmoke(verbose=10)
 
 	def testSmokeFormatColor(self):
 		"""Smoke test for color-inline format"""
