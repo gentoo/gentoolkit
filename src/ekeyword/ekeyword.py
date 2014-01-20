@@ -54,6 +54,10 @@ VERSION = '1.0 awesome'
 Op = collections.namedtuple('Op', ('op', 'arch', 'ref_arch'))
 
 
+def warning(msg):
+	print('warning: %s' % msg, file=sys.stderr)
+
+
 def keyword_to_arch(keyword):
 	"""Given a keyword, strip it down to its arch value
 
@@ -309,8 +313,8 @@ def load_profile_data(portdir=None, repo='gentoo'):
 	if arch_status:
 		arch_status['all'] = None
 	else:
-		print('warning: could not read profile files: %s' % arch_list, file=sys.stderr)
-		print('warning: will not be able to verify args are correct', file=sys.stderr)
+		warning('could not read profile files: %s' % arch_list)
+		warning('will not be able to verify args are correct')
 
 	return arch_status
 
@@ -334,7 +338,30 @@ def arg_to_op(arg):
 	return Op(op, arch, refarch)
 
 
-def args_to_work(args, arch_status=None, repo='gentoo'):
+def ignorable_arg(arg, quiet=0):
+	"""Whether it's ok to ignore this argument"""
+	if os.path.isdir(arg):
+		if not quiet:
+			warning('ignoring directory %s' % arg)
+		return True
+
+	WHITELIST = (
+		'Manifest',
+		'metadata.xml',
+	)
+	base = os.path.basename(arg)
+	if (base.startswith('ChangeLog') or
+	    base in WHITELIST or
+	    base.startswith('.') or
+	    base.endswith('~')):
+		if not quiet:
+			warning('ignoring file: %s' % arg)
+		return True
+
+	return False
+
+
+def args_to_work(args, arch_status=None, repo='gentoo', quiet=0):
 	"""Process |args| into a list of work itmes (ebuild/arches to update)"""
 	work = []
 	todo_arches = []
@@ -353,7 +380,7 @@ def args_to_work(args, arch_status=None, repo='gentoo'):
 			op = arg_to_op(arg)
 			if not arch_status or op.arch in arch_status:
 				todo_arches.append(op)
-			else:
+			elif not ignorable_arg(arg, quiet=quiet):
 				raise ValueError('unknown arch/argument: %s' % arg)
 
 	if todo_arches:
@@ -425,7 +452,7 @@ def main(argv):
 
 	arch_status = load_profile_data()
 	try:
-		work = args_to_work(work_args, arch_status=arch_status)
+		work = args_to_work(work_args, arch_status=arch_status, quiet=opts.quiet)
 	except ValueError as e:
 		parser.error(e)
 
