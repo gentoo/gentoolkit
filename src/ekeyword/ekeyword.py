@@ -78,15 +78,23 @@ def sort_keywords(arches):
 		a1 = keyword_to_arch(a1)
 		a2 = keyword_to_arch(a2)
 
-		# If a keyword has a "-" in it, then it always comes after ones
-		# that do not.  We want things like alpha/mips/sparc showing up
-		# before amd64-fbsd and amd64-linux.
-		if '-' in a1 and not '-' in a2:
-			return 1
-		elif '-' not in a1 and '-' in a2:
-			return -1
+		# A keyword may have a "-" in it.  We split on that and sort
+		# by the two resulting items.  The part after the hyphen is
+		# the primary key.
+		if '-' in a1:
+			arch1, plat1 = a1.split('-', 1)
 		else:
-			return cmp(a1, a2)
+			arch1, plat1 = a1, ''
+		if '-' in a2:
+			arch2, plat2 = a2.split('-', 1)
+		else:
+			arch2, plat2 = a2, ''
+
+		ret = cmp(plat1, plat2)
+		if ret:
+			return ret
+		else:
+			return cmp(arch1, arch2)
 
 	keywords += sorted(arches, cmp=arch_cmp)
 

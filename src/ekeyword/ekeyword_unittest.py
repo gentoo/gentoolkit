@@ -31,13 +31,20 @@ class TestSortKeywords(unittest.TestCase):
 		self._test('arm -* x86', '-* arm x86')
 		self._test('hppa ~* amd64', '~* amd64 hppa')
 
-	def testNonLinux(self):
+	def testMixedPlatform(self):
+		"""Verify core arches get sorted before all w/suffix"""
 		self._test('arm-linux alpha amd64-fbsd hppa',
 		           'alpha hppa amd64-fbsd arm-linux')
 
 	def testPrefixes(self):
+		"""Verify -/~ and such get ignored for sorting"""
 		self._test('-hppa arm ~alpha -* ~arm-linux',
 		           '-* ~alpha arm -hppa ~arm-linux')
+
+	def testPlatform(self):
+		"""Verify we sort based on platform first"""
+		self._test('x86-linux ppc-macos x86-fbsd amd64-linux amd64-fbsd',
+		           'amd64-fbsd x86-fbsd amd64-linux x86-linux ppc-macos')
 
 
 class TestDiffKeywords(unittest.TestCase):
