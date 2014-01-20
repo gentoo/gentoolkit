@@ -169,6 +169,9 @@ class TestProcessKeywords(unittest.TestCase):
 			'arm': 'stable',
 			'arm64': 'exp',
 			'm68k': 'dev',
+			'mips': 'dev',
+			's390': 'dev',
+			'sh': 'dev',
 		}
 		self._test('alpha arm arm64 m68k mips arm-linux', ops,
 		           '~alpha ~arm ~arm64 ~m68k ~mips ~arm-linux', arch_status)

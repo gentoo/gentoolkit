@@ -146,7 +146,7 @@ def process_keywords(keywords, ops, arch_status=None):
 				# Process all possible keywords.  We use the arch_status as a
 				# master list.  If it lacks some keywords, then we might miss
 				# somethings here, but not much we can do.
-				arches = set(arch_status.keys()) | old_arches
+				arches = old_arches
 		else:
 			arches = (oarch,)
 
