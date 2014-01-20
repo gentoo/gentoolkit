@@ -6,21 +6,15 @@
 
 include ../../makedefs.mak
 
-%.1 : %.pod
-	pod2man $< > $@
+.PHONY: all clean dist
+all:
 
-.PHONY: all
-all: ekeyword.1
-
-dist: ekeyword.1
+dist:
 	mkdir -p ../../$(DISTDIR)/src/ekeyword
-	cp Makefile AUTHORS README ChangeLog ekeyword ekeyword.1 ../../$(DISTDIR)/src/ekeyword/
+	cp Makefile AUTHORS README ekeyword.py ekeyword_unittest.py \
+		../../$(DISTDIR)/src/ekeyword/
 
 install: all
-	install -m 0755 ekeyword $(BINDIR)/
+	install -m 0755 ekeyword.py $(BINDIR)/ekeyword
 	install -d $(DOCDIR)/ekeyword
-	install -m 0644 AUTHORS README ChangeLog $(DOCDIR)/ekeyword/
-	install -m 0644 ekeyword.1 $(MAN1DIR)/
-
-clean:
-	$(RM) ekeyword.1
+	install -m 0644 AUTHORS README $(DOCDIR)/ekeyword/

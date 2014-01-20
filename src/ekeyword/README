@@ -1,5 +1,5 @@
 Package : ekeyword
-Version : 0.1.0
+Version : 1.0
 Author  : See AUTHORS
 
 MOTIVATION
@@ -12,9 +12,9 @@ N/A
 
 IMPROVEMENTS
 
-- Should rewrite to Python, and use Portage directly to select candidate
-  ebuilds.
-- Should add entry to ChangeLog.
-
-For improvements, send a mail to agriffis@gentoo.org or make out a bug at 
-bugs.gentoo.org.
+- Should we allow users to pass in */-*/~*?
+- Should we collapse multiple globs into one.
+- Should we support multiline KEYWORDS values?  No...
+- Support autodetection of ~user homedir expansions.
+  e.g. If "arm" is a user, then "~arm" will be passed in as "/home/arm".
+       We should catch that and normalize it back to "~arm".
