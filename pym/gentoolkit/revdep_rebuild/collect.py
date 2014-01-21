@@ -21,13 +21,13 @@ def parse_conf(conf_file, visited=None, logger=None):
 	lib_dirs = set()
 	to_parse = set()
 
-	if isinstance(conf_file, str):
+	if isinstance(conf_file, basestring):
 		conf_file = [conf_file]
 
 	for conf in conf_file:
 		try:
 			with open(conf) as _file:
-				for line in _file:
+				for line in _file.readlines():
 					line = line.strip()
 					if line.startswith('#'):
 						continue
@@ -40,7 +40,7 @@ def parse_conf(conf_file, visited=None, logger=None):
 							else:
 								path = included
 
-							to_parse.update(glob.glob(path))
+							to_parse = to_parse.union(glob.glob(path))
 					else:
 						lib_dirs.add(line)
 		except EnvironmentError:
@@ -49,10 +49,10 @@ def parse_conf(conf_file, visited=None, logger=None):
 	if visited is None:
 		visited = set()
 
-	visited.update(conf_file)
-	to_parse.difference_update(visited)
+	visited = visited.union(conf_file)
+	to_parse = to_parse.difference(visited)
 	if to_parse:
-		lib_dirs.update(parse_conf(to_parse, visited, logger=logger))
+		lib_dirs = lib_dirs.union(parse_conf(to_parse, visited, logger=logger))
 
 	return lib_dirs
 
@@ -68,7 +68,7 @@ def prepare_search_dirs(logger, settings):
 	#try:
 	with open(os.path.join(
 		portage.root, settings['DEFAULT_ENV_FILE']), 'r') as _file:
-		for line in _file:
+		for line in _file.readlines():
 			line = line.strip()
 			match = re.match("^export (ROOT)?PATH='([^']+)'", line)
 			if match is not None:
@@ -250,13 +250,18 @@ def collect_binaries_from_dir(dirs, mask, logger):
 
 if __name__ == '__main__':
 	import logging
-	from .settings import DEFAULTS
-	mbin_dirs, mlib_dirs = prepare_search_dirs(logging, DEFAULTS)
+	bin_dirs, lib_dirs = prepare_search_dirs(logging)
 
-	mmasked_dirs, mmasked_files, mld = parse_revdep_config("/etc/revdep-rebuild/")
-	mlib_dirs.update(mld)
-	mbin_dirs.update(mld)
-	mmasked_dirs.update(['/lib/modules', '/lib32/modules', '/lib64/modules'])
+	masked_dirs, masked_files, ld = parse_revdep_config()
+	lib_dirs = lib_dirs.union(ld)
+	bin_dirs = bin_dirs.union(ld)
+	masked_dirs = masked_dirs.union(
+		set([
+			'/lib/modules',
+			'/lib32/modules',
+			'/lib64/modules',
+		])
+	)
 
 	libraries, la_libraries, libraries_links, msymlink_pairs = \
 		collect_libraries_from_dir(mlib_dirs, mmasked_dirs, logging)

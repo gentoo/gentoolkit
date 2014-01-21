@@ -27,10 +27,25 @@ def assign_packages(broken, logger, settings):
 		Broken is list of files
 	'''
 	assigned = set()
-	if not broken:
-		return assigned
+	for group in os.listdir(settings['PKG_DIR']):
+		for pkg in os.listdir(settings['PKG_DIR'] + group):
+			f = settings['PKG_DIR'] + group + '/' + pkg + '/CONTENTS'
+			if os.path.exists(f):
+				try:
+					with open(f, 'r') as cnt:
+						for line in cnt.readlines():
+							m = re.match('^obj (/[^ ]+)', line)
+							if m is not None:
+								m = m.group(1)
+								if m in broken:
+									found = group+'/'+pkg
+									if found not in assigned:
+										assigned.add(found)
+									logger.info('\t' + m + ' -> ' + bold(found))
+				except Exception as e:
+					logger.warn(red(' !! Failed to read ' + f))
 
-	pkgset = set(get_installed_cpvs())
+	return assigned
 
 	# Map all files in CONTENTS database to package names
 	fname_pkg_dict = {}
@@ -88,6 +103,8 @@ def get_best_match(cpv, cp, logger):
 def get_slotted_cps(cpvs, logger):
 	"""Uses portage to reduce the cpv list into a cp:slot list and returns it
 	"""
+	from portage.versions import catpkgsplit
+	from portage import portdb
 
 	cps = []
 	for cpv in cpvs:

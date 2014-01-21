@@ -29,9 +29,9 @@ def read_cache(temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 		'binaries':[]
 		}
 	try:
-		for key, val in list(ret.items()):
-			_file  = open(os.path.join(temp_path, key))
-			for line in _file .readlines():
+		for key,val in ret.iteritems():
+			_file = open(os.path.join(temp_path, key))
+			for line in _file.readlines():
 				val.append(line.strip())
 			#libraries.remove('\n')
 			_file .close()
@@ -42,26 +42,22 @@ def read_cache(temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 		ret['libraries_links'], ret['binaries'])
 
 
-def save_cache(logger, to_save=None, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
+def save_cache(logger, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 	''' Tries to store caching information.
 		@param logger
 		@param to_save have to be dict with keys:
 			libraries, la_libraries, libraries_links and binaries
 	'''
 
-	if to_save is None:
-		to_save = {}
-
-# TODO: Don't blindly make the cache directory, see Bug 203414
-#	if not os.path.exists(temp_path):
-#		os.makedirs(temp_path)
+	if not os.path.exists(temp_path):
+		os.makedirs(temp_path)
 
 	try:
 		_file = open(os.path.join(temp_path, 'timestamp'), 'w')
 		_file.write(str(int(time.time())))
 		_file.close()
 
-		for key, val in list(to_save.items()):
+		for key,val in to_save.iteritems():
 			_file = open(os.path.join(temp_path, key), 'w')
 			for line in val:
 				_file.write(line + '\n')
@@ -71,8 +67,7 @@ def save_cache(logger, to_save=None, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 
 
 
-def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600,
-		logger=None):
+def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600):
 	''' Checks if temporary files from previous run are still available
 		and if they aren't too old
 		@param temp_path is directory, where temporary files should be found
@@ -110,27 +105,26 @@ if __name__ == '__main__':
 
 	from .collect import (prepare_search_dirs, parse_revdep_config,
 		collect_libraries_from_dir, collect_binaries_from_dir)
-
 	import logging
 
-	bin_dirs, lib_dirs = prepare_search_dirs(logging, DEFAULTS)
+	bin_dirs, lib_dirs = prepare_search_dirs()
 
-	masked_dirs, masked_files, ld = parse_revdep_config("/etc/revdep-rebuild/")
-	lib_dirs.update(ld)
-	bin_dirs.update(ld)
-	masked_dirs = masked_dirs.update([
-			'/lib/modules',
-			'/lib32/modules',
-			'/lib64/modules'
-			]
-		)
+	masked_dirs, masked_files, ld = parse_revdep_config()
+	lib_dirs = lib_dirs.union(ld)
+	bin_dirs = bin_dirs.union(ld)
+	masked_dirs = masked_dirs.union(
+		set([
+			'/lib/modules', 
+			'/lib32/modules', 
+			'/lib64/modules',
+		])
+	)
 
-	libraries, la_libraries, libraries_links, symlink_pairs = \
-		collect_libraries_from_dir(lib_dirs, masked_dirs, logging)
+	libraries, la_libraries, libraries_links, symlink_pairs = collect_libraries_from_dir(lib_dirs, masked_dirs, logging)
 	binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logging)
 
-	save_cache(logger=logging,
-		to_save={'libraries':libraries, 'la_libraries':la_libraries,
+	save_cache(logger=logging, 
+		to_save={'libraries':libraries, 'la_libraries':la_libraries, 
 			'libraries_links':libraries_links, 'binaries':binaries}
 		)
 
