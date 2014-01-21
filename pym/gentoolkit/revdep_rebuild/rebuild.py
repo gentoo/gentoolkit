@@ -106,7 +106,8 @@ def parse_options():
 		do_help = False
 		for key, val in opts:
 			if key in ('-h', '--help'):
-				do_help = True
+				print_usage()
+				sys.exit(0)
 			elif key in ('-q', '--quiet'):
 				settings['quiet'] = True
 				settings['VERBOSITY'] = 0
@@ -134,9 +135,7 @@ def parse_options():
 		print(red('Unrecognized option\n'))
 		print_usage()
 		sys.exit(2)
-	if do_help:
-		print_usage()
-		sys.exit(0)
+
 	return settings
 
 
@@ -207,13 +206,21 @@ def main(settings=None, logger=None):
 		logger.warn(blue(' * ') +
 			yellow('You are not root, adding --pretend to portage options'))
 		settings['PRETEND'] = True
+	elif not settings['PRETEND'] \
+			and settings['IS_DEV'] \
+			and not settings['NO_PRETEND']:
+		logger.warn(blue(' * ') + 
+			yellow('This is a development version, '
+				'so it may not work correctly'))
+		logger.warn(blue(' * ') + 
+			yellow('Adding --pretend to portage options anyway'))
+		logger.info(blue(' * ') + 
+			'If you\'re sure, you can add --no-pretend to revdep options')
+		settings['PRETEND'] = True
 
-	if settings['library']:
-		logger.warn(green(' * ') +
-			"Looking for libraries: %s" % (bold(', '.join(settings['library']))))
-
+	analyze_cache = {}
 	if settings['USE_TMP_FILES'] \
-			and check_temp_files(settings['DEFAULT_TMP_DIR'], logger=logger):
+			and check_temp_files(settings['DEFAULT_TMP_DIR']):
 		libraries, la_libraries, libraries_links, binaries = read_cache(
 			settings['DEFAULT_TMP_DIR'])
 		assigned = analyse(
@@ -251,3 +258,8 @@ def main(settings=None, logger=None):
 	success = rebuild(logger, assigned, settings)
 	logger.debug("rebuild return code = %i" %success)
 	return success
+
+
+if __name__ == '__main__':
+	main(parse_options())
+
