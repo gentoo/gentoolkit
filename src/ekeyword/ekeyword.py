@@ -41,6 +41,7 @@ from __future__ import print_function
 import argparse
 import collections
 import difflib
+import io
 import os
 import re
 import sys
@@ -77,30 +78,21 @@ def sort_keywords(arches):
 			arches.remove(g)
 			keywords.append(g)
 
-	def arch_cmp(a1, a2):
+	def arch_key(keyword):
 		# Sort independent of leading marker (~ or -).
-		a1 = keyword_to_arch(a1)
-		a2 = keyword_to_arch(a2)
+		arch = keyword_to_arch(keyword)
 
 		# A keyword may have a "-" in it.  We split on that and sort
 		# by the two resulting items.  The part after the hyphen is
 		# the primary key.
-		if '-' in a1:
-			arch1, plat1 = a1.split('-', 1)
+		if '-' in arch:
+			arch, plat = arch.split('-', 1)
 		else:
-			arch1, plat1 = a1, ''
-		if '-' in a2:
-			arch2, plat2 = a2.split('-', 1)
-		else:
-			arch2, plat2 = a2, ''
+			arch, plat = arch, ''
 
-		ret = cmp(plat1, plat2)
-		if ret:
-			return ret
-		else:
-			return cmp(arch1, arch2)
+		return (plat, arch)
 
-	keywords += sorted(arches, cmp=arch_cmp)
+	keywords += sorted(arches, key=arch_key)
 
 	return keywords
 
@@ -133,8 +125,8 @@ def diff_keywords(old_keywords, new_keywords, format='color-inline'):
 
 		return output
 
-	sold = ' '.join(old_keywords)
-	snew = ' '.join(new_keywords)
+	sold = str(' '.join(old_keywords))
+	snew = str(' '.join(new_keywords))
 	s = difflib.SequenceMatcher(str.isspace, sold, snew, autojunk=False)
 	return show_diff(s)
 
@@ -263,12 +255,12 @@ def process_content(ebuild, data, ops, arch_status=None, verbose=0,
 def process_ebuild(ebuild, ops, arch_status=None, verbose=0, quiet=0,
                    dry_run=False, format='color-inline'):
 	"""Process |ops| for |ebuild|"""
-	with open(ebuild, 'rb') as f:
+	with io.open(ebuild, encoding='utf8') as f:
 		updated, content = process_content(
 			ebuild, f, ops, arch_status=arch_status,
 			verbose=verbose, quiet=quiet, format=format)
 		if updated and not dry_run:
-			with open(ebuild, 'wb') as f:
+			with io.open(ebuild, 'w', encoding='utf8') as f:
 				f.writelines(content)
 
 
@@ -396,9 +388,9 @@ def get_parser():
 		formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument('-n', '--dry-run', default=False, action='store_true',
 		help='Show what would be changed, but do not commit')
-	parser.add_argument('-v', '--verbose', action='count',
+	parser.add_argument('-v', '--verbose', action='count', default=0,
 		help='Be verbose while processing things')
-	parser.add_argument('-q', '--quiet', action='count',
+	parser.add_argument('-q', '--quiet', action='count', default=0,
 		help='Be quiet while processing things (only show errors)')
 	parser.add_argument('--format', default='auto',
 		choices=('auto', 'color-inline', 'inline', 'short-multi', 'long-multi'),
