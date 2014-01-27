@@ -176,12 +176,11 @@ class TestProcessKeywords(unittest.TestCase):
 			'arm': 'stable',
 			'arm64': 'exp',
 			'm68k': 'dev',
-			'mips': 'dev',
 			's390': 'dev',
 			'sh': 'dev',
 		}
-		self._test('alpha arm arm64 m68k mips arm-linux', ops,
-		           '~alpha ~arm ~arm64 ~m68k ~mips ~arm-linux', arch_status)
+		self._test('-* ~* * alpha arm arm64 m68k arm-linux', ops,
+		           '-* ~* * ~alpha ~arm ~arm64 ~m68k ~arm-linux', arch_status)
 
 	def testAllMultiUnstableStable(self):
 		ops = (
@@ -194,8 +193,8 @@ class TestProcessKeywords(unittest.TestCase):
 			'arm64': 'exp',
 			'm68k': 'dev',
 		}
-		self._test('alpha arm arm64 m68k', ops,
-		           '~alpha arm ~arm64 ~m68k', arch_status)
+		self._test('-* ~* * alpha arm arm64 m68k', ops,
+		           '-* ~* * ~alpha arm ~arm64 ~m68k', arch_status)
 
 
 class TestProcessContent(unittest.TestCase):

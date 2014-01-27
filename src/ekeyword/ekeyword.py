@@ -151,6 +151,9 @@ def process_keywords(keywords, ops, arch_status=None):
 				# master list.  If it lacks some keywords, then we might miss
 				# somethings here, but not much we can do.
 				arches = old_arches
+			# We ignore the glob arch as we never want to tweak it.
+			if '*' in arches:
+				arches.remove('*')
 		else:
 			arches = (oarch,)
 
