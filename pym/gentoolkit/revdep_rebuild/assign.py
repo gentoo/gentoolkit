@@ -48,6 +48,7 @@ def assign_packages(broken, logger, settings):
 									logger.info('\t' + m + ' -> ' + bold(found))
 				except Exception as e:
 					logger.warn(red(' !! Failed to read ' + f))
+					logger.warn(red(' !! Error was:' + str(e)))
 
 	return assigned
 
