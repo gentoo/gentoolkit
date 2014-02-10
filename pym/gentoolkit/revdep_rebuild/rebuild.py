@@ -103,7 +103,6 @@ def parse_options():
 			'keep-temp', 'library=', 'no-ld-path', 'no-order',
 			'pretend', 'no-pretend', 'no-progress', 'quiet', 'verbose'])
 
-		do_help = False
 		for key, val in opts:
 			if key in ('-h', '--help'):
 				print_usage()
@@ -217,7 +216,6 @@ def main(settings=None, logger=None):
 			'If you\'re sure, you can add --no-pretend to revdep options')
 		settings['PRETEND'] = True
 
-	analyze_cache = {}
 	if settings['USE_TMP_FILES'] \
 			and check_temp_files(settings['DEFAULT_TMP_DIR']):
 		libraries, la_libraries, libraries_links, binaries = read_cache(
