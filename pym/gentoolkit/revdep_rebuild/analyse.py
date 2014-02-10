@@ -6,8 +6,6 @@ from __future__ import print_function
 
 import os
 import re
-import platform
-import glob
 
 from portage.output import bold, blue, yellow, green
 
@@ -56,7 +54,6 @@ def prepare_checks(files_to_check, libraries, bits, cmd_max_args):
 
 
 def scan_files(libs_and_bins, cmd_max_args):
-	import os
 
 	scanned_files = {} # {bits: {soname: (filename, needed), ...}, ...}
 	for line in scan(['-nBF', '%F %f %S %n %M'], libs_and_bins, cmd_max_args):
@@ -184,7 +181,7 @@ def main_checks(found_libs, broken_list, dependencies, logger):
 
 	for broken in broken_list:
 		found = found_libs[broken]
-		logger.info('Broken files that requires: ' + bold(f))
+		logger.info('Broken files that requires: ' + bold(found))
 		for dep_path in dependencies[broken]:
 			logger.info(yellow(' * ') + dep_path)
 			broken_pathes.append(dep_path)
@@ -276,9 +273,9 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 
 	return assign_packages(broken_pathes, logger, settings)
 
-	import sys
-	sys.exit()
 	
+	#import sys
+	#sys.exit()
 	#l = []
 	#for line in call_program(['scanelf', '-M', '64', '-BF', '%F',] + libraries).strip().split('\n'):
 		#l.append(line)

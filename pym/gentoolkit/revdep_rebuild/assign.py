@@ -10,11 +10,9 @@ import os
 import re
 
 import portage
-from portage.versions import catpkgsplit
 from portage import portdb
 from portage.output import bold, red, yellow
-from gentoolkit.helpers import get_installed_cpvs
-from gentoolkit.package import Package
+#from gentoolkit.package import Package
 
 # Make all str conversions unicode
 try:
@@ -47,29 +45,29 @@ def assign_packages(broken, logger, settings):
 
 	return assigned
 
-	# Map all files in CONTENTS database to package names
-	fname_pkg_dict = {}
-	for pkg in pkgset:
-		contents = Package(pkg).parsed_contents()
-		for fname in contents.keys():
-			if contents[fname][0] == "obj":
-				fname_pkg_dict[fname] = str(pkg)
+	## Map all files in CONTENTS database to package names
+	#fname_pkg_dict = {}
+	#for pkg in pkgset:
+		#contents = Package(pkg).parsed_contents()
+		#for fname in contents.keys():
+			#if contents[fname][0] == "obj":
+				#fname_pkg_dict[fname] = str(pkg)
 
-	for fname in broken:
-		realname = os.path.realpath(fname)
-		if realname in fname_pkg_dict.keys():
-			pkgname = fname_pkg_dict[realname]
-		elif fname in fname_pkg_dict.keys():
-			pkgname = fname_pkg_dict[fname]
-		else:
-			pkgname = None
-		if pkgname and pkgname not in assigned:
-			assigned.add(pkgname)
-		if not pkgname:
-			pkgname = "(none)"
-		logger.info('\t' + fname + ' -> ' + bold(pkgname))
+	#for fname in broken:
+		#realname = os.path.realpath(fname)
+		#if realname in fname_pkg_dict.keys():
+			#pkgname = fname_pkg_dict[realname]
+		#elif fname in fname_pkg_dict.keys():
+			#pkgname = fname_pkg_dict[fname]
+		#else:
+			#pkgname = None
+		#if pkgname and pkgname not in assigned:
+			#assigned.add(pkgname)
+		#if not pkgname:
+			#pkgname = "(none)"
+		#logger.info('\t' + fname + ' -> ' + bold(pkgname))
 
-	return assigned
+	#return assigned
 
 def get_best_match(cpv, cp, logger):
 	"""Tries to find another version of the pkg with the same slot
