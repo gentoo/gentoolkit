@@ -201,7 +201,7 @@ def main_checks2(broken, scanned_files, logger):
 
 
 def analyse(settings, logger, libraries=None, la_libraries=None,
-		libraries_links=None, binaries=None, _libs_to_check=set()):
+		libraries_links=None, binaries=None, _libs_to_check=None):
 	"""Main program body.  It will collect all info and determine the
 	pkgs needing rebuilding.
 
@@ -211,6 +211,8 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 	@rtype list: list of pkgs that need rebuilding
 	"""
 
+	if _libs_to_check == None:
+		_libs_to_check = set()
 	if libraries and la_libraries and libraries_links and binaries:
 		logger.info(blue(' * ') +
 			bold('Found a valid cache, skipping collecting phase'))
