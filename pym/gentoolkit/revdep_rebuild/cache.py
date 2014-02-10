@@ -114,8 +114,8 @@ if __name__ == '__main__':
 	bin_dirs = bin_dirs.union(ld)
 	masked_dirs = masked_dirs.union(
 		set([
-			'/lib/modules', 
-			'/lib32/modules', 
+			'/lib/modules',
+			'/lib32/modules',
 			'/lib64/modules',
 		])
 	)
@@ -123,8 +123,8 @@ if __name__ == '__main__':
 	libraries, la_libraries, libraries_links, symlink_pairs = collect_libraries_from_dir(lib_dirs, masked_dirs, logging)
 	binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logging)
 
-	save_cache(logger=logging, 
-		to_save={'libraries':libraries, 'la_libraries':la_libraries, 
+	save_cache(logger=logging,
+		to_save={'libraries':libraries, 'la_libraries':la_libraries,
 			'libraries_links':libraries_links, 'binaries':binaries}
 		)
 
