@@ -67,7 +67,8 @@ def save_cache(logger, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 
 
 
-def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600):
+def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600,
+		logger=None):
 	''' Checks if temporary files from previous run are still available
 		and if they aren't too old
 		@param temp_path is directory, where temporary files should be found
