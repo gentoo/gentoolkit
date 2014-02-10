@@ -218,7 +218,7 @@ def main(settings=None, logger=None):
 		settings['PRETEND'] = True
 
 	if settings['USE_TMP_FILES'] \
-			and check_temp_files(settings['DEFAULT_TMP_DIR']):
+			and check_temp_files(settings['DEFAULT_TMP_DIR'], logger=logger):
 		libraries, la_libraries, libraries_links, binaries = read_cache(
 			settings['DEFAULT_TMP_DIR'])
 		assigned = analyse(
