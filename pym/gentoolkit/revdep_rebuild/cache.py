@@ -1,4 +1,3 @@
-#!/bin/bash
 
 """Caching module
 Functions for reading, saving and verifying the data caches
