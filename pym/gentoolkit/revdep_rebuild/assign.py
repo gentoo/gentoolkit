@@ -26,8 +26,14 @@ def assign_packages(broken, logger, settings):
 	'''
 	assigned = set()
 	for group in os.listdir(settings['PKG_DIR']):
-		for pkg in os.listdir(settings['PKG_DIR'] + group):
-			f = settings['PKG_DIR'] + group + '/' + pkg + '/CONTENTS'
+		grppath = settings['PKG_DIR'] + group
+		if not os.path.isdir(grppath):
+			continue
+		for pkg in os.listdir(grppath):
+			pkgpath = settings['PKG_DIR'] + group + '/' + pkg
+			if not os.path.isdir(pkgpath):
+				continue
+			f = pkgpath + '/CONTENTS'
 			if os.path.exists(f):
 				try:
 					with open(f, 'r') as cnt:
