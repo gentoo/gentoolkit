@@ -60,7 +60,12 @@ def scan_files(libs_and_bins, cmd_max_args):
 
 	scanned_files = {} # {bits: {soname: (filename, needed), ...}, ...}
 	for line in scan(['-nBF', '%F %f %S %n %M'], libs_and_bins, cmd_max_args):
-		filename, sfilename, soname, needed, bits = line.split(' ')
+		parts = line.split(' ')
+		if len(parts) < 5:
+			print("scan_files(); error processing lib: %s" % line)
+			print("scan_files(); parts = %s" % str(parts))
+			continue
+		filename, sfilename, soname, needed, bits = parts
 		filename = os.path.realpath(filename)
 		needed = needed.split(',')
 		bits = bits[8:] # 8: -> strlen('ELFCLASS')

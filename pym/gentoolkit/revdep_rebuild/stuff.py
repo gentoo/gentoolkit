@@ -38,8 +38,11 @@ def scan(params, files, max_args):
 	'''
 	out = []
 	for i in range(0, len(files), max_args):
-		out += call_program(
+		output = call_program(
 			['scanelf'] + params + files[i:i+max_args]).strip().split('\n')
+		output = [x for x in output if x != '']
+		if output:
+			out.extend(output)
 	return out
 
 
