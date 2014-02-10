@@ -49,7 +49,7 @@ def prepare_checks(files_to_check, libraries, bits, cmd_max_args):
 				#print d, 'bits:', r[2][8:] # 8: -> strlen('ELFCLASS')
 				libs.append(d)
 				dependencies.append([r[0],])
-	
+
 	return (libs, dependencies)
 
 
@@ -68,7 +68,7 @@ def scan_files(libs_and_bins, cmd_max_args):
 		bits = bits[8:] # 8: -> strlen('ELFCLASS')
 		if not soname:
 			soname = sfilename
-		
+
 		try:
 			scanned_files[bits][soname] = (filename, needed)
 		except KeyError:
@@ -249,23 +249,23 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 			)
 
 
-	logger.debug('Found %i libraries (+%i symlinks) and %i binaries' % 
+	logger.debug('Found %i libraries (+%i symlinks) and %i binaries' %
 		(len(libraries), len(libraries_links), len(binaries))
 	)
 	logger.info(green(' * ') + bold('Scanning files'))
-	
+
 	libs_and_bins = libraries+binaries
 
 	scanned_files = scan_files(libs_and_bins, settings['CMD_MAX_ARGS'])
-	
+
 	logger.warn(green(' * ') + bold('Checking dynamic linking consistency'))
-	logger.debug('Search for %i within %i' % 
+	logger.debug('Search for %i within %i' %
 		(len(binaries)+len(libraries), len(libraries)+len(libraries_links))
 	)
-	
+
 	broken = find_broken2(scanned_files, logger)
 	broken_pathes = main_checks2(broken, scanned_files, logger)
-	
+
 	broken_la = extract_dependencies_from_la(la_libraries, libraries+libraries_links, _libs_to_check, logger)
 	broken_pathes += broken_la
 
@@ -273,9 +273,9 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 
 	return assign_packages(broken_pathes, logger, settings)
 
-	
 	#import sys
 	#sys.exit()
+
 	#l = []
 	#for line in call_program(['scanelf', '-M', '64', '-BF', '%F',] + libraries).strip().split('\n'):
 		#l.append(line)
