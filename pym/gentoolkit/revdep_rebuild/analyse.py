@@ -256,7 +256,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 	)
 	logger.info(green(' * ') + bold('Scanning files'))
 
-	libs_and_bins = libraries+binaries
+	libs_and_bins = set(libraries + binaries)
 
 	scanned_files = scan_files(libs_and_bins, settings['CMD_MAX_ARGS'])
 
