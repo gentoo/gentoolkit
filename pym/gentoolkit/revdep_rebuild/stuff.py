@@ -46,10 +46,6 @@ def scan(params, files, max_args):
 	return out
 
 
-def exithandler(signum, frame):
-	sys.exit(1)
-
-
 def get_masking_status(ebuild):
 	"""returns the masking status of an ebuild
 
