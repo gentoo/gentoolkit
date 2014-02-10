@@ -211,6 +211,7 @@ def main(settings=None, logger=None):
 		logger.warn(blue(' * ') +
 			yellow('This is a development version, '
 				'so it may not work correctly'))
+		logger.warn(blue(' * ') +
 			yellow('Adding --pretend to portage options anyway'))
 		logger.info(blue(' * ') +
 			'If you\'re sure, you can add --no-pretend to revdep options')
