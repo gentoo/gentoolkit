@@ -36,9 +36,9 @@ def scan(params, files, max_args):
 
 		@return scanelf output (joined if was called several times)
 	'''
-	print("SCAN(), params = ", params, len(files))
-	# change it to a sorted list for group processing
-	_files = list(files)
+	#print("SCAN(), params = ", params, len(files))
+	# change it to a list for group processing
+	_files = sorted(files)
 	out = []
 	for i in range(0, len(_files), max_args):
 		output = call_program(
@@ -46,7 +46,7 @@ def scan(params, files, max_args):
 		output = [x for x in output if x != '']
 		if output:
 			out.extend(output)
-	print("SCAN(), final output length:", len(out))
+	#print("SCAN(), final output length:", len(out))
 	return out
 
 
