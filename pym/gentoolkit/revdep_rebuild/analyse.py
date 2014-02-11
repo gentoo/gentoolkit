@@ -199,7 +199,8 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 	broken = find_broken2(scanned_files, logger)
 	broken_pathes = main_checks2(broken, scanned_files, logger)
 
-	broken_la = extract_dependencies_from_la(la_libraries, libraries+libraries_links, _libs_to_check, logger)
+	broken_la = extract_dependencies_from_la(la_libraries,
+		libraries+libraries_links, _libs_to_check, logger)
 	broken_pathes += broken_la
 
 	logger.warn(green(' * ') + bold('Assign files to packages'))
