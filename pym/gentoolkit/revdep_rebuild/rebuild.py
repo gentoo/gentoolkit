@@ -124,7 +124,7 @@ def parse_options():
 			elif key in ('-C', '--nocolor', '--no-color'):
 				settings['nocolor'] = True
 			elif key in ('-L', '--library', '--library='):
-				settings['library'] = settings['library'].union(val.split(','))
+				settings['library'].update(val.split(','))
 			elif key in ('-i', '--ignore'):
 				settings['USE_TMP_FILES'] = False
 

@@ -110,9 +110,9 @@ if __name__ == '__main__':
 	bin_dirs, lib_dirs = prepare_search_dirs()
 
 	masked_dirs, masked_files, ld = parse_revdep_config()
-	lib_dirs = lib_dirs.union(ld)
-	bin_dirs = bin_dirs.union(ld)
-	masked_dirs = masked_dirs.union(
+	lib_dirs.update(ld)
+	bin_dirs.update(ld)
+	masked_dirs.update(
 		set([
 			'/lib/modules',
 			'/lib32/modules',
