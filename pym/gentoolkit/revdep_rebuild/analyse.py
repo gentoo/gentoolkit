@@ -16,14 +16,15 @@ from .assign import assign_packages
 from .cache import save_cache
 
 
-def scan_files(libs_and_bins, cmd_max_args):
+def scan_files(libs_and_bins, cmd_max_args, logger):
 
 	scanned_files = {} # {bits: {soname: (filename, needed), ...}, ...}
-	for line in scan(['-nBF', '%F %f %S %n %M'], libs_and_bins, cmd_max_args):
+	for line in scan(['-nBF', '%F %f %S %n %M'],
+					 libs_and_bins, cmd_max_args, logger):
 		parts = line.split(' ')
 		if len(parts) < 5:
-			print("scan_files(); error processing lib: %s" % line)
-			print("scan_files(); parts = %s" % str(parts))
+			logger.error("scan_files(); error processing lib: %s" % line)
+			logger.error("scan_files(); parts = %s" % str(parts))
 			continue
 		filename, sfilename, soname, needed, bits = parts
 		filename = os.path.realpath(filename)
@@ -41,8 +42,6 @@ def scan_files(libs_and_bins, cmd_max_args):
 		else:
 			scanned_files[bits][soname][filename].update(needed)
 
-	#print("scanned_files['64'] =")
-	#print(scanned_files['64'])
 	return scanned_files
 
 
@@ -184,7 +183,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 
 	libs_and_bins = set(libraries + binaries)
 
-	scanned_files = scan_files(libs_and_bins, settings['CMD_MAX_ARGS'])
+	scanned_files = scan_files(libs_and_bins, settings['CMD_MAX_ARGS'], logger)
 
 	logger.warn(green(' * ') + bold('Checking dynamic linking consistency'))
 	logger.debug('analyse(), Searching for %i libs, bins within %i libraries and links' %
