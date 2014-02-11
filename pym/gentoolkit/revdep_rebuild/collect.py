@@ -186,7 +186,6 @@ def collect_libraries_from_dir(dirs, mask, logger):
 				yellow('Exception during collecting libraries: ' +
 				blue('%s')  %str(ex)))
 
-
 	if found_directories:
 		_file, la_file, link, pair = \
 			collect_libraries_from_dir(found_directories, mask, logger)
@@ -194,7 +193,6 @@ def collect_libraries_from_dir(dirs, mask, logger):
 		found_la_files += la_file
 		found_symlinks += link
 		symlink_pairs += pair
-
 	return (found_files, found_la_files, found_symlinks, symlink_pairs)
 
 
