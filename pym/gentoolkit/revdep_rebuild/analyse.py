@@ -176,7 +176,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 			)
 
 
-	logger.debug('analyse(), Found %i libraries (+%i symlinks) and %i binaries' %
+	logger.debug('      analyse(), Found %i libraries (+%i symlinks) and %i binaries' %
 		(len(libraries), len(libraries_links), len(binaries))
 	)
 	logger.info(green(' * ') + bold('Scanning files'))
@@ -186,7 +186,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 	scanned_files = scan_files(libs_and_bins, settings['CMD_MAX_ARGS'], logger)
 
 	logger.warn(green(' * ') + bold('Checking dynamic linking consistency'))
-	logger.debug('analyse(), Searching for %i libs, bins within %i libraries and links' %
+	logger.debug('      analyse(), Searching for %i libs, bins within %i libraries and links' %
 		(len(libs_and_bins), len(libraries)+len(libraries_links))
 	)
 
