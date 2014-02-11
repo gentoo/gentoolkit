@@ -8,9 +8,16 @@ import re
 import os
 import glob
 import stat
+import sys
 
 import portage
 from portage.output import blue, yellow
+
+
+if sys.hexversion < 0x3000000:
+	_basestring = basestring
+else:
+	_basestring = str
 
 
 def parse_conf(conf_file, visited=None, logger=None):
@@ -21,7 +28,7 @@ def parse_conf(conf_file, visited=None, logger=None):
 	lib_dirs = set()
 	to_parse = set()
 
-	if isinstance(conf_file, basestring):
+	if isinstance(conf_file, _basestring):
 		conf_file = [conf_file]
 
 	for conf in conf_file:
