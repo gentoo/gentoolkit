@@ -28,7 +28,7 @@ def read_cache(temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 		'binaries':[]
 		}
 	try:
-		for key,val in ret.iteritems():
+		for key,val in ret.items():
 			_file = open(os.path.join(temp_path, key))
 			for line in _file.readlines():
 				val.append(line.strip())
@@ -56,7 +56,7 @@ def save_cache(logger, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 		_file.write(str(int(time.time())))
 		_file.close()
 
-		for key,val in to_save.iteritems():
+		for key,val in to_save.items():
 			_file = open(os.path.join(temp_path, key), 'w')
 			for line in val:
 				_file.write(line + '\n')
