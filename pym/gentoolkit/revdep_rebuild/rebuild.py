@@ -221,7 +221,7 @@ def main(settings=None, logger=None):
 			and check_temp_files(settings['DEFAULT_TMP_DIR'], logger=logger):
 		libraries, la_libraries, libraries_links, binaries = read_cache(
 			settings['DEFAULT_TMP_DIR'])
-		assigned = analyse(
+		assigned, orphaned = analyse(
 			settings=settings,
 			logger=logger,
 			libraries=libraries,
@@ -230,12 +230,19 @@ def main(settings=None, logger=None):
 			binaries=binaries,
 			_libs_to_check=_libs_to_check)
 	else:
-		assigned = analyse(settings, logger, _libs_to_check=_libs_to_check)
+		assigned, orphaned = analyse(settings, logger, _libs_to_check=_libs_to_check)
 
-	if not assigned:
+	if not assigned and not orphaned:
 		logger.warn('\n' + bold('Your system is consistent'))
 		# return the correct exit code
 		return 0
+	elif orphaned:
+		# blank line for beter visibility of the following lines
+		logger.warn('')
+		logger.warn(red('!!! Broken orphaned files: ') +
+			bold('No installed package was found for the following:'))
+		for filename in orphaned:
+			logger.warn(red(' * ') + filename)
 
 	has_masked = False
 	tmp = []

@@ -23,7 +23,8 @@ def assign_packages(broken, logger, settings):
 	''' Finds and returns packages that owns files placed in broken.
 		Broken is list of files
 	'''
-	assigned = set()
+	assigned_pkgs = set()
+	assigned_filenames = set()
 	for group in os.listdir(settings['PKG_DIR']):
 		grppath = settings['PKG_DIR'] + group
 		if not os.path.isdir(grppath):
@@ -42,13 +43,17 @@ def assign_packages(broken, logger, settings):
 								m = m.group(1)
 								if m in broken:
 									found = group+'/'+pkg
-									assigned.add(found)
+									assigned_pkgs.add(found)
+									assigned_filenames.add(m)
 									logger.info('\t' + m + ' -> ' + bold(found))
 				except Exception as e:
 					logger.warn(red(' !! Failed to read ' + f))
 					logger.warn(red(' !! Error was:' + str(e)))
 
-	return assigned
+	broken_filenames = set(broken)
+	orphaned = broken_filenames.difference(assigned_filenames)
+
+	return (assigned_pkgs, orphaned)
 
 
 def get_best_match(cpv, cp, logger):
