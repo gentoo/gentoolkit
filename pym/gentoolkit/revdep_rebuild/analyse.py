@@ -32,11 +32,17 @@ def scan_files(libs_and_bins, cmd_max_args):
 		if not soname:
 			soname = sfilename
 
-		try:
-			scanned_files[bits][soname] = (filename, needed)
-		except KeyError:
+		if bits not in scanned_files:
 			scanned_files[bits] = {}
-			scanned_files[bits][soname] = (filename, needed)
+		if soname not in scanned_files[bits]:
+			scanned_files[bits][soname] = {}
+		if filename not in scanned_files[bits][soname]:
+			scanned_files[bits][soname][filename] = set(needed)
+		else:
+			scanned_files[bits][soname][filename].update(needed)
+
+	#print("scanned_files['64'] =")
+	#print(scanned_files['64'])
 	return scanned_files
 
 
@@ -91,18 +97,22 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 def find_broken2(scanned_files, logger):
 	broken_libs = {}
 	for bits, libs in scanned_files.items():
-		logger.debug('Checking for bits: %s' % bits)
-		alllibs = '|'.join(libs.keys()) + '|'
-		for soname, needed in libs.items():
-			for l in needed[1]:
-				if not l+'|' in alllibs:
-					try:
-						broken_libs[bits][l].add(soname)
-					except KeyError:
+		logger.debug('find_broken2(), Checking for %s bit libs' % bits)
+		alllibs = '|'.join(sorted(libs)) + '|'
+		#print(alllibs)
+		#print()
+		for soname, filepaths in libs.items():
+			for filename, needed in filepaths.items():
+				for l in needed:
+					if l+'|' not in alllibs:
 						try:
-							broken_libs[bits][l] = set([soname])
+							broken_libs[bits][l].add(soname)
 						except KeyError:
-							broken_libs = {bits: {l: set([soname])}}
+							try:
+								broken_libs[bits][l] = set([soname])
+							except KeyError:
+								broken_libs = {bits: {l: set([soname])}}
+						#print("BROKEN:", soname, l)
 
 	return broken_libs
 
@@ -110,12 +120,14 @@ def find_broken2(scanned_files, logger):
 def main_checks2(broken, scanned_files, logger):
 	broken_pathes = []
 	for bits, _broken in broken.items():
-		for soname, needed in _broken.items():
-			logger.info('Broken files that requires: %s (%s bits)' % (bold(soname), bits))
+		for lib, needed in _broken.items():
+			#print("lib, needed:", lib, needed)
+			logger.info('Broken files that requires: %s (%s bits)' % (bold(lib), bits))
 			for n in needed:
-				fp = scanned_files[bits][n][0]
-				logger.info(yellow(' * ') + n  + ' (' + fp + ')')
-				broken_pathes.append(fp)
+				#print(sorted(needed))
+				for fp in sorted(scanned_files[bits][n]):
+					logger.info(yellow(' * ') + n + ' (' + fp + ')')
+					broken_pathes.append(fp)
 	return broken_pathes
 
 
