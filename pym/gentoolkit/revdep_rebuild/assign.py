@@ -43,8 +43,7 @@ def assign_packages(broken, logger, settings):
 								m = m.group(1)
 								if m in broken:
 									found = group+'/'+pkg
-									if found not in assigned:
-										assigned.add(found)
+									assigned.add(found)
 									logger.info('\t' + m + ' -> ' + bold(found))
 				except Exception as e:
 					logger.warn(red(' !! Failed to read ' + f))
