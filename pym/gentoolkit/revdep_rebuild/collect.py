@@ -264,8 +264,8 @@ if __name__ == '__main__':
 	)
 
 	libraries, la_libraries, libraries_links, msymlink_pairs = \
-		collect_libraries_from_dir(mlib_dirs, mmasked_dirs, logging)
-	binaries = collect_binaries_from_dir(mbin_dirs, mmasked_dirs, logging)
+		collect_libraries_from_dir(lib_dirs, masked_dirs, logging)
+	binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logging)
 
 	logging.debug(
 		'Found: %i binaries and %i libraries.' %(
