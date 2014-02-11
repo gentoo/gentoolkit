@@ -45,7 +45,6 @@ def scan_files(libs_and_bins, cmd_max_args, logger):
 	return scanned_files
 
 
-
 def extract_dependencies_from_la(la, libraries, to_check, logger):
 	broken = []
 
@@ -98,8 +97,6 @@ def find_broken2(scanned_files, logger):
 	for bits, libs in scanned_files.items():
 		logger.debug('find_broken2(), Checking for %s bit libs' % bits)
 		alllibs = '|'.join(sorted(libs)) + '|'
-		#print(alllibs)
-		#print()
 		for soname, filepaths in libs.items():
 			for filename, needed in filepaths.items():
 				for l in needed:
