@@ -24,7 +24,7 @@ def call_program(args):
 	return str(stdout)
 
 
-def scan(params, files, max_args):
+def scan(params, files, max_args, logger):
 	''' Calls scanelf with given params and files to scan.
 		@param params is list of parameters that should
 			be passed into scanelf app.
@@ -36,8 +36,8 @@ def scan(params, files, max_args):
 
 		@return scanelf output (joined if was called several times)
 	'''
-	#print("SCAN(), params = ", params, len(files))
-	# change it to a list for group processing
+	logger.debug("      scan(), scanelf params = %s, # files: %d" % (params, len(files)))
+	# change it to a sorted list for group processing
 	_files = sorted(files)
 	out = []
 	for i in range(0, len(_files), max_args):
@@ -46,7 +46,7 @@ def scan(params, files, max_args):
 		output = [x for x in output if x != '']
 		if output:
 			out.extend(output)
-	#print("SCAN(), final output length:", len(out))
+	logger.debug("      scan(), final output length: %d" % len(out))
 	return out
 
 
