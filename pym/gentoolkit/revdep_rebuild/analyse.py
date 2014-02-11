@@ -106,28 +106,23 @@ def find_broken2(scanned_files, logger):
 				for l in needed:
 					if l+'|' not in alllibs:
 						try:
-							broken_libs[bits][l].add(soname)
+							broken_libs[bits][l].add(filename)
 						except KeyError:
 							try:
-								broken_libs[bits][l] = set([soname])
+								broken_libs[bits][l] = set([filename])
 							except KeyError:
-								broken_libs = {bits: {l: set([soname])}}
-						#print("BROKEN:", soname, l)
-
+								broken_libs = {bits: {l: set([filename])}}
 	return broken_libs
 
 
 def main_checks2(broken, scanned_files, logger):
 	broken_pathes = []
 	for bits, _broken in broken.items():
-		for lib, needed in _broken.items():
-			#print("lib, needed:", lib, needed)
+		for lib, files in _broken.items():
 			logger.info('Broken files that requires: %s (%s bits)' % (bold(lib), bits))
-			for n in needed:
-				#print(sorted(needed))
-				for fp in sorted(scanned_files[bits][n]):
-					logger.info(yellow(' * ') + n + ' (' + fp + ')')
-					broken_pathes.append(fp)
+			for fp in sorted(files):
+				logger.info(yellow(' * ') + fp)
+				broken_pathes.append(fp)
 	return broken_pathes
 
 
