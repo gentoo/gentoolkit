@@ -40,7 +40,7 @@ def parse_conf(conf_file, visited=None, logger=None):
 							else:
 								path = included
 
-							to_parse = to_parse.union(glob.glob(path))
+							to_parse.update(glob.glob(path))
 					else:
 						lib_dirs.add(line)
 		except EnvironmentError:
@@ -49,10 +49,10 @@ def parse_conf(conf_file, visited=None, logger=None):
 	if visited is None:
 		visited = set()
 
-	visited = visited.union(conf_file)
+	visited.update(conf_file)
 	to_parse = to_parse.difference(visited)
 	if to_parse:
-		lib_dirs = lib_dirs.union(parse_conf(to_parse, visited, logger=logger))
+		lib_dirs.update(parse_conf(to_parse, visited, logger=logger))
 
 	return lib_dirs
 
@@ -96,19 +96,19 @@ def parse_revdep_config(revdep_confdir):
 				match = re.match('LD_LIBRARY_MASK=\\"([^"]+)\\"', line)
 				if match is not None:
 					masks = match.group(1).split(' ')
-					masked_files = masked_files.union(masks)
+					masked_files.update(masks)
 					continue
 				match = re.match('SEARCH_DIRS_MASK=\\"([^"]+)\\"', line)
 				if match is not None:
 					searches = match.group(1).split(' ')
 					for search in searches:
-						masked_dirs = masked_dirs.union(glob.glob(search))
+						masked_dirs.update(glob.glob(search))
 					continue
 				match = re.match('SEARCH_DIRS=\\"([^"]+)\\"', line)
 				if match is not None:
 					searches = match.group(1).split()
 					for search in searches:
-						search_dirs = search_dirs.union(glob.glob(search))
+						search_dirs.update(glob.glob(search))
 					continue
 
 	return (masked_dirs, masked_files, search_dirs)
@@ -253,9 +253,9 @@ if __name__ == '__main__':
 	bin_dirs, lib_dirs = prepare_search_dirs(logging)
 
 	masked_dirs, masked_files, ld = parse_revdep_config()
-	lib_dirs = lib_dirs.union(ld)
-	bin_dirs = bin_dirs.union(ld)
-	masked_dirs = masked_dirs.union(
+	lib_dirs.update(ld)
+	bin_dirs.update(ld)
+	masked_dirs.update(
 		set([
 			'/lib/modules',
 			'/lib32/modules',
