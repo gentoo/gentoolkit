@@ -11,7 +11,7 @@ import re
 
 import portage
 from portage import portdb
-from portage.output import bold, red, yellow
+from portage.output import bold, red, yellow, green
 
 # Make all str conversions unicode
 try:
