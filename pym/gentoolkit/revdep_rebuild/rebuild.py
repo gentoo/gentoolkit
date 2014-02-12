@@ -241,6 +241,12 @@ def main(settings=None, logger=None):
 	elif orphaned:
 		# blank line for beter visibility of the following lines
 		logger.warn('')
+		if settings['library']:
+			logger.warn(red(' !!! Dependant orphaned files: ') +
+				bold('No installed package was found for the following:'))
+		else:
+			logger.warn(red(' !!! Broken orphaned files: ') +
+				bold('No installed package was found for the following:'))
 		for filename in orphaned:
 			logger.warn(red('\t* ') + filename)
 
