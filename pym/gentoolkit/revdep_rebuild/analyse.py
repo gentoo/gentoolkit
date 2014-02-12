@@ -92,34 +92,105 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 	return broken
 
 
-def find_broken2(scanned_files, logger):
-	broken_libs = {}
-	for bits, libs in scanned_files.items():
-		logger.debug('find_broken2(), Checking for %s bit libs' % bits)
-		alllibs = '|'.join(sorted(libs)) + '|'
-		for soname, filepaths in libs.items():
-			for filename, needed in filepaths.items():
-				for l in needed:
-					if l+'|' not in alllibs:
-						try:
-							broken_libs[bits][l].add(filename)
-						except KeyError:
+class LibCheck(object):
+	def __init__(self, scanned_files, logger, searchlibs=None):
+		'''LibCheck init function.
+
+		@param scanned_files: optional dictionary if the type created by
+				scan_files().  Defaults to the class instance of scanned_files
+		@param logger: python style Logging function to use for output.
+		@param searchlibs: optional set() of libraries to search for. If defined
+				it toggles several settings to configure this class for
+				a target search rather than a broken libs search.
+		'''
+		self.scanned_files = scanned_files
+		self.logger = logger
+		self.searchlibs = searchlibs
+		if searchlibs:
+			self.smsg = '\tLibCheck.search(), Checking for %s bit dependants'
+			self.pmsg = yellow(" * ") + 'Files that depend on: %s (%s bits)'
+			self.alllibs = '|'.join(sorted(searchlibs)) + '|'
+			self.setlibs = self._lamda
+			self.check = self._checkforlib
+		else:
+			self.smsg = '\tLibCheck.search(), Checking for broken %s bit libs'
+			self.pmsg = green(' * ') + bold('Broken files that requires:') + ' %s (%s bits)'
+			self.setlibs = self._setlibs
+			self.check = self._checkbroken
+			self.alllibs = None
+
+
+	@staticmethod
+	def _lamda(l):
+		'''Internal function.  Use the class's setlibs variable'''
+		pass
+
+
+	def _setlibs(self, l):
+		'''Internal function.  Use the class's setlibs variable'''
+		self.alllibs = '|'.join(sorted(l)) + '|'
+
+
+	def _checkforlib(self, l):
+		'''Internal function.  Use the class's check variable'''
+		if l:
+			return l+'|' in self.alllibs
+		return False
+
+
+	def _checkbroken(self, l):
+		'''Internal function.  Use the class's check variable'''
+		if l:
+			return l+'|' not in self.alllibs
+		return False
+
+
+	def search(self, scanned_files=None):
+		'''Searches the scanned files for broken lib links
+		or for libs to search for
+
+		@param scanned_files: optional dictionary if the type created by
+				scan_files(). Defaults to the class instance of scanned_files
+		@ returns: dict: {bit_length: {found_lib: set(file_paths)}}.
+		'''
+		if not scanned_files:
+			scanned_files = self.scanned_files
+		found_libs = {}
+		for bits, libs in scanned_files.items():
+			self.setlibs(libs)
+			self.logger.debug(self.smsg % bits)
+			for soname, filepaths in libs.items():
+				for filename, needed in filepaths.items():
+					for l in needed:
+						if self.check(l):
 							try:
-								broken_libs[bits][l] = set([filename])
+								found_libs[bits][l].add(filename)
 							except KeyError:
-								broken_libs = {bits: {l: set([filename])}}
-	return broken_libs
+								try:
+									found_libs[bits][l] = set([filename])
+								except KeyError:
+									found_libs = {bits: {l: set([filename])}}
+		return found_libs
 
 
-def main_checks2(broken, scanned_files, logger):
-	broken_pathes = []
-	for bits, _broken in broken.items():
-		for lib, files in _broken.items():
-			logger.info('Broken files that requires: %s (%s bits)' % (bold(lib), bits))
-			for fp in sorted(files):
-				logger.info(yellow(' * ') + fp)
-				broken_pathes.append(fp)
-	return broken_pathes
+	def process_results(self, found_libs, scanned_files=None):
+		'''Processes the search results, logs the files found
+
+		@param found_libs: dictionary of the type returned by search()
+		@param scanned_files: optional dictionary if the type created by
+				scan_files().  Defaults to the class instance of scanned_files
+		@ returns: list: of filepaths from teh search results.
+		'''
+		if not scanned_files:
+			scanned_files = self.scanned_files
+		found_pathes = []
+		for bits, found in found_libs.items():
+			for lib, files in found.items():
+				self.logger.info(self.pmsg  % (bold(lib), bits))
+				for fp in sorted(files):
+					self.logger.info('\t' +yellow('* ') + fp)
+					found_pathes.append(fp)
+		return found_pathes
 
 
 def analyse(settings, logger, libraries=None, la_libraries=None,
@@ -187,8 +258,9 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		(len(libs_and_bins), len(libraries)+len(libraries_links))
 	)
 
-	broken = find_broken2(scanned_files, logger)
-	broken_pathes = main_checks2(broken, scanned_files, logger)
+	libcheck = LibCheck(scanned_files, logger, _libs_to_check)
+
+	broken_pathes = libcheck.process_results(libcheck.search())
 
 	broken_la = extract_dependencies_from_la(la_libraries,
 		libraries+libraries_links, _libs_to_check, logger)
