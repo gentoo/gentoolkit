@@ -17,7 +17,14 @@ from .cache import save_cache
 
 
 def scan_files(libs_and_bins, cmd_max_args, logger):
+	'''Calls stuff.scan() and processes the data into a dictionary
+	of scanned files information.
 
+	@param libs_and_bins: set of libraries and binaries to scan for lib links.
+	@param cmd_max_args: maximum number of files to pass into scanelf calls.
+	@param logger: python style Logging function to use for output.
+	@returns dict: {bit_length: {soname: {filename: set(needed)}}}
+	'''
 	scanned_files = {} # {bits: {soname: (filename, needed), ...}, ...}
 	for line in scan(['-nBF', '%F %f %S %n %M'],
 					 libs_and_bins, cmd_max_args, logger):
