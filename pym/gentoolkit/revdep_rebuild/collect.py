@@ -190,7 +190,7 @@ def collect_libraries_from_dir(dirs, mask, logger):
 								found_files.append(listing)
 		except Exception as ex:
 			logger.debug('\t' +
-				yellow('Exception during collecting libraries: ' +
+				yellow('Exception collecting libraries: ' +
 				blue('%s')  %str(ex)))
 
 	if found_directories:
