@@ -8,6 +8,8 @@ from __future__ import print_function
 
 import os
 import re
+import time
+current_milli_time = lambda: int(round(time.time() * 1000))
 
 import portage
 from portage import portdb
@@ -23,6 +25,7 @@ def assign_packages(broken, logger, settings):
 	''' Finds and returns packages that owns files placed in broken.
 		Broken is list of files
 	'''
+	stime = current_milli_time()
 	assigned_pkgs = set()
 	assigned_filenames = set()
 	for group in os.listdir(settings['PKG_DIR']):
@@ -53,6 +56,10 @@ def assign_packages(broken, logger, settings):
 
 	broken_filenames = set(broken)
 	orphaned = broken_filenames.difference(assigned_filenames)
+	ftime = current_milli_time()
+	logger.debug("\tassign_packages(); assigned "
+		"%d packages, %d orphans in %d milliseconds"
+		% (len(assigned_pkgs), len(orphaned), ftime-stime))
 
 	return (assigned_pkgs, orphaned)
 
