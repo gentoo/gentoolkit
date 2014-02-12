@@ -195,11 +195,14 @@ def main(settings=None, logger=None):
 
 	#TODO: Development warning
 	logger.warn(blue(' * ') +
-		yellow('This is a development version, '
+		yellow('This is a prerelease version, '
 			'so it may not work correctly'))
 	logger.warn(blue(' * ') +
 		yellow('The original revdep-rebuild script is '
 			'installed as revdep-rebuild.sh'))
+	logger.warn(blue(' * ') +
+		yellow('Please files bugs at: '
+			'https://bugs.gentoo.org/'))
 
 	if os.getuid() != 0 and not settings['PRETEND']:
 		logger.warn(blue(' * ') +
