@@ -6,6 +6,7 @@ from __future__ import print_function
 
 import os
 import re
+import time
 
 from portage.output import bold, blue, yellow, green
 
@@ -14,6 +15,8 @@ from .collect import (prepare_search_dirs, parse_revdep_config,
 	collect_libraries_from_dir, collect_binaries_from_dir)
 from .assign import assign_packages
 from .cache import save_cache
+
+current_milli_time = lambda: int(round(time.time() * 1000))
 
 
 def scan_files(libs_and_bins, cmd_max_args, logger):
@@ -25,9 +28,16 @@ def scan_files(libs_and_bins, cmd_max_args, logger):
 	@param logger: python style Logging function to use for output.
 	@returns dict: {bit_length: {soname: {filename: set(needed)}}}
 	'''
+	stime = current_milli_time()
 	scanned_files = {} # {bits: {soname: (filename, needed), ...}, ...}
-	for line in scan(['-nBF', '%F %f %S %n %M'],
-					 libs_and_bins, cmd_max_args, logger):
+	lines = scan(['-nBF', '%F %f %S %n %M'],
+				 libs_and_bins, cmd_max_args, logger)
+	ftime = current_milli_time()
+	logger.debug("\tscan_files(); total time to get scanelf data is "
+		"%d milliseconds" % (ftime-stime))
+	stime = current_milli_time()
+	count = 0
+	for line in lines:
 		parts = line.split(' ')
 		if len(parts) < 5:
 			logger.error("\tscan_files(); error processing lib: %s" % line)
@@ -46,9 +56,12 @@ def scan_files(libs_and_bins, cmd_max_args, logger):
 			scanned_files[bits][soname] = {}
 		if filename not in scanned_files[bits][soname]:
 			scanned_files[bits][soname][filename] = set(needed)
+			count += 1
 		else:
 			scanned_files[bits][soname][filename].update(needed)
-
+	ftime = current_milli_time()
+	logger.debug("\tscan_files(); total filenames found: %d in %d milliseconds"
+		% (count, ftime-stime))
 	return scanned_files
 
 
@@ -160,6 +173,8 @@ class LibCheck(object):
 				scan_files(). Defaults to the class instance of scanned_files
 		@ returns: dict: {bit_length: {found_lib: set(file_paths)}}.
 		'''
+		stime = current_milli_time()
+		count = 0
 		if not scanned_files:
 			scanned_files = self.scanned_files
 		found_libs = {}
@@ -175,8 +190,13 @@ class LibCheck(object):
 							except KeyError:
 								try:
 									found_libs[bits][l] = set([filename])
+									count += 1
 								except KeyError:
 									found_libs = {bits: {l: set([filename])}}
+									count += 1
+		ftime = current_milli_time()
+		self.logger.debug("\tLibCheck.search(); total libs found: %d in %d milliseconds"
+			% (count, ftime-stime))
 		return found_libs
 
 
@@ -188,6 +208,7 @@ class LibCheck(object):
 				scan_files().  Defaults to the class instance of scanned_files
 		@ returns: list: of filepaths from teh search results.
 		'''
+		stime = current_milli_time()
 		if not scanned_files:
 			scanned_files = self.scanned_files
 		found_pathes = []
@@ -197,6 +218,9 @@ class LibCheck(object):
 				for fp in sorted(files):
 					self.logger.info('\t' +yellow('* ') + fp)
 					found_pathes.append(fp)
+		ftime = current_milli_time()
+		self.logger.debug("\tLibCheck.process_results(); total filepaths found: "
+			"%d in %d milliseconds" % (len(found_pathes), ftime-stime))
 		return found_pathes
 
 
@@ -220,6 +244,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		#TODO: add partial cache (for ex. only libraries)
 		# when found for some reason
 
+		stime = current_milli_time()
 		logger.warn(green(' * ') +
 			bold('Collecting system binaries and libraries'))
 		bin_dirs, lib_dirs = prepare_search_dirs(logger, settings)
@@ -235,12 +260,16 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 				'/lib64/modules',
 			])
 		)
-
+		ftime = current_milli_time()
+		logger.debug('\ttime to complete task: %d milliseconds' % (ftime-stime))
+		stime = current_milli_time()
 		logger.info(green(' * ') +
 			bold('Collecting dynamic linking informations'))
 		libraries, la_libraries, libraries_links, symlink_pairs = \
 			collect_libraries_from_dir(lib_dirs, masked_dirs, logger)
 		binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logger)
+		ftime = current_milli_time()
+		logger.debug('\ttime to complete task: %d milliseconds' % (ftime-stime))
 
 		if settings['USE_TMP_FILES']:
 			save_cache(logger=logger,
