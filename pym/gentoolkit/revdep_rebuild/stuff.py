@@ -36,7 +36,7 @@ def scan(params, files, max_args, logger):
 
 		@return scanelf output (joined if was called several times)
 	'''
-	logger.debug("      scan(), scanelf params = %s, # files: %d" % (params, len(files)))
+	logger.debug("\tscan(), scanelf params = %s, # files: %d" % (params, len(files)))
 	# change it to a sorted list for group processing
 	_files = sorted(files)
 	out = []
@@ -46,7 +46,7 @@ def scan(params, files, max_args, logger):
 		output = [x for x in output if x != '']
 		if output:
 			out.extend(output)
-	logger.debug("      scan(), final output length: %d" % len(out))
+	logger.debug("\tscan(), final output length: %d" % len(out))
 	return out
 
 

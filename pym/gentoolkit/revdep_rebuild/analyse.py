@@ -23,8 +23,8 @@ def scan_files(libs_and_bins, cmd_max_args, logger):
 					 libs_and_bins, cmd_max_args, logger):
 		parts = line.split(' ')
 		if len(parts) < 5:
-			logger.error("scan_files(); error processing lib: %s" % line)
-			logger.error("scan_files(); parts = %s" % str(parts))
+			logger.error("\tscan_files(); error processing lib: %s" % line)
+			logger.error("\tscan_files(); parts = %s" % str(parts))
 			continue
 		filename, sfilename, soname, needed, bits = parts
 		filename = os.path.realpath(filename)
@@ -86,7 +86,7 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 								if not _break:
 									continue
 
-							logger.info(yellow(' * ') + _file +
+							logger.info('\t' + yellow(' * ') + _file +
 								' is broken (requires: ' + bold(el)+')')
 							broken.append(_file)
 	return broken
@@ -244,7 +244,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 			)
 
 
-	logger.debug('      analyse(), Found %i libraries (+%i symlinks) and %i binaries' %
+	logger.debug('\tanalyse(), Found %i libraries (+%i symlinks) and %i binaries' %
 		(len(libraries), len(libraries_links), len(binaries))
 	)
 	logger.info(green(' * ') + bold('Scanning files'))
@@ -254,8 +254,9 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 	scanned_files = scan_files(libs_and_bins, settings['CMD_MAX_ARGS'], logger)
 
 	logger.warn(green(' * ') + bold('Checking dynamic linking consistency'))
-	logger.debug('      analyse(), Searching for %i libs, bins within %i libraries and links' %
-		(len(libs_and_bins), len(libraries)+len(libraries_links))
+	logger.debug(
+		'\tanalyse(), Searching for %i libs, bins within %i libraries and links'
+		% (len(libs_and_bins), len(libraries)+len(libraries_links))
 	)
 
 	libcheck = LibCheck(scanned_files, logger, _libs_to_check)

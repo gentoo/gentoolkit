@@ -45,7 +45,8 @@ def assign_packages(broken, logger, settings):
 									found = group+'/'+pkg
 									assigned_pkgs.add(found)
 									assigned_filenames.add(m)
-									logger.info('\t' + m + ' -> ' + bold(found))
+									logger.info('\t' + green('* ') + m +
+												' -> ' + bold(found))
 				except Exception as e:
 					logger.warn(red(' !! Failed to read ' + f))
 					logger.warn(red(' !! Error was:' + str(e)))
@@ -67,20 +68,20 @@ def get_best_match(cpv, cp, logger):
 	"""
 
 	slot = portage.db[portage.root]["vartree"].dbapi.aux_get(cpv, ["SLOT"])
-	logger.warn(yellow('Warning: ebuild "' + cpv + '" not found.'))
-	logger.info('Looking for %s:%s' %(cp, slot))
+	logger.warn('\t' + yellow('Warning: ebuild "' + cpv + '" not found.'))
+	logger.info('\tLooking for %s:%s' %(cp, slot))
 	try:
 		match = portdb.match('%s:%s' %(cp, slot))
 	except portage.exception.InvalidAtom:
 		match = None
 
 	if not match:
-		logger.warn(red('!!') + ' ' + yellow(
+		logger.warn('\t' + red('!!') + ' ' + yellow(
 			'Could not find ebuild for %s:%s' %(cp, slot)))
 		slot = ['']
 		match = portdb.match(cp)
 		if not match:
-			logger.warn(red('!!') + ' ' +
+			logger.warn('\t' + red('!!') + ' ' +
 				yellow('Could not find ebuild for ' + cp))
 	return match, slot
 
@@ -100,7 +101,7 @@ def get_slotted_cps(cpvs, logger):
 		except KeyError:
 			match, slot = get_best_match(cpv, cp, logger)
 			if not match:
-				logger.warn(red("Installed package: "
+				logger.warn('\t' + red("Installed package: "
 					"%s is no longer available" %cp))
 				continue
 

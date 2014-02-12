@@ -217,6 +217,8 @@ def main(settings=None, logger=None):
 			'If you\'re sure, you can add --no-pretend to revdep options')
 		settings['PRETEND'] = True
 
+	logger.debug("\tmain(), _libs_to_check = %s" % str(_libs_to_check))
+
 	if settings['USE_TMP_FILES'] \
 			and check_temp_files(settings['DEFAULT_TMP_DIR'], logger=logger):
 		libraries, la_libraries, libraries_links, binaries = read_cache(
@@ -239,24 +241,22 @@ def main(settings=None, logger=None):
 	elif orphaned:
 		# blank line for beter visibility of the following lines
 		logger.warn('')
-		logger.warn(red('!!! Broken orphaned files: ') +
-			bold('No installed package was found for the following:'))
 		for filename in orphaned:
-			logger.warn(red(' * ') + filename)
+			logger.warn(red('\t* ') + filename)
 
 	has_masked = False
 	tmp = []
 	for ebuild in assigned:
 		if get_masking_status(ebuild):
 			has_masked = True
-			logger.warn('!!! ' + red('All ebuilds that could satisfy: ') +
+			logger.warn(' !!! ' + red('All ebuilds that could satisfy: ') +
 				green(ebuild) + red(' have been masked'))
 		else:
 			tmp.append(ebuild)
 	assigned = tmp
 
 	if has_masked:
-		logger.info(red(' * ') +
+		logger.info('\t' + red('* ') +
 			'Unmask all ebuild(s) listed above and call revdep-rebuild '
 			'again or manually emerge given packages.')
 
