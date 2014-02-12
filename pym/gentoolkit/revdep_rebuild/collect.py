@@ -51,7 +51,7 @@ def parse_conf(conf_file, visited=None, logger=None):
 					else:
 						lib_dirs.add(line)
 		except EnvironmentError:
-			logger.warn(yellow('Error when parsing file %s' %conf))
+			logger.warn('\t' + yellow('Error when parsing file %s' %conf))
 
 	if visited is None:
 		visited = set()
@@ -81,7 +81,7 @@ def prepare_search_dirs(logger, settings):
 			if match is not None:
 				bin_dirs.update(set(match.group(2).split(':')))
 	#except EnvironmentError:
-		#logger.debug(yellow('Could not open file %s' % f))
+		#logger.debug('\t' + yellow('Could not open file %s' % f))
 
 	lib_dirs = parse_conf(settings['DEFAULT_LD_FILE'], logger=logger)
 	return (bin_dirs, lib_dirs)
@@ -189,8 +189,8 @@ def collect_libraries_from_dir(dirs, mask, logger):
 									prv & stat.S_IXOTH == stat.S_IXOTH:
 								found_files.append(listing)
 		except Exception as ex:
-			logger.debug(
-				yellow('      Exception during collecting libraries: ' +
+			logger.debug('\t' +
+				yellow('Exception during collecting libraries: ' +
 				blue('%s')  %str(ex)))
 
 	if found_directories:
@@ -242,7 +242,7 @@ def collect_binaries_from_dir(dirs, mask, logger):
 								prv & stat.S_IXOTH == stat.S_IXOTH:
 							found_files.append(listing)
 		except Exception as ex:
-			logger.debug(
+			logger.debug('\t' +
 				yellow('Exception during binaries collecting: '+
 				blue('%s') %str(ex)))
 

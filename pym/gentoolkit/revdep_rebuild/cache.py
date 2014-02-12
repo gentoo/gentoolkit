@@ -62,7 +62,7 @@ def save_cache(logger, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 				_file.write(line + '\n')
 			_file.close()
 	except Exception as ex:
-		logger.warn(red('Could not save cache: %s' %str(ex)))
+		logger.warn('\t' + red('Could not save cache: %s' %str(ex)))
 
 
 
@@ -90,7 +90,7 @@ def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600,
 		_file .close()
 	except Exception as ex:
 		if logger:
-			logger.debug("check_temp_files(); error retrieving"
+			logger.debug("\tcheck_temp_files(); error retrieving"
 				" timestamp_path:\n" + str(ex))
 		timestamp = 0
 		return False
