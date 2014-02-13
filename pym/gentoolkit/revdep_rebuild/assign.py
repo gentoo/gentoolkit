@@ -7,6 +7,7 @@ Functions used for determining the package the broken lib belongs to.
 from __future__ import print_function
 
 import os
+import io
 import re
 import time
 current_milli_time = lambda: int(round(time.time() * 1000))
@@ -39,7 +40,7 @@ def assign_packages(broken, logger, settings):
 			f = pkgpath + '/CONTENTS'
 			if os.path.exists(f):
 				try:
-					with open(f, 'r') as cnt:
+					with io.open(f, 'r', encoding='utf_8') as cnt:
 						for line in cnt.readlines():
 							m = re.match('^obj (/[^ ]+)', line)
 							if m is not None:
