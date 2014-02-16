@@ -260,6 +260,19 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 				'/lib64/modules',
 			])
 		)
+		logger.debug('\tanalyse(), bin directories:')
+		for x in sorted(bin_dirs):
+			logger.debug('\t\t%s' % (x))
+		logger.debug('\tanalyse(), lib directories:')
+		for x in sorted(lib_dirs):
+			logger.debug('\t\t%s' % (x))
+		logger.debug('\tanalyse(), masked directories:')
+		for x in sorted(masked_dirs):
+			logger.debug('\t\t%s' % (x))
+		logger.debug('\tanalyse(), masked files:')
+		for x in sorted(masked_files):
+			logger.debug('\t\t%s' % (x))
+
 		ftime = current_milli_time()
 		logger.debug('\ttime to complete task: %d milliseconds' % (ftime-stime))
 		stime = current_milli_time()
