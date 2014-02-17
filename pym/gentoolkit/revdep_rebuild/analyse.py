@@ -298,7 +298,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 	)
 	logger.info(green(' * ') + bold('Scanning files'))
 
-	libs_and_bins = set(libraries + binaries)
+	libs_and_bins = libraries.union(binaries)
 
 	scanned_files = scan_files(libs_and_bins, settings['CMD_MAX_ARGS'], logger)
 
@@ -313,7 +313,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 	broken_pathes = libcheck.process_results(libcheck.search())
 
 	broken_la = extract_dependencies_from_la(la_libraries,
-		libraries+libraries_links, _libs_to_check, logger)
+		libraries.union(libraries_links), _libs_to_check, logger)
 	broken_pathes += broken_la
 
 	logger.warn(green(' * ') + bold('Assign files to packages'))
