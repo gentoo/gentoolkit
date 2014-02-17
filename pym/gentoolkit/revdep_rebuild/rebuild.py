@@ -269,7 +269,7 @@ def main(settings=None, logger=None):
 			'Unmask all ebuild(s) listed above and call revdep-rebuild '
 			'again or manually emerge given packages.')
 
-	success = rebuild(logger, assigned, settings)
+	#success = rebuild(logger, assigned, settings)
 	logger.debug("rebuild return code = %i" %success)
 	return success
 

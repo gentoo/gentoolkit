@@ -130,11 +130,12 @@ def collect_libraries_from_dir(dirs, mask, logger):
 
 	# contains list of directories found
 	# allows us to reduce number of fnc calls
-	found_directories = []
-	found_files = []
-	found_symlinks = []
-	found_la_files = [] # la libraries
+	found_directories = set()
+	found_files = set()
+	found_symlinks = set()
+	found_la_files = set() # la libraries
 	symlink_pairs = []  # list of pairs symlink_id->library_id
+
 
 	for _dir in dirs:
 		if _dir in mask:
@@ -151,43 +152,43 @@ def collect_libraries_from_dir(dirs, mask, logger):
 						#we do not want scan symlink-directories
 						pass
 					else:
-						found_directories.append(listing)
+						found_directories.add(listing)
 				elif os.path.isfile(listing):
 					if (listing.endswith('.so') or
 						listing.endswith('.a') or
 						'.so.' in listing
 						):
-						if listing in found_files or listing in found_symlinks:
-							continue
+						#if listing in found_files or listing in found_symlinks:
+							#continue
 
 						if os.path.islink(listing):
-							found_symlinks.append(listing)
-							abs_path = os.path.realpath(listing)
-							if abs_path in found_files:
-								index = found_files.index(abs_path)
-							else:
-								found_files.append(abs_path)
-								index = len(found_files)-1
-							symlink_pairs.append((len(found_symlinks)-1, index,))
+							found_symlinks.add(listing)
+							#abs_path = os.path.realpath(listing)
+							#if abs_path in found_files:
+								#index = found_files.index(abs_path)
+							#else:
+								#found_files.append(abs_path)
+								#index = len(found_files)-1
+							#symlink_pairs.append((len(found_symlinks)-1, index,))
 						else:
-							found_files.append(listing)
+							found_files.add(listing)
 						continue
 					elif listing.endswith('.la'):
 						if listing in found_la_files:
 							continue
 
-						found_la_files.append(listing)
+						found_la_files.add(listing)
 					else:
 						# sometimes there are binaries in libs' subdir,
 						# for example in nagios
 						if not os.path.islink(listing):
-							if listing in found_files or listing in found_symlinks:
-								continue
+							#if listing in found_files or listing in found_symlinks:
+								#continue
 							prv = os.stat(listing)[stat.ST_MODE]
 							if prv & stat.S_IXUSR == stat.S_IXUSR or \
 									prv & stat.S_IXGRP == stat.S_IXGRP or \
 									prv & stat.S_IXOTH == stat.S_IXOTH:
-								found_files.append(listing)
+								found_files.add(listing)
 		except Exception as ex:
 			logger.debug('\t' +
 				yellow('Exception collecting libraries: ' +
@@ -196,9 +197,9 @@ def collect_libraries_from_dir(dirs, mask, logger):
 	if found_directories:
 		_file, la_file, link, pair = \
 			collect_libraries_from_dir(found_directories, mask, logger)
-		found_files += _file
-		found_la_files += la_file
-		found_symlinks += link
+		found_files.update(_file)
+		found_la_files.update(la_file)
+		found_symlinks.update(link)
 		symlink_pairs += pair
 	return (found_files, found_la_files, found_symlinks, symlink_pairs)
 
@@ -212,8 +213,8 @@ def collect_binaries_from_dir(dirs, mask, logger):
 
 	# contains list of directories found
 	# allows us to reduce number of fnc calls
-	found_directories = []
-	found_files = []
+	found_directories = set()
+	found_files = set()
 
 	for _dir in dirs:
 		if _dir in mask:
@@ -230,7 +231,7 @@ def collect_binaries_from_dir(dirs, mask, logger):
 						#we do not want scan symlink-directories
 						pass
 					else:
-						found_directories.append(listing)
+						found_directories.add(listing)
 				elif os.path.isfile(listing):
 					# we're looking for binaries
 					# and with binaries we do not need links
@@ -240,14 +241,14 @@ def collect_binaries_from_dir(dirs, mask, logger):
 						if prv & stat.S_IXUSR == stat.S_IXUSR or \
 								prv & stat.S_IXGRP == stat.S_IXGRP or \
 								prv & stat.S_IXOTH == stat.S_IXOTH:
-							found_files.append(listing)
+							found_files.add(listing)
 		except Exception as ex:
 			logger.debug('\t' +
 				yellow('Exception during binaries collecting: '+
 				blue('%s') %str(ex)))
 
 	if found_directories:
-		found_files += collect_binaries_from_dir(found_directories, mask, logger)
+		found_files.union(collect_binaries_from_dir(found_directories, mask, logger))
 
 	return found_files
 
