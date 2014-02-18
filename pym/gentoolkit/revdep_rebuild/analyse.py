@@ -278,7 +278,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		stime = current_milli_time()
 		logger.info(green(' * ') +
 			bold('Collecting dynamic linking informations'))
-		libraries, la_libraries, libraries_links, symlink_pairs = \
+		libraries, la_libraries, libraries_links = \
 			collect_libraries_from_dir(lib_dirs, masked_dirs, logger)
 		binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logger)
 		ftime = current_milli_time()

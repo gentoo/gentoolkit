@@ -134,8 +134,6 @@ def collect_libraries_from_dir(dirs, mask, logger):
 	found_files = set()
 	found_symlinks = set()
 	found_la_files = set() # la libraries
-	symlink_pairs = []  # list of pairs symlink_id->library_id
-
 
 	for _dir in dirs:
 		if _dir in mask:
@@ -158,18 +156,9 @@ def collect_libraries_from_dir(dirs, mask, logger):
 						listing.endswith('.a') or
 						'.so.' in listing
 						):
-						#if listing in found_files or listing in found_symlinks:
-							#continue
 
 						if os.path.islink(listing):
 							found_symlinks.add(listing)
-							#abs_path = os.path.realpath(listing)
-							#if abs_path in found_files:
-								#index = found_files.index(abs_path)
-							#else:
-								#found_files.append(abs_path)
-								#index = len(found_files)-1
-							#symlink_pairs.append((len(found_symlinks)-1, index,))
 						else:
 							found_files.add(listing)
 						continue
@@ -195,13 +184,12 @@ def collect_libraries_from_dir(dirs, mask, logger):
 				blue('%s')  %str(ex)))
 
 	if found_directories:
-		_file, la_file, link, pair = \
+		_file, la_file, link = \
 			collect_libraries_from_dir(found_directories, mask, logger)
 		found_files.update(_file)
 		found_la_files.update(la_file)
 		found_symlinks.update(link)
-		symlink_pairs += pair
-	return (found_files, found_la_files, found_symlinks, symlink_pairs)
+	return (found_files, found_la_files, found_symlinks)
 
 
 def collect_binaries_from_dir(dirs, mask, logger):
@@ -269,7 +257,7 @@ if __name__ == '__main__':
 		])
 	)
 
-	libraries, la_libraries, libraries_links, msymlink_pairs = \
+	libraries, la_libraries, libraries_links = \
 		collect_libraries_from_dir(lib_dirs, masked_dirs, logging)
 	binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logging)
 
