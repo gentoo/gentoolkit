@@ -248,7 +248,7 @@ def collect_binaries_from_dir(dirs, mask, logger):
 				blue('%s') %str(ex)))
 
 	if found_directories:
-		found_files.union(collect_binaries_from_dir(found_directories, mask, logger))
+		found_files.update(collect_binaries_from_dir(found_directories, mask, logger))
 
 	return found_files
 
