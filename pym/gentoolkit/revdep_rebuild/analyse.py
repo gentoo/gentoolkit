@@ -266,12 +266,11 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 			parse_revdep_config(settings['REVDEP_CONFDIR'])
 		lib_dirs.update(ld)
 		bin_dirs.update(ld)
-		masked_dirs.update(
-			set([
-				'/lib/modules',
-				'/lib32/modules',
-				'/lib64/modules',
-			])
+		masked_dirs.update([
+			'/lib/modules',
+			'/lib32/modules',
+			'/lib64/modules',
+			]
 		)
 		if '64' not in searchbits:
 			masked_dirs.update(['/lib64', '/usr/lib64'])
