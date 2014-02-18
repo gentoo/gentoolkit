@@ -30,7 +30,7 @@ def scan_files(libs_and_bins, cmd_max_args, logger):
 	'''
 	stime = current_milli_time()
 	scanned_files = {} # {bits: {soname: (filename, needed), ...}, ...}
-	lines = scan(['-nBF', '%F %f %S %n %M'],
+	lines = scan(['--use-ldpath -BF', '%F %f %S %n %M'],
 				 libs_and_bins, cmd_max_args, logger)
 	ftime = current_milli_time()
 	logger.debug("\tscan_files(); total time to get scanelf data is "
