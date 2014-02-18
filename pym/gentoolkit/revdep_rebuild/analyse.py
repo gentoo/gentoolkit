@@ -19,7 +19,7 @@ from .cache import save_cache
 current_milli_time = lambda: int(round(time.time() * 1000))
 
 
-def scan_files(libs_and_bins, cmd_max_args, logger):
+def scan_files(libs_and_bins, cmd_max_args, logger, searchbits):
 	'''Calls stuff.scan() and processes the data into a dictionary
 	of scanned files information.
 
@@ -47,6 +47,8 @@ def scan_files(libs_and_bins, cmd_max_args, logger):
 		filename = os.path.realpath(filename)
 		needed = needed.split(',')
 		bits = bits[8:] # 8: -> strlen('ELFCLASS')
+		if bits not in searchbits:
+			continue
 		if not soname:
 			soname = sfilename
 
@@ -113,7 +115,7 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 
 
 class LibCheck(object):
-	def __init__(self, scanned_files, logger, searchlibs=None):
+	def __init__(self, scanned_files, logger, searchlibs=None, searchbits=None):
 		'''LibCheck init function.
 
 		@param scanned_files: optional dictionary if the type created by
@@ -126,29 +128,30 @@ class LibCheck(object):
 		self.scanned_files = scanned_files
 		self.logger = logger
 		self.searchlibs = searchlibs
+		self.searchbits = sorted(searchbits) or ['32', '64']
 		if searchlibs:
 			self.smsg = '\tLibCheck.search(), Checking for %s bit dependants'
 			self.pmsg = yellow(" * ") + 'Files that depend on: %s (%s bits)'
-			self.alllibs = '|'.join(sorted(searchlibs)) + '|'
-			self.setlibs = self._lamda
+			self.setlibs = self._setslibs
 			self.check = self._checkforlib
 		else:
 			self.smsg = '\tLibCheck.search(), Checking for broken %s bit libs'
 			self.pmsg = green(' * ') + bold('Broken files that requires:') + ' %s (%s bits)'
 			self.setlibs = self._setlibs
 			self.check = self._checkbroken
-			self.alllibs = None
+		self.alllibs = None
 
 
-	@staticmethod
-	def _lamda(l):
+	def _setslibs(self, l, b):
 		'''Internal function.  Use the class's setlibs variable'''
-		pass
+		self.alllibs = '|'.join(
+			[x for x in self.searchlibs if ('lib%s' % (b) in x)]) + '|'
+		self.logger.debug("\tLibCheck._setslibs(), new alllibs: %s" %(self.alllibs))
 
 
-	def _setlibs(self, l):
+	def _setlibs(self, l, b):
 		'''Internal function.  Use the class's setlibs variable'''
-		self.alllibs = '|'.join(sorted(l)) + '|'
+		self.alllibs = '|'.join(l) + '|'
 
 
 	def _checkforlib(self, l):
@@ -178,10 +181,11 @@ class LibCheck(object):
 		if not scanned_files:
 			scanned_files = self.scanned_files
 		found_libs = {}
-		for bits, libs in scanned_files.items():
-			self.setlibs(libs)
+		for bits in self.searchbits:
+			scanned = scanned_files[bits]
 			self.logger.debug(self.smsg % bits)
-			for soname, filepaths in libs.items():
+			self.setlibs(sorted(scanned), bits)
+			for soname, filepaths in scanned.items():
 				for filename, needed in filepaths.items():
 					for l in needed:
 						if self.check(l):
@@ -235,8 +239,17 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 	@rtype list: list of pkgs that need rebuilding
 	"""
 
-	if _libs_to_check == None:
+	searchbits = set()
+	if _libs_to_check:
+		for lib in _libs_to_check:
+			if "lib64" in lib:
+				searchbits.add('64')
+			elif "lib32" in lib:
+				searchbits.add('32')
+	else:
 		_libs_to_check = set()
+		searchbits.update(['64', '32'])
+
 	if libraries and la_libraries and libraries_links and binaries:
 		logger.info(blue(' * ') +
 			bold('Found a valid cache, skipping collecting phase'))
@@ -260,6 +273,11 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 				'/lib64/modules',
 			])
 		)
+		if '64' not in searchbits:
+			masked_dirs.update(['/lib64', '/usr/lib64'])
+		elif '32' not in searchbits:
+			masked_dirs.update(['/lib32', '/usr/lib32'])
+
 		logger.debug('\tanalyse(), bin directories:')
 		for x in sorted(bin_dirs):
 			logger.debug('\t\t%s' % (x))
@@ -300,7 +318,8 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 
 	libs_and_bins = libraries.union(binaries)
 
-	scanned_files = scan_files(libs_and_bins, settings['CMD_MAX_ARGS'], logger)
+	scanned_files = scan_files(libs_and_bins, settings['CMD_MAX_ARGS'],
+		logger, searchbits)
 
 	logger.warn(green(' * ') + bold('Checking dynamic linking consistency'))
 	logger.debug(
@@ -308,7 +327,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		% (len(libs_and_bins), len(libraries)+len(libraries_links))
 	)
 
-	libcheck = LibCheck(scanned_files, logger, _libs_to_check)
+	libcheck = LibCheck(scanned_files, logger, _libs_to_check, searchbits)
 
 	broken_pathes = libcheck.process_results(libcheck.search())
 
