@@ -22,16 +22,16 @@ def read_cache(temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 	'''
 
 	ret = {
-		'libraries':[],
-		'la_libraries':[],
-		'libraries_links':[],
-		'binaries':[]
+		'libraries': set(),
+		'la_libraries': set(),
+		'libraries_links': set(),
+		'binaries': set()
 		}
 	try:
 		for key,val in ret.items():
 			_file = open(os.path.join(temp_path, key))
 			for line in _file.readlines():
-				val.append(line.strip())
+				val.add(line.strip())
 			#libraries.remove('\n')
 			_file .close()
 	except EnvironmentError:
