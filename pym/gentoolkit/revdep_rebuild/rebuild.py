@@ -20,13 +20,13 @@ import os
 import sys
 import getopt
 import logging
-from portage.output import bold, red, blue, yellow, green, nocolor
+from portage.output import bold, red, blue, yellow, nocolor
 
 from .analyse import analyse
-from .stuff import get_masking_status
 from .cache import check_temp_files, read_cache
 from .assign import get_slotted_cps
 from .settings import DEFAULTS
+from .stuff import filter_masked
 from . import __version__
 
 
@@ -143,9 +143,11 @@ def rebuild(logger, assigned, settings):
 
 	args = settings['pass_through_options']
 	if settings['EXACT']:
-		emerge_command = '=' + ' ='.join(assigned)
+		_assigned = filter_masked(assigned, logger)
+		emerge_command = '=' + ' ='.join(_assigned)
 	else:
-		emerge_command = ' '.join(get_slotted_cps(assigned, logger))
+		_assigned = get_slotted_cps(assigned, logger)
+		emerge_command = ' '.join(_assigned)
 	if settings['PRETEND']:
 		args += ' --pretend'
 	if settings['VERBOSITY'] >= 2:
@@ -252,22 +254,6 @@ def main(settings=None, logger=None):
 				bold('No installed package was found for the following:'))
 		for filename in orphaned:
 			logger.warn(red('\t* ') + filename)
-
-	has_masked = False
-	tmp = []
-	for ebuild in assigned:
-		if get_masking_status(ebuild):
-			has_masked = True
-			logger.warn(' !!! ' + red('All ebuilds that could satisfy: ') +
-				green(ebuild) + red(' have been masked'))
-		else:
-			tmp.append(ebuild)
-	assigned = tmp
-
-	if has_masked:
-		logger.info('\t' + red('* ') +
-			'Unmask all ebuild(s) listed above and call revdep-rebuild '
-			'again or manually emerge given packages.')
 
 	success = rebuild(logger, assigned, settings)
 	logger.debug("rebuild return code = %i" %success)

@@ -8,6 +8,7 @@ from __future__ import print_function
 import subprocess
 
 import portage
+from portage.output import green, red
 
 
 # util. functions
@@ -73,6 +74,31 @@ def _match_str_in_list(lst, stri):
 		if stri.endswith(item):
 			return item
 	return False
+
+
+def filter_masked(assigned, logger):
+	'''Filter out masked pkgs/ebuilds'''
+
+	def is_masked(ebuild):
+		if get_masking_status(ebuild):
+			logger.warn(' !!! ' + red('All ebuilds that could satisfy: ') +
+				green(ebuild) + red(' have been masked'))
+			return True
+		return False
+
+	has_masked = False
+	tmp = []
+	for ebuild in assigned:
+		if not is_masked(ebuild):
+			tmp.append(ebuild)
+		else:
+			has_masked = True
+	if has_masked:
+		logger.info('\t' + red('* ') +
+			'Unmask all ebuild(s) listed above and call revdep-rebuild '
+			'again or manually emerge given packages.')
+	return tmp
+
 
 
 
