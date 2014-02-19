@@ -76,8 +76,8 @@ def get_best_match(cpv, cp, logger):
 	"""
 
 	slot = portage.db[portage.root]["vartree"].dbapi.aux_get(cpv, ["SLOT"])[0]
-	logger.warn('\t' + yellow('Warning: ebuild "' + cpv + '" not found.'))
-	logger.debug('\tLooking for %s:%s' %(cp, slot))
+	logger.warn('\t%s "%s" %s.' % (yellow('* Warning:'), cpv,bold('ebuild not found.')))
+	logger.debug('\tget_best_match(); Looking for %s:%s' %(cp, slot))
 	try:
 		match = portdb.match('%s:%s' %(cp, slot))
 	except portage.exception.InvalidAtom:
