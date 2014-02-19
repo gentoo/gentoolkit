@@ -161,8 +161,6 @@ def rebuild(logger, assigned, settings):
 		logger.warn(bold('\nThere is nothing to emerge. Exiting.'))
 		return 0
 
-	emerge_command = emerge_command
-
 	logger.warn(yellow(
 		'\nemerge') + args +
 		' --oneshot --complete-graph=y ' +
