@@ -20,6 +20,7 @@ import os
 import sys
 import getopt
 import logging
+import subprocess
 import time
 current_milli_time = lambda: int(round(time.time() * 1000))
 
@@ -171,10 +172,9 @@ def rebuild(logger, assigned, settings):
 		bold(emerge_command))
 
 	stime = current_milli_time()
-	success = os.system(
-		'emerge ' + args +
-		' --oneshot --complete-graph=y ' +
-		emerge_command)
+	_args = 'emerge ' + args + ' --oneshot --complete-graph=y ' + emerge_command
+	_args = _args.split()
+	success = subprocess.call(_args)
 	ftime = current_milli_time()
 	logger.debug("\trebuild(); emerge call for %d ebuilds took: %s seconds"
 		% (len(_assigned), str((ftime-stime)/1000.0)))
