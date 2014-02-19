@@ -129,6 +129,7 @@ class LibCheck(object):
 		self.logger = logger
 		self.searchlibs = searchlibs
 		self.searchbits = sorted(searchbits) or ['32', '64']
+		self.logger.debug("\tLibCheck.__init__(), new searchlibs: %s" %(self.searchbits))
 		if searchlibs:
 			self.smsg = '\tLibCheck.search(), Checking for %s bit dependants'
 			self.pmsg = yellow(" * ") + 'Files that depend on: %s (%s bits)'
@@ -189,15 +190,15 @@ class LibCheck(object):
 				for filename, needed in filepaths.items():
 					for l in needed:
 						if self.check(l):
+							if not bits in found_libs:
+								found_libs[bits] = {}
 							try:
 								found_libs[bits][l].add(filename)
 							except KeyError:
-								try:
-									found_libs[bits][l] = set([filename])
-									count += 1
-								except KeyError:
-									found_libs = {bits: {l: set([filename])}}
-									count += 1
+								found_libs[bits][l] = set([filename])
+								count += 1
+							self.logger.debug("\tLibCheck.search(); FOUND:"
+									" %s, %s, %s" % (bits, l, filename))
 		ftime = current_milli_time()
 		self.logger.debug("\tLibCheck.search(); total libs found: %d in %d milliseconds"
 			% (count, ftime-stime))
