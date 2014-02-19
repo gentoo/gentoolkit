@@ -20,6 +20,10 @@ import os
 import sys
 import getopt
 import logging
+import time
+current_milli_time = lambda: int(round(time.time() * 1000))
+
+
 from portage.output import bold, red, blue, yellow, nocolor
 
 from .analyse import analyse
@@ -166,10 +170,14 @@ def rebuild(logger, assigned, settings):
 		' --oneshot --complete-graph=y ' +
 		bold(emerge_command))
 
+	stime = current_milli_time()
 	success = os.system(
 		'emerge ' + args +
 		' --oneshot --complete-graph=y ' +
 		emerge_command)
+	ftime = current_milli_time()
+	logger.debug("\trebuild(); emerge call for %d ebuilds took: %s seconds"
+		% (len(_assigned), str((ftime-stime)/1000.0)))
 	return success
 
 
