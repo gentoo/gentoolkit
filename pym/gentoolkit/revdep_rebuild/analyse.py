@@ -140,6 +140,7 @@ class LibCheck(object):
 			self.pmsg = green(' * ') + bold('Broken files that requires:') + ' %s (%s bits)'
 			self.setlibs = self._setlibs
 			self.check = self._checkbroken
+		self.sfmsg = "\tLibCheck.search(); Total found: %(count)d libs, %(deps)d files in %(time)d milliseconds"
 		self.alllibs = None
 
 
@@ -179,6 +180,7 @@ class LibCheck(object):
 		'''
 		stime = current_milli_time()
 		count = 0
+		fcount = 0
 		if not scanned_files:
 			scanned_files = self.scanned_files
 		found_libs = {}
@@ -197,11 +199,12 @@ class LibCheck(object):
 							except KeyError:
 								found_libs[bits][l] = set([filename])
 								count += 1
+							fcount += 1
 							self.logger.debug("\tLibCheck.search(); FOUND:"
-									" %s, %s, %s" % (bits, l, filename))
+									" %sbit, %s, %s" % (bits, l, filename))
 		ftime = current_milli_time()
-		self.logger.debug("\tLibCheck.search(); total libs found: %d in %d milliseconds"
-			% (count, ftime-stime))
+		self.logger.debug(self.sfmsg % {'count': count, 'deps': fcount,
+			'time': ftime-stime})
 		return found_libs
 
 
