@@ -10,9 +10,11 @@ __docformat__ = 'epytext'
 
 import portage
 try:
-	import portage.sets
+	# Per commit 25d8427b3b29cbcee97279186983dae818495f8f in portage,
+	# portage.sets is renamed to portage._sets.
+	import portage._sets
 	_sets_available = True
-	SETPREFIX = portage.sets.SETPREFIX
+	SETPREFIX = portage._sets.SETPREFIX
 except ImportError:
 	_sets_available = False
 	SETPREFIX = "@"
@@ -25,7 +27,7 @@ _set_config = None
 def _init_set_config():
 	global _set_config
 	if _set_config is None:
-		_set_config = portage.sets.load_default_config(
+		_set_config = portage._sets.load_default_config(
 			portage.settings, portage.db[portage.root])
 
 def get_available_sets():
@@ -50,7 +52,7 @@ def get_set_atoms(setname):
 		try:
 			return set([Atom(str(x))
 				for x in _set_config.getSetAtoms(setname)])
-		except portage.sets.PackageSetNotFound:
+		except portage._sets.PackageSetNotFound:
 			raise errors.GentoolkitSetNotFound(setname)
 	raise errors.GentoolkitSetNotFound(setname)
 
