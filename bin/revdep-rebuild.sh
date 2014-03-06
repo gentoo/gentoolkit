@@ -309,7 +309,16 @@ setup_color() {
 	# This should still work if NOCOLOR is set by the -C flag or in the user's
 	# environment.
 	[[ $NOCOLOR = yes || $NOCOLOR = true ]] && export RC_NOCOLOR=yes # HACK! (grr)
-	. /etc/init.d/functions.sh
+	# TODO: Change location according to Bug 373219
+	# Remove /etc/init.d/functions.sh once everything is migrated
+	if [ -e /lib/gentoo/functions.sh ]; then
+		. /lib/gentoo/functions.sh
+	elif [ -e /etc/init.d/functions.sh ]; then
+		. /etc/init.d/functions.sh
+	else
+		echo "Unable to find functions.sh"
+		exit 1
+	fi
 }
 ##
 # Die if an argument is missing.
