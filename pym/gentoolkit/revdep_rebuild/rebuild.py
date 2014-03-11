@@ -220,10 +220,7 @@ def main(settings=None, logger=None):
 			and settings['IS_DEV'] \
 			and not settings['NO_PRETEND']:
 		logger.warn(blue(' * ') +
-			yellow('This is a development version, '
-				'so it may not work correctly'))
-		logger.warn(blue(' * ') +
-			yellow('Adding --pretend to portage options anyway'))
+			yellow('Adding --pretend to portage options'))
 		logger.info(blue(' * ') +
 			'If you\'re sure, you can add --no-pretend to revdep options')
 		settings['PRETEND'] = True
