@@ -22,7 +22,7 @@ def call_program(args):
 	subp = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	stdout, stderr = subp.communicate()
 	stdout = stdout.decode('utf-8')
-	return str(stdout)
+	return stdout
 
 
 def scan(params, files, max_args, logger):
