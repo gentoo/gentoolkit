@@ -185,7 +185,11 @@ class LibCheck(object):
 			scanned_files = self.scanned_files
 		found_libs = {}
 		for bits in self.searchbits:
-			scanned = scanned_files[bits]
+			try:
+				scanned = scanned_files[bits]
+			except KeyError:
+				self.logger.debug('There are no %s-bit libraries'%bits) 
+				continue
 			self.logger.debug(self.smsg % bits)
 			self.setlibs(sorted(scanned), bits)
 			for soname, filepaths in scanned.items():
