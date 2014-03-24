@@ -12,6 +12,7 @@ import sys
 
 import portage
 from portage.output import blue, yellow
+from .settings import parse_revdep_config
 
 
 if sys.hexversion < 0x3000000:
@@ -86,39 +87,6 @@ def prepare_search_dirs(logger, settings):
 	lib_dirs = parse_conf(settings['DEFAULT_LD_FILE'], logger=logger)
 	return (bin_dirs, lib_dirs)
 
-
-def parse_revdep_config(revdep_confdir):
-	''' Parses all files under and returns
-		tuple of: (masked_dirs, masked_files, search_dirs)'''
-
-	search_dirs = set()
-	masked_dirs = set()
-	masked_files = set()
-
-	for _file in os.listdir(revdep_confdir):
-		for line in open(os.path.join(revdep_confdir, _file)):
-			line = line.strip()
-			#first check for comment, we do not want to regex all lines
-			if not line.startswith('#'):
-				match = re.match('LD_LIBRARY_MASK=\\"([^"]+)\\"', line)
-				if match is not None:
-					masks = match.group(1).split(' ')
-					masked_files.update(masks)
-					continue
-				match = re.match('SEARCH_DIRS_MASK=\\"([^"]+)\\"', line)
-				if match is not None:
-					searches = match.group(1).split(' ')
-					for search in searches:
-						masked_dirs.update(glob.glob(search))
-					continue
-				match = re.match('SEARCH_DIRS=\\"([^"]+)\\"', line)
-				if match is not None:
-					searches = match.group(1).split()
-					for search in searches:
-						search_dirs.update(glob.glob(search))
-					continue
-
-	return (masked_dirs, masked_files, search_dirs)
 
 
 def collect_libraries_from_dir(dirs, mask, logger):
