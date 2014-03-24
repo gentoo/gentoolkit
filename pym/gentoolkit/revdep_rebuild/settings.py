@@ -130,13 +130,24 @@ def parse_options():
 	return settings
 
 
+def _parse_dirs_to_set(dir_str):
+	'''Changes space-delimited directory list into set with them
+	'''
+	_ret = set()
+	for search in dir_str.split():
+		if search == '-*':
+			break
+		_ret.update(glob.glob(search))
+	return _ret
+
+
 def parse_revdep_config(revdep_confdir):
 	''' Parses all files under and returns
 		tuple of: (masked_dirs, masked_files, search_dirs)'''
 
-	search_dirs = set()
-	masked_dirs = set()
-	masked_files = set()
+	search_dirs = os.environ.get('SEARCH_DIRS', '')
+	masked_dirs = os.environ.get('SEARCH_DIRS_MASK', '')
+	masked_files = os.environ.get('LD_LIBRARY_MASK', '')
 
 	for _file in os.listdir(revdep_confdir):
 		for line in open(os.path.join(revdep_confdir, _file)):
@@ -145,22 +156,20 @@ def parse_revdep_config(revdep_confdir):
 			if not line.startswith('#'):
 				match = re.match('LD_LIBRARY_MASK=\\"([^"]+)\\"', line)
 				if match is not None:
-					masks = match.group(1).split(' ')
-					masked_files.update(masks)
+					masked_files += ' ' + match.group(1)
 					continue
 				match = re.match('SEARCH_DIRS_MASK=\\"([^"]+)\\"', line)
 				if match is not None:
-					searches = match.group(1).split(' ')
-					for search in searches:
-						masked_dirs.update(glob.glob(search))
+					masked_dirs += ' ' + match.group(1)
 					continue
 				match = re.match('SEARCH_DIRS=\\"([^"]+)\\"', line)
 				if match is not None:
-					searches = match.group(1).split()
-					for search in searches:
-						search_dirs.update(glob.glob(search))
+					search_dirs += ' ' + match.group(1)
 					continue
 
-	print (masked_dirs, masked_files, search_dirs)
+	masked_files = set(masked_files.split(' '))
+	masked_dirs = _parse_dirs_to_set(masked_dirs)
+	search_dirs = _parse_dirs_to_set(search_dirs)
+
 	return (masked_dirs, masked_files, search_dirs)
 
