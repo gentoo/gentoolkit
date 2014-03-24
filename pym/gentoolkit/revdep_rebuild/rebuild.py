@@ -18,7 +18,6 @@ from __future__ import print_function
 
 import os
 import sys
-import getopt
 import logging
 import subprocess
 import time
@@ -30,7 +29,7 @@ from portage.output import bold, red, blue, yellow, nocolor
 from .analyse import analyse
 from .cache import check_temp_files, read_cache
 from .assign import get_slotted_cps
-from .settings import DEFAULTS
+from .settings import DEFAULTS, parse_options
 from .stuff import filter_masked
 from . import __version__
 
@@ -42,39 +41,6 @@ __productname__ = "revdep-ng"
 
 
 # functions
-
-def print_usage():
-	"""Outputs the help message"""
-	print( APP_NAME + ': (' + VERSION +')')
-	print()
-	print('This is free software; see the source for copying conditions.')
-	print()
-	print('Usage: ' + APP_NAME + ' [OPTIONS] [--] [EMERGE_OPTIONS]')
-	print()
-	print('Broken reverse dependency rebuilder, python implementation.')
-	print()
-	print('Available options:')
-	print('''
-  -C, --nocolor         Turn off colored output
-  -d, --debug           Print debug informations
-  -e, --exact           Emerge based on exact package version
-  -h, --help            Print this usage
-  -i, --ignore          Ignore temporary files from previous runs
-                        (also won't create any)
-  -L, --library NAME    Unconditionally emerge existing packages that use
-      --library=NAME    the library with NAME. NAME can be a full or partial
-                        library name
-  -l, --no-ld-path      Do not set LD_LIBRARY_PATH
-  -o, --no-order        Do not check the build order
-                        (Saves time, but may cause breakage.)
-  -p, --pretend         Do a trial run without actually emerging anything
-                        (also passed to emerge command)
-  -q, --quiet           Be less verbose (also passed to emerge command)
-  -v, --verbose         Be more verbose (also passed to emerge command)
-''')
-	print( 'Calls emerge, options after -- are ignored by ' + APP_NAME)
-	print('and passed directly to emerge.')
-
 
 def init_logger(settings):
 	"""Creates and iitializes our logger according to the settings"""
@@ -94,53 +60,6 @@ def init_logger(settings):
 	return logger
 
 
-def parse_options():
-	"""Parses the command line options an sets settings accordingly"""
-
-	# TODO: Verify: options: no-ld-path, no-order, no-progress
-	#are not appliable
-
-	settings = DEFAULTS.copy()
-	try:
-		opts, args = getopt.getopt(sys.argv[1:],
-			'dehiklopqvCL:P',
-			['nocolor', 'debug', 'exact', 'help', 'ignore',
-			'keep-temp', 'library=', 'no-ld-path', 'no-order',
-			'pretend', 'no-pretend', 'no-progress', 'quiet', 'verbose'])
-
-		for key, val in opts:
-			if key in ('-h', '--help'):
-				print_usage()
-				sys.exit(0)
-			elif key in ('-q', '--quiet'):
-				settings['quiet'] = True
-				settings['VERBOSITY'] = 0
-			elif key in ('-v', '--verbose'):
-				settings['VERBOSITY'] = 2
-			elif key in ('-d', '--debug'):
-				settings['debug'] = True
-				settings['VERBOSITY'] = 3
-			elif key in ('-p', '--pretend'):
-				settings['PRETEND'] = True
-			elif key == '--no-pretend':
-				settings['NO_PRETEND'] = True
-			elif key in ('-e', '--exact'):
-				settings['EXACT'] = True
-			elif key in ('-C', '--nocolor', '--no-color'):
-				settings['nocolor'] = True
-			elif key in ('-L', '--library', '--library='):
-				settings['library'].update(val.split(','))
-			elif key in ('-i', '--ignore'):
-				settings['USE_TMP_FILES'] = False
-
-		settings['pass_through_options'] = " " + " ".join(args)
-	except getopt.GetoptError:
-		#logging.info(red('Unrecognized option\n'))
-		print(red('Unrecognized option\n'))
-		print_usage()
-		sys.exit(2)
-
-	return settings
 
 
 def rebuild(logger, assigned, settings):
