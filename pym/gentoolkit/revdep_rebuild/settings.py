@@ -4,7 +4,7 @@
 
 from __future__ import print_function
 
-import getopt
+import argparse
 import os
 import sys
 import re
@@ -48,84 +48,75 @@ DEFAULTS = {
 		}
 
 
-def print_usage():
-	"""Outputs the help message"""
-	print( APP_NAME + ': (' + VERSION +')')
-	print()
-	print('This is free software; see the source for copying conditions.')
-	print()
-	print('Usage: ' + APP_NAME + ' [OPTIONS] [--] [EMERGE_OPTIONS]')
-	print()
-	print('Broken reverse dependency rebuilder, python implementation.')
-	print()
-	print('Available options:')
-	print('''
-  -C, --nocolor         Turn off colored output
-  -d, --debug           Print debug informations
-  -e, --exact           Emerge based on exact package version
-  -h, --help            Print this usage
-  -i, --ignore          Ignore temporary files from previous runs
-                        (also won't create any)
-  -L, --library NAME    Unconditionally emerge existing packages that use
-      --library=NAME    the library with NAME. NAME can be a full or partial
-                        library name
-  -l, --no-ld-path      Do not set LD_LIBRARY_PATH
-  -o, --no-order        Do not check the build order
-                        (Saves time, but may cause breakage.)
-  -p, --pretend         Do a trial run without actually emerging anything
-                        (also passed to emerge command)
-  -q, --quiet           Be less verbose (also passed to emerge command)
-  -v, --verbose         Be more verbose (also passed to emerge command)
-''')
-	print( 'Calls emerge, options after -- are ignored by ' + APP_NAME)
-	print('and passed directly to emerge.')
-
-
 def parse_options():
 	"""Parses the command line options an sets settings accordingly"""
 
 	# TODO: Verify: options: no-ld-path, no-order, no-progress
 	#are not appliable
-
+	from rebuild import VERSION, APP_NAME
 	settings = DEFAULTS.copy()
-	try:
-		opts, args = getopt.getopt(sys.argv[1:],
-			'dehiklopqvCL:P',
-			['nocolor', 'debug', 'exact', 'help', 'ignore',
-			'keep-temp', 'library=', 'no-ld-path', 'no-order',
-			'pretend', 'no-pretend', 'no-progress', 'quiet', 'verbose'])
+	
+	parser = argparse.ArgumentParser(
+		description='Broken reverse dependency rebuilder, python implementation.',
+		epilog='Calls emerge, options after -- are ignored by %s '
+				'and passed directly to emerge.' % APP_NAME,
+		add_help=False
+		)
+	
+	parser.add_argument('-h', '--help', 
+					 action='help', 
+					 help='Print this usage and exit')
+	parser.add_argument('-V', '--version', 
+					 action='version', 
+					 help='Show version informations',
+					 version='%(prog)s ' + VERSION)
+	
+	parser.add_argument('-i', '--ignore', 
+					 action='store_true', 
+					 help='Ignore temporary files from previous runs ' 
+						'(also won\'t create any)')
 
-		for key, val in opts:
-			if key in ('-h', '--help'):
-				print_usage()
-				sys.exit(0)
-			elif key in ('-q', '--quiet'):
-				settings['quiet'] = True
-				settings['VERBOSITY'] = 0
-			elif key in ('-v', '--verbose'):
-				settings['VERBOSITY'] = 2
-			elif key in ('-d', '--debug'):
-				settings['debug'] = True
-				settings['VERBOSITY'] = 3
-			elif key in ('-p', '--pretend'):
-				settings['PRETEND'] = True
-			elif key == '--no-pretend':
-				settings['NO_PRETEND'] = True
-			elif key in ('-e', '--exact'):
-				settings['EXACT'] = True
-			elif key in ('-C', '--nocolor', '--no-color'):
-				settings['nocolor'] = True
-			elif key in ('-L', '--library', '--library='):
-				settings['library'].update(val.split(','))
-			elif key in ('-i', '--ignore'):
-				settings['USE_TMP_FILES'] = False
+	parser.add_argument('-L', '--library', 
+					 action='append', 
+					 help='Unconditionally emerge existing packages that use '
+						'the library with NAME. NAME can be a full or partial '
+						'name')
+	parser.add_argument('-l', '--no-ld-path', 
+					 action='store_true', 
+					 help='Do not set LD_LIBRARY_PATH')
+	parser.add_argument('-o', '--no-order', 
+					 action='store_true', 
+					 help='Do not check the build order '
+						'(Saves time, but may cause breakage.)')
+	parser.add_argument('-p', '--pretend', 
+					 action='store_true', 
+					 help='Do a trial run without actually emerging anything '
+                        '(also passed to emerge command)')
 
-		settings['pass_through_options'] = " " + " ".join(args)
-	except getopt.GetoptError:
-		#logging.info(red('Unrecognized option\n'))
-		print(red('Unrecognized option\n'))
-		print_usage()
-		sys.exit(2)
+	parser.add_argument('-C', '--nocolor', 
+					 action='store_true', 
+					 help='Turn off colored output')
+	parser.add_argument('-q', '--quiet', 
+					 action='store_true', 
+					 help='Be less verbose (also passed to emerge command)')
+	parser.add_argument('-v', '--verbose', 
+					 action='store_true', 
+					 help='Be more verbose (also passed to emerge command)')
+	parser.add_argument('-d', '--debug', 
+					 action='store_true', 
+					 help='Print debug informations')
+	
+	parser.add_argument('portage_options', nargs='*')
+	
+	args = parser.parse_args()
+	
+	settings['VERBOSITY'] = 3 if args.debug else 2 if args.verbose else 0 if args.quiet else 1
+	settings['quiet'] = args.quiet
+	settings['PRETEND'] = args.pretend
+	settings['nocolor'] = args.nocolor
+	settings['library'].update(set(args.library))
+	settings['USE_TMP_FILES'] = not args.ignore
+	settings['pass_through_options'] = " " + " ".join(args.portage_options)
 
 	return settings
 
