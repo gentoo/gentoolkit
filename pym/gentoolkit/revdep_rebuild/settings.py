@@ -114,7 +114,8 @@ def parse_options():
 	settings['quiet'] = args.quiet
 	settings['PRETEND'] = args.pretend
 	settings['nocolor'] = args.nocolor
-	settings['library'].update(set(args.library))
+	if args.library:
+		settings['library'].update(set(args.library))
 	settings['USE_TMP_FILES'] = not args.ignore
 	settings['pass_through_options'] = " " + " ".join(args.portage_options)
 
