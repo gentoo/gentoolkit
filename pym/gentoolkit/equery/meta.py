@@ -373,12 +373,13 @@ def call_format_functions(best_match, matches):
 		useflags = format_useflags(best_match.metadata.use())
 		print_sequence(format_list(useflags))
 
-	_license = best_match.environment(["LICENSE"])
-	if QUERY_OPTS["license"]:
-		_license = format_list(_license)
-	else:
-		_license = format_list(_license, "License:     ", " " * 13)
-	print_sequence(_license)
+	if QUERY_OPTS["license"] or not got_opts:
+		_license = best_match.environment(["LICENSE"])
+		if QUERY_OPTS["license"]:
+			_license = format_list(_license)
+		else:
+			_license = format_list(_license, "License:     ", " " * 13)
+		print_sequence(_license)
 
 	if QUERY_OPTS["stablereq"]:
 		# Get {<Package 'dev-libs/glib-2.20.5'>: [u'ia64', u'm68k', ...], ...}
