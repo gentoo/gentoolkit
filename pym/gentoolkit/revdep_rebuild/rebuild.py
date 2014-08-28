@@ -45,7 +45,7 @@ __productname__ = "revdep-ng"
 def init_logger(settings):
 	"""Creates and iitializes our logger according to the settings"""
 	logger = logging.getLogger()
-	log_handler = logging.StreamHandler()
+	log_handler = logging.StreamHandler(sys.stdout)
 	log_fmt = logging.Formatter('%(msg)s')
 	log_handler.setFormatter(log_fmt)
 	logger.addHandler(log_handler)
