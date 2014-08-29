@@ -12,7 +12,7 @@ from glob import glob
 import os
 import io
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'pym'))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pym'))
 
 if ( len(sys.argv) > 2 ) and ( sys.argv[1] == "set_version" ):
 	__version__ = sys.argv[2]
