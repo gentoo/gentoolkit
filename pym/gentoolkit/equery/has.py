@@ -74,7 +74,7 @@ def query_in_env(query, env_var, pkg):
 	"""Check if the query is in the pkg's environment."""
 
 	try:
-		if env_var in ("USE", "IUSE"):
+		if env_var in ("USE", "IUSE", "CFLAGS", "CXXFLAGS", "LDFLAGS"):
 			results = set(
 				[x.lstrip("+-") for x in pkg.environment(env_var).split()]
 			)
