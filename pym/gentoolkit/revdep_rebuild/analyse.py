@@ -174,7 +174,7 @@ class LibCheck(object):
 		'''Searches the scanned files for broken lib links
 		or for libs to search for
 
-		@param scanned_files: optional dictionary if the type created by
+		@param scanned_files: optional dictionary of the type created by
 				scan_files(). Defaults to the class instance of scanned_files
 		@ returns: dict: {bit_length: {found_lib: set(file_paths)}}.
 		'''

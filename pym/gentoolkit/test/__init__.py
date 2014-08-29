@@ -22,4 +22,4 @@ except NameError:
 			return 1
 		# just to be safe, __lt__/ __gt__ above should have thrown
 		# something like this already
-		raise TypeError("Comparison between onorderable types")
+		raise TypeError("Comparison between unorderable types")
