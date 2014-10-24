@@ -842,7 +842,7 @@ main_checks() {
 			done < <(
 				# Regexify LD_LIBRARY_MASK. Exclude it from the search.
 				LD_LIBRARY_MASK="${LD_LIBRARY_MASK//$'\n'/|}"
-				gawk -v ldmask="(${LD_LIBRARY_MASK//./\\\.})" '
+				gawk -v ldmask="(${LD_LIBRARY_MASK//./\\\\.})" '
 					/no version information available/ && $0 !~ ldmask {
 						gsub(/[()]/, "", $NF)
 						if (seen[$NF]++)  next
