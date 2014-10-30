@@ -53,7 +53,7 @@ def init_logger(settings):
 		logger.setLevel(logging.ERROR)
 	elif settings['VERBOSITY'] == 2:
 		logger.setLevel(logging.INFO)
-	elif settings['debug']:
+	elif settings['VERBOSITY'] == 3:
 		logger.setLevel(logging.DEBUG)
 	else:
 		logger.setLevel(logging.WARNING)
