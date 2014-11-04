@@ -108,17 +108,19 @@ sub version {
 	exit 0;
 }
 
-sub getenv($) {
+sub getenv ($) {
     my $key = shift;
 
-    # Ensure our variable exist
-    if ( defined($ENV{$key}) ) {
-        # Ensure we don't get empty variables
-        if ( length($ENV{$key}) > 0 ) {
-            return $ENV{$key};
-        }
-    }
-    return;
+    # Check for key: defined and not empty
+    return if !$key or $key eq '';
+
+    # Fetch key in %ENV hash
+    my $env = $ENV{$key};
+
+    # Make sure the variable does exist,
+    # check for its length
+    # and return it
+    return $env if $env and (length($env) > 0);
 }
 
 # Bug 264146.
