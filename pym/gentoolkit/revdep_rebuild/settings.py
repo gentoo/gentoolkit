@@ -17,7 +17,7 @@ DEFAULTS = {
 		'DEFAULT_ENV_FILE': os.path.join(portage.root, 'etc/profile.env'),
 		'REVDEP_CONFDIR': os.path.join(portage.root, 'etc/revdep-rebuild/'),
 		'PKG_DIR': os.path.join(portage.root, 'var/db/pkg/'),
-		'DEFAULT_TMP_DIR': os.path.join(portage.root, '/var/cache/revdep-rebuild'), #cache default location
+		'DEFAULT_TMP_DIR': os.path.join(portage.root, '/tmp/revdep-rebuild' if os.getgid() else '/var/cache/revdep-rebuild'), #cache default location
 
 		# number of maximum allowed files to be parsed at once
 		'CMD_MAX_ARGS': 1000,
