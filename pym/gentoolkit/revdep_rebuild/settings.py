@@ -109,9 +109,9 @@ def parse_options():
 	parser.add_argument('portage_options', nargs='*')
 	
 	args = parser.parse_args()
-	
 	settings['VERBOSITY'] = 3 if args.debug else 2 if args.verbose else 0 if args.quiet else 1
 	settings['quiet'] = args.quiet
+	settings['debug'] = args.debug
 	settings['PRETEND'] = args.pretend
 	settings['nocolor'] = args.nocolor
 	if args.library:
