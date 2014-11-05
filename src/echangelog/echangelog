@@ -13,6 +13,7 @@ use strict;
 use POSIX qw(locale_h strftime getcwd setlocale);
 use File::Basename;
 use Getopt::Long;
+use Pod::Usage;
 
 # Fix bug 21022 by restricting to C locale
 setlocale(LC_ALL, "C");
@@ -25,7 +26,7 @@ $Text::Wrap::unexpand = 0;
 my (@files, @ebuilds, @conflicts, @trivial, @unknown, @new_versions, %actions);
 my ($input, $editor, $entry, $user, $date, $text, $vcs);
 my ($fh);
-my ($opt_help, $opt_nostrict, $opt_force_vcs, $opt_version, $opt_strict);
+my ($opt_man, $opt_help, $opt_nostrict, $opt_force_vcs, $opt_version, $opt_strict);
 
 $date = strftime("%d %b %Y", gmtime);
 
@@ -82,23 +83,6 @@ my %vcs = (
 		regex => qr/^Index: (([^\/]*?)\.ebuild)\s*$/
 	},
 );
-
-sub usage {
-	(my $usage = <<"	EOF") =~ s/^\t//gm;
-	Usage: echangelog [options] <changelog message>
-
-	Options:
-	    --help      err, this screen ...
-	    --no-strict do not abort on trivial/no changes
-	    --vcs <vcs> skip vcs autodetection and use the specified vcs instead
-	                for a list of supported version control systems see below
-	    --version   show version info
-
-	Supported VCS: bzr, cvs, git, hg, svn
-	EOF
-	print $usage;
-	exit 0;
-}
 
 sub version {
 	my $Revision = "Last svn change rev";
@@ -223,15 +207,18 @@ sub update_copyright {
 	return $t;
 }
 
-GetOptions(
-	'help' => \$opt_help,
+my $ret = GetOptions(
 	'no-strict' => \$opt_nostrict,
-	'vcs=s' => \$opt_force_vcs,
 	'version|v' => \$opt_version,
-	'strict' => \$opt_strict,
+	'help|h'    => \$opt_help,
+	'strict'    => \$opt_strict,
+	'vcs=s'     => \$opt_force_vcs,
+  'man'       => \$opt_man,
 );
 
-usage() if $opt_help;
+
+pod2usage(-verbose => 1, -exitval => -1) if ($opt_help || $ret ne 1);
+pod2usage(-verbose => 2, -exitval => -1) if $opt_man;
 version() if $opt_version;
 
 if($opt_strict) {
@@ -810,3 +797,191 @@ if ($vcs eq "cvs") {
 }
 
 # vim: set ts=4 sw=4 tw=0:
+
+__END__
+
+=head1 NAME
+
+echangelog - Update portage ChangeLog files.
+
+=head1 SYNOPSIS
+
+echangelog [options] <changelog message>
+
+  --no-strict
+  --vcs <vcs>
+  --help|h
+  --man
+  --version
+
+=head1 OPTIONS
+
+=over 14
+
+=item B<--no-strict>
+
+Do not abort on trivial changes.
+
+=item B<--vcs vcs>
+
+Skip VCS autodetection and use the specified VCS instead.
+
+Supported VCS: bzr, cvs, git, hg, svn
+
+=item B<--help|h>
+
+Display help.
+
+=item B<--man>
+
+Display man page.
+
+=item B<--version>
+
+Display version.
+
+=back
+
+=head1 DESCRIPTION
+
+This tool provides an easy way to create or update portage ChangeLogs in
+Gentoo.  The tool scans the current directory, which is assumed to be a package
+directory such as /usr/portage/app-editors/vim, finds what files have been
+changed or added, and inserts the appropriate entry to ChangeLog.  If text is
+not provided on the command-line, echangelog prompts for it.
+
+All modifications should occur before running echangelog so that it can include
+the appropriate file information in the ChangeLog entry.  For example, you
+should run "cvs add" on your files, otherwise echangelog won't know those files
+are part of the update.
+
+If your text would cause the ChangeLog entry to exceed 80 columns, it will be
+rewrapped to keep the ChangeLog neat.  If you need special formatting in the
+ChangeLog, then you can either (1) run echangelog with no text on the
+command-line, and make sure that your text won't be too wide, (2) edit the
+ChangeLog manually.  If you prefer (2), I'd recommend something like
+"echangelog blah" so that the header lines are computed correctly, then edit
+and change "blah" to your preferred text.
+
+In addition to updating the ChangeLog, echangelog will automatically update the
+copyright year of all out-of-date ebuilds, as well as the ChangeLog itself.
+These updates are included in the diff displayed by echangelog when it finishes
+its work.
+
+=head1 EXAMPLES
+
+To create a ChangeLog for a completely new package.  The header is parsed from
+skel.ebuild.
+
+  $ cvs add metalog-0.1.ebuild
+  cvs server: use 'cvs commit' to add this file permanently
+  $ echangelog 'New ebuild, thanks to Harvey McGillicuddy'
+  --- ChangeLog   1969-12-31 19:00:00.000000000 -0500
+  +++ ChangeLog.new       2003-02-23 14:04:06.000000000 -0500
+  @@ -0,0 +1,9 @@
+  +# ChangeLog for app-admin/metalog
+  +# Copyright 2000-2003 Gentoo Technologies, Inc.; Distributed under the GPL
+  v2
+  +# $Header$
+  + +*metalog-0.1 (23 Feb 2003) +
+  +  23 Feb 2003; Aron Griffis <agriffis@gentoo.org> metalog-0.1.ebuild :
+
+  +  New ebuild, thanks to Harvey McGillicuddy
+  +
+To bump a revision.  Note you need to "cvs add" so that echangelog will notice
+the new file.
+
+  $ cvs add metalog-0.1-r1.ebuild
+  cvs server: use 'cvs commit' to add this file permanently
+  $ echangelog 'Bump revision to fix bug #999'
+  --- ChangeLog   2003-02-23 14:04:06.000000000 -0500
+  +++ ChangeLog.new       2003-02-23 14:07:48.000000000 -0500
+  @@ -2,6 +2,11 @@
+   # Copyright 2000-2003 Gentoo Technologies, Inc.; Distributed under the GPL
+   # v2
+   # $Header$
+
+  +*metalog-0.1-r1 (23 Feb 2003)
+  +
+  +  23 Feb 2003; Aron Griffis <agriffis@gentoo.org> metalog-0.1-r1.ebuild :
+  +  Bump revision to fix bug #999
+  +
+  *metalog-0.1 (23 Feb 2003)
+     23 Feb 2003; Aron Griffis <agriffis@gentoo.org> metalog-0.1.ebuild :
+
+For a multi-line entry, omit the command-line arg.
+
+  $ echangelog
+  Please type the log entry, finish with ctrl-d
+  Bump revision to fix bug #999.  Necessary to bump the revision because
+  the problem appears at run-time, not compile-time.  This should also
+  give users the updated default configuration file.
+  --- ChangeLog   2003-02-23 14:09:12.000000000 -0500
+  +++ ChangeLog.new       2003-02-23 14:12:43.000000000 -0500
+  @@ -2,6 +2,13 @@
+   # Copyright 2000-2003 Gentoo Technologies, Inc.; Distributed under the GPL
+   # v2
+   # $Header$
+  +*metalog-0.1-r1 (23 Feb 2003)
+  +
+  +  23 Feb 2003; Aron Griffis <agriffis@gentoo.org> metalog-0.1-r1.ebuild :
+  +  Bump revision to fix bug #999.  Necessary to bump the revision because
+  +  the problem appears at run-time, not compile-time.  This should also
+  +  give users the updated default configuration file.
+  + *metalog-0.1 (23 Feb 2003)
+
+     23 Feb 2003; Aron Griffis <agriffis@gentoo.org> metalog-0.1.ebuild :
+
+For a multi-line entry, omit the command-line arg.
+
+  $ echangelog
+  Please type the log entry, finish with ctrl-d
+  Bump revision to fix bug #999.  Necessary to bump the revision because
+  the problem appears at run-time, not compile-time.  This should also
+  give users the updated default configuration file.
+  --- ChangeLog   2003-02-23 14:09:12.000000000 -0500 +++ ChangeLog.new
+  2003-02-23 14:12:43.000000000 -0500 @@ -2,6 +2,13 @@
+   # Copyright 2000-2003 Gentoo Technologies, Inc.; Distributed under the GPL
+   # v2
+   # $Header$
+
+  +*metalog-0.1-r1 (23 Feb 2003)
+  +
+  +  23 Feb 2003; Aron Griffis <agriffis@gentoo.org> metalog-0.1-r1.ebuild :
+  +  Bump revision to fix bug #999.  Necessary to bump the revision because +
+  the problem appears at run-time, not compile-time.  This should also +  give
+  users the updated default configuration file.  +
+  *metalog-0.1 (23 Feb 2003)
+     23 Feb 2003; Aron Griffis <agriffis@gentoo.org> metalog-0.1.ebuild :
+
+=head1 ENVIRONMENT VARIABLES
+
+=over 4
+
+=item B<ECHANGELOG_USER>
+
+ If echangelog can't figure out your username for the entry, you should set
+ ECHANGELOG_USER like so:
+ $ export ECHANGELOG_USER="Aron Griffis <agriffis@gentoo.org"
+
+=back
+
+=head1 NOTES
+
+As of the most recent version of echangelog (when this man-page appeared),
+echangelog puts all new entries at the top of the file instead of finding the
+appropriate *version line within the file.  This is because that "new"
+ChangeLog format was never agreed upon by the Gentoo developers.  Unfortunately
+the existence of both formats will undoubtedly cause much confusion.  This also
+means that the examples above are wrong, since I just copied them from some old
+email.  However they're not much wrong. ;-)
+
+=head1 AUTHORS
+
+This tool was written by Aron Griffis <agriffis@gentoo.org>.  Bugs found should
+be filed against me at http://bugs.gentoo.org/
+
+This man page has been turned into a Perl POD document by Patrice Clement
+<monsieurp@gentoo.org>.
+
+=cut
