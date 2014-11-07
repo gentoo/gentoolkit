@@ -53,7 +53,7 @@ def init_logger(settings):
 		logger.setLevel(logging.ERROR)
 	elif settings['VERBOSITY'] == 2:
 		logger.setLevel(logging.INFO)
-	elif settings['VERBOSITY'] == 3:
+	elif settings['VERBOSITY'] == 3 or settings['debug']:
 		logger.setLevel(logging.DEBUG)
 	else:
 		logger.setLevel(logging.WARNING)
@@ -107,7 +107,6 @@ def main(settings=None, logger=None):
 	@param logger: python logging module defaults to init_logger(settings)
 	@return boolean  success/failure
 	"""
-
 	if settings is None:
 		print("NO Input settings, using defaults...")
 		settings = DEFAULTS.copy()
