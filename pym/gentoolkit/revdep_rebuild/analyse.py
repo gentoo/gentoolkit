@@ -146,8 +146,27 @@ class LibCheck(object):
 
 	def _setslibs(self, l, b):
 		'''Internal function.  Use the class's setlibs variable'''
-		self.alllibs = '|'.join(
-			[x for x in self.searchlibs if ('lib%s' % (b) in x)]) + '|'
+		sonames = []
+		for s in self.searchlibs:
+			par, soname = os.path.split(s)
+			if par:
+				# consider as this is full pathname
+				# we need soname only
+
+				if os.path.exists(s):
+					# try to extract some more info
+					for line in scan(['-BF', '%f %S %M'], [s], 1, self.logger):
+						_, soname, bits = line.split()
+						bits = bits[8:]
+						if bits == b:
+							# we don't want to look in inappropriate arch's libs
+							sonames.append(soname)
+					continue
+				sonames.append(soname)
+			else:
+				# this is only filename or it's part
+				sonames.append(soname)
+		self.alllibs = '|'.join(sonames) + '|'
 		self.logger.debug("\tLibCheck._setslibs(), new alllibs: %s" %(self.alllibs))
 
 
@@ -248,15 +267,15 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 	"""
 
 	searchbits = set()
-	if _libs_to_check:
+	'''if _libs_to_check:
 		for lib in _libs_to_check:
 			if "lib64" in lib:
 				searchbits.add('64')
 			elif "lib32" in lib:
 				searchbits.add('32')
 	else:
-		_libs_to_check = set()
-		searchbits.update(['64', '32'])
+		_libs_to_check = set()'''
+	searchbits.update(['64', '32'])
 
 	if libraries and la_libraries and libraries_links and binaries:
 		logger.info(blue(' * ') +
