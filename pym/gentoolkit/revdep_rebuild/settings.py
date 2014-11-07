@@ -79,8 +79,8 @@ def parse_options():
 	parser.add_argument('-L', '--library', 
 					 action='append', 
 					 help='Unconditionally emerge existing packages that use '
-						'the library with NAME. NAME can be a full or partial '
-						'name')
+						'the library with NAME. NAME can be a full path, full '
+						'or partial name')
 	parser.add_argument('-l', '--no-ld-path', 
 					 action='store_true', 
 					 help='Do not set LD_LIBRARY_PATH')
@@ -89,7 +89,7 @@ def parse_options():
 					 help='Do not check the build order '
 						'(Saves time, but may cause breakage.)')
 	parser.add_argument('-p', '--pretend', 
-					 action='store_true', 
+					 action='store_true',
 					 help='Do a trial run without actually emerging anything '
                         '(also passed to emerge command)')
 
