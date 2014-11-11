@@ -54,6 +54,7 @@ declare ORDER_PKGS             # ...sort the atoms in deep dependency order
 declare PACKAGE_NAMES          # ...emerge by slot, not by versionated atom
 declare RM_OLD_TEMPFILES       # ...remove tempfiles from prior runs
 declare SEARCH_BROKEN          # ...search for broken libraries and binaries
+declare SEARCH_SYMBOLS         # ...search for broken binaries with undefined symbols
 declare VERBOSE                # ...give verbose output
 
 # Globals that impact portage directly:
@@ -191,6 +192,7 @@ Broken reverse dependency rebuilder.
                        (also passed to emerge command)
   -P, --no-progress    Turn off the progress meter
   -q, --quiet          Be less verbose (also passed to emerge command)
+  -u, --search-symbols Search for undefined symbols (may have false positives)
   -v, --verbose        Be more verbose (also passed to emerge command)
 
 Calls emerge, options after -- are ignored by $APP_NAME
@@ -390,6 +392,7 @@ get_longopts() {
 		                                 --quiet) progress() { :; }
 		                                          QUIET=1
 		                                          EMERGE_OPTIONS+=($1);;
+		                        --search-symbols) SEARCH_SYMBOLS=1;;
 		                               --verbose) VERBOSE=1
 		                                          EMERGE_OPTIONS+=("--verbose");;
 		                         --extra-verbose) warn_deprecated_opt "$1" "--verbose"
@@ -408,7 +411,7 @@ get_longopts() {
 # Get single-letter commandline options preceded by a single dash.
 get_shortopts() {
 	local OPT OPTSTRING OPTARG OPTIND
-	while getopts ":CdehikL:loPpqu:vX" OPT; do
+	while getopts ":CdehikL:loPpquvX" OPT; do
 		case "$OPT" in
 			C) # TODO: Match syntax with the rest of gentoolkit
 			   export NOCOLOR="yes";;
@@ -429,6 +432,7 @@ get_shortopts() {
 			q) progress() { :; }
 			   QUIET=1
 			   EMERGE_OPTIONS+=("--quiet");;
+			u) SEARCH_SYMBOLS=1;;
 			v) VERBOSE=1
 			   EMERGE_OPTIONS+=("--verbose");;
 			X) # No longer used, since it is the default.
@@ -732,6 +736,8 @@ main_checks() {
 	local ldd_status
 	local numFiles
 	local COMPLETE_LD_LIBRARY_PATH
+	local message
+	local broken_lib
 	if [[ $SEARCH_BROKEN && $FULL_LD_PATH ]]; then
 		[[ -r "$LDPATH_FILE" && -s "$LDPATH_FILE" ]] ||
 			die 1 "Unable to find $LDPATH_FILE"
@@ -748,7 +754,7 @@ main_checks() {
 			if [[ $target_file != *.la ]]; then
 				# Note: double checking seems to be faster than single with complete path
 				# (special add ons are rare).
-				ldd_output=$(ldd "$target_file" 2>> "$ERRORS_FILE" | sort -u)
+				ldd_output=$(ldd -d -r "$target_file" 2>> "$ERRORS_FILE" | sort -u)
 				ldd_status=$? # TODO: Check this for problems with sort
 				# HACK: if LD_LIBRARY_MASK is null or undefined grep -vF doesn't work
 				if grep -vF "${LD_LIBRARY_MASK:=$'\a'}" <<< "$ldd_output" |
@@ -793,6 +799,34 @@ main_checks() {
 							fi
 						fi
 					fi
+				fi
+				# Search for symbols not defined
+				if [[ $SEARCH_BROKEN ]]; then
+					# Look for symbol not defined errors
+					if grep -vF "${LD_LIBRARY_MASK:=$'\a'}" <<< "$ldd_output" |
+						grep -q -E 'symbol .* not defined'; then
+						message=$(gawk '/symbol .* not defined/ {NF--; print $0}' <<< "$ldd_output")
+						broken_lib=$(gawk '/symbol .* not defined/ {print $NF}' <<< "$ldd_output" | \
+							sed 's/[()]//g')
+						echo "obj $broken_lib" >> "$BROKEN_FILE"
+						echo_v "  broken $broken_lib ($message)"
+					fi
+				fi
+				# Look for undefined symbol error if not a .so file
+				if [[ $SEARCH_BROKEN && $SEARCH_SYMBOLS ]]; then
+					case $target_file in
+					*.so|*.so.*)
+						;;
+					*)
+						if grep -vF "${LD_LIBRARY_MASK:=$'\a'}" <<< "$ldd_output" |
+							grep -q -F 'undefined symbol:'; then
+							message=$(gawk '/undefined symbol:/ {print $3}' <<< "$ldd_output")
+							message="${message//$'\n'/ }"
+							echo "obj $target_file" >> "$BROKEN_FILE"
+							echo_v "  broken $target_file (undefined symbols(s): $message)"
+						fi
+						;;
+					esac
 				fi
 			elif [[ $SEARCH_BROKEN ]]; then
 				# Look for broken .la files
