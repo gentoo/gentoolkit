@@ -148,24 +148,21 @@ class LibCheck(object):
 		'''Internal function.  Use the class's setlibs variable'''
 		sonames = []
 		for s in self.searchlibs:
-			par, soname = os.path.split(s)
-			if par:
-				# consider as this is full pathname
-				# we need soname only
+			if s in self.scanned_files[b].keys():
+				sonames.append(s)
+				continue
 
-				if os.path.exists(s):
-					# try to extract some more info
-					for line in scan(['-BF', '%f %S %M'], [s], 1, self.logger):
-						_, soname, bits = line.split()
-						bits = bits[8:]
-						if bits == b:
-							# we don't want to look in inappropriate arch's libs
-							sonames.append(soname)
-					continue
-				sonames.append(soname)
-			else:
-				# this is only filename or it's part
-				sonames.append(soname)
+			found_partial = [a for a in self.scanned_files[b].keys() if s in a]
+			if found_partial:
+				sonames += found_partial
+				continue
+
+			for k, v in self.scanned_files[b].items():
+				for vv in v.keys():
+					if s in vv:
+						sonames.append(k)
+						break
+
 		self.alllibs = '|'.join(sonames) + '|'
 		self.logger.debug("\tLibCheck._setslibs(), new alllibs: %s" %(self.alllibs))
 
