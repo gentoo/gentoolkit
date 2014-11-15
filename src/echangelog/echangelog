@@ -976,10 +976,13 @@ the existence of both formats will undoubtedly cause much confusion.  This also
 means that the examples above are wrong, since I just copied them from some old
 email.  However they're not much wrong. ;-)
 
+Bugs found should be filed against tools-portage@gentoo.org at http://bugs.gentoo.org/
+
 =head1 AUTHORS
 
-This tool was written by Aron Griffis <agriffis@gentoo.org>.  Bugs found should
-be filed against me at http://bugs.gentoo.org/
+This tool was originally written by Aron Griffis <agriffis@gentoo.org>.
+
+Continued by Christian Ruppert <idl0r@gentoo.org>.
 
 This man page has been turned into a Perl POD document by Patrice Clement
 <monsieurp@gentoo.org>.
