@@ -18,22 +18,22 @@ The ^ leader instructs ekeyword to remove the specified arch.
 Examples:
 
   # Mark all existing arches in the ebuild as stable.
-  $ ekeyword all foo-1.ebuild
+  $ %(prog)s all foo-1.ebuild
 
   # Mark arm as stable and x86 as unstable.
-  $ ekeyword arm ~x86 foo-1.ebuild
+  $ %(prog)s arm ~x86 foo-1.ebuild
 
   # Mark hppa as unsupported (explicitly adds -hppa).
-  $ ekeyword -hppa foo-1.ebuild
+  $ %(prog)s -hppa foo-1.ebuild
 
   # Delete alpha keywords from all ebuilds.
-  $ ekeyword ^alpha *.ebuild
+  $ %(prog)s ^alpha *.ebuild
 
   # Mark sparc as stable for foo-1 and m68k as unstable for foo-2.
-  $ ekeyword sparc foo-1.ebuild ~m68k foo-2.ebuild
+  $ %(prog)s sparc foo-1.ebuild ~m68k foo-2.ebuild
 
   # Mark s390 as the same state as amd64.
-  $ ekeyword s390=amd64 foo-1.ebuild
+  $ %(prog)s s390=amd64 foo-1.ebuild
 """
 
 from __future__ import print_function
@@ -52,10 +52,20 @@ from portage.output import colorize, nocolor
 
 VERSION = '1.0 awesome'
 
+# Operation object that describes how to perform a change.
+# Args:
+#  op: The operation to perform when |ref_arch| is not set:
+#      None: Mark |arch| stable
+#      '-': Mark |arch| as not applicable (e.g. -foo)
+#      '~': Mark |arch| as unstable (e.g. ~foo)
+#      '^': Delete |arch| so it isn't listed at all
+#  arch: The required arch to update
+#  ref_arch: Set |arch| status to this arch (ignoring |op|)
 Op = collections.namedtuple('Op', ('op', 'arch', 'ref_arch'))
 
 
 def warning(msg):
+	"""Write |msg| as a warning to stderr"""
 	print('warning: %s' % msg, file=sys.stderr)
 
 
@@ -69,7 +79,17 @@ def keyword_to_arch(keyword):
 
 
 def sort_keywords(arches):
-	"""Sort |arches| list in the order developers expect"""
+	"""Sort |arches| list in the order developers expect
+
+	This is vaguely defined because it is kind of vaguely defined once you get
+	past the basic (Linux-only) keywords.
+
+	Args:
+	  arches: An iterable of ARCH values.
+
+	Returns:
+	  A sorted list of |arches|
+	"""
 	keywords = []
 
 	# Globs always come first.
@@ -98,7 +118,16 @@ def sort_keywords(arches):
 
 
 def diff_keywords(old_keywords, new_keywords, format='color-inline'):
-	"""Show pretty diff between list of keywords"""
+	"""Show pretty diff between list of keywords
+
+	Args:
+	  old_keywords: The old set of KEYWORDS
+	  new_keywords: The new set of KEYWORDS
+	  format: The diff style
+
+	Returns:
+	  A string containing the diff output ready to shown to the user
+	"""
 	def show_diff(s):
 		output = ''
 
@@ -257,7 +286,21 @@ def process_content(ebuild, data, ops, arch_status=None, verbose=0,
 
 def process_ebuild(ebuild, ops, arch_status=None, verbose=0, quiet=0,
                    dry_run=False, format='color-inline'):
-	"""Process |ops| for |ebuild|"""
+	"""Process |ops| for |ebuild|
+
+	Args:
+	  ebuild: The ebuild file to operate on & update in place
+	  ops: An iterable of operations (Op objects) to perform on |ebuild|
+	  arch_status: A dict mapping default arches to their stability; see the
+	               load_profile_data function for more details
+	  verbose: Be verbose; show various status messages
+	  quiet: Be quiet; only show errors
+	  dry_run: Do not make any changes to |ebuild|; show what would be done
+	  format: The diff style
+
+    Returns:
+      Whether any updates were processed
+	"""
 	with io.open(ebuild, encoding='utf8') as f:
 		updated, content = process_content(
 			ebuild, f, ops, arch_status=arch_status,
@@ -265,10 +308,20 @@ def process_ebuild(ebuild, ops, arch_status=None, verbose=0, quiet=0,
 		if updated and not dry_run:
 			with io.open(ebuild, 'w', encoding='utf8') as f:
 				f.writelines(content)
+        return updated
 
 
 def load_profile_data(portdir=None, repo='gentoo'):
-	"""Load the list of known arches from the tree"""
+	"""Load the list of known arches from the tree
+
+	Args:
+	  portdir: The repository to load all data from (and ignore |repo|)
+	  repo: Look up this repository by name to locate profile data
+
+	Returns:
+	  A dict mapping the keyword to its preferred state:
+	  {'x86': 'stable', 'mips': 'dev', ...}
+	"""
 	if portdir is None:
 		portdir = portage.db['/']['vartree'].settings.repositories[repo].location
 
