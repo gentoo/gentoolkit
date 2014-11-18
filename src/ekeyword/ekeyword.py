@@ -308,7 +308,7 @@ def process_ebuild(ebuild, ops, arch_status=None, verbose=0, quiet=0,
 		if updated and not dry_run:
 			with io.open(ebuild, 'w', encoding='utf8') as f:
 				f.writelines(content)
-        return updated
+	return updated
 
 
 def load_profile_data(portdir=None, repo='gentoo'):
