@@ -34,13 +34,13 @@ PS3="Choice? "
 SORT=${EREAD_SORT_ORDER}
 
 find_unsorted() {
-	find . -type f | sed -e "s:\./::g"
+	find . -name '*:*:*.log*' | sed -e "s:\./::g"
 }
 find_by_name() {
-	find . -type f | sort | sed -e "s:\./::g"
+	find . -name '*:*:*.log*' | sort | sed -e "s:\./::g"
 }
 find_by_time() {
-	find . -type f | sort -k 3 -t : | sed -e "s:\./::g"
+	find . -name '*:*:*.log*' | sort -k 3 -t : | sed -e "s:\./::g"
 }
 find_files() {
 	case ${SORT} in
