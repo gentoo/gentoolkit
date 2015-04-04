@@ -117,13 +117,13 @@ def sort_keywords(arches):
 	return keywords
 
 
-def diff_keywords(old_keywords, new_keywords, format='color-inline'):
+def diff_keywords(old_keywords, new_keywords, style='color-inline'):
 	"""Show pretty diff between list of keywords
 
 	Args:
 	  old_keywords: The old set of KEYWORDS
 	  new_keywords: The new set of KEYWORDS
-	  format: The diff style
+	  style: The diff style
 
 	Returns:
 	  A string containing the diff output ready to shown to the user
@@ -138,7 +138,7 @@ def diff_keywords(old_keywords, new_keywords, format='color-inline'):
 
 			if tag in ('delete', 'replace'):
 				o = s.a[i0:i1]
-				if format == 'color-inline':
+				if style == 'color-inline':
 					o = colorize('bg_darkred', o)
 				else:
 					o = '-{%s}' % o
@@ -146,7 +146,7 @@ def diff_keywords(old_keywords, new_keywords, format='color-inline'):
 
 			if tag in ('insert', 'replace'):
 				o = s.b[j0:j1]
-				if format == 'color-inline':
+				if style == 'color-inline':
 					o = colorize('bg_darkgreen', o)
 				else:
 					o = '+{%s}' % o
@@ -219,7 +219,7 @@ def process_keywords(keywords, ops, arch_status=None):
 
 
 def process_content(ebuild, data, ops, arch_status=None, verbose=0,
-                    quiet=0, format='color-inline'):
+                    quiet=0, style='color-inline'):
 	"""Process |ops| for |data|"""
 	# Set up the user display style based on verbose/quiet settings.
 	if verbose > 1:
@@ -260,10 +260,10 @@ def process_content(ebuild, data, ops, arch_status=None, verbose=0,
 			new_keywords = sort_keywords(new_keywords)
 			line = '%s"%s"%s\n' % (m.group(1), ' '.join(new_keywords),
 			                       m.group(5))
-			if format in ('color-inline', 'inline'):
-				logit(diff_keywords(old_keywords, new_keywords, format=format))
+			if style in ('color-inline', 'inline'):
+				logit(diff_keywords(old_keywords, new_keywords, style=style))
 			else:
-				if format == 'long-multi':
+				if style == 'long-multi':
 					logit(' '.join(['%*s' % (len(keyword_to_arch(x)) + 1, x)
 					                for x in old_keywords]))
 					logit(' '.join(['%*s' % (len(keyword_to_arch(x)) + 1, x)
@@ -285,7 +285,7 @@ def process_content(ebuild, data, ops, arch_status=None, verbose=0,
 
 
 def process_ebuild(ebuild, ops, arch_status=None, verbose=0, quiet=0,
-                   dry_run=False, format='color-inline'):
+                   dry_run=False, style='color-inline'):
 	"""Process |ops| for |ebuild|
 
 	Args:
@@ -296,7 +296,7 @@ def process_ebuild(ebuild, ops, arch_status=None, verbose=0, quiet=0,
 	  verbose: Be verbose; show various status messages
 	  quiet: Be quiet; only show errors
 	  dry_run: Do not make any changes to |ebuild|; show what would be done
-	  format: The diff style
+	  style: The diff style
 
     Returns:
       Whether any updates were processed
@@ -304,7 +304,7 @@ def process_ebuild(ebuild, ops, arch_status=None, verbose=0, quiet=0,
 	with io.open(ebuild, encoding='utf8') as f:
 		updated, content = process_content(
 			ebuild, f, ops, arch_status=arch_status,
-			verbose=verbose, quiet=quiet, format=format)
+			verbose=verbose, quiet=quiet, style=style)
 		if updated and not dry_run:
 			with io.open(ebuild, 'w', encoding='utf8') as f:
 				f.writelines(content)
@@ -448,7 +448,7 @@ def get_parser():
 		help='Be verbose while processing things')
 	parser.add_argument('-q', '--quiet', action='count', default=0,
 		help='Be quiet while processing things (only show errors)')
-	parser.add_argument('--format', default='auto',
+	parser.add_argument('--format', default='auto', dest='style',
 		choices=('auto', 'color-inline', 'inline', 'short-multi', 'long-multi'),
 		help='Selet output format for showing differences')
 	parser.add_argument('-V', '--version', default=False, action='store_true',
@@ -491,12 +491,12 @@ def main(argv):
 	if not work_args:
 		parser.error('need arches/ebuilds to process')
 
-	if opts.format == 'auto':
+	if opts.style == 'auto':
 		if not portage.db['/']['vartree'].settings.get('NOCOLOR', 'false').lower() in ('no', 'false'):
 			nocolor()
-			opts.format = 'short'
+			opts.style = 'short'
 		else:
-			opts.format = 'color-inline'
+			opts.style = 'color-inline'
 
 	arch_status = load_profile_data()
 	try:
@@ -507,7 +507,7 @@ def main(argv):
 	for ebuild, ops in work:
 		process_ebuild(ebuild, ops, arch_status=arch_status,
 		               verbose=opts.verbose, quiet=opts.quiet,
-		               dry_run=opts.dry_run, format=opts.format)
+		               dry_run=opts.dry_run, style=opts.style)
 
 	return os.EX_OK
 

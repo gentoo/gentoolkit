@@ -75,19 +75,19 @@ class TestDiffKeywords(unittest.TestCase):
 		ret = ekeyword.diff_keywords(['~a'], ['-a'])
 		self.assertNotEqual(ret, '')
 
-	def _testSmokeFormat(self, format):
+	def _testSmokeStyle(self, style):
 		return ekeyword.diff_keywords(
 			['~a', 'b', '-abcde'],
-			['a', '-b', '-abxde'], format=format)
+			['a', '-b', '-abxde'], style=style)
 
-	def testSmokeFormatColor(self):
-		"""Run a full smoke test for color-inline format"""
-		ret = self._testSmokeFormat('color-inline')
+	def testSmokeStyleColor(self):
+		"""Run a full smoke test for color-inline style"""
+		ret = self._testSmokeStyle('color-inline')
 		self.assertNotEqual(ret, '')
 
-	def testSmokeFormatNoColor(self):
-		"""Run a full smoke test for non-color-inline format"""
-		self._testSmokeFormat('nocolor')
+	def testSmokeStyleNoColor(self):
+		"""Run a full smoke test for non-color-inline style"""
+		self._testSmokeStyle('nocolor')
 
 
 class TestProcessKeywords(unittest.TestCase):
@@ -244,14 +244,14 @@ class TestProcessContent(unittest.TestCase):
 		self.assertFalse(updated)
 		self.assertEqual(ret, [' KEYWORDS=\n'])
 
-	def _testSmoke(self, format='color-inline', verbose=0, quiet=0):
+	def _testSmoke(self, style='color-inline', verbose=0, quiet=0):
 		ops = (
 			ekeyword.Op(None, 'arm', None),
 			ekeyword.Op('~', 'sparc', None),
 		)
 		ekeyword.process_content(
 			'asdf', ['KEYWORDS="arm"'], ops, verbose=verbose,
-			quiet=quiet, format=format)
+			quiet=quiet, style=style)
 
 	def testSmokeQuiet(self):
 		"""Smoke test for quiet mode"""
@@ -261,20 +261,20 @@ class TestProcessContent(unittest.TestCase):
 		"""Smoke test for verbose mode"""
 		self._testSmoke(verbose=10)
 
-	def testSmokeFormatColor(self):
-		"""Smoke test for color-inline format"""
+	def testSmokeStyleColor(self):
+		"""Smoke test for color-inline style"""
 		self._testSmoke('color-inline')
 
-	def testSmokeFormatInline(self):
-		"""Smoke test for inline format"""
+	def testSmokeStyleInline(self):
+		"""Smoke test for inline style"""
 		self._testSmoke('inline')
 
-	def testSmokeFormatShortMulti(self):
-		"""Smoke test for short-multi format"""
+	def testSmokeStyleShortMulti(self):
+		"""Smoke test for short-multi style"""
 		self._testSmoke('short-multi')
 
-	def testSmokeFormatLongMulti(self):
-		"""Smoke test for long-multi format"""
+	def testSmokeStyleLongMulti(self):
+		"""Smoke test for long-multi style"""
 		self._testSmoke('long-multi')
 
 
