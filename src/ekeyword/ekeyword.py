@@ -227,7 +227,7 @@ def process_content(ebuild, data, ops, arch_status=None, verbose=0,
 		def logit(msg):
 			print('%s: %s' % (disp_name, msg))
 	elif quiet > 1:
-		def logit(msg):
+		def logit(_msg):
 			pass
 	else:
 		# Chop the full path and the .ebuild suffix.
@@ -349,7 +349,7 @@ def load_profile_data(portdir=None, repo='gentoo'):
 			for line in f:
 				line = line.split('#', 1)[0].split()
 				if line:
-					arch, profile, status = line
+					arch, _profile, status = line
 					arch_status.setdefault(arch, status)
 					curr_status = profile_status[arch_status[arch]]
 					new_status = profile_status[status]
@@ -409,7 +409,7 @@ def ignorable_arg(arg, quiet=0):
 	return False
 
 
-def args_to_work(args, arch_status=None, repo='gentoo', quiet=0):
+def args_to_work(args, arch_status=None, _repo='gentoo', quiet=0):
 	"""Process |args| into a list of work itmes (ebuild/arches to update)"""
 	work = []
 	todo_arches = []
