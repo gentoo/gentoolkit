@@ -372,6 +372,10 @@ class TestMain(unittest.TestCase):
 		ekeyword.main(['arm', '--dry-run', os.path.join(TESTDIR, 'process-1.ebuild')])
 		ekeyword.main(['--version', '--dry-run'])
 
+	def testEmptyString(self):
+		self.assertRaises(SystemExit, ekeyword.main,
+		                  ['', os.path.join(TESTDIR, 'process-1.ebuild')])
+
 
 if __name__ == '__main__':
 	unittest.main()

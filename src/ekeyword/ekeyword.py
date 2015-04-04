@@ -478,7 +478,7 @@ def main(argv):
 			if arg in ('--format',):
 				if argv:
 					parse_args.append(argv.pop(0))
-		elif arg[0] == '-' and len(arg) == 2:
+		elif len(arg) == 2 and arg[0] == '-':
 			parse_args.append(arg)
 		else:
 			work_args.append(arg)
