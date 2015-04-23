@@ -112,7 +112,6 @@ get_real_path() {
 # Performs some basic system sanity checks
 check_sanity() {
 	# file permission tests
-	local descdir
 	local make_defaults
 	local make_conf
 
@@ -122,13 +121,9 @@ check_sanity() {
 		[ ! -r "${make_conf}" ] && fatal "${make_conf} is not readable"
 	done
 
-	descdir="$(get_portdir)/profiles"
 
 	[ ! -r "${MAKE_GLOBALS_PATH}" ] && fatal "${MAKE_GLOBALS_PATH} is not readable"
-	[ -z "$(get_portdir)" ] && fatal "\$PORTDIR couldn't be determined"
-	[ ! -d "${descdir}" ] && fatal "${descdir} does not exist or is not a directory"
-	[ ! -r "${descdir}/use.desc" ] && fatal "${descdir}/use.desc is not readable"
-	[ ! -r "${descdir}/use.local.desc" ] && fatal "${descdir}/use.local.desc is not readable"
+	[ -z "$PORTAGE_REPO_PATHS" ] && fatal "Repository paths couldn't be determined"
 
 	for make_defaults in $(get_all_make_defaults); do
 		[ ! -r "$make_defaults" ]  && fatal "$_make_defaults is not readable"
@@ -277,9 +272,6 @@ get_useflags() {
 	# only calculate once as calling emerge is painfully slow
 	[ -n "${USE_FLAGS_CALCULATED}" ] && return
 
-	# backup portdir so get_portdir() doesn't give false results later
-	portdir_backup="${PORTDIR}"
-
 	ACTIVE_FLAGS[0]="$(reduce_incrementals "${USE}")"
 	USE=""
 	for x in $(get_all_make_conf); do
@@ -298,7 +290,6 @@ get_useflags() {
 
 	# restore saved env variables
 	USE="${ACTIVE_FLAGS[0]}"
-	PORTDIR="${portdir_backup}"
 
 	#
 	# Traverse through use.mask and use.force (0.5s)
@@ -345,7 +336,7 @@ get_portageuseflags() {
 get_useflaglist() {
 	local descdir
 	local overlay
-	for profiledir in ${ALL_PORTDIRS[@]}; do
+	for profiledir in ${PORTAGE_REPO_PATHS[@]}; do
 		descdir="${profiledir}/profiles"
 		if [[ -z ${SCOPE} || ${SCOPE} == "global" ]]; then
 			[[ ! -s "${descdir}/use.desc" ]] && continue
@@ -378,7 +369,6 @@ get_useflaglist() {
 # Nothing significant
 #
 # Environment:
-# PORTDIR - Root of portage tree
 # ACTIVE_FLAGS - Array of current use flag info
 #
 get_useflaglist_ebuild() {
@@ -390,7 +380,7 @@ get_useflaglist_ebuild() {
 	fi
 	local pkg=$(echo ${1} | cut -d/ -f2)
 	declare append
-	for portdir in ${ALL_PORTDIRS[@]}; do
+	for portdir in ${PORTAGE_REPO_PATHS[@]}; do
 		if [[ -s "${portdir}/profiles/repo_name" ]]; then
 			overlay="$(cat "${portdir}/profiles/repo_name")"
 		else
@@ -447,7 +437,9 @@ get_all_make_conf() {
 # General method of collecting the contents of a profile
 # component by traversing through the cascading profile
 #
-# Bug #414961 allows ':' shorthand to resolve to the ${PORTDIR}/profiles
+# Bug #414961 allows ':' shorthand to resolve to the profiles directory in a
+# repository
+#
 # A value before the ':' references the repository, no value means same repo
 #
 # Example: local:base would refer to the profiles directory in the repository
@@ -645,8 +637,8 @@ get_flagstatus() {
 # 4 - (Optional) version of package to evaluate (empty means all versions)
 #
 # Outputs:
-# Flag status for package.use and ebuild, slot and version, and overlay
-# the version lives is if not PORTDIR
+# Flag status for package.use and ebuild, slot and version, and repository
+# the version lives in if not gentoo
 #
 # Full positive would be "[+PB]", full negative would be "[-pb]", and full
 # missing would be "[?  ]", question because the sign will default to the
@@ -707,41 +699,6 @@ get_flagstatus_pkg() {
 	echo
 } # }}}
 
-# Function: get_portdir {{{
-# faster replacement to `portageq portdir`
-#
-# Outputs:
-# Location of portage tree root
-#
-# OBSOLETE: newer versions of portage do not define PORTDIR
-# in make.defaults or make.conf anymore and can be overridden
-# in repos.conf.  Use portageq to determine the correct value.
-get_portdir() {
-	# Use a subshell so we don't have to protect the variables in
-	# the current scope
-	(
-		eval $(portageq envvar -v PORTDIR)
-		echo "${PORTDIR}"
-	)
-} # }}}
-# This won't change while the script is running, so cache it
-PORTDIR="$(get_portdir)"
-
-# Function: get_all_overlays {{{
-# Outputs list of portage overlays as defined in the PORTDIR_OVERLAY
-# variable defined in make.conf
-get_all_overlays() {
-	# Use a subshell so we don't have to protect the variables in
-	# the current scope
-	(
-		for x in $(get_all_make_conf); do
-			[[ -r "${x}" ]] && source "${x}"
-		done
-		echo ${PORTDIR_OVERLAY}
-	)
-} # }}}
-ALL_PORTDIRS=( "$PORTDIR" $(get_all_overlays) )
-
 # Function: array_contains {{{
 # PHP-style array_contains function.
 #
@@ -772,7 +729,6 @@ array_contains() {
 # (STDOUT) Flag description(s) for given USE flags
 #
 showdesc() {
-	local descdir
 	local current_desc
 	local found_one
 	local args
@@ -780,9 +736,9 @@ showdesc() {
 	args="${*:-*}"
 
 	if [ -z "${SCOPE}" ]; then
-		SCOPE="global" showdesc ${args}
+		SCOPE="global" showdesc "${args}"
 		echo
-		SCOPE="local" showdesc ${args}
+		SCOPE="local" showdesc "${args}"
 		return
 	fi
 
@@ -803,7 +759,7 @@ showdesc() {
 			if array_contains "${useflags[*]}" "$1"; then
 				get_flagstatus "${1}"
 				# XXX: Handle overlay
-				grep -h "^${1}  *-" ${ALL_PORTDIRS[@]/%//profiles/use.desc} 2> /dev/null
+				grep -h "^${1}  *-" ${PORTAGE_REPO_PATHS[@]/%//profiles/use.desc} 2> /dev/null
 				foundone=1
 			fi
 		fi
@@ -814,7 +770,7 @@ showdesc() {
 				foundone=1
 			fi
 			# Fetch all the packages data using this flag
-			infos=$( grep -h ":${1}  *-" ${ALL_PORTDIRS[@]/%//profiles/use.local.desc} 2> /dev/null \
+			infos=$( grep -h ":${1}  *-" ${PORTAGE_REPO_PATHS[@]/%//profiles/use.local.desc} 2> /dev/null \
 				| sed -re "s/^([^:]+):(.*)  *- *(.+)/\1|\2|\3/g")
 			OIFS=$IFS; IFS=$'\n'; infos=($infos); IFS=$OIFS;
 			for line in "${infos[@]}"; do
@@ -875,7 +831,6 @@ showinstdesc() {
 		          return;;
 	esac
 
-	descdir="$(get_portdir)/profiles"
 	echo "************************************************************"
 
 	if [ "${args}" = "*" ]; then
@@ -887,7 +842,7 @@ showinstdesc() {
 	while [ -n "${1}" ]; do
 		case "${SCOPE}" in
 			"global")
-				if desc=$(grep "^${1}  *-" "${descdir}/use.desc"); then
+				if desc=$(grep "^${1}  *-" ${PORTAGE_REPO_PATHS[@]/%//profiles/use.desc}); then
 					get_flagstatus "${1}"
 					echo "$desc"
 					# get list of installed packages matching this USE flag.
@@ -906,7 +861,7 @@ showinstdesc() {
 				# local flags are a bit more complicated as there can be multiple
 				# entries per flag and we can't pipe into printf
 				IFS=': ' # Use a space instead of a dash because dashes occur in cat/pkg
-				while read pkg flag desc; do
+				while read path pkg flag desc; do
 					# print name only if package is installed
 					# NOTE: If we implement bug #114086 's enhancement we can just use the
 					#       exit status of equery instead of a subshell and pipe to wc -l
@@ -918,7 +873,7 @@ showinstdesc() {
 						IFS=': '
 						printf "%s (%s):\n%s\n\n" "${flag}" "${pkg}" "${desc#- }"
 					fi
-				done < <(grep ":${1}  *-" "${descdir}/use.local.desc")
+				done < <(grep ":${1}  *-" ${PORTAGE_REPO_PATHS[@]/%//profiles/use.local.desc} 2>/dev/null)
 			;;
 		esac
 		shift
@@ -1094,7 +1049,7 @@ modify_package() {
 	# --- Sanity checks
 	# (1) make sure ${pkg} exists in portdir or an overlay
 	local exists=1
-	for portdir in ${ALL_PORTDIRS[@]}; do
+	for portdir in ${PORTAGE_REPO_PATHS[@]}; do
 		if [[ -d "${portdir}/${pkg}" ]]; then
 			exists=0
 			break
