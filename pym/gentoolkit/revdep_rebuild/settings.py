@@ -27,11 +27,6 @@ DEFAULTS = {
 		#if program should use temporary files from previous run
 		'USE_TMP_FILES': True,
 
-		#True for dev. version, False for stable
-		#used when IS_DEV is True, False forces to call emerge with --pretend
-		# can be set True from the cli with the --no-pretend option
-		'IS_DEV': True,
-		'NO_PRETEND': False,
 		'VERBOSITY': 1,
 
 		'quiet': False,
