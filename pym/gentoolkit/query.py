@@ -362,7 +362,7 @@ class Query(CPV):
 
 		q = self.query
 		for atom in atoms:
-			self.query = atom
+			self.query = str(atom)
 			result.extend(self._do_simple_lookup(show_progress=False))
 		self.query = q
 
