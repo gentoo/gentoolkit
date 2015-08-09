@@ -11,6 +11,7 @@ from gentoolkit.eshowkw.display_pretty import align_string
 
 class keywords_header:
 	__IMPARCHS = [ 'arm', 'amd64', 'x86' ]
+	__UNSTABLE_ARCHS = [ 'arm64', 'm68k', 'mips', 's390', 'sh' ]
 	__ADDITIONAL_FIELDS = [ 'unused', 'slot' ]
 	__EXTRA_FIELDS = [ 'repo' ]
 
@@ -60,6 +61,8 @@ class keywords_header:
 			keyword = '%'.join(list(keyword))
 			if tmp2 in self.__IMPARCHS:
 				tmp.append(colorize_string('darkyellow', keyword))
+			elif tmp2 in self.__UNSTABLE_ARCHS:
+				tmp.append(colorize_string('darkgray', keyword))
 			else:
 				tmp.append(keyword)
 		return tmp
