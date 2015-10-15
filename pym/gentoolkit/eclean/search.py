@@ -574,7 +574,7 @@ def findPackages(
 			# exclusion because pkg still exists (in porttree or vartree)
 			del clean_me[cpv]
 			continue
-		if portage.cpv_getkey(cpv) in cp_all:
+		if portage.cpv_getkey(cpv) in cp_all and port_dbapi.cpv_exists(cpv):
 			# exlusion because of --package-names
 			del clean_me[cpv]
 
