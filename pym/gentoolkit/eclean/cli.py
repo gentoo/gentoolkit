@@ -303,6 +303,7 @@ def parseArgs(options={}):
 	options['fetch-restricted'] = False
 	options['size-limit'] = 0
 	options['verbose'] = False
+	options['ignore-failure'] = False
 	# if called by a well-named symlink, set the acction accordingly:
 	action = None
 	# temp print line to ensure it is the svn/branch code running, etc..
