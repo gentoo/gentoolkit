@@ -532,6 +532,8 @@ def findPackages(
 		test = os.listdir(pkgdir)
 		del test
 	except EnvironmentError as er:
+		if options['ignore-failure']:
+			exit(0)
 		print( pp.error("Error accessing PKGDIR." ), file=sys.stderr)
 		print( pp.error("(Check your make.conf file and environment)."), file=sys.stderr)
 		print( pp.error("Error: %s" %str(er)), file=sys.stderr)

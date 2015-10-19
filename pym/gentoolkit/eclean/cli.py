@@ -147,7 +147,8 @@ def printUsage(_error=None, help=None):
 	or help in ('all','packages'):
 		print( "Available", yellow("options"),"for the",
 				green("packages"),"action:", file=out)
-		print( yellow(" NONE  :)"), file=out)
+		print( yellow(" -i, --ignore-failure")+
+			"             - ignore failure to locate PKGDIR", file=out)
 		print( file=out)
 	if _error in ('distfiles-options', 'merged-distfiles-options') \
 	or help in ('all','distfiles'):
@@ -262,6 +263,8 @@ def parseArgs(options={}):
 				options['size-limit'] = parseSize(a)
 			elif o in ("-v", "--verbose") and not options['quiet']:
 					options['verbose'] = True
+			elif o in ("-i", "--ignore-failure"):
+				options['ignore-failure'] = True
 			else:
 				return_code = False
 		# sanity check of --deep only options:
@@ -286,8 +289,8 @@ def parseArgs(options={}):
 		"time-limit=", "package-names", "help", "version",  "verbose"]
 	getopt_options['short']['distfiles'] = "fs:"
 	getopt_options['long']['distfiles'] = ["fetch-restricted", "size-limit="]
-	getopt_options['short']['packages'] = ""
-	getopt_options['long']['packages'] = [""]
+	getopt_options['short']['packages'] = "i"
+	getopt_options['long']['packages'] = ["ignore-failure"]
 	# set default options, except 'nocolor', which is set in main()
 	options['interactive'] = False
 	options['pretend'] = False
