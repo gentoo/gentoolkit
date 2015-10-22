@@ -19,7 +19,7 @@ __all__ = (
 import fnmatch
 import re
 from functools import partial
-from string import ascii_letters
+from string import ascii_letters, digits
 
 import portage
 
@@ -47,7 +47,7 @@ class Query(CPV):
 		"""
 
 		# We need at least one of these chars for a valid query
-		needed_chars = ascii_letters + '*'
+		needed_chars = ascii_letters + digits + '*'
 		if not set(query).intersection(needed_chars):
 			raise errors.GentoolkitInvalidPackage(query)
 
