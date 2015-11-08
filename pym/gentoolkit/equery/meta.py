@@ -179,14 +179,11 @@ def format_maintainers(maints):
 
 	result = []
 	for maint in maints:
-		maintstr = ''
-		maintstr = maint.email
+		maintstr = maint.email or ''
 		if CONFIG['verbose']:
-			maintstr += " (%s)" % (maint.name,) if maint.name else ''
-			maintstr += " - %s" % (maint.restrict,) if maint.restrict else ''
-			maintstr += "\n%s" % (
-				(maint.description,) if maint.description else ''
-			)
+			maintstr += " (%s)" % (maint.name or'')
+			maintstr += " - %s" % (maint.restrict or '')
+			maintstr += "\n%s" % (maint.description or '')
 		result.append(maintstr)
 
 	return result
