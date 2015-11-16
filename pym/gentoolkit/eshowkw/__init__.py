@@ -72,7 +72,7 @@ def process_args(argv):
 	parser.add_argument('-P', '--prefix', action='store_true', default=False,
 		help='Display prefix keywords in output.')
 	parser.add_argument('-S', '--ignore-slot', action='store_true', default=False,
-		help='Treat slots as irelevant during detection of redundant pacakges.')
+		help='Treat slots as irelevant during detection of redundant packages.')
 
 	return parser.parse_args(args=argv)
 
@@ -83,9 +83,6 @@ def main(argv, indirect = False):
 	opts = process_args(argv)
 	ignore_slots = opts.ignore_slot
 	use_overlays = opts.overlays
-	# user can do both --arch=a,b,c or --arch a b c
-	if len(opts.arch) > 1:
-		opts.arch = ','.join(opts.arch)
 	highlight_arch = ''.join(opts.arch).split(',')
 	bold = opts.bold
 	order = opts.align
