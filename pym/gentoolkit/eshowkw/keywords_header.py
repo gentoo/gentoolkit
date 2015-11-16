@@ -12,7 +12,7 @@ from gentoolkit.eshowkw.display_pretty import align_string
 class keywords_header:
 	__IMPARCHS = [ 'arm', 'amd64', 'x86' ]
 	__UNSTABLE_ARCHS = [ 'arm64', 'm68k', 'mips', 's390', 'sh' ]
-	__ADDITIONAL_FIELDS = [ 'unused', 'slot' ]
+	__ADDITIONAL_FIELDS = [ 'eapi', 'unused', 'slot' ]
 	__EXTRA_FIELDS = [ 'repo' ]
 
 	@staticmethod

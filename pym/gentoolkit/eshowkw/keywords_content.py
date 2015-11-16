@@ -164,7 +164,7 @@ class keywords_content:
 	def __packages_sort(package_content):
 		"""
 		Sort packages queried based on version and slot
-		%% pn , repo, slot, keywords
+		%% pn , repo, slot, eapi, keywords
 		"""
 		from operator import itemgetter
 
@@ -208,8 +208,8 @@ class keywords_content:
 						# version is not allowed by portage or unset
 						continue
 					# obtain related data from metadata and append to the pkg list
-					keywords, slot = self.__getMetadata(pdb, mysplit[0]+'/'+pf, oroot)
-					mypkgs.append([mysplit[0]+'/'+pf, oroot, slot, keywords])
+					keywords, slot, eapi = self.__getMetadata(pdb, mysplit[0]+'/'+pf, oroot)
+					mypkgs.append([mysplit[0]+'/'+pf, oroot, slot, eapi, keywords])
 
 		self.__packages_sort(mypkgs)
 		return mypkgs
@@ -226,7 +226,7 @@ class keywords_content:
 	def __getMetadata(pdb, package, repo):
 		"""Obtain all required metadata from portage auxdb"""
 		try:
-			metadata = pdb.aux_get(package, ['KEYWORDS', 'SLOT'], repo)
+			metadata = pdb.aux_get(package, ['KEYWORDS', 'SLOT', 'EAPI'], repo)
 		except KeyError:
 			# portage prints out more verbose error for us if we were lucky
 			raise SystemExit('Failed to obtain metadata')
@@ -303,24 +303,42 @@ class keywords_content:
 		return tmp
 
 	@staticmethod
-	def __prepareContentResult(versions, keywords, redundant, slots, slot_length, repos, linesep):
+	def __formatEapis(eapis, repos, repos_configs, length):
+		"""Align eapis items properly"""
+		# % are used as separators for further split so we wont loose spaces and coloring
+		tmp = []
+		for eapi, repo in zip(eapis, repos):
+			tmp_eapi = eapi
+			eapi = align_string(eapi, 'left', length)
+			eapi = '%'.join(list(eapi))
+			if repos_configs[repo].eapi_is_banned(tmp_eapi):
+				eapi = colorize_string('red', eapi)
+			elif repos_configs[repo].eapi_is_deprecated(tmp_eapi):
+				eapi = colorize_string('yellow', eapi)
+			else:
+				eapi = colorize_string('green', eapi)
+			tmp.append(eapi)
+		return tmp
+
+	@staticmethod
+	def __prepareContentResult(versions, keywords, eapi, redundant, slots, slot_length, repos, linesep):
 		"""Parse version fields into one list with proper separators"""
 		content = []
 		oldslot = ''
 		fieldsep = '% %|% %'
 		normsep = '% %'
-		for v, k, r, s, t in zip(versions, keywords, redundant, slots, repos):
+		for v, k, e, r, s, t in zip(versions, keywords, eapi, redundant, slots, repos):
 			if oldslot != s:
 				oldslot = s
 				content.append(linesep)
 			else:
 				s = '%'.join(list(''.rjust(slot_length)))
-			content.append('%s%s%s%s%s%s%s%s%s' % (v, fieldsep, k, fieldsep, r, normsep, s, fieldsep, t))
+			content.append('%s%s%s%s%s%s%s%s%s%s%s' % (v, fieldsep, k, fieldsep, e, normsep, r, normsep, s, fieldsep, t))
 		return content
 
 	def __init__(self, package, keywords_list, porttree, ignoreslots = False, content_align = 'bottom', usebold = False, toplist = 'archlist'):
 		"""Query all relevant data from portage databases."""
-		packages, self.repositories, self.slots, self.keywords = self.__checkExist(porttree, package)
+		packages, self.repositories, self.slots, self.eapi, self.keywords = self.__checkExist(porttree, package)
 		# convert repositories from path to name
 		self.repositories = [porttree.getRepositoryName(x) for x in self.repositories]
 		self.slot_length = max([len(x) for x in self.slots])
@@ -336,16 +354,18 @@ class keywords_content:
 
 		ver = self.__formatVersions(self.versions, content_align, self.version_length)
 		kws = self.__formatKeywords(self.keywords, keywords_list, usebold, toplist)
+		repos_configs = porttree.repositories.prepos
+		eap = self.__formatEapis(self.eapi, self.repositories, repos_configs, 1)
 		red = self.__formatAdditional(self.redundant, 'purple', redundant_length)
 		slt = self.__formatAdditional(self.slots, 'bold', self.slot_length)
 		rep = self.__formatAdditional(self.repositories, 'yellow', repositories_length)
-		# those + nubers are spaces in printout. keywords are multiplied also because of that
+		# those + numbers are spaces in printout. keywords are multiplied also because of that
 		linesep = '%s+%s+%s+%s' % (''.ljust(self.version_length+1, '-'),
 			''.ljust(self.keyword_length*2+1, '-'),
-			''.ljust(redundant_length+self.slot_length+3, '-'),
+			''.ljust(redundant_length+self.slot_length+1+4, '-'),
 			''.ljust(repositories_length+1, '-')
 		)
 
-		self.content = self.__prepareContentResult(ver, kws, red, slt, self.slot_length, rep, linesep)
+		self.content = self.__prepareContentResult(ver, kws, eap, red, slt, self.slot_length, rep, linesep)
 		self.content_length = len(linesep)
 		self.cp = port.cpv_getkey(packages[0])
