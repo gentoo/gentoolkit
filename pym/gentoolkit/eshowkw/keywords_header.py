@@ -4,14 +4,84 @@
 
 __all__ = ['keywords_header']
 
+import portage
+import os
 from portage import settings as ports
 from portage.output import colorize
 from gentoolkit.eshowkw.display_pretty import colorize_string
 from gentoolkit.eshowkw.display_pretty import align_string
 
+# Copied from ekeyword
+def load_profile_data(portdir=None, repo='gentoo'):
+	"""Load the list of known arches from the tree
+
+	Args:
+	  portdir: The repository to load all data from (and ignore |repo|)
+	  repo: Look up this repository by name to locate profile data
+
+	Returns:
+	  A dict mapping the keyword to its preferred state:
+	  {'x86': 'stable', 'mips': 'dev', ...}
+	"""
+	if portdir is None:
+		portdir = portage.db['/']['vartree'].settings.repositories[repo].location
+
+	arch_status = {}
+
+	try:
+		arch_list = os.path.join(portdir, 'profiles', 'arch.list')
+		with open(arch_list) as f:
+			for line in f:
+				line = line.split('#', 1)[0].strip()
+				if line:
+					arch_status[line] = None
+	except IOError:
+		pass
+
+	try:
+		profile_status = {
+			'stable': 0,
+			'dev': 1,
+			'exp': 2,
+			None: 3,
+		}
+		profiles_list = os.path.join(portdir, 'profiles', 'profiles.desc')
+		with open(profiles_list) as f:
+			for line in f:
+				line = line.split('#', 1)[0].split()
+				if line:
+					arch, _profile, status = line
+					arch_status.setdefault(arch, status)
+					curr_status = profile_status[arch_status[arch]]
+					new_status = profile_status[status]
+					if new_status < curr_status:
+						arch_status[arch] = status
+	except IOError:
+		pass
+
+	if arch_status:
+		arch_status['all'] = None
+	else:
+		warning('could not read profile files: %s' % arch_list)
+		warning('will not be able to verify args are correct')
+
+	return arch_status
+
+def gen_arch_list(status):
+	_arch_status = load_profile_data()
+	if status == "stable":
+		return [arch for arch in _arch_status if _arch_status[arch] == "stable"]
+	elif status == "dev":
+		return [arch for arch in _arch_status if _arch_status[arch] == "dev"]
+	elif status == "exp":
+		return [arch for arch in _arch_status if _arch_status[arch] == "exp"]
+	else:
+		raise TypeError
+
 class keywords_header:
-	__IMPARCHS = [ 'arm', 'amd64', 'x86' ]
-	__UNSTABLE_ARCHS = [ 'arm64', 'm68k', 'mips', 's390', 'sh' ]
+	__IMPARCHS = gen_arch_list("stable")
+	__DEV_ARCHS = gen_arch_list("dev")
+	__EXP_ARCHS = gen_arch_list("exp")
 	__ADDITIONAL_FIELDS = [ 'eapi', 'unused', 'slot' ]
 	__EXTRA_FIELDS = [ 'repo' ]
 
@@ -61,7 +131,7 @@ class keywords_header:
 			keyword = '%'.join(list(keyword))
 			if tmp2 in self.__IMPARCHS:
 				tmp.append(colorize_string('darkyellow', keyword))
-			elif tmp2 in self.__UNSTABLE_ARCHS:
+			elif tmp2 in self.__EXP_ARCHS:
 				tmp.append(colorize_string('darkgray', keyword))
 			else:
 				tmp.append(keyword)
