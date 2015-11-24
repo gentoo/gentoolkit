@@ -7,11 +7,16 @@ We only have several requirements.  If you want to do a major change (i.e
 rewrite/refactor something), please talk to us before pushing any
 commits. If you break something, please fix it.
 
-If you want a new release of gentoolkit or gentoolkit-dev, please coordinate
-it with fuzzyray (gentoolkit) or idl0r (gentoolkit-dev).
+All members of the Portage or Portage Tools projects are authorized to
+create a new release of gentoolkit or gentoolkit-dev.
+
+All other Gentoo Developers are authorized to create a new release if it is
+coordinated with fuzzyray and/or dolsen.
+
+If you create a release and it breaks, please fix it.
 
 Any non Gentoo developers who wish to contribute, the best way to get
-started is by pulling a copy of the repository and submitting patches to
+started is by clonig a copy of the repository and submitting patches to
 bugzilla.  Additionally, we can be found in the #gentoo-portage IRC
 channel.
 
