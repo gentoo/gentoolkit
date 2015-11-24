@@ -27,7 +27,7 @@ from gentoolkit.atom import Atom
 
 
 import portage
-
+from portage import _encodings, _unicode_decode, _unicode_encode
 
 def cpv_all_diff_use(
 		cpvs=None,
@@ -352,7 +352,7 @@ class Rebuild(ModuleBase):
 		"""
 		if  not self.options["quiet"]:
 			print('   - Saving file: %s' %filepath)
-		with open(filepath, "w") as output:
+		with open(_unicode_encode(filepath), encoding=_encodings['fs'], mode="w") as output:
 			output.write('\n'.join(data))
 		print("   - Done")
 

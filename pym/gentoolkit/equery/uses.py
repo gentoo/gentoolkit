@@ -21,6 +21,7 @@ from getopt import gnu_getopt, GetoptError
 from glob import glob
 
 from portage import settings
+from portage import _encodings, _unicode_decode, _unicode_encode
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
@@ -135,7 +136,7 @@ def get_global_useflags():
 	# Get global USE flag descriptions
 	try:
 		path = os.path.join(settings["PORTDIR"], 'profiles', 'use.desc')
-		with open(path) as open_file:
+		with open(_unicode_encode(path), encoding=_encodings['fs']) as open_file:
 			for line in open_file:
 				if line.startswith('#'):
 					continue
@@ -155,7 +156,7 @@ def get_global_useflags():
 	for path in glob(os.path.join(settings["PORTDIR"],
 		'profiles', 'desc', '*.desc')):
 		try:
-			with open(path) as open_file:
+			with open(_unicode_encode(path), encoding=_encodings['fs']) as open_file:
 				for line in open_file:
 					if line.startswith('#'):
 						continue

@@ -27,11 +27,11 @@ __docformat__ = 'epytext'
 
 import os
 import re
-import codecs
 from functools import partial
 from itertools import chain
 
 import portage
+from portage import _encodings, _unicode_decode, _unicode_encode
 
 from gentoolkit import pprinter as pp
 from gentoolkit import errors
@@ -194,8 +194,8 @@ class ChangeLog(object):
 
 		result = []
 		partial_entries = []
-		with codecs.open(self.changelog_path, encoding="utf-8",
-			errors="replace") as log:
+		with open(_unicode_encode(self.changelog_path), 
+			encoding=_encodings['fs'], errors="replace") as log:
 			for line in log:
 				if line.startswith('#'):
 					continue
@@ -464,7 +464,7 @@ def get_bintree_cpvs(predicate=None):
 def print_file(path):
 	"""Display the contents of a file."""
 
-	with open(path, "rb") as open_file:
+	with open(_unicode_encode(path), encoding=_encodings['fs'], mode="rb") as open_file:
 		lines = open_file.read()
 		pp.uprint(lines.strip())
 

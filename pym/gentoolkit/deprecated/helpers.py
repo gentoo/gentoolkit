@@ -12,6 +12,7 @@ from __future__ import print_function
 import warnings
 
 import portage
+from portage import _encodings, _unicode_decode, _unicode_encode
 from gentoolkit import *
 from package import *
 from pprinter import warn
@@ -99,7 +100,8 @@ def find_system_packages(prefilter=None):
 def find_world_packages(prefilter=None):
 	"""Returns a tuple of lists, first list is resolved world packages,
 	seond is unresolved package names."""
-	f = open(portage.root+portage.WORLD_FILE)
+	f = open(_unicode_encode(portage.root+portage.WORLD_FILE),
+		encoding=_encodings['fs'])
 	pkglist = f.readlines()
 	resolved = []
 	unresolved = []

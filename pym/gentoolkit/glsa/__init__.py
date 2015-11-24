@@ -35,9 +35,11 @@ if sys.version_info[0:2] < (2,3):
 
 try:
 	import portage
+	from portage import _encodings, _unicode_decode, _unicode_encode
 except ImportError:
 	sys.path.insert(0, "/usr/lib/portage/pym")
 	import portage
+	from portage import _encodings, _unicode_decode, _unicode_encode
 
 
 # Note: the space for rgt and rlt is important !!
@@ -702,7 +704,8 @@ class Glsa:
 		@returns:	None
 		"""
 		if not self.isInjected():
-			checkfile = open(self.config["CHECKFILE"], "a+")
+			checkfile = open(_unicode_encode(self.config["CHECKFILE"]),
+				encoding=_encodings['fs'], mode="a+")
 			checkfile.write(self.nr+"\n")
 			checkfile.close()
 		return None

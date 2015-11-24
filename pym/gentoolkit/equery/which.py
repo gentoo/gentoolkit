@@ -26,6 +26,8 @@ from gentoolkit import errors
 from gentoolkit.equery import format_options, mod_usage
 from gentoolkit.query import Query
 
+from portage import _encodings, _unicode_decode, _unicode_encode
+
 # =======
 # Globals
 # =======
@@ -60,7 +62,7 @@ def print_help(with_description=True):
 
 def print_ebuild(ebuild_path):
 	"""Output the ebuild to std_out"""
-	with open(ebuild_path) as f:
+	with open(_unicode_encode(ebuild_path), encoding=_encodings['fs']) as f:
 		lines = f.readlines()
 		print("\n\n")
 		print("".join(lines))

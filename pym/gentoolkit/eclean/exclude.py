@@ -11,6 +11,7 @@ import os
 import sys
 import re
 import portage
+from portage import _encodings, _unicode_decode, _unicode_encode
 
 from gentoolkit.pprinter import warn
 
@@ -81,7 +82,8 @@ def parseExcludeFile(filepath, output):
 		}
 	output("Parsing Exclude file: " + filepath)
 	try:
-		file_ = open(filepath,"r")
+		file_ = open(_unicode_encode(filepath), 
+			encoding=_encodings['fs'], mode="r")
 	except IOError:
 		raise ParseExcludeFileException("Could not open exclusion file: " +
 			filepath)
