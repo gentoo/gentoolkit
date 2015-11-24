@@ -83,7 +83,7 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 		if not os.path.exists(_file):
 			continue
 
-		for line in open(_unicode_encode(_file), encoding=_encodings['fs'], mode='r').readlines():
+		for line in open(_unicode_encode(_file, encoding=_encodings['fs']), mode='r').readlines():
 			line = line.strip()
 			if line.startswith('dependency_libs='):
 				match = re.match("dependency_libs='([^']+)'", line)

@@ -30,8 +30,8 @@ def read_cache(temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 		}
 	try:
 		for key,val in ret.items():
-			_file = open(_unicode_encode(os.path.join(temp_path, key)),
-				encoding=_encodings['fs'])
+			_file = open(_unicode_encode(os.path.join(temp_path, key),
+				encoding=_encodings['fs']))
 			for line in _file.readlines():
 				val.add(line.strip())
 			#libraries.remove('\n')
@@ -54,14 +54,14 @@ def save_cache(logger, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 		os.makedirs(temp_path)
 
 	try:
-		_file = open(_unicode_encode(os.path.join(temp_path, 'timestamp')),
-			encoding=_encodings['fs'], mode='w')
+		_file = open(_unicode_encode(os.path.join(temp_path, 'timestamp'),
+			encoding=_encodings['fs']), mode='w')
 		_file.write(str(int(time.time())))
 		_file.close()
 
 		for key,val in to_save.items():
-			_file = open(_unicode_encode(os.path.join(temp_path, key)),
-				encoding=_encodings['fs'], mode='w')
+			_file = open(_unicode_encode(os.path.join(temp_path, key),
+				encoding=_encodings['fs']), mode='w')
 			for line in val:
 				_file.write(line + '\n')
 			_file.close()
@@ -89,7 +89,7 @@ def check_temp_files(temp_path=DEFAULTS['DEFAULT_TMP_DIR'], max_delay=3600,
 		return False
 
 	try:
-		_file = open(_unicode_encode(timestamp_path), encoding=_encodings['fs'])
+		_file = open(_unicode_encode(timestamp_path, encoding=_encodings['fs']))
 		timestamp = int(_file.readline())
 		_file .close()
 	except Exception as ex:

@@ -704,8 +704,8 @@ class Glsa:
 		@returns:	None
 		"""
 		if not self.isInjected():
-			checkfile = open(_unicode_encode(self.config["CHECKFILE"]),
-				encoding=_encodings['fs'], mode="a+")
+			checkfile = open(_unicode_encode(self.config["CHECKFILE"],
+				encoding=_encodings['fs']), mode="a+")
 			checkfile.write(self.nr+"\n")
 			checkfile.close()
 		return None

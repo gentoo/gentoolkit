@@ -137,8 +137,8 @@ def parse_revdep_config(revdep_confdir):
 	masked_files = os.environ.get('LD_LIBRARY_MASK', '')
 
 	for _file in os.listdir(revdep_confdir):
-		for line in open(_unicode_encode(os.path.join(revdep_confdir, _file)),
-				encoding=_encodings['fs']):
+		for line in open(_unicode_encode(os.path.join(revdep_confdir, _file),
+				encoding=_encodings['fs'])):
 			line = line.strip()
 			#first check for comment, we do not want to regex all lines
 			if not line.startswith('#'):
