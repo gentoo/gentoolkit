@@ -16,7 +16,7 @@ coordinated with fuzzyray and/or dolsen.
 If you create a release and it breaks, please fix it.
 
 Any non Gentoo developers who wish to contribute, the best way to get
-started is by clonig a copy of the repository and submitting patches to
+started is by cloning a copy of the repository and submitting patches to
 bugzilla.  Additionally, we can be found in the #gentoo-portage IRC
 channel.
 
