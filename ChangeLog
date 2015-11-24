@@ -1,3 +1,6 @@
+Please see https://gitweb.gentoo.org/proj/gentoolkit.git/log/
+Alternatively, you can use 'git log' on a copy of the repository
+
 2010-01-04: Paul Varner <fuzzyray@gentoo.org>
 	* euse: Merge euse from bug #259318 written by Jared Hancock. This
 	version is a significant rewrite and add supports for utilizing
