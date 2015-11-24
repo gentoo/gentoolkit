@@ -352,7 +352,7 @@ class Rebuild(ModuleBase):
 		"""
 		if  not self.options["quiet"]:
 			print('   - Saving file: %s' %filepath)
-		with open(_unicode_encode(filepath), encoding=_encodings['fs'], mode="w") as output:
+		with open(_unicode_encode(filepath, encoding=_encodings['fs']), mode="w") as output:
 			output.write('\n'.join(data))
 		print("   - Done")
 

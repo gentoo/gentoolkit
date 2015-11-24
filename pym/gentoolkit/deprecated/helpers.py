@@ -100,8 +100,8 @@ def find_system_packages(prefilter=None):
 def find_world_packages(prefilter=None):
 	"""Returns a tuple of lists, first list is resolved world packages,
 	seond is unresolved package names."""
-	f = open(_unicode_encode(portage.root+portage.WORLD_FILE),
-		encoding=_encodings['fs'])
+	f = open(_unicode_encode(portage.root+portage.WORLD_FILE,
+		encoding=_encodings['fs']))
 	pkglist = f.readlines()
 	resolved = []
 	unresolved = []

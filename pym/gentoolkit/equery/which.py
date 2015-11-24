@@ -62,7 +62,7 @@ def print_help(with_description=True):
 
 def print_ebuild(ebuild_path):
 	"""Output the ebuild to std_out"""
-	with open(_unicode_encode(ebuild_path), encoding=_encodings['fs']) as f:
+	with open(_unicode_encode(ebuild_path, encoding=_encodings['fs'])) as f:
 		lines = f.readlines()
 		print("\n\n")
 		print("".join(lines))

@@ -82,8 +82,8 @@ def parseExcludeFile(filepath, output):
 		}
 	output("Parsing Exclude file: " + filepath)
 	try:
-		file_ = open(_unicode_encode(filepath), 
-			encoding=_encodings['fs'], mode="r")
+		file_ = open(_unicode_encode(filepath, 
+			encoding=_encodings['fs']), mode="r")
 	except IOError:
 		raise ParseExcludeFileException("Could not open exclusion file: " +
 			filepath)

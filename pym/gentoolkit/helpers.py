@@ -194,8 +194,8 @@ class ChangeLog(object):
 
 		result = []
 		partial_entries = []
-		with open(_unicode_encode(self.changelog_path), 
-			encoding=_encodings['fs'], errors="replace") as log:
+		with open(_unicode_encode(self.changelog_path, 
+			encoding=_encodings['fs'], errors="replace")) as log:
 			for line in log:
 				if line.startswith('#'):
 					continue
@@ -464,7 +464,7 @@ def get_bintree_cpvs(predicate=None):
 def print_file(path):
 	"""Display the contents of a file."""
 
-	with open(_unicode_encode(path), encoding=_encodings['fs'], mode="rb") as open_file:
+	with open(_unicode_encode(path, encoding=_encodings['fs']), mode="rb") as open_file:
 		lines = open_file.read()
 		pp.uprint(lines.strip())
 

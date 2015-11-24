@@ -35,7 +35,7 @@ def parse_conf(conf_file, visited=None, logger=None):
 
 	for conf in conf_file:
 		try:
-			with open(_unicode_encode(conf), encoding=_encodings['fs']) as _file:
+			with open(_unicode_encode(conf, encoding=_encodings['fs'])) as _file:
 				for line in _file.readlines():
 					line = line.strip()
 					if line.startswith('#'):
@@ -76,8 +76,8 @@ def prepare_search_dirs(logger, settings):
 
 	#try:
 	with open(_unicode_encode(os.path.join(
-		portage.root, settings['DEFAULT_ENV_FILE'])),
-		encoding=_encodings['fs'], mode='r') as _file:
+		portage.root, settings['DEFAULT_ENV_FILE']),
+		encoding=_encodings['fs']), mode='r') as _file:
 		for line in _file.readlines():
 			line = line.strip()
 			match = re.match("^export (ROOT)?PATH='([^']+)'", line)
