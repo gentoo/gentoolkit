@@ -11,6 +11,7 @@ import stat
 import sys
 
 import portage
+from portage import _encodings, _unicode_decode, _unicode_encode
 from portage.output import blue, yellow
 from .settings import parse_revdep_config
 
@@ -34,7 +35,7 @@ def parse_conf(conf_file, visited=None, logger=None):
 
 	for conf in conf_file:
 		try:
-			with open(conf) as _file:
+			with open(_unicode_encode(conf), encoding=_encodings['fs']) as _file:
 				for line in _file.readlines():
 					line = line.strip()
 					if line.startswith('#'):
@@ -74,8 +75,9 @@ def prepare_search_dirs(logger, settings):
 	lib_dirs = set(['/lib', '/usr/lib', ])
 
 	#try:
-	with open(os.path.join(
-		portage.root, settings['DEFAULT_ENV_FILE']), 'r') as _file:
+	with open(_unicode_encode(os.path.join(
+		portage.root, settings['DEFAULT_ENV_FILE'])),
+		encoding=_encodings['fs'], mode='r') as _file:
 		for line in _file.readlines():
 			line = line.strip()
 			match = re.match("^export (ROOT)?PATH='([^']+)'", line)
