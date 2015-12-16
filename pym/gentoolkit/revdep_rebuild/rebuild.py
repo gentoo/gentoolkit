@@ -119,10 +119,10 @@ def main(settings=None, logger=None):
 	if not settings['stdout'].isatty() or settings['nocolor']:
 		nocolor()
 
-	#TODO: Development warning
 	logger.warn(blue(' * ') +
-		yellow('This is a prerelease version, '
-			'so it may not work correctly'))
+		yellow('This is the new python coded version'))
+	logger.warn(blue(' * ') +
+		yellow('Please report any bugs found using it.'))
 	logger.warn(blue(' * ') +
 		yellow('The original revdep-rebuild script is '
 			'installed as revdep-rebuild.sh'))
