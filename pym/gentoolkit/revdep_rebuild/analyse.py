@@ -31,7 +31,7 @@ def scan_files(libs_and_bins, cmd_max_args, logger, searchbits):
 	'''
 	stime = current_milli_time()
 	scanned_files = {} # {bits: {soname: (filename, needed), ...}, ...}
-	lines = scan(['-BF', '%F %f %S %n %M'],
+	lines = scan(['-BF', '%F;%f;%S;%n;%M'],
 				 libs_and_bins, cmd_max_args, logger)
 	ftime = current_milli_time()
 	logger.debug("\tscan_files(); total time to get scanelf data is "
@@ -39,8 +39,8 @@ def scan_files(libs_and_bins, cmd_max_args, logger, searchbits):
 	stime = current_milli_time()
 	count = 0
 	for line in lines:
-		parts = line.split(' ')
-		if len(parts) < 5:
+		parts = line.split(';')
+		if len(parts) != 5:
 			logger.error("\tscan_files(); error processing lib: %s" % line)
 			logger.error("\tscan_files(); parts = %s" % str(parts))
 			continue
@@ -205,7 +205,7 @@ class LibCheck(object):
 			try:
 				scanned = scanned_files[bits]
 			except KeyError:
-				self.logger.debug('There are no %s-bit libraries'%bits) 
+				self.logger.debug('There are no %s-bit libraries'%bits)
 				continue
 			self.logger.debug(self.smsg % bits)
 			self.setlibs(sorted(scanned), bits)
