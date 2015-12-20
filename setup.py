@@ -80,9 +80,6 @@ class set_version(core.Command):
 				with io.open(f[0], 'r', 1, 'utf_8') as s:
 					for line in s:
 						newline = re.sub(pattern %f[1], '"%s"' % ver, line, 1)
-						if newline != line:
-							#log.info("%s: %s" % (f, newline))
-							print("%s: %s" % (f[0], newline.encode('utf_8').strip('\n')))
 						updated_file.append(newline)
 				with io.open(f[0], 'w', 1, 'utf_8') as s:
 					s.writelines(updated_file)
