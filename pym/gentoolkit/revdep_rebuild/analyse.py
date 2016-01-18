@@ -320,9 +320,15 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		stime = current_milli_time()
 		logger.info(green(' * ') +
 			bold('Collecting dynamic linking informations'))
+		all_masks = masked_dirs.copy()
+		all_masks.update(masked_files)
+		logger.debug("\tall_masks:")
+		for x in sorted(all_masks):
+			logger.debug('\t\t%s' % (x))
+
 		libraries, la_libraries, libraries_links = \
-			collect_libraries_from_dir(lib_dirs, masked_dirs, logger)
-		binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logger)
+			collect_libraries_from_dir(lib_dirs, all_masks, logger)
+		binaries = collect_binaries_from_dir(bin_dirs, all_masks, logger)
 		ftime = current_milli_time()
 		logger.debug('\ttime to complete task: %d milliseconds' % (ftime-stime))
 
