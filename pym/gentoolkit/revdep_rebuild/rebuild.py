@@ -127,7 +127,7 @@ def main(settings=None, logger=None):
 		yellow('The original revdep-rebuild script is '
 			'installed as revdep-rebuild.sh'))
 	logger.warn(blue(' * ') +
-		yellow('Please files bugs at: '
+		yellow('Please file bugs at: '
 			'https://bugs.gentoo.org/'))
 
 	if os.getuid() != 0 and not settings['PRETEND']:
