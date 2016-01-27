@@ -180,9 +180,17 @@ def process_keywords(keywords, ops, arch_status=None):
 				# master list.  If it lacks some keywords, then we might miss
 				# somethings here, but not much we can do.
 				arches = old_arches
+
 			# We ignore the glob arch as we never want to tweak it.
 			if '*' in arches:
 				arches.remove('*')
+
+			# For keywords that are explicitly disabled, do not update.  When
+			# people use `ekeyword ~all ...` or `ekeyword all ...`, they rarely
+			# (if ever) want to change a '-sparc' to 'sparc' or '-sparc' to
+			# '~sparc'.  We force people to explicitly do `ekeyword sparc ...`
+			# in these cases.
+			arches = [x for x in arches if '-' + x not in new_keywords]
 		else:
 			arches = (oarch,)
 

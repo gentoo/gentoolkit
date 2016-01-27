@@ -196,6 +196,14 @@ class TestProcessKeywords(unittest.TestCase):
 		self._test('-* ~* * alpha arm arm64 m68k', ops,
 		           '-* ~* * ~alpha arm ~arm64 ~m68k', arch_status)
 
+	def testAllDisabled(self):
+		"""Make sure ~all does not change -arch to ~arch"""
+		ops = (
+			ekeyword.Op('~', 'all', None),
+		)
+		self._test('alpha -sparc ~x86', ops,
+		           '~alpha -sparc ~x86', {})
+
 
 class TestProcessContent(unittest.TestCase):
 	"""Tests for process_content"""
