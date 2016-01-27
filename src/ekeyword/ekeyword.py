@@ -168,7 +168,7 @@ def process_keywords(keywords, ops, arch_status=None):
 	for op, oarch, refarch in ops:
 		# Figure out which keywords we need to modify.
 		if oarch == 'all':
-			if not arch_status:
+			if arch_status is None:
 				raise ValueError('unable to process "all" w/out profiles.desc')
 			old_arches = set([keyword_to_arch(a) for a in new_keywords])
 			if op is None:
