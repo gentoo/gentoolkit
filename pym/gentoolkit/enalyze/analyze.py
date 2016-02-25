@@ -429,9 +429,10 @@ class Analyse(ModuleBase):
 		for cpv in cpvs:
 			(flag_plus, flag_neg, unset) = flags.analyse_cpv(cpv)
 			if self.options["unset"]:
-				self.printer(cpv, "", (flag_plus, flag_neg, unset))
+				self.printer(cpv, "", (sorted(flag_plus), sorted(flag_neg),
+					sorted(unset)))
 			else:
-				self.printer(cpv, "", (flag_plus, flag_neg, []))
+				self.printer(cpv, "", (sorted(flag_plus), sorted(flag_neg), []))
 		if not self.options['quiet']:
 			print("===================================================")
 			print("Total number of installed ebuilds =",
