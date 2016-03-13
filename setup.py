@@ -148,7 +148,7 @@ core.setup(
 		(os.path.join(os.sep, EPREFIX.lstrip(os.sep), 'etc/revdep-rebuild'), ['data/revdep-rebuild/99revdep-rebuild']),
 		(os.path.join(os.sep, EPREFIX.lstrip(os.sep), 'etc/eclean'), glob('data/eclean/*')),
 		(os.path.join(os.sep, EPREFIX.lstrip(os.sep), 'usr/share/man/man1'), glob('man/*')),
-		(os.path.join(os.sep, EPREFIX.lstrip(os.sep), 'etc/tmpfiles.d'), ['data/tmpfiles.d/revdep-rebuild.conf']),
+		(os.path.join(os.sep, EPREFIX.lstrip(os.sep), 'usr/lib/tmpfiles.d'), ['data/tmpfiles.d/revdep-rebuild.conf']),
 	),
 	cmdclass={
 		'test': load_test(),
