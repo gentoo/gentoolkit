@@ -92,9 +92,10 @@ class keywords_header:
 		return [x for x in ports.archlist()
 			if not x.startswith('~')]
 
-	@staticmethod
-	def __sortKeywords(keywords, prefix = False, required_keywords = []):
-		"""Sort keywords with short archs first"""
+	def __sortKeywords(self, keywords, prefix = False, required_keywords = []):
+		"""Sort keywords: order by status (IMP, then DEV, then EXP, then
+		prefix), then by name."""
+
 		# user specified only some keywords to display
 		if len(required_keywords) != 0:
 			tmpkeywords = [k for k in keywords
@@ -103,15 +104,22 @@ class keywords_header:
 			if len(tmpkeywords) != 0:
 				keywords = tmpkeywords
 
-		normal = [k for k in keywords
-			if len(k.split('-')) == 1]
-		normal.sort()
-
+		normal = [k for k in keywords if len(k.split('-')) == 1]
 		if prefix:
 			longer = [k for k in keywords
 				if len(k.split('-')) != 1]
 			longer.sort()
 			normal.extend(longer)
+
+		lists = self.__IMPARCHS, self.__DEV_ARCHS, self.__EXP_ARCHS
+		levels = {}
+		for kw in normal:
+			for level, ls in enumerate(lists):
+				if kw in ls:
+					levels[kw] = level
+					break
+
+		normal.sort(key=lambda kw: (levels.get(kw, 99), kw))
 		return normal
 
 	def __readAdditionalFields(self):
