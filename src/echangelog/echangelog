@@ -264,10 +264,17 @@ if (-f 'ChangeLog') {
 
 		die "Can't find PORTDIR\n" if (length $portdir == 0);
 
-		open($fh, '<', "$portdir/skel.ChangeLog")
-			or die "Can't open $portdir/skel.ChangeLog for input: $!\n";
-		{ local $/ = undef; $text = <$fh>; }
-		close($fh);
+		if (open($fh, '<', "$portdir/skel.ChangeLog")) {
+			local $/ = undef; $text = <$fh>;
+			close($fh);
+		}
+		else {
+			$text = <<EOT
+# ChangeLog for <CATEGORY>/<PACKAGE>
+# Copyright 1999-2016 Gentoo Foundation; Distributed under the GPL v2
+# \$Id\$
+EOT
+		}
 
 		$text =~ s/^\*.*//ms; # don't need the fake entry
 	} else {
