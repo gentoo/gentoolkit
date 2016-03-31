@@ -100,6 +100,11 @@ def main(argv, indirect = False):
 	if not color and not sys.stdout.isatty():
 		# disable colors
 		porto.nocolor()
+
+	# Imply prefix if user specified any architectures (Bug 578496)
+	if len(highlight_arch) > 0:
+		prefix = True
+
 	keywords = keywords_header(prefix, highlight_arch, order)
 	if len(package) > 0:
 		mysettings = portc(local_config=False)
