@@ -102,7 +102,7 @@ def main(argv, indirect = False):
 		porto.nocolor()
 
 	# Imply prefix if user specified any architectures (Bug 578496)
-	if len(highlight_arch) > 0:
+	if len(opts.arch) > 0:
 		prefix = True
 
 	keywords = keywords_header(prefix, highlight_arch, order)
