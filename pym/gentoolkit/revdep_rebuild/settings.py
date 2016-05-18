@@ -51,59 +51,59 @@ def parse_options():
 	#are not appliable
 	from .rebuild import VERSION, APP_NAME
 	settings = DEFAULTS.copy()
-	
+
 	parser = argparse.ArgumentParser(
 		description='Broken reverse dependency rebuilder, python implementation.',
 		epilog='Calls emerge, options after -- are ignored by %s '
 				'and passed directly to emerge.' % APP_NAME,
 		add_help=False
 		)
-	
-	parser.add_argument('-h', '--help', 
-					 action='help', 
+
+	parser.add_argument('-h', '--help',
+					 action='help',
 					 help='Print this usage and exit')
-	parser.add_argument('-V', '--version', 
-					 action='version', 
+	parser.add_argument('-V', '--version',
+					 action='version',
 					 help='Show version informations',
 					 version='%(prog)s ' + VERSION)
-	
-	parser.add_argument('-i', '--ignore', 
-					 action='store_true', 
-					 help='Ignore temporary files from previous runs ' 
+
+	parser.add_argument('-i', '--ignore',
+					 action='store_true',
+					 help='Ignore temporary files from previous runs '
 						'(also won\'t create any)')
 
-	parser.add_argument('-L', '--library', 
-					 action='append', 
+	parser.add_argument('-L', '--library',
+					 action='append',
 					 help='Unconditionally emerge existing packages that use '
 						'the library with NAME. NAME can be a full path, full '
 						'or partial name')
-	parser.add_argument('-l', '--no-ld-path', 
-					 action='store_true', 
+	parser.add_argument('-l', '--no-ld-path',
+					 action='store_true',
 					 help='Do not set LD_LIBRARY_PATH')
-	parser.add_argument('-o', '--no-order', 
-					 action='store_true', 
+	parser.add_argument('-o', '--no-order',
+					 action='store_true',
 					 help='Do not check the build order '
 						'(Saves time, but may cause breakage.)')
-	parser.add_argument('-p', '--pretend', 
+	parser.add_argument('-p', '--pretend',
 					 action='store_true',
 					 help='Do a trial run without actually emerging anything '
-                        '(also passed to emerge command)')
+						'(also passed to emerge command)')
 
-	parser.add_argument('-C', '--nocolor', 
-					 action='store_true', 
+	parser.add_argument('-C', '--nocolor',
+					 action='store_true',
 					 help='Turn off colored output')
-	parser.add_argument('-q', '--quiet', 
-					 action='store_true', 
+	parser.add_argument('-q', '--quiet',
+					 action='store_true',
 					 help='Be less verbose (also passed to emerge command)')
-	parser.add_argument('-v', '--verbose', 
-					 action='store_true', 
+	parser.add_argument('-v', '--verbose',
+					 action='store_true',
 					 help='Be more verbose (also passed to emerge command)')
-	parser.add_argument('-d', '--debug', 
-					 action='store_true', 
+	parser.add_argument('-d', '--debug',
+					 action='store_true',
 					 help='Print debug informations')
-	
+
 	parser.add_argument('portage_options', nargs='*')
-	
+
 	args = parser.parse_args()
 	settings['VERBOSITY'] = 3 if args.debug else 2 if args.verbose else 0 if args.quiet else 1
 	settings['quiet'] = args.quiet
