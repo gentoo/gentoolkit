@@ -103,6 +103,11 @@ def get_slotted_cps(cpvs, logger):
 	cps = []
 	for cpv in cpvs:
 		parts = catpkgsplit(cpv)
+		if not parts:
+			logger.warn(('\t' + red("Failed to split the following pkg: "
+				"%s, not a valid cat/pkg-ver" %cpv)))
+			continue
+
 		cp = parts[0] + '/' + parts[1]
 		try:
 			slot = portdb.aux_get(cpv, ["SLOT"])
