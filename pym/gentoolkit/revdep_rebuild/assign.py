@@ -52,8 +52,8 @@ def assign_packages(broken, logger, settings):
 									logger.info('\t' + green('* ') + m +
 												' -> ' + bold(found))
 				except Exception as e:
-					logger.warn(red(' !! Failed to read ' + f))
-					logger.warn(red(' !! Error was:' + str(e)))
+					logger.warning(red(' !! Failed to read ' + f))
+					logger.warning(red(' !! Error was:' + str(e)))
 
 	broken_filenames = set(broken)
 	orphaned = broken_filenames.difference(assigned_filenames)
@@ -76,7 +76,7 @@ def get_best_match(cpv, cp, logger):
 	"""
 
 	slot = portage.db[portage.root]["vartree"].dbapi.aux_get(cpv, ["SLOT"])[0]
-	logger.warn('\t%s "%s" %s.' % (yellow('* Warning:'), cpv,bold('ebuild not found.')))
+	logger.warning('\t%s "%s" %s.' % (yellow('* Warning:'), cpv,bold('ebuild not found.')))
 	logger.debug('\tget_best_match(); Looking for %s:%s' %(cp, slot))
 	try:
 		match = portdb.match('%s:%s' %(cp, slot))
@@ -84,12 +84,12 @@ def get_best_match(cpv, cp, logger):
 		match = None
 
 	if not match:
-		logger.warn('\t' + red('!!') + ' ' + yellow(
+		logger.warning('\t' + red('!!') + ' ' + yellow(
 			'Could not find ebuild for %s:%s' %(cp, slot)))
 		slot = ['']
 		match = portdb.match(cp)
 		if not match:
-			logger.warn('\t' + red('!!') + ' ' +
+			logger.warning('\t' + red('!!') + ' ' +
 				yellow('Could not find ebuild for ' + cp))
 	return match, slot
 
@@ -104,7 +104,7 @@ def get_slotted_cps(cpvs, logger):
 	for cpv in cpvs:
 		parts = catpkgsplit(cpv)
 		if not parts:
-			logger.warn(('\t' + red("Failed to split the following pkg: "
+			logger.warning(('\t' + red("Failed to split the following pkg: "
 				"%s, not a valid cat/pkg-ver" %cpv)))
 			continue
 
@@ -114,7 +114,7 @@ def get_slotted_cps(cpvs, logger):
 		except KeyError:
 			match, slot = get_best_match(cpv, cp, logger)
 			if not match:
-				logger.warn('\t' + red("Installed package: "
+				logger.warning('\t' + red("Installed package: "
 					"%s is no longer available" %cp))
 				continue
 
