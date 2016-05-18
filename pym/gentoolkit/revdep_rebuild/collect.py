@@ -110,9 +110,9 @@ def collect_libraries_from_dir(dirs, mask, logger):
 			continue
 
 		try:
-			for listing in os.listdir(_dir):
-				listing = os.path.join(_dir, listing)
-				if listing in mask:
+			for _listing in os.listdir(_dir):
+				listing = os.path.join(_dir, _listing)
+				if listing in mask or _listing in mask:
 					continue
 
 				if os.path.isdir(listing):
@@ -179,9 +179,9 @@ def collect_binaries_from_dir(dirs, mask, logger):
 			continue
 
 		try:
-			for listing in os.listdir(_dir):
-				listing = os.path.join(_dir, listing)
-				if listing in mask:
+			for _listing in os.listdir(_dir):
+				listing = os.path.join(_dir, _listing)
+				if listing in mask or _listing in mask:
 					continue
 
 				if os.path.isdir(listing):
