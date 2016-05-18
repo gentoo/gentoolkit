@@ -82,10 +82,10 @@ def rebuild(logger, assigned, settings):
 		args += ' --color n'
 
 	if len(emerge_command) == 0:
-		logger.warn(bold('\nThere is nothing to emerge. Exiting.'))
+		logger.warning(bold('\nThere is nothing to emerge. Exiting.'))
 		return 0
 
-	logger.warn(yellow(
+	logger.warning(yellow(
 		'\nemerge') + args +
 		' --oneshot --complete-graph=y ' +
 		bold(emerge_command))
@@ -119,19 +119,19 @@ def main(settings=None, logger=None):
 	if not settings['stdout'].isatty() or settings['nocolor']:
 		nocolor()
 
-	logger.warn(blue(' * ') +
+	logger.warning(blue(' * ') +
 		yellow('This is the new python coded version'))
-	logger.warn(blue(' * ') +
+	logger.warning(blue(' * ') +
 		yellow('Please report any bugs found using it.'))
-	logger.warn(blue(' * ') +
+	logger.warning(blue(' * ') +
 		yellow('The original revdep-rebuild script is '
 			'installed as revdep-rebuild.sh'))
-	logger.warn(blue(' * ') +
+	logger.warning(blue(' * ') +
 		yellow('Please file bugs at: '
 			'https://bugs.gentoo.org/'))
 
 	if os.getuid() != 0 and not settings['PRETEND']:
-		logger.warn(blue(' * ') +
+		logger.warning(blue(' * ') +
 			yellow('You are not root, adding --pretend to portage options'))
 		settings['PRETEND'] = True
 
@@ -153,20 +153,20 @@ def main(settings=None, logger=None):
 		assigned, orphaned = analyse(settings, logger, _libs_to_check=_libs_to_check)
 
 	if not assigned and not orphaned:
-		logger.warn('\n' + bold('Your system is consistent'))
+		logger.warning('\n' + bold('Your system is consistent'))
 		# return the correct exit code
 		return 0
 	elif orphaned:
 		# blank line for beter visibility of the following lines
-		logger.warn('')
+		logger.warning('')
 		if settings['library']:
-			logger.warn(red(' !!! Dependant orphaned files: ') +
+			logger.warning(red(' !!! Dependant orphaned files: ') +
 				bold('No installed package was found for the following:'))
 		else:
-			logger.warn(red(' !!! Broken orphaned files: ') +
+			logger.warning(red(' !!! Broken orphaned files: ') +
 				bold('No installed package was found for the following:'))
 		for filename in orphaned:
-			logger.warn(red('\t* ') + filename)
+			logger.warning(red('\t* ') + filename)
 
 	success = rebuild(logger, assigned, settings)
 	logger.debug("rebuild return code = %i" %success)

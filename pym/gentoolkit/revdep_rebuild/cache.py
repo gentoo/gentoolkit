@@ -66,7 +66,7 @@ def save_cache(logger, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 				_file.write(line + '\n')
 			_file.close()
 	except Exception as ex:
-		logger.warn('\t' + red('Could not save cache: %s' %str(ex)))
+		logger.warning('\t' + red('Could not save cache: %s' %str(ex)))
 
 
 

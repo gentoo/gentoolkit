@@ -283,7 +283,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		# when found for some reason
 
 		stime = current_milli_time()
-		logger.warn(green(' * ') +
+		logger.warning(green(' * ') +
 			bold('Collecting system binaries and libraries'))
 		bin_dirs, lib_dirs = prepare_search_dirs(logger, settings)
 
@@ -351,7 +351,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 	scanned_files = scan_files(libs_and_bins, settings['CMD_MAX_ARGS'],
 		logger, searchbits)
 
-	logger.warn(green(' * ') + bold('Checking dynamic linking consistency'))
+	logger.warning(green(' * ') + bold('Checking dynamic linking consistency'))
 	logger.debug(
 		'\tanalyse(), Searching for %i libs, bins within %i libraries and links'
 		% (len(libs_and_bins), len(libraries)+len(libraries_links))
@@ -365,7 +365,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		libraries.union(libraries_links), _libs_to_check, logger)
 	broken_pathes += broken_la
 
-	logger.warn(green(' * ') + bold('Assign files to packages'))
+	logger.warning(green(' * ') + bold('Assign files to packages'))
 
 	return assign_packages(broken_pathes, logger, settings)
 

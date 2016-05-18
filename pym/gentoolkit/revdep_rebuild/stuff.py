@@ -81,7 +81,7 @@ def filter_masked(assigned, logger):
 
 	def is_masked(ebuild):
 		if get_masking_status(ebuild):
-			logger.warn(' !!! ' + red('All ebuilds that could satisfy: ') +
+			logger.warning(' !!! ' + red('All ebuilds that could satisfy: ') +
 				green(ebuild) + red(' have been masked'))
 			return True
 		return False
