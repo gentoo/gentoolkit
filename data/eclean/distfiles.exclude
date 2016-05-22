@@ -3,3 +3,4 @@
 # to protect distfiles from "ecleaning". You can also name some specific files.
 # See `man eclean` for syntax details.
 metadata.dtd
+metadata.xsd
