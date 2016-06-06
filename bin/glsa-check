@@ -240,11 +240,15 @@ def summarylist(myglsalist, fd1=sys.stdout, fd2=sys.stderr, encoding="utf-8"):
 			if len(myglsa.packages) > 3:
 				fd1.write("... ")
 		else:
-			for pkg in myglsa.packages.keys():
-				mylist = vardb.match(portage.dep_getkey(str(pkg)))
+			for cpv in myglsa.packages.keys():
+				pkg = myglsa.packages[cpv]
+				for path in pkg:
+					v_installed = reduce(operator.add, [match(v, "vartree") for v in path["vul_atoms"]], [])
+					u_installed = reduce(operator.add, [match(u, "vartree") for u in path["unaff_atoms"]], [])
+				mylist = sorted(set(v_installed).difference(set(u_installed)))
 				if len(mylist) > 0:
-					pkg = color(" ".join(mylist))
-				fd1.write(" " + pkg + " ")
+					cpv = color(" ".join(mylist))
+				fd1.write(" " + cpv + " ")
 
 		fd1.write(")")
 		if list_cve:
