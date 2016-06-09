@@ -116,7 +116,7 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 
 
 class LibCheck(object):
-	def __init__(self, scanned_files, logger, searchlibs=None, searchbits=None):
+	def __init__(self, scanned_files, logger, searchlibs=None, searchbits=None, all_masks=None):
 		'''LibCheck init function.
 
 		@param scanned_files: optional dictionary if the type created by
@@ -130,6 +130,7 @@ class LibCheck(object):
 		self.logger = logger
 		self.searchlibs = searchlibs
 		self.searchbits = sorted(searchbits) or ['32', '64']
+		self.all_masks = all_masks
 		self.logger.debug("\tLibCheck.__init__(), new searchlibs: %s" %(self.searchbits))
 		if searchlibs:
 			self.smsg = '\tLibCheck.search(), Checking for %s bit dependants'
@@ -213,6 +214,12 @@ class LibCheck(object):
 				for filename, needed in filepaths.items():
 					for l in needed:
 						if self.check(l):
+							if l in self.all_masks:
+								self.logger.debug('\tLibrary %s ignored as it is masked' % l)
+								continue
+							if filename in self.all_masks:
+								self.logger.debug('\tFile %s ignored as it is masked' % filename)
+								continue
 							if not bits in found_libs:
 								found_libs[bits] = {}
 							try:
@@ -275,6 +282,26 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		_libs_to_check = set()'''
 	searchbits.update(['64', '32'])
 
+	masked_dirs, masked_files, ld = parse_revdep_config(settings['REVDEP_CONFDIR'])
+	masked_dirs.update([
+		'/lib/modules',
+		'/lib32/modules',
+		'/lib64/modules',
+		]
+	)
+
+	all_masks = masked_dirs.copy()
+	all_masks.update(masked_files)
+	logger.debug("\tall_masks:")
+	for x in sorted(all_masks):
+		logger.debug('\t\t%s' % (x))
+
+
+	if '64' not in searchbits:
+		masked_dirs.update(['/lib64', '/usr/lib64'])
+	elif '32' not in searchbits:
+		masked_dirs.update(['/lib32', '/usr/lib32'])
+
 	if libraries and la_libraries and libraries_links and binaries:
 		logger.info(blue(' * ') +
 			bold('Found a valid cache, skipping collecting phase'))
@@ -287,20 +314,8 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 			bold('Collecting system binaries and libraries'))
 		bin_dirs, lib_dirs = prepare_search_dirs(logger, settings)
 
-		masked_dirs, masked_files, ld = \
-			parse_revdep_config(settings['REVDEP_CONFDIR'])
 		lib_dirs.update(ld)
 		bin_dirs.update(ld)
-		masked_dirs.update([
-			'/lib/modules',
-			'/lib32/modules',
-			'/lib64/modules',
-			]
-		)
-		if '64' not in searchbits:
-			masked_dirs.update(['/lib64', '/usr/lib64'])
-		elif '32' not in searchbits:
-			masked_dirs.update(['/lib32', '/usr/lib32'])
 
 		logger.debug('\tanalyse(), bin directories:')
 		for x in sorted(bin_dirs):
@@ -320,11 +335,6 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		stime = current_milli_time()
 		logger.info(green(' * ') +
 			bold('Collecting dynamic linking informations'))
-		all_masks = masked_dirs.copy()
-		all_masks.update(masked_files)
-		logger.debug("\tall_masks:")
-		for x in sorted(all_masks):
-			logger.debug('\t\t%s' % (x))
 
 		libraries, la_libraries, libraries_links = \
 			collect_libraries_from_dir(lib_dirs, all_masks, logger)
@@ -357,7 +367,7 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		% (len(libs_and_bins), len(libraries)+len(libraries_links))
 	)
 
-	libcheck = LibCheck(scanned_files, logger, _libs_to_check, searchbits)
+	libcheck = LibCheck(scanned_files, logger, _libs_to_check, searchbits, all_masks)
 
 	broken_pathes = libcheck.process_results(libcheck.search())
 
@@ -365,9 +375,10 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		libraries.union(libraries_links), _libs_to_check, logger)
 	broken_pathes += broken_la
 
-	logger.warning(green(' * ') + bold('Assign files to packages'))
-
-	return assign_packages(broken_pathes, logger, settings)
+	if broken_pathes:
+		logger.warning(green(' * ') + bold('Assign files to packages'))
+		return assign_packages(broken_pathes, logger, settings)
+	return None, None # no need to assign anything
 
 
 if __name__ == '__main__':
