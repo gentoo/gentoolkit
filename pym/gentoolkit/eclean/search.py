@@ -542,18 +542,22 @@ def findPackages(
 		if root[-3:] == 'All':
 			continue
 		for file in files:
-			if not file[-5:] == ".tbz2":
-				# ignore non-tbz2 files
+			if file[-5:] == ".tbz2":
+				category = os.path.basename(root)
+				cpv = category+"/"+file[:-5]
+			elif file[-5:] == ".xpak":
+				category = os.path.basename(os.path.dirname(root))
+				cpv = category+"/"+file.rpartition('-')[0]
+			else:
+				# ignore other files
 				continue
 			path = os.path.join(root, file)
-			category = os.path.split(root)[-1]
-			cpv = category+"/"+file[:-5]
 			st = os.lstat(path)
 			if time_limit and (st[stat.ST_MTIME] >= time_limit):
 				# time-limit exclusion
 				continue
 			# dict is cpv->[files] (2 files in general, because of symlink)
-			clean_me[cpv] = [path]
+			clean_me.setdefault(cpv,[]).append(path)
 			#if os.path.islink(path):
 			if stat.S_ISLNK(st[stat.ST_MODE]):
 				clean_me[cpv].append(os.path.realpath(path))
