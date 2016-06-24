@@ -562,24 +562,28 @@ def findPackages(
 			if stat.S_ISLNK(st[stat.ST_MODE]):
 				clean_me[cpv].append(os.path.realpath(path))
 	# keep only obsolete ones
-	if destructive:
-		dbapi = var_dbapi
-		if package_names:
-			cp_all = dict.fromkeys(dbapi.cp_all())
-		else:
-			cp_all = {}
+	if destructive and package_names:
+		cp_all = dict.fromkeys(var_dbapi.cp_all())
 	else:
-		dbapi = port_dbapi
 		cp_all = {}
 	for cpv in list(clean_me):
 		if exclDictMatchCP(exclude,portage.cpv_getkey(cpv)):
 			# exclusion because of the exclude file
 			del clean_me[cpv]
 			continue
-		if dbapi.cpv_exists(cpv):
-			# exclusion because pkg still exists (in porttree or vartree)
+		if not destructive and port_dbapi.cpv_exists(cpv):
+			# exclusion because pkg still exists (in porttree)
 			del clean_me[cpv]
 			continue
+		if destructive and var_dbapi.cpv_exists(cpv):
+			buildtime = var_dbapi.aux_get(cpv, ['BUILD_TIME'])[0].encode('utf-8').strip()
+			clean_me[cpv] = [path for path in clean_me[cpv]
+				# only keep path if BUILD_TIME is identical with vartree
+				if portage.xpak.tbz2(path).getfile('BUILD_TIME').strip() != buildtime]
+			if not clean_me[cpv]:
+				# nothing we can clean for this package
+				del clean_me[cpv]
+				continue
 		if portage.cpv_getkey(cpv) in cp_all and port_dbapi.cpv_exists(cpv):
 			# exlusion because of --package-names
 			del clean_me[cpv]
