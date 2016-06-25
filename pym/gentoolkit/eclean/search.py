@@ -538,29 +538,20 @@ def findPackages(
 		print( pp.error("(Check your make.conf file and environment)."), file=sys.stderr)
 		print( pp.error("Error: %s" %str(er)), file=sys.stderr)
 		exit(1)
-	for root, dirs, files in os.walk(pkgdir):
-		if root[-3:] == 'All':
+
+	# if portage supports FEATURES=binpkg-multi-instance, then
+	# cpv_all can return multiple instances per cpv, where
+	# instances are distinguishable by some extra attributes
+	# provided by portage's _pkg_str class
+	bin_dbapi = portage.binarytree(pkgdir=pkgdir, settings=var_dbapi.settings).dbapi
+	for cpv in bin_dbapi.cpv_all():
+		mtime = int(bin_dbapi.aux_get(cpv, ['_mtime_'])[0])
+		if time_limit and mtime >= time_limit:
+			# time-limit exclusion
 			continue
-		for file in files:
-			if file[-5:] == ".tbz2":
-				category = os.path.basename(root)
-				cpv = category+"/"+file[:-5]
-			elif file[-5:] == ".xpak":
-				category = os.path.basename(os.path.dirname(root))
-				cpv = category+"/"+file.rpartition('-')[0]
-			else:
-				# ignore other files
-				continue
-			path = os.path.join(root, file)
-			st = os.lstat(path)
-			if time_limit and (st[stat.ST_MTIME] >= time_limit):
-				# time-limit exclusion
-				continue
-			# dict is cpv->[files] (2 files in general, because of symlink)
-			clean_me.setdefault(cpv,[]).append(path)
-			#if os.path.islink(path):
-			if stat.S_ISLNK(st[stat.ST_MODE]):
-				clean_me[cpv].append(os.path.realpath(path))
+		# dict is cpv->[pkgs] (supports binpkg-multi-instance)
+		clean_me.setdefault(cpv, []).append(cpv)
+
 	# keep only obsolete ones
 	if destructive and package_names:
 		cp_all = dict.fromkeys(var_dbapi.cp_all())
@@ -576,10 +567,10 @@ def findPackages(
 			del clean_me[cpv]
 			continue
 		if destructive and var_dbapi.cpv_exists(cpv):
-			buildtime = var_dbapi.aux_get(cpv, ['BUILD_TIME'])[0].encode('utf-8').strip()
-			clean_me[cpv] = [path for path in clean_me[cpv]
+			buildtime = var_dbapi.aux_get(cpv, ['BUILD_TIME'])[0]
+			clean_me[cpv] = [pkg for pkg in clean_me[cpv]
 				# only keep path if BUILD_TIME is identical with vartree
-				if portage.xpak.tbz2(path).getfile('BUILD_TIME').strip() != buildtime]
+				if bin_dbapi.aux_get(pkg, ['BUILD_TIME'])[0] != buildtime]
 			if not clean_me[cpv]:
 				# nothing we can clean for this package
 				del clean_me[cpv]
@@ -587,5 +578,11 @@ def findPackages(
 		if portage.cpv_getkey(cpv) in cp_all and port_dbapi.cpv_exists(cpv):
 			# exlusion because of --package-names
 			del clean_me[cpv]
+
+	# the getname method correctly supports FEATURES=binpkg-multi-instance,
+	# allowing for multiple paths per cpv (the API used here is also compatible
+	# with older portage which does not support binpkg-multi-instance)
+	for cpv, pkgs in clean_me.items():
+		clean_me[cpv] = [bin_dbapi.bintree.getname(pkg) for pkg in pkgs]
 
 	return clean_me
