@@ -35,7 +35,7 @@ from gentoolkit.flag import get_flags, reduce_flags
 # Globals
 # =======
 
-QUERY_OPTS = {"all_versions" : False, "ignore_linguas" : False}
+QUERY_OPTS = {"all_versions" : False, "ignore_l10n" : False}
 
 # =========
 # Functions
@@ -57,7 +57,7 @@ def print_help(with_description=True):
 	print(format_options((
 		(" -h, --help", "display this help message"),
 		(" -a, --all", "include all package versions"),
-		(" -i, --ignore-linguas", "don't show linguas USE flags")
+		(" -i, --ignore-l10n", "don't show l10n USE flags")
 	)))
 
 
@@ -187,9 +187,10 @@ def get_output_descriptions(pkg, global_usedesc):
 	usevar = reduce_flags(iuse)
 	usevar.sort()
 
-	if QUERY_OPTS['ignore_linguas']:
+	if QUERY_OPTS['ignore_l10n']:
 		for a in usevar[:]:
-			if a.startswith("linguas_"):
+			#TODO: Remove linguas after transition to l10n is complete
+			if a.startswith("l10n_") or a.startswith("linguas_"):
 				usevar.remove(a)
 
 
@@ -244,8 +245,8 @@ def parse_module_options(module_opts):
 			sys.exit(0)
 		elif opt in ('-a', '--all'):
 			QUERY_OPTS['all_versions'] = True
-		elif opt in ('-i', '--ignore-linguas'):
-			QUERY_OPTS['ignore_linguas'] = True
+		elif opt in ('-i', '--ignore-l10n'):
+			QUERY_OPTS['ignore_l10n'] = True
 
 
 def print_legend():
@@ -261,7 +262,7 @@ def main(input_args):
 	"""Parse input and run the program"""
 
 	short_opts = "hai"
-	long_opts = ('help', 'all', 'ignore-linguas')
+	long_opts = ('help', 'all', 'ignore-l10n')
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
