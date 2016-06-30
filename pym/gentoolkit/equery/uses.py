@@ -138,6 +138,7 @@ def get_global_useflags():
 		path = os.path.join(settings["PORTDIR"], 'profiles', 'use.desc')
 		with open(_unicode_encode(path, encoding=_encodings['fs'])) as open_file:
 			for line in open_file:
+				line = _unicode_decode(line)
 				if line.startswith('#'):
 					continue
 				# Ex. of fields: ['syslog', 'Enables support for syslog\n']
@@ -158,6 +159,7 @@ def get_global_useflags():
 		try:
 			with open(_unicode_encode(path, encoding=_encodings['fs'])) as open_file:
 				for line in open_file:
+					line = _unicode_decode(line)
 					if line.startswith('#'):
 						continue
 					fields = [field.strip() for field in line.split(" - ", 1)]
