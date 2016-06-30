@@ -18,6 +18,8 @@ __docformat__ = 'epytext'
 
 import os
 import sys
+if sys.hexversion < 0x3000000:
+	from io import open
 from getopt import gnu_getopt, GetoptError
 
 
@@ -62,7 +64,8 @@ def print_help(with_description=True):
 
 def print_ebuild(ebuild_path):
 	"""Output the ebuild to std_out"""
-	with open(_unicode_encode(ebuild_path, encoding=_encodings['fs'])) as f:
+	with open(_unicode_encode(ebuild_path, encoding=_encodings['fs']),
+			encoding=_encodings['content']) as f:
 		lines = f.readlines()
 		print("\n\n")
 		print("".join(lines))

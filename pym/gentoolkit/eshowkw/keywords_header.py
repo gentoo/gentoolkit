@@ -6,6 +6,9 @@ __all__ = ['keywords_header']
 
 import portage
 import os
+import sys
+if sys.hexversion < 0x3000000:
+	from io import open
 from portage import _encodings, _unicode_decode, _unicode_encode
 from portage import settings as ports
 from portage.output import colorize
@@ -31,7 +34,8 @@ def load_profile_data(portdir=None, repo='gentoo'):
 
 	try:
 		arch_list = os.path.join(portdir, 'profiles', 'arch.list')
-		with open(_unicode_encode(arch_list, encoding=_encodings['fs'])) as f:
+		with open(_unicode_encode(arch_list, encoding=_encodings['fs']),
+				encoding=_encodings['content']) as f:
 			for line in f:
 				line = line.split('#', 1)[0].strip()
 				if line:
@@ -47,7 +51,8 @@ def load_profile_data(portdir=None, repo='gentoo'):
 			None: 3,
 		}
 		profiles_list = os.path.join(portdir, 'profiles', 'profiles.desc')
-		with open(_unicode_encode(profiles_list, encoding=_encodings['fs'])) as f:
+		with open(_unicode_encode(profiles_list, encoding=_encodings['fs']),
+				encoding=_encodings['content']) as f:
 			for line in f:
 				line = line.split('#', 1)[0].split()
 				if line:

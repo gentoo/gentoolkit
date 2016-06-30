@@ -16,6 +16,9 @@ __docformat__ = 'epytext'
 
 import os
 import sys
+if sys.hexversion < 0x3000000:
+	from io import open
+
 from functools import partial
 from getopt import gnu_getopt, GetoptError
 from glob import glob
@@ -136,9 +139,9 @@ def get_global_useflags():
 	# Get global USE flag descriptions
 	try:
 		path = os.path.join(settings["PORTDIR"], 'profiles', 'use.desc')
-		with open(_unicode_encode(path, encoding=_encodings['fs'])) as open_file:
+		with open(_unicode_encode(path, encoding=_encodings['fs']),
+				encoding=_encodings['content']) as open_file:
 			for line in open_file:
-				line = _unicode_decode(line)
 				if line.startswith('#'):
 					continue
 				# Ex. of fields: ['syslog', 'Enables support for syslog\n']
@@ -157,9 +160,9 @@ def get_global_useflags():
 	for path in glob(os.path.join(settings["PORTDIR"],
 		'profiles', 'desc', '*.desc')):
 		try:
-			with open(_unicode_encode(path, encoding=_encodings['fs'])) as open_file:
+			with open(_unicode_encode(path, encoding=_encodings['fs']),
+					encoding=_encodings['content']) as open_file:
 				for line in open_file:
-					line = _unicode_decode(line)
 					if line.startswith('#'):
 						continue
 					fields = [field.strip() for field in line.split(" - ", 1)]

@@ -15,6 +15,8 @@ from __future__ import print_function
 
 import os
 import sys
+if sys.hexversion < 0x3000000:
+	from io import open
 
 import gentoolkit
 from gentoolkit.module_base import ModuleBase
@@ -352,7 +354,8 @@ class Rebuild(ModuleBase):
 		"""
 		if  not self.options["quiet"]:
 			print('   - Saving file: %s' %filepath)
-		with open(_unicode_encode(filepath, encoding=_encodings['fs']), mode="w") as output:
+		with open(_unicode_encode(filepath, encoding=_encodings['fs']), mode="w",
+				encoding=_encodings['content']) as output:
 			output.write('\n'.join(data))
 		print("   - Done")
 
