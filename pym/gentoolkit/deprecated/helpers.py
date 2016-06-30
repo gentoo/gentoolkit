@@ -11,6 +11,10 @@ from __future__ import print_function
 
 import warnings
 
+import sys
+if sys.hexversion < 0x3000000:
+	from io import open
+
 import portage
 from portage import _encodings, _unicode_decode, _unicode_encode
 from gentoolkit import *
@@ -101,7 +105,7 @@ def find_world_packages(prefilter=None):
 	"""Returns a tuple of lists, first list is resolved world packages,
 	seond is unresolved package names."""
 	f = open(_unicode_encode(portage.root+portage.WORLD_FILE,
-		encoding=_encodings['fs']))
+		encoding=_encodings['fs']), encoding=_encodings['content'])
 	pkglist = f.readlines()
 	resolved = []
 	unresolved = []

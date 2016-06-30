@@ -11,10 +11,13 @@ from __future__ import print_function
 
 import os
 import sys
+if sys.hexversion < 0x3000000:
+	from io import open
 import shutil
 import random
 
 import gentoolkit.pprinter as pp
+from portage import _encodings, _unicode_decode, _unicode_encode
 
 __version__= "0.0.1"
 __author__ = "Brian Dolbec"
@@ -54,7 +57,8 @@ def make_dist(path, files, clean_dict=None):
 		size = random.randint(1000,5000)
 		data = "0" * size
 		filepath = os.path.join(path, file_)
-		with open(filepath, 'w', file_mode) as new_file:
+		with open(_unicode_encode(filepath, encoding=_encodings['fs']), 'w', file_mode,
+				encoding=_encodings['content']) as new_file:
 			new_file.write(data)
 		if file_ not in clean_dict:
 			# it is included in a multifile target

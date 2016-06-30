@@ -9,6 +9,8 @@ from __future__ import print_function
 
 import os
 import sys
+if sys.hexversion < 0x3000000:
+	from io import open
 import re
 import portage
 from portage import _encodings, _unicode_decode, _unicode_encode
@@ -83,7 +85,7 @@ def parseExcludeFile(filepath, output):
 	output("Parsing Exclude file: " + filepath)
 	try:
 		file_ = open(_unicode_encode(filepath, 
-			encoding=_encodings['fs']), mode="r")
+			encoding=_encodings['fs']), mode="r", encoding=_encodings['content'])
 	except IOError:
 		raise ParseExcludeFileException("Could not open exclusion file: " +
 			filepath)

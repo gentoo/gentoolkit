@@ -7,6 +7,9 @@ from __future__ import print_function
 import os
 import re
 import time
+import sys
+if sys.hexversion < 0x3000000:
+	from io import open
 
 from portage import _encodings, _unicode_decode, _unicode_encode
 from portage.output import bold, blue, yellow, green
@@ -83,7 +86,8 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 		if not os.path.exists(_file):
 			continue
 
-		for line in open(_unicode_encode(_file, encoding=_encodings['fs']), mode='r').readlines():
+		for line in open(_unicode_encode(_file, encoding=_encodings['fs']), mode='r',
+			encoding=_encodings['content']).readlines():
 			line = line.strip()
 			if line.startswith('dependency_libs='):
 				match = re.match("dependency_libs='([^']+)'", line)

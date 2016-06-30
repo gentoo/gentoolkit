@@ -195,7 +195,8 @@ class ChangeLog(object):
 		result = []
 		partial_entries = []
 		with open(_unicode_encode(self.changelog_path, 
-			encoding=_encodings['fs'], errors="replace")) as log:
+			encoding=_encodings['fs'], errors="replace"),
+			encoding=_encodings['content']) as log:
 			for line in log:
 				if line.startswith('#'):
 					continue

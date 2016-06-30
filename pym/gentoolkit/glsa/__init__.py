@@ -17,6 +17,8 @@ __author__ = "Marius Mauch <genone@gentoo.org>"
 
 
 import sys
+if sys.hexversion < 0x3000000:
+	from io import open
 import os
 try:
     from urllib import urlopen
@@ -705,7 +707,8 @@ class Glsa:
 		"""
 		if not self.isInjected():
 			checkfile = open(_unicode_encode(self.config["CHECKFILE"],
-				encoding=_encodings['fs']), mode="a+")
+				encoding=_encodings['fs']), mode="a+",
+				encoding=_encodings['content'])
 			checkfile.write(self.nr+"\n")
 			checkfile.close()
 		return None

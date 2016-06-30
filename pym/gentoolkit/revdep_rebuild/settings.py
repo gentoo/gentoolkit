@@ -7,6 +7,8 @@ from __future__ import print_function
 import argparse
 import os
 import sys
+if sys.hexversion < 0x3000000:
+	from io import open
 import re
 import glob
 
@@ -138,7 +140,7 @@ def parse_revdep_config(revdep_confdir):
 
 	for _file in os.listdir(revdep_confdir):
 		for line in open(_unicode_encode(os.path.join(revdep_confdir, _file),
-				encoding=_encodings['fs'])):
+				encoding=_encodings['fs']), encoding=_encodings['content']):
 			line = line.strip()
 			#first check for comment, we do not want to regex all lines
 			if not line.startswith('#'):
