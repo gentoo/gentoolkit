@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2003-2010 Gentoo Foundation
+# Copyright 2003-2016 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 
@@ -448,7 +448,7 @@ def main():
 	"""Parse command line and execute all actions."""
 	# set default options
 	options = {}
-	options['nocolor'] = (port_settings["NOCOLOR"] in ('yes','true')
+	options['nocolor'] = (port_settings.get("NOCOLOR") in ('yes','true')
 		or not sys.stdout.isatty())
 	if options['nocolor']:
 		pp.output.nocolor()
