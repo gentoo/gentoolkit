@@ -1,5 +1,5 @@
 #	vim:fileencoding=utf-8
-# Copyright 2010 Gentoo Foundation
+# Copyright 2010-2016 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 __package__ = 'gentoolkit.eshowkw'
@@ -122,10 +122,32 @@ def main(argv, indirect = False):
 			msg_err = 'No ebuilds at "%s"' % currdir
 			raise SystemExit(msg_err)
 		package= '%s/%s' % (os.path.basename(os.path.abspath('../')), os.path.basename(currdir))
-		ourtree = os.path.abspath('../../')
-		overlays = '%s %s' % (ports['PORTDIR_OVERLAY'], ourtree)
-		mysettings = portc(local_config=False, env={'PORTDIR_OVERLAY': overlays})
-		dbapi = portdbapi(mysettings=mysettings)
+		ourtree = os.path.realpath('../..')
+		ourstat = os.stat(ourtree)
+		ourstat = (ourstat.st_ino, ourstat.st_dev)
+		for repo in ports.repositories:
+			try:
+				repostat = os.stat(repo.location)
+			except OSError:
+				continue
+			if ourstat == (repostat.st_ino, repostat.st_dev):
+				dbapi = portdbapi(mysettings=portc(local_config=False))
+				break
+		else:
+			repos = {}
+			for repo in ports.repositories:
+				repos[repo.name] = repo.location
+
+			with open(os.path.join(ourtree, 'profiles', 'repo_name'),
+				'rt') as f:
+				repo_name = f.readline().strip()
+
+			repos[repo_name] = ourtree
+			repos = ''.join('[{}]\nlocation={}\n'.format(k, v)
+				for k, v in repos.items())
+			mysettings = portc(local_config=False,
+				env={'PORTAGE_REPOSITORIES': repos})
+			dbapi = portdbapi(mysettings=mysettings)
 		# specify that we want just our nice tree we are in cwd
 		dbapi.porttrees = [ourtree]
 		process_display(package, keywords, dbapi)
