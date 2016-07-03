@@ -28,7 +28,7 @@ def load_profile_data(portdir=None, repo='gentoo'):
 	  {'x86': 'stable', 'mips': 'dev', ...}
 	"""
 	if portdir is None:
-		portdir = portage.db['/']['vartree'].settings.repositories[repo].location
+		portdir = portage.db[portage.root]['vartree'].settings.repositories[repo].location
 
 	arch_status = {}
 
