@@ -12,7 +12,6 @@ from portage import output as porto
 from portage import settings as ports
 from portage import config as portc
 from portage import portdbapi as portdbapi
-from portage import db as portdb
 
 from gentoolkit.eshowkw.keywords_header import keywords_header
 from gentoolkit.eshowkw.keywords_content import keywords_content
