@@ -67,7 +67,6 @@ class ModuleBase(object):
 
 	def parse_module_options(self, module_opts):
 		"""Parse module options and update self.options"""
-
 		opts = (x[0] for x in module_opts)
 		posargs = (x[1] for x in module_opts)
 		for opt, posarg in zip(opts, posargs):
@@ -88,6 +87,8 @@ class ModuleBase(object):
 					self.print_help(with_description=False)
 					sys.exit(2)
 				self.options[opt_name] = val
+			elif opt_type == 'char':
+				self.options[opt_name] = posarg
 
 	def set_quiet(self, quiet):
 		"""sets the class option["quiet"] and option["verbose"] accordingly"""
