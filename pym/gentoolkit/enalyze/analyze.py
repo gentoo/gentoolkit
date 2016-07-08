@@ -175,7 +175,9 @@ class Analyse(ModuleBase):
 			"verbose": False,
 			"quiet": False,
 			'prefix': False,
-			'portage': True
+			'portage': True,
+			"width": 80,
+			"prepend": "",
 		}
 		self.module_opts = {
 			"-f": ("flags", "boolean", True),
@@ -188,8 +190,12 @@ class Analyse(ModuleBase):
 			"--verbose": ("verbose", "boolean", True),
 			"-p": ("prefix", "boolean", True),
 			"--prefix": ("prefix", "boolean", True),
+			"-P": ("prepend", "char", None),
+			"--prepend": ("prepend", "char", None),
 			"-G": ("portage", "boolean", False),
 			"--portage": ("portage", "boolean", False),
+			"-W": ("width", "int", 80),
+			"--width": ("width", "int", 80),
 		}
 		self.formatted_options = [
 			("  -h, --help",  "Outputs this useage message"),
@@ -201,9 +207,15 @@ class Analyse(ModuleBase):
 			("  -p, --prefix",
 			"Used for testing purposes only, runs report using " +
 			"a prefix keyword and 'prefix' USE flag"),
+			("  -P, --prepend",
+			"Prepend the string to any list output.  " +
+			"ie: prepend '* ' to the ""front of each package being listed."
+			"This is useful for generating preformatted wiki text."),
 			#(" -G, --portage",
 			#"Use portage directly instead of gentoolkit's Package " +
 			#"object for some operations. Usually a little faster."),
+			("  -W, --width",
+			"Format the output to wrap at 'WIDTH' ie: long line output"),
 		]
 		self.formatted_args = [
 			("  use",
@@ -223,8 +235,9 @@ class Analyse(ModuleBase):
 			("  ",
 			"for those that need to be unmasked")
 		]
-		self.short_opts = "huvpG"
-		self.long_opts = ("help", "unset", "verbose", "prefix") #, "portage")
+		self.short_opts = "huvpGP:W:"
+		self.long_opts = ("help", "unset", "verbose", "prefix", "prepend=",
+						"width=") #, "portage")
 		self.need_queries = True
 		self.arg_spec = "Target"
 		self.arg_options = ['use', 'pkguse','keywords', 'packages', 'unmask']
@@ -262,10 +275,13 @@ class Analyse(ModuleBase):
 		@param target: the target to be analyzed, one of ["use", "pkguse"]
 		"""
 		system_use = portage.settings["USE"].split()
+
 		self.printer = AnalysisPrinter(
 				"use",
 				self.options["verbose"],
-				system_use)
+				system_use,
+				width=self.options["width"],
+				prepend=self.options["prepend"])
 		if self.options["verbose"]:
 			cpvs = portage.db[portage.root]["vartree"].dbapi.cpv_all()
 			#cpvs = get_installed_cpvs()
@@ -326,7 +342,9 @@ class Analyse(ModuleBase):
 		self.printer = AnalysisPrinter(
 				"keywords",
 				self.options["verbose"],
-				system_keywords)
+				system_keywords,
+				width=self.options["width"],
+				prepend=self.options["prepend"])
 		self.analyser = KeywordAnalyser( arch, system_keywords, portage.db[portage.root]["vartree"].dbapi)
 		#self.analyser.set_order(portage.settings["USE"].split())
 		# only for testing
@@ -410,7 +428,9 @@ class Analyse(ModuleBase):
 		self.printer = AnalysisPrinter(
 				"packages",
 				self.options["verbose"],
-				key_width=key_width)
+				key_width=key_width,
+				width=self.options["width"],
+				prepend=self.options["prepend"])
 
 		cpvs = sorted(cpvs)
 		flags = FlagAnalyzer(

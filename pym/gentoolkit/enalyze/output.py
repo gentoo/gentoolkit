@@ -28,13 +28,15 @@ def nl(lines=1):
 
 class AnalysisPrinter(CpvValueWrapper):
 	"""Printing functions"""
-	def __init__(self, target, verbose=True, references=None, key_width=1, width=None):
+	def __init__(self, target, verbose=True, references=None, key_width=1,
+				width=None, prepend=''):
 		"""@param references: list of accepted keywords or
 				the system use flags
 				"""
 		self.references = references
 		self.key_width = key_width
 		self.width = width
+		self.prepend = prepend
 		CpvValueWrapper.__init__(self, cpv_width=key_width, width=width)
 		self.set_target(target, verbose)
 
@@ -78,8 +80,7 @@ class AnalysisPrinter(CpvValueWrapper):
 		pkgs.sort()
 		self.print_fn(key, active, default, count, pkgs)
 
-	@staticmethod
-	def print_use_verbose(key, active, default, count, pkgs):
+	def print_use_verbose(self, key, active, default, count, pkgs):
 		"""Verbosely prints a set of use flag info. including the pkgs
 		using them.
 		"""
@@ -89,25 +90,24 @@ class AnalysisPrinter(CpvValueWrapper):
 		else:
 			_key = (" " + key)
 		cpv = _pkgs.pop(0)
-		print(_key,'.'*(35-len(key)), default, pp.number(count), pp.cpv(cpv))
+		print(self.prepend + _key,'.'*(35-len(key)), default, pp.number(count),
+			pp.cpv(cpv))
 		while _pkgs:
 			cpv = _pkgs.pop(0)
 			print(' '*52 + pp.cpv(cpv))
 
 	# W0613: *Unused argument %r*
 	# pylint: disable-msg=W0613
-	@staticmethod
-	def print_use_quiet(key, active, default, count, pkgs):
+	def print_use_quiet(self, key, active, default, count, pkgs):
 		"""Quietly prints a subset set of USE flag info..
 		"""
 		if active in ["+", "-"]:
 			_key = pp.useflag((active+key), active=="+")
 		else:
 			_key = (" " + key)
-		print(_key,'.'*(35-len(key)), default, pp.number(count))
+		print(self.prepend + _key,'.'*(35-len(key)), default, pp.number(count))
 
-	@staticmethod
-	def print_keyword_verbose(key, stability, default, count, pkgs):
+	def print_keyword_verbose(self, key, stability, default, count, pkgs):
 		"""Verbosely prints a set of keywords info. including the pkgs
 		using them.
 		"""
@@ -115,20 +115,20 @@ class AnalysisPrinter(CpvValueWrapper):
 		_key = (pp.keyword((stability+key),stable=(stability==" "),
 			hard_masked=stability=="-"))
 		cpv = _pkgs.pop(0)
-		print(_key,'.'*(20-len(key)), default, pp.number(count), pp.cpv(cpv))
+		print(self.prepend + _key,'.'*(20-len(key)), default, pp.number(count),
+			pp.cpv(cpv))
 		while _pkgs:
 			cpv = _pkgs.pop(0)
 			print(' '*37 + pp.cpv(cpv))
 
 	# W0613: *Unused argument %r*
 	# pylint: disable-msg=W0613
-	@staticmethod
-	def print_keyword_quiet(key, stability, default, count, pkgs):
+	def print_keyword_quiet(self, key, stability, default, count, pkgs):
 		"""Quietly prints a subset set of USE flag info..
 		"""
 		_key = (pp.keyword((stability+key), stable=(stability==" "),
 			hard_masked=stability=="-"))
-		print(_key,'.'*(20-len(key)), default, pp.number(count))
+		print(self.prepend + _key,'.'*(20-len(key)), default, pp.number(count))
 
 	# W0613: *Unused argument %r*
 	# pylint: disable-msg=W0613
@@ -153,7 +153,7 @@ class AnalysisPrinter(CpvValueWrapper):
 			if _flag:
 				_cleaned.append(_flag)
 		#print("cpv=", key, "_plus=", _plus, "_minus=", _minus)
-		self.print_fn(key, (plus, minus, cleaned))
+		self.print_fn(self.prepend + key, (plus, minus, cleaned))
 
 	def print_pkg_verbose(self, cpv, flags):
 		"""Verbosely prints the pkg's use flag info.
