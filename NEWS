@@ -1,5 +1,21 @@
 News (new features/major bug fixes)
 
+gentoolkit-0.3.2
+----------------
+  * revdep-rebuild masks fixed
+  * more unicode fixes
+  * More deprecation warning fixes
+  * glsa bug fix 400763 Apply listing only affected versions patch
+  * eclean fixes and updates
+  * eshowkw fixes and updates
+
+
+gentoolkit-0.3.1
+----------------
+  * Make the python version of revdep-rebuild the default
+  * more unicode fixes
+
+
 gentoolkit-0.3.0
 ----------------
 
