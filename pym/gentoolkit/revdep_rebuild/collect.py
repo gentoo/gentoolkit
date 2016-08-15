@@ -5,7 +5,7 @@
 from __future__ import print_function
 
 import re
-import os
+from portage import os
 import glob
 import stat
 import sys
