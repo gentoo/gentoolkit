@@ -5,16 +5,18 @@ Functions for reading, saving and verifying the data caches
 
 from __future__ import print_function
 
-import os
+from portage import os
 import time
 import sys
 if sys.hexversion < 0x3000000:
 	from io import open
+	_unicode = unicode
+else:
+	_unicode = str
 
 from portage import _encodings, _unicode_decode, _unicode_encode
 from portage.output import red
 from .settings import DEFAULTS
-
 
 def read_cache(temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 	''' Reads cache information needed by analyse function.
@@ -59,7 +61,7 @@ def save_cache(logger, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 	try:
 		_file = open(_unicode_encode(os.path.join(temp_path, 'timestamp'),
 			encoding=_encodings['fs']), mode='w', encoding=_encodings['content'])
-		_file.write(str(int(time.time())))
+		_file.write(_unicode(int(time.time())))
 		_file.close()
 
 		for key,val in to_save.items():
