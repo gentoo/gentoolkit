@@ -243,7 +243,7 @@ def isvalid_pkg_name(chunks):
 	mf = _pkg_re.match
 	if not all(not s or mf(s) for s in chunks):
 		return False
-	if not chunks[-1] or (len(chunks) > 1 and chunks[-1].isdigit()):
+	if len(chunks) > 1 and chunks[-1].isdigit():
 		# not allowed.
 		return False
 	return True
