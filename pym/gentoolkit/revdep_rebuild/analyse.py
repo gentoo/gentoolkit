@@ -120,7 +120,8 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 
 
 class LibCheck(object):
-	def __init__(self, scanned_files, logger, searchlibs=None, searchbits=None, all_masks=None):
+	def __init__(self, scanned_files, logger, searchlibs=None, searchbits=None,
+				all_masks=None, masked_dirs=None):
 		'''LibCheck init function.
 
 		@param scanned_files: optional dictionary if the type created by
@@ -135,6 +136,7 @@ class LibCheck(object):
 		self.searchlibs = searchlibs
 		self.searchbits = sorted(searchbits) or ['32', '64']
 		self.all_masks = all_masks
+		self.masked_dirs = masked_dirs
 		self.logger.debug("\tLibCheck.__init__(), new searchlibs: %s" %(self.searchbits))
 		if searchlibs:
 			self.smsg = '\tLibCheck.search(), Checking for %s bit dependants'
@@ -221,7 +223,10 @@ class LibCheck(object):
 							if l in self.all_masks:
 								self.logger.debug('\tLibrary %s ignored as it is masked' % l)
 								continue
-							if filename in self.all_masks:
+							if (filename in self.all_masks or
+								os.path.realpath(filename) in self.all_masks or
+								self.is_masked(os.path.realpath(filename))
+								):
 								self.logger.debug('\tFile %s ignored as it is masked' % filename)
 								continue
 							if not bits in found_libs:
@@ -238,6 +243,16 @@ class LibCheck(object):
 		self.logger.debug(self.sfmsg % {'count': count, 'deps': fcount,
 			'time': ftime-stime})
 		return found_libs
+
+
+	def is_masked(self, filename):
+		for m in self.masked_dirs:
+			t = m.split(os.sep)
+			f = filename.split(os.sep)
+			# self.logger.debug("\tis_masked(); %s, %s" % (t, f))
+			if t == f[:min(len(t), len(f))]:
+				return True
+		return False
 
 
 	def process_results(self, found_libs, scanned_files=None):
@@ -294,17 +309,16 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		]
 	)
 
+	if '64' not in searchbits:
+		masked_dirs.update(['/lib64', '/usr/lib64'])
+	elif '32' not in searchbits:
+		masked_dirs.update(['/lib32', '/usr/lib32'])
+
 	all_masks = masked_dirs.copy()
 	all_masks.update(masked_files)
 	logger.debug("\tall_masks:")
 	for x in sorted(all_masks):
 		logger.debug('\t\t%s' % (x))
-
-
-	if '64' not in searchbits:
-		masked_dirs.update(['/lib64', '/usr/lib64'])
-	elif '32' not in searchbits:
-		masked_dirs.update(['/lib32', '/usr/lib32'])
 
 	if libraries and la_libraries and libraries_links and binaries:
 		logger.info(blue(' * ') +
@@ -371,7 +385,8 @@ def analyse(settings, logger, libraries=None, la_libraries=None,
 		% (len(libs_and_bins), len(libraries)+len(libraries_links))
 	)
 
-	libcheck = LibCheck(scanned_files, logger, _libs_to_check, searchbits, all_masks)
+	libcheck = LibCheck(scanned_files, logger, _libs_to_check, searchbits,
+						all_masks, masked_dirs)
 
 	broken_pathes = libcheck.process_results(libcheck.search())
 
