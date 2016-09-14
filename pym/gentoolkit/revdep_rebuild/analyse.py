@@ -247,7 +247,7 @@ class LibCheck(object):
 
 	def is_masked(self, filename):
 		for m in self.masked_dirs:
-			t = m.split(os.sep)
+			t = os.path.realpath(m).split(os.sep)
 			f = filename.split(os.sep)
 			# self.logger.debug("\tis_masked(); %s, %s" % (t, f))
 			if t == f[:min(len(t), len(f))]:
