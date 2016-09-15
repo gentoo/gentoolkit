@@ -363,7 +363,7 @@ class Package(CPV):
 			myroot = self._settings["ROOT"]
 			if myroot != '/':
 				ret = {}
-				for key, val in self.dblink.getcontents().iteritems():
+				for key, val in self.dblink.getcontents().items():
 					ret['/' + os.path.relpath(key, myroot)] = val
 				contents = ret
 
