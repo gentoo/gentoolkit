@@ -57,72 +57,72 @@ find_files() {
 }
 
 select_loop() {
-	ANY_FILES=$(find_files)
+	until [[ -n ${QUIT} ]]; do
+		ANY_FILES=$(find_files)
 
-	if [[ -z ${ANY_FILES} ]]; then
-		echo "No log items to read"
-		break
-	fi
+		if [[ -z ${ANY_FILES} ]]; then
+			echo "No log items to read"
+			break
+		fi
 
-	echo
-	echo "This is a list of portage log items. Choose a number to view that file or type q to quit."
-	echo
+		echo
+		echo "This is a list of portage log items. Choose a number to view that file or type q to quit."
+		echo
 
-	# Pick which file to read
-	select FILE in ${ANY_FILES}; do
-		case ${REPLY} in
-			q)
-				echo "Quitting"
-				QUIT="yes"
-				break
-				;;
-			a)
-				SORT="alphabet"
-				;;
-			t)
-				SORT="time"
-				;;
-			*)
-				if [ -f "$FILE" ]; then
-					${PAGER} ${FILE}
-					read -p "Delete file? [y/N] " DELETE
-					case ${DELETE} in
-						q)
-							echo "Quitting"
-							QUIT="yes"
-							break
-							;;
-						y|Y)
-							rm -f ${FILE}
-							SUCCESS=$?
-							if [[ ${SUCCESS} = 0 ]]; then
-								echo "Deleted ${FILE}"
-							else
-								echo "Unable to delete ${FILE}"
-							fi
-							;;
-						# Empty string defaults to N (save file)
-						n|N|"")
-							echo "Saving ${FILE}"
-							;;
-						*)
-							echo "Invalid response. Saving ${FILE}"
-							;;
-					esac
-				else
-					echo
-					echo "Invalid response."
-				fi
-				;;
-		esac
-		break
+		# Pick which file to read
+		select FILE in ${ANY_FILES}; do
+			case ${REPLY} in
+				q)
+					echo "Quitting"
+					QUIT="yes"
+					break
+					;;
+				a)
+					SORT="alphabet"
+					;;
+				t)
+					SORT="time"
+					;;
+				*)
+					if [ -f "$FILE" ]; then
+						${PAGER} ${FILE}
+						read -p "Delete file? [y/N] " DELETE
+						case ${DELETE} in
+							q)
+								echo "Quitting"
+								QUIT="yes"
+								break
+								;;
+							y|Y)
+								rm -f ${FILE}
+								SUCCESS=$?
+								if [[ ${SUCCESS} = 0 ]]; then
+									echo "Deleted ${FILE}"
+								else
+									echo "Unable to delete ${FILE}"
+								fi
+								;;
+							# Empty string defaults to N (save file)
+							n|N|"")
+								echo "Saving ${FILE}"
+								;;
+							*)
+								echo "Invalid response. Saving ${FILE}"
+								;;
+						esac
+					else
+						echo
+						echo "Invalid response."
+					fi
+					;;
+			esac
+			break
+		done
 	done
 }
 
 pushd ${ELOGDIR} > /dev/null
 
-until [[ -n ${QUIT} ]]; do
-	select_loop
-done
+select_loop
 
 popd > /dev/null
