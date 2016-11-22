@@ -101,21 +101,21 @@ class keywords_content:
 	class VersionChecker:
 		def __getVersions(self, packages):
 			"""Obtain properly aligned version strings without colors."""
-			revlength = max([len(self.__getRevision(x)) for x in packages])
-			return  [self.__separateVersion(x, revlength) for x in packages]
+			revlength = max([len(self.__getRevision(x)) for x, repo in packages])
+			return  [self.__separateVersion(x, repo, revlength) for x, repo in packages]
 
 		def __getRevision(self, cpv):
 			"""Get revision informations for each package for nice further alignment"""
 			rev = port.catpkgsplit(cpv)[3]
 			return rev if rev != 'r0' else ''
 
-		def __separateVersion(self, cpv, revlength):
-			return self.__modifyVersionInfo(cpv, port.versions.cpv_getversion(cpv), revlength)
+		def __separateVersion(self, cpv, repo, revlength):
+			return self.__modifyVersionInfo(cpv, repo, port.versions.cpv_getversion(cpv), revlength)
 
-		def __modifyVersionInfo(self, cpv, pv, revlength):
+		def __modifyVersionInfo(self, cpv, repo, pv, revlength):
 			"""Prefix and suffix version with string based on whether version is installed or masked and its revision."""
 			mask = self.__getMaskStatus(cpv)
-			install = self.__getInstallStatus(cpv)
+			install = self.__getInstallStatus(cpv, repo)
 
 			# calculate suffix length
 			currevlen = len(self.__getRevision(cpv))
@@ -149,9 +149,9 @@ class keywords_content:
 			return False
 
 
-		def __getInstallStatus(self, cpv):
+		def __getInstallStatus(self, cpv, repo):
 			"""Check if package version we test is installed."""
-			return self.vartree.cpv_exists(cpv)
+			return bool(self.vartree.match("=%s::%s" % (cpv, repo)))
 
 		def __init__(self, packages):
 			"""Query all relevant data for version data formatting"""
@@ -344,7 +344,7 @@ class keywords_content:
 		self.slot_length = max([len(x) for x in self.slots])
 		repositories_length = max([len(x) for x in self.repositories])
 		self.keyword_length = len(keywords_list)
-		vers =self.VersionChecker(packages)
+		vers =self.VersionChecker(list(zip(packages, self.repositories)))
 		self.versions = vers.versions
 		masks = vers.masks
 		self.version_length = max([len(x) for x in self.versions])
