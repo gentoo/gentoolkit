@@ -145,7 +145,7 @@ class LibCheck(object):
 			self.check = self._checkforlib
 		else:
 			self.smsg = '\tLibCheck.search(), Checking for broken %s bit libs'
-			self.pmsg = green(' * ') + bold('Broken files that requires:') + ' %s (%s bits)'
+			self.pmsg = green(' * ') + bold('Broken files that require:') + ' %s (%s bits)'
 			self.setlibs = self._setlibs
 			self.check = self._checkbroken
 		self.sfmsg = "\tLibCheck.search(); Total found: %(count)d libs, %(deps)d files in %(time)d milliseconds"
