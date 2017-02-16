@@ -378,11 +378,16 @@ class TestMain(unittest.TestCase):
 
 	def testSmoke(self):
 		ekeyword.main(['arm', '--dry-run', os.path.join(TESTDIR, 'process-1.ebuild')])
-		ekeyword.main(['--version', '--dry-run'])
+
+	def testVersion(self):
+		with self.assertRaises(SystemExit) as e:
+			ekeyword.main(['--version', '--dry-run'])
+		self.assertEqual(e.exception.code, os.EX_OK)
 
 	def testEmptyString(self):
-		self.assertRaises(SystemExit, ekeyword.main,
-		                  ['', os.path.join(TESTDIR, 'process-1.ebuild')])
+		with self.assertRaises(SystemExit) as e:
+			ekeyword.main(['', os.path.join(TESTDIR, 'process-1.ebuild')])
+		self.assertNotEqual(e.exception.code, os.EX_OK)
 
 
 if __name__ == '__main__':

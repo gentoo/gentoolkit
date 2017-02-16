@@ -459,7 +459,7 @@ def get_parser():
 	parser.add_argument('--format', default='auto', dest='style',
 		choices=('auto', 'color-inline', 'inline', 'short-multi', 'long-multi'),
 		help='Selet output format for showing differences')
-	parser.add_argument('-V', '--version', default=False, action='store_true',
+	parser.add_argument('-V', '--version', action='version', version=VERSION,
 		help='Show version information')
 	return parser
 
@@ -493,9 +493,6 @@ def main(argv):
 
 	parser = get_parser()
 	opts = parser.parse_args(parse_args)
-	if opts.version:
-		print('version: %s' % VERSION)
-		return os.EX_OK
 	if not work_args:
 		parser.error('need arches/ebuilds to process')
 
