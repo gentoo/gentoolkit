@@ -179,7 +179,7 @@ def process_keywords(keywords, ops, arch_status=None):
 				# Process all possible keywords.  We use the arch_status as a
 				# master list.  If it lacks some keywords, then we might miss
 				# somethings here, but not much we can do.
-				arches = old_arches
+				arches = list(old_arches)
 
 			# We ignore the glob arch as we never want to tweak it.
 			if '*' in arches:
@@ -192,7 +192,7 @@ def process_keywords(keywords, ops, arch_status=None):
 			# in these cases.
 			arches = [x for x in arches if '-' + x not in new_keywords]
 		else:
-			arches = (oarch,)
+			arches = [oarch]
 
 		if refarch:
 			# Figure out the state for this arch based on the reference arch.
@@ -319,6 +319,13 @@ def process_ebuild(ebuild, ops, arch_status=None, verbose=0, quiet=0,
 	return updated
 
 
+def portage_settings():
+	"""Return the portage settings we care about."""
+	# Portage creates the db member on the fly which confuses the linter.
+	# pylint: disable=no-member
+	return portage.db['/']['vartree'].settings
+
+
 def load_profile_data(portdir=None, repo='gentoo'):
 	"""Load the list of known arches from the tree
 
@@ -331,7 +338,7 @@ def load_profile_data(portdir=None, repo='gentoo'):
 	  {'x86': 'stable', 'mips': 'dev', ...}
 	"""
 	if portdir is None:
-		portdir = portage.db['/']['vartree'].settings.repositories[repo].location
+		portdir = portage_settings().repositories[repo].location
 
 	arch_status = {}
 
@@ -497,7 +504,7 @@ def main(argv):
 		parser.error('need arches/ebuilds to process')
 
 	if opts.style == 'auto':
-		if not portage.db['/']['vartree'].settings.get('NOCOLOR', 'false').lower() in ('no', 'false'):
+		if not portage_settings().get('NOCOLOR', 'false').lower() in ('no', 'false'):
 			nocolor()
 			opts.style = 'short'
 		else:
