@@ -16,7 +16,6 @@ disable=
 	locally-enabled,
 	locally-disabled,
 	fixme,
-	bad-whitespace,
 	bad-continuation,
 	invalid-name,
 
