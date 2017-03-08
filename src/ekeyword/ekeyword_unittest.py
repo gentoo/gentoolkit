@@ -10,8 +10,11 @@
 from __future__ import print_function
 
 import os
+import subprocess
 import tempfile
 import unittest
+
+import mock
 
 import ekeyword
 
@@ -299,29 +302,47 @@ class TestProcessEbuild(unittest.TestCase):
 	This is fairly light as most code is in process_content.
 	"""
 
-	def _test(self, dry_run):
-		ops = (
-			ekeyword.Op(None, 'arm', None),
-			ekeyword.Op('~', 'sparc', None),
-		)
+	def _process_ebuild(self, *args, **kwargs):
+		"""Set up a writable copy of an ebuild for process_ebuild()"""
 		with tempfile.NamedTemporaryFile() as tmp:
 			with open(tmp.name, 'wb') as fw:
 				with open(os.path.join(TESTDIR, 'process-1.ebuild'), 'rb') as f:
 					orig_content = f.read()
 					fw.write(orig_content)
-			ekeyword.process_ebuild(tmp.name, ops, dry_run=dry_run)
+			ekeyword.process_ebuild(tmp.name, *args, **kwargs)
 			with open(tmp.name, 'rb') as f:
-				new_content = f.read()
-				if dry_run:
-					self.assertEqual(orig_content, new_content)
-				else:
-					self.assertNotEqual(orig_content, new_content)
+				return (orig_content, f.read())
+
+	def _testSmoke(self, dry_run):
+		ops = (
+			ekeyword.Op(None, 'arm', None),
+			ekeyword.Op('~', 'sparc', None),
+		)
+		orig_content, new_content = self._process_ebuild(ops, dry_run=dry_run)
+		if dry_run:
+			self.assertEqual(orig_content, new_content)
+		else:
+			self.assertNotEqual(orig_content, new_content)
 
 	def testSmokeNotDry(self):
-		self._test(False)
+		self._testSmoke(False)
 
 	def testSmokeDry(self):
-		self._test(True)
+		self._testSmoke(True)
+
+	def testManifestUpdated(self):
+		"""Verify `ebuild ... manifest` runs on updated files"""
+		with mock.patch.object(subprocess, 'check_call') as m:
+			self._process_ebuild((ekeyword.Op('~', 'arm', None),),
+			                     manifest=True)
+		m.assert_called_once_with(['ebuild', mock.ANY, 'manifest'])
+
+	def testManifestNotUpdated(self):
+		"""Verify we don't run `ebuild ... manifest` on unmodified files"""
+		with mock.patch.object(subprocess, 'check_call') as m:
+			self._process_ebuild((ekeyword.Op(None, 'arm', None),),
+			                     manifest=True)
+		self.assertEqual(m.call_count, 0)
 
 
 class TestLoadProfileData(unittest.TestCase):

@@ -44,6 +44,7 @@ import difflib
 import io
 import os
 import re
+import subprocess
 import sys
 
 import portage
@@ -297,7 +298,7 @@ def process_content(ebuild, data, ops, arch_status=None, verbose=0,
 
 
 def process_ebuild(ebuild, ops, arch_status=None, verbose=0, quiet=0,
-                   dry_run=False, style='color-inline'):
+                   dry_run=False, style='color-inline', manifest=False):
 	"""Process |ops| for |ebuild|
 
 	Args:
@@ -320,6 +321,8 @@ def process_ebuild(ebuild, ops, arch_status=None, verbose=0, quiet=0,
 		if updated and not dry_run:
 			with io.open(ebuild, 'w', encoding='utf8') as f:
 				f.writelines(content)
+			if manifest:
+				subprocess.check_call(['ebuild', ebuild, 'manifest'])
 	return updated
 
 
@@ -461,6 +464,8 @@ def get_parser():
 	parser = argparse.ArgumentParser(
 		description=__doc__,
 		formatter_class=argparse.RawDescriptionHelpFormatter)
+	parser.add_argument('-m', '--manifest', default=False, action='store_true',
+		help='Run `ebuild manifest` on the ebuild after modifying it')
 	parser.add_argument('-n', '--dry-run', default=False, action='store_true',
 		help='Show what would be changed, but do not commit')
 	parser.add_argument('-v', '--verbose', action='count', default=0,
@@ -523,7 +528,8 @@ def main(argv):
 	for ebuild, ops in work:
 		process_ebuild(ebuild, ops, arch_status=arch_status,
 		               verbose=opts.verbose, quiet=opts.quiet,
-		               dry_run=opts.dry_run, style=opts.style)
+		               dry_run=opts.dry_run, style=opts.style,
+		               manifest=opts.manifest)
 
 	return os.EX_OK
 
