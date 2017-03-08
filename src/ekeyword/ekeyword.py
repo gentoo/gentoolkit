@@ -99,6 +99,10 @@ def sort_keywords(arches):
 			keywords.append(g)
 
 	def arch_key(keyword):
+		"""Callback for python sorting functions
+
+		Used to turn a Gentoo keyword into a sortable form.
+		"""
 		# Sort independent of leading marker (~ or -).
 		arch = keyword_to_arch(keyword)
 
@@ -306,8 +310,8 @@ def process_ebuild(ebuild, ops, arch_status=None, verbose=0, quiet=0,
 	  dry_run: Do not make any changes to |ebuild|; show what would be done
 	  style: The diff style
 
-    Returns:
-      Whether any updates were processed
+	Returns:
+	  Whether any updates were processed
 	"""
 	with io.open(ebuild, encoding='utf8') as f:
 		updated, content = process_content(

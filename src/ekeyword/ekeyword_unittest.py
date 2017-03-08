@@ -7,6 +7,8 @@
 
 """Unittests for ekeyword"""
 
+from __future__ import print_function
+
 import os
 import tempfile
 import unittest
@@ -21,14 +23,17 @@ class TestSortKeywords(unittest.TestCase):
 	"""Tests for sort_keywords"""
 
 	def _test(self, input_data, exp_data):
+		"""Sort |input_data| and make sure it matches |exp_data|"""
 		output_data = ekeyword.sort_keywords(input_data.split())
 		self.assertEqual(exp_data.split(), output_data)
 
 	def testNull(self):
+		"""Verify whitespace is collapsed"""
 		self._test('', '')
 		self._test('   		 ', '')
 
 	def testGlob(self):
+		"""Verify globs get sorted before all others"""
 		self._test('* arm', '* arm')
 		self._test('arm -* x86', '-* arm x86')
 		self._test('hppa ~* amd64', '~* amd64 hppa')
@@ -356,6 +361,7 @@ class TestLoadProfileData(unittest.TestCase):
 
 
 class TestArgToOps(unittest.TestCase):
+	"""Tests for arg_to_op()"""
 
 	def _test(self, arg, op):
 		self.assertEqual(ekeyword.arg_to_op(arg), ekeyword.Op(*op))
@@ -377,6 +383,7 @@ class TestArgToOps(unittest.TestCase):
 
 
 class TestMain(unittest.TestCase):
+	"""Tests for the main entry point"""
 
 	def testSmoke(self):
 		ekeyword.main(['arm', '--dry-run', os.path.join(TESTDIR, 'process-1.ebuild')])
