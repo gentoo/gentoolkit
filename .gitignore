@@ -1,2 +1,3 @@
+.coverage
 *.pyc
 src/echangelog/echangelog.1
