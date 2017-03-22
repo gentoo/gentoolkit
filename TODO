@@ -1,6 +1,0 @@
-- rewrite ekeyword and echangelog to use gentoolkit
-- look through forums.gentoo.org for additional scripts
-- write a Gentoolkit Guide
-
-- imlate
-	Compare one arch with all others to see possible candidates for several architectures
