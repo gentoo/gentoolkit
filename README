@@ -20,23 +20,23 @@ CONTENTS
 
 gentoolkit
 ==========
+ebump          - Ebuild revision bumper
 eclean         - tool to clean up outdated distfiles and packages
+ekeyword       - modify package KEYWORDS
+enalyze        - Analyze all installed pkgs or rebuild package.* files
+epkginfo       - wrapper to equery: Display metadata about a given package.
 equery         - replacement for etcat and qpkg
-etcat          - extracts auxillary information from portage (deprecated)
+eread          - script to read portage log items from einfo, ewarn etc.
+eshowkw        - Display keywords for specified package(s)
 euse           - tool to manage USE flags
 glsa-check     - tool to manage GLSA's (Gentoo Linux Security Advisory)
+imlate         - Displays candidates for keywords for an architecture...
 qpkg           - convient package query tool (deprecated)
 revdep-rebuild - scans/fixes broken shared libs and binaries
 
 gentoolkit-dev
 ==============
-ebump          - Ebuild revision bumper
-echangelog     - update portage ChangeLogs
-ego            - 
-ekeyword       - modify package KEYWORDS
-epkgmove       - tool for moving and renaming packages in CVS
-eviewcvs       - generate viewcvs URLs
-gensync        - Overlay Sync Tool
+DEPRECATED
 
 IMPROVEMENTS
 
