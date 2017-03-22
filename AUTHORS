@@ -3,6 +3,9 @@
   Library additions and refactor: Douglas Anderson <douglasjanderson@gmail.com>
   Current maintainer: Paul Varner <fuzzyray@gentoo.org>
 
+* glsa-check
+  Author: Marius Mauch <genone@gentoo.org>
+
 * ebump
   Original author: Karl Trygve Kalleberg <karltk@gentoo.org>
   Christian Ruppert <idl0r@gentoo.org>
@@ -10,6 +13,18 @@
 * eclean
   Original author: Thomas de Grenier de Latour (tgl) <degrenier@easyconnect.fr>
   re-write author Brian Dolbec <dolsen@gentoo.org>
+
+* enalyze
+  Original author: Brian Dolbec <dolsen@gentoo.org>
+
+* ekeyword
+  Current python version: Mike Frysinger <vapier@gentoo.org>
+  Previous perl version:
+    Christian Ruppert <idl0r@gentoo.org>
+    Paul Varner <fuzzyray@gentoo.org>
+    Mike Frysinger <vapier@gentoo.org>
+  Original author:
+    Aron Griffis <agriffis@gentoo.org>
 
 * epkginfo
   Author: Ned Ludd <solar@gentoo.org>
@@ -25,14 +40,21 @@
   Original author: Donnie Berkholz <dberkholz@gentoo.org>
   Updated by: Uwe Klosa <uwe.klosa@gmail.com>
 
+* eshowkw (python version)
+  Original author: "Tomáš Chvátal <scarabeus@gentoo.org>"
+
 * euse
   Original perl version: Arun Bhanu <codebear@gentoo.org>
   New bash version: Marius Mauch <genone@gentoo.org>
   package.use support: Jared Hancock
 
+* imlate
+  Author: Christian Ruppert <idl0r@gentoo.org>
+
 * revdep-rebuild
   Original author: Stanislav Brabec
   Rewrite author: Michael A. Smith
 
-* enalyze
-  Original author: Brian Dolbec <dolsen@gentoo.org>
+* revdep-rebuild (python version)
+  Original author: Slawek Lis
+
