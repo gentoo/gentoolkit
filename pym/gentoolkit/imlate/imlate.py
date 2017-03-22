@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright 1999-2010 Gentoo Foundation
+# Copyright 1999-2017 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Id$
 # Author: Christian Ruppert <idl0r@gentoo.org>
@@ -7,7 +7,7 @@
 # Python 2.6 compatibility
 from __future__ import print_function
 
-VERSION = "1.0.1"
+__version__ = "git"
 
 # works just with stable keywords!
 MAIN_ARCH = "auto" # can be overridden by -m ARCH
@@ -32,9 +32,8 @@ from xml.parsers.expat import ExpatError
 import portage
 import portage.versions
 
-if __name__ == "__main__":
-	from optparse import OptionParser
-	from time import gmtime, strftime
+from optparse import OptionParser
+from time import gmtime, strftime
 
 # override/change portage module settings
 def _portage_settings( var, value, settings = None ):
@@ -388,7 +387,7 @@ def main():
 	conf = {}
 	pkgs = {}
 
-	parser = OptionParser( version = "%prog " + VERSION )
+	parser = OptionParser( version = "%prog " + __version__ )
 	parser.usage = "%prog [options] [category/package] ..."
 	parser.disable_interspersed_args()
 
