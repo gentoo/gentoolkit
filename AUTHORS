@@ -3,6 +3,10 @@
   Library additions and refactor: Douglas Anderson <douglasjanderson@gmail.com>
   Current maintainer: Paul Varner <fuzzyray@gentoo.org>
 
+* ebump
+  Original author: Karl Trygve Kalleberg <karltk@gentoo.org>
+  Christian Ruppert <idl0r@gentoo.org>
+
 * eclean
   Original author: Thomas de Grenier de Latour (tgl) <degrenier@easyconnect.fr>
   re-write author Brian Dolbec <dolsen@gentoo.org>
