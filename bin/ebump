@@ -8,7 +8,10 @@ __author__="Karl Trygve Kalleberg"
 __email__="<karltk@gentoo.org>"
 __description__="Ebuild version bumping tool"
 
-
+# MOTIVATION
+# The ebump utility is a Gentoo-specific tool for bumping the revision of
+# a given ebuild and auxiliary files in the Portage tree. It is only
+# useful for Gentoo developers with CVS commit access.
 
 die() {
 	echo $1 >&2
