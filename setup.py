@@ -61,6 +61,7 @@ manpages = [(os.path.join(cwd, path[0]), path[1]) for path in (
 	('man/eshowkw.1', 'ESHOWKW'),
 	('man/euse.1', 'EUSE'),
 	('man/glsa-check.1', 'GLSA-CHECK'),
+	('man/imlate.1', 'IMLATE'),
 	('man/revdep-rebuild.1', 'REVDEP-REBUILD'),
 )]
 
