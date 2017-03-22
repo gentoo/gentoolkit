@@ -1,0 +1,20 @@
+Package : ekeyword
+Version : 1.0
+Author  : See AUTHORS
+
+MOTIVATION
+
+Update the KEYWORDS in an ebuild.
+
+MECHANICS
+
+N/A
+
+IMPROVEMENTS
+
+- Should we allow users to pass in */-*/~*?
+- Should we collapse multiple globs into one.
+- Should we support multiline KEYWORDS values?  No...
+- Support autodetection of ~user homedir expansions.
+  e.g. If "arm" is a user, then "~arm" will be passed in as "/home/arm".
+       We should catch that and normalize it back to "~arm".

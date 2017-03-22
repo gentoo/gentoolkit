@@ -1,0 +1,18 @@
+
+Package : ebump
+Version : 0.1.1
+Author  : See AUTHORS
+
+MOTIVATION
+
+The ebump utility is a Gentoo-specific tool for bumping the revision of
+a given ebuild and auxiliary files in the Portage tree. It is only
+useful for Gentoo developers with CVS commit access.
+
+MECHANICS
+
+N/A
+
+IMPROVEMENTS
+
+N/A

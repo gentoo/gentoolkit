@@ -1,0 +1,48 @@
+.TH "imlate" "1" "1.0.0" "Christian Ruppert" "gentoolkit-dev"
+.SH "NAME"
+.LP 
+imlate \- Displays candidates for keywords for an architecture based upon a target architecture.
+.SH "SYNTAX"
+.LP 
+imlate [options]
+
+
+.SH "OPTIONS"
+.TP 
+.B \-\-version
+show program's version number and exit
+.TP 
+.B \-h, \-\-help
+show this help message and exit
+.TP 
+.B \-f FILE, \-\-file=FILE
+write result into FILE [default: stdout]
+.TP 
+.B \-m ARCH, \-\-main=ARCH  
+set main ARCH (e.g. your arch) [default: amd64]
+.TP 
+.B \-t ARCH, \-\-target=ARCH
+set target ARCH (e.g. x86) [default: x86]
+.TP
+.B \-\-mtime=MTIME
+set minimum MTIME in days [default: 30]
+.TP 
+.B \-s, \-\-stable
+just show stable candidates (e.g. \-s and \-k is the default result) [default: True]
+.TP 
+.B \-k, \-\-keyword
+just show keyword candidates (e.g. \-s and \-k is the default result) [default: True]
+.TP
+.B \-M MAINTAINER, \-\-maintainer=MAINTAINER
+Show only packages from the specified maintainer
+.TP
+.B \-H HERD, \-\-herd=HERD
+Show only packages from the specified herd
+.TP 
+.B \-C CATEGORIES, \-\-category=CATEGORIES, \-\-categories=CATEGORIES
+just check in the specified category/categories (comma separated) [default: none]
+.SH "AUTHORS"
+.LP 
+Christian Ruppert <idl0r@gentoo.org>
+.SH "BUGS"
+Please report any bugs to http://bugs.gentoo.org
