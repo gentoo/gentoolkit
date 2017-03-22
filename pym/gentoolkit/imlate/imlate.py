@@ -189,7 +189,7 @@ def is_herd(herd, metadata):
 					return True
 				if hd.startswith(hd2):
 					return True
-	
+
 	return False
 
 
@@ -224,7 +224,7 @@ def get_packages( conf ):
 			if not slot in slots:
 				slots[slot] = []
 			slots[slot].append(cpvr)
-		
+
 		for slot in sorted(slots):
 			cpvr = portage.versions.best( slots[slot] )
 
@@ -265,25 +265,25 @@ def get_imlate( conf, pkgs ):
 				our_ver = ""
 				mtime = 0
 				slot = 0
-	
+
 				# 0 = none(default), 1 = testing(~arch), 2 = stable(arch),
 				# 3 = exclude(-arch), 4 = exclude_all(-*)
 				# -* would be overridden by ~arch or arch
 				kwd_type = 0
 
 				cpvr = "%s/%s-%s" % ( cat, pkg, vr )
-	
+
 				# absolute ebuild path for mtime check
 				abs_pkg = join( conf["PORTDIR"], cat, pkg, basename( cpvr ) )
 				abs_pkg = "%s.ebuild" % str( abs_pkg )
-	
+
 				kwds = conf["portdb"].dbapi.aux_get( cpvr, ["KEYWORDS"] )[0]
-	
+
 				# FIXME: %s is bad.. maybe even cast it, else there are issues because its unicode
 				slot = ":%s" % conf["portdb"].dbapi.aux_get( cpvr, ["SLOT"] )[0]
 				if slot == ":0":
 					slot = ""
-	
+
 				# sorted() to keep the right order
 				# e.g. -* first, -arch second, arch third and ~arch fourth
 				# -* -foo ~arch
@@ -300,7 +300,7 @@ def get_imlate( conf, pkgs ):
 					elif kwd == testing:
 						kwd_type = 1
 						break
-	
+
 				# ignore -arch and already stabilized packages
 				if kwd_type == 3 or kwd_type == 2:
 					continue
@@ -314,7 +314,7 @@ def get_imlate( conf, pkgs ):
 					mtime = int( ( time() - stat( abs_pkg ).st_mtime ) / 60 / 60 / 24 )
 					if mtime < conf["MTIME"]:
 						continue
-	
+
 				# look for an existing stable version
 				our = portage.versions.best( conf["portdb"].dbapi.match( "%s/%s%s" % ( cat, pkg, slot ) ) )
 				if our:
@@ -324,12 +324,12 @@ def get_imlate( conf, pkgs ):
 						our_ver = "%s-%s" % ( our_ver, _foo[2] )
 				else:
 					our_ver = ""
-	
+
 				# we just need the version if > our_ver
 				if our_ver:
 					if portage.versions.vercmp( our_ver, vr ) >= 0:
 						continue
-	
+
 				if kwd_type == 1 and conf["STABLE"]:
 					imlate = _add_ent( imlate, cat, ("%s%s" % (pkg, slot)), vr, our_ver )
 					conf["STABLE_SUM"] += 1
