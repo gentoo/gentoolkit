@@ -51,7 +51,7 @@ import portage
 from portage.output import colorize, nocolor
 
 
-VERSION = '1.0 awesome'
+__version__ = 'git'
 
 # Operation object that describes how to perform a change.
 # Args:
@@ -475,7 +475,7 @@ def get_parser():
 	parser.add_argument('--format', default='auto', dest='style',
 		choices=('auto', 'color-inline', 'inline', 'short-multi', 'long-multi'),
 		help='Selet output format for showing differences')
-	parser.add_argument('-V', '--version', action='version', version=VERSION,
+	parser.add_argument('-V', '--version', action='version', version=__version__,
 		help='Show version information')
 	return parser
 
