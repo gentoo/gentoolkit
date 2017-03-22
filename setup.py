@@ -30,6 +30,7 @@ except ImportError:
 
 # Bash files that need `VERSION=""` subbed, relative to this dir:
 bash_scripts = [(os.path.join(cwd, path), 'VERSION=') for path in (
+	'bin/ebump',
 	'bin/euse',
 	'bin/revdep-rebuild.sh'
 )]
@@ -49,6 +50,7 @@ python_scripts = [(os.path.join(cwd, path), '__version__ = ') for path in (
 )]
 
 manpages = [(os.path.join(cwd, path[0]), path[1]) for path in (
+	('man/ebump.1', 'EBUMP'),
 	('man/eclean.1', 'ECLEAN'),
 	('man/enalyze.1', 'ENALYZE'),
 	('man/epkginfo.1', 'EPKGINFO'),

@@ -3,7 +3,6 @@
 # Copyright 1999-2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-__version__="0.1.1"
 __author__="Karl Trygve Kalleberg"
 __email__="<karltk@gentoo.org>"
 __description__="Ebuild version bumping tool"
@@ -12,6 +11,8 @@ __description__="Ebuild version bumping tool"
 # The ebump utility is a Gentoo-specific tool for bumping the revision of
 # a given ebuild and auxiliary files in the Portage tree. It is only
 # useful for Gentoo developers with CVS commit access.
+
+VERSION="git"
 
 die() {
 	echo $1 >&2
@@ -25,7 +26,7 @@ einfo() {
 }
 
 print_version() {
-	echo "${__description__}, v${__version__}"
+	echo "${__description__}, v${VERSION}"
 	echo "Copyright (c) 2004 ${__author__} ${__email__}"
 	echo "Copyright 1999-2010 Gentoo Foundation"
 	echo "Distributed under the terms of the GNU General Public License v2"
@@ -33,7 +34,7 @@ print_version() {
 
 print_usage() {
 	echo "Usage: ebump <options> foo<.ebuild>"
-	echo "Ebuild version bumping tool, v${__version__}"
+	echo "Ebuild version bumping tool, v${VERSION}"
 	echo "  -V|--version           show version info"
 	echo "  -v|--verbose           increase verbosity"
 	echo "  -q|--quiet             turn off output"

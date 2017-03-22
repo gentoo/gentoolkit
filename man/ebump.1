@@ -1,12 +1,12 @@
-.TH "ebump" "1" "0.1.1" "Gentoolkit" "Gentoo Administration"
+.TH "EBUMP" "1" "March 2017" "GENTOOLKIT" "Gentoo Administration"
 .SH "NAME"
-.LP 
+.LP
 ebump \- Gentoo: Ebuild revision bumper
 .SH "SYNTAX"
-.LP 
+.LP
 ebump [\fIoption\fP] <\fIpackage-name[-version]\fP>
 
-.SH "DESCRIPTION" 
+.SH "DESCRIPTION"
 
 .LP
 \fIebump\fR bumps the revision of a particular ebuild, and all auxiliary
@@ -15,36 +15,36 @@ files in the files/ directory that have a matching version suffix.
 .LP
 By default, the all new revision files will be added to the VCS.
 
-.LP 
+.LP
 You must stand in the directory of the ebuild to be bumped.
 
 .SH "OPTIONS"
-.LP 
+.LP
 \fB\-C\fR
 .br
 \fB--no-vcs\fB
-.IP 
+.IP
 Do not add new files to VCS.
 
-.LP 
+.LP
 \fB\-V\fR
 .br
 \fB--version\fB
-.IP 
+.IP
 Display version information and exit.
 
-.LP 
+.LP
 \fB\-v\fR
 .br
 \fB--verbose\fB
-.IP 
+.IP
 Increase verbosity level. May be used more than once.
 
-.LP 
+.LP
 \fB\-q\fR
 .br
 \fB--quiet\fB
-.IP 
+.IP
 Do not output any non-essential information.
 
 .LP
@@ -61,19 +61,19 @@ don't bump auxfiles (files/*)
 .IP
 do not update ChangeLog (via echangelog)
 
-.LP 
+.LP
 \fB\-m\fR <\fIChangeLog text\fR>
-.br 
+.br
 \fB\--message\fR <\fIChangeLog text\fR>
-.IP 
+.IP
 Specifies the message to add to the ChangeLog, instead of the standard
 placeholder.
 
-.LP 
+.LP
 \fB\-d\fR
 .br
 \fB\--delete-old\fR
-.IP 
+.IP
 Delete old revision and old auxiliary files from VCS. This is
 \fIdangerous\fR and should only be used if you know exactly what you are
 doing, because
@@ -111,16 +111,16 @@ From these files, \fIebump\fR will load the settings
 .br
 \fB~/.gentoo/gentool-env\fR
 .IR
-From this file, \fIebump\fR will load the env vars \fBAUTHORNAME\fR and 
+From this file, \fIebump\fR will load the env vars \fBAUTHORNAME\fR and
 \fBAUTHOREMAIL\fR, which are used to generate proper ChangeLog entries.
 
 .SH "SEE ALSO"
-.LP 
+.LP
 The rest of the utilities in \fIapp-portage/gentoolkit-dev\fR, such as
 \fIechangelog(1)\fR and \fIekeyword(1)\fR.
 
 .SH "AUTHORS"
-.LP 
+.LP
 Karl Trygve Kalleberg <karltk@gentoo.org>
 .br
 Christian Ruppert <idl0r@gentoo.org>
