@@ -47,6 +47,7 @@ python_scripts = [(os.path.join(cwd, path), '__version__ = ') for path in (
 	'pym/gentoolkit/ekeyword/ekeyword.py',
 	'pym/gentoolkit/equery/__init__.py',
 	'pym/gentoolkit/eshowkw/__init__.py',
+	'pym/gentoolkit/imlate/imlate.py',
 	'pym/gentoolkit/revdep_rebuild/__init__.py'
 )]
 

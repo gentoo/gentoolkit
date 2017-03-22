@@ -1,0 +1,45 @@
+#!/usr/bin/python
+#
+# Copyright 2002-2017 Gentoo Technologies, Inc.
+# Distributed under the terms of the GNU General Public License v2 or later
+#
+# $Header$
+
+"""Manage KEYWORDS in ebuilds easily.
+
+This tool provides a simple way to add or update KEYWORDS in a set of ebuilds.
+Each command-line argument is processed in order, so that keywords are added to
+the current list as they appear, and ebuilds are processed as they appear.
+
+"""
+
+from __future__ import print_function
+
+import os
+import sys
+# This block ensures that ^C interrupts are handled quietly.
+try:
+	import signal
+
+	def exithandler(signum,frame):
+		signal.signal(signal.SIGINT, signal.SIG_IGN)
+		signal.signal(signal.SIGTERM, signal.SIG_IGN)
+		print()
+		sys.exit(1)
+
+	signal.signal(signal.SIGINT, exithandler)
+	signal.signal(signal.SIGTERM, exithandler)
+	signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
+except KeyboardInterrupt:
+	print()
+	sys.exit(1)
+
+from gentoolkit.imlate import imlate
+
+try:
+	imlate.main()
+except KeyboardInterrupt:
+	print("Aborted.")
+	sys.exit(130)
+sys.exit(0)
