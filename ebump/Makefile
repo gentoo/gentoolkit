@@ -1,5 +1,5 @@
 # Copyright 2004 Karl Trygve Kalleberg <karltk@gentoo.org>
-# Copyright 2004 Gentoo Technologies, Inc.
+# Copyright 2004 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 #
 # $Header$
