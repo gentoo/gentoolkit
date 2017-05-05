@@ -15,12 +15,19 @@ import glob
 import portage
 from portage import _encodings, _unicode_decode, _unicode_encode
 
+if sys.version_info[0] >= 3:
+	_unicode = str
+else:
+	_unicode = unicode
+
+portage_root = _unicode(portage.root)
+
 DEFAULTS = {
-		'DEFAULT_LD_FILE': os.path.join(portage.root, 'etc/ld.so.conf'),
-		'DEFAULT_ENV_FILE': os.path.join(portage.root, 'etc/profile.env'),
-		'REVDEP_CONFDIR': os.path.join(portage.root, 'etc/revdep-rebuild/'),
-		'PKG_DIR': os.path.join(portage.root, 'var/db/pkg/'),
-		'DEFAULT_TMP_DIR': os.path.join(portage.root, '/tmp/revdep-rebuild' if os.getgid() else '/var/cache/revdep-rebuild'), #cache default location
+		'DEFAULT_LD_FILE': os.path.join(portage_root, 'etc/ld.so.conf'),
+		'DEFAULT_ENV_FILE': os.path.join(portage_root, 'etc/profile.env'),
+		'REVDEP_CONFDIR': os.path.join(portage_root, 'etc/revdep-rebuild/'),
+		'PKG_DIR': os.path.join(portage_root, 'var/db/pkg/'),
+		'DEFAULT_TMP_DIR': os.path.join(portage_root, '/tmp/revdep-rebuild' if os.getgid() else '/var/cache/revdep-rebuild'), #cache default location
 
 		# number of maximum allowed files to be parsed at once
 		'CMD_MAX_ARGS': 1000,
