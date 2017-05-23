@@ -106,7 +106,7 @@ class VerifyContents(object):
 			n_checked += 1
 			ftype = files[cfile][0]
 			real_cfile = os.environ.get('ROOT', '') + cfile
-			if not os.path.exists(real_cfile):
+			if not os.path.lexists(real_cfile):
 				errs.append("%s does not exist" % cfile)
 				continue
 			elif ftype == "dir":
