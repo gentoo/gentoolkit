@@ -261,15 +261,29 @@ def process_content(ebuild, data, ops, arch_status=None, verbose=0,
 			continue
 
 		# Ok, we've got it, now let's process things.
-		old_keywords = set(m.group(3).split())
+		old_keywords_original = m.group(3).split()  # preserve original order
+		old_keywords = set(old_keywords_original)
 		new_keywords = process_keywords(
 			old_keywords, ops, arch_status=arch_status)
 
+		were_sorted_already = (
+				old_keywords_original == sort_keywords(old_keywords_original))
+
 		# Finally let's present the results to the user.
-		if (new_keywords != old_keywords) or verbose:
+		if (new_keywords != old_keywords) or \
+				(not ops and not were_sorted_already) or verbose:
 			# Only do the diff work if something actually changed.
 			updated = True
-			old_keywords = sort_keywords(old_keywords)
+
+			if not ops:
+				# We're sorting only so we want to compare with the
+				# unsorted original (or changes in order will not show)
+				old_keywords = old_keywords_original
+			else:
+				# We changed keywords so let's diff sorted versions
+				# so that keywords changes are easy to spot
+				old_keywords = sort_keywords(old_keywords)
+
 			new_keywords = sort_keywords(new_keywords)
 			line = '%s"%s"%s\n' % (m.group(1), ' '.join(new_keywords),
 			                       m.group(5))
@@ -435,14 +449,12 @@ def args_to_work(args, arch_status=None, _repo='gentoo', quiet=0):
 	"""Process |args| into a list of work itmes (ebuild/arches to update)"""
 	work = []
 	todo_arches = []
-	last_todo_arches = None
+	last_todo_arches = []
 
 	for arg in args:
 		if arg.endswith('.ebuild'):
 			if not todo_arches:
 				todo_arches = last_todo_arches
-			if not todo_arches:
-				raise ValueError('missing arches to process for %s' % arg)
 			work.append([arg, todo_arches])
 			last_todo_arches = todo_arches
 			todo_arches = []
@@ -510,7 +522,7 @@ def main(argv):
 	parser = get_parser()
 	opts = parser.parse_args(parse_args)
 	if not work_args:
-		parser.error('need arches/ebuilds to process')
+		parser.error('need ebuilds to process')
 
 	if opts.style == 'auto':
 		if not portage_settings().get('NOCOLOR', 'false').lower() in ('no', 'false'):
