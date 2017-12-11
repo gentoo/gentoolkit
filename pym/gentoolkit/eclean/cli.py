@@ -120,7 +120,7 @@ def printUsage(_error=None, help=None):
 		print( yellow(" -i, --interactive")+
 			"         - ask confirmation before deletions", file=out)
 		print( yellow(" -n, --package-names")+
-			"       - protect all versions (when --deep", file=out)
+			"       - protect all versions (when --deep)", file=out)
 		print( yellow(" -p, --pretend")+
 			"             - only display what would be cleaned", file=out)
 		print( yellow(" -q, --quiet")+
