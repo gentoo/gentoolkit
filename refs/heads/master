@@ -1,0 +1,12 @@
+certificate version 0.1
+pusher FDE8EF85AE5719A3 1513057903 -0800
+pushee git+ssh://git.gentoo.org/proj/gentoolkit.git
+nonce 1513057904-e77058a69bcee618acc6
+
+0bbf21d7c25743e030879ab65af5e432aba2eaa3 8eda4c13bee9c6a78b2489deec210c8b37375029 refs/heads/master
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSG5RNTeMgVEruefzL96O+FrlcZowUCWi9ubwAKCRD96O+FrlcZ
+o6ECAJ9ZhUNrwoimy4MDk7/D0ObLbA8uQACguR5TSmEQC5y7HJ8c2bA+KF6pxiM=
+=wVoq
+-----END PGP SIGNATURE-----
