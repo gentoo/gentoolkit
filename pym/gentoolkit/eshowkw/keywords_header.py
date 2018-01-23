@@ -1,5 +1,5 @@
 #	vim:fileencoding=utf-8
-# Copyright 2001-2010 Gentoo Foundation
+# Copyright 2001-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
 __all__ = ['keywords_header']
@@ -97,6 +97,10 @@ class keywords_header:
 		return [x for x in ports.archlist()
 			if not x.startswith('~')]
 
+	@staticmethod
+	def __isPrefix(k):
+		return len(k.split('-')) != 1
+
 	def __sortKeywords(self, keywords, prefix = False, required_keywords = []):
 		"""Sort keywords: order by status (IMP, then DEV, then EXP, then
 		prefix), then by name."""
@@ -109,10 +113,9 @@ class keywords_header:
 			if len(tmpkeywords) != 0:
 				keywords = tmpkeywords
 
-		normal = [k for k in keywords if len(k.split('-')) == 1]
+		normal = [k for k in keywords if not self.__isPrefix(k)]
 		if prefix:
-			longer = [k for k in keywords
-				if len(k.split('-')) != 1]
+			longer = [k for k in keywords if self.__isPrefix(k)]
 			longer.sort()
 			normal.extend(longer)
 
