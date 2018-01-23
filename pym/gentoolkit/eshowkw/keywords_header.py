@@ -118,7 +118,6 @@ class keywords_header:
 		normal = [k for k in keywords if not self.__isPrefix(k)]
 		if prefix:
 			longer = [k for k in keywords if self.__isPrefix(k)]
-			longer.sort()
 			normal.extend(longer)
 
 		lists = self.__IMPARCHS, self.__DEV_ARCHS, self.__EXP_ARCHS
