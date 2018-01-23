@@ -142,12 +142,16 @@ class keywords_header:
 					break
 
 		# sort by, in order (to match Bugzilla):
-		# 1. arch, then ~arch
-		# 2. profile stability
-		# 3. short keywords, then long (prefix, fbsd)
-		# 4. keyword name in reverse component order
-		normal.sort(key=lambda kw: (kw in self.__TESTING_KW_ARCHS,
-			levels.get(kw, 99), kw.count('-'), list(reversed(kw.split('-')))))
+		# 1. non-prefix, then prefix (stable output between -P and not)
+		# 2. arch, then ~arch
+		# 3. profile stability
+		# 4. short keywords, then long (prefix, fbsd)
+		# 5. keyword name in reverse component order
+		normal.sort(key=lambda kw: (self.__isPrefix(kw),
+			kw in self.__TESTING_KW_ARCHS,
+			levels.get(kw, 99),
+			kw.count('-'),
+			list(reversed(kw.split('-')))))
 		return normal
 
 	def __readAdditionalFields(self):
