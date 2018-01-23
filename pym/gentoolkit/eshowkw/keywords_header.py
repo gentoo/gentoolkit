@@ -129,7 +129,7 @@ class keywords_header:
 					levels[kw] = level
 					break
 
-		normal.sort(key=lambda kw: (levels.get(kw, 99), kw))
+		normal.sort(key=lambda kw: (levels.get(kw, 99), kw.count('-'), kw))
 		return normal
 
 	def __readAdditionalFields(self):
