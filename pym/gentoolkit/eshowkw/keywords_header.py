@@ -145,9 +145,9 @@ class keywords_header:
 		# 1. arch, then ~arch
 		# 2. profile stability
 		# 3. short keywords, then long (prefix, fbsd)
-		# 4. keyword name
+		# 4. keyword name in reverse component order
 		normal.sort(key=lambda kw: (kw in self.__TESTING_KW_ARCHS,
-			levels.get(kw, 99), kw.count('-'), kw))
+			levels.get(kw, 99), kw.count('-'), list(reversed(kw.split('-')))))
 		return normal
 
 	def __readAdditionalFields(self):
