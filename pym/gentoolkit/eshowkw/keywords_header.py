@@ -99,7 +99,9 @@ class keywords_header:
 
 	@staticmethod
 	def __isPrefix(k):
-		return len(k.split('-')) != 1
+		spl = k.split('-')
+		# *-fbsd are not prefix
+		return len(spl) > 1 and spl[1] != 'fbsd'
 
 	def __sortKeywords(self, keywords, prefix = False, required_keywords = []):
 		"""Sort keywords: order by status (IMP, then DEV, then EXP, then
