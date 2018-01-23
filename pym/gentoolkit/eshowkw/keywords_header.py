@@ -15,7 +15,7 @@ from portage.output import colorize
 from gentoolkit.eshowkw.display_pretty import colorize_string
 from gentoolkit.eshowkw.display_pretty import align_string
 
-# Copied from ekeyword
+# Copied from ekeyword, modified to support arch vs ~arch status
 def load_profile_data(portdir=None, repo='gentoo'):
 	"""Load the list of known arches from the tree
 
@@ -25,7 +25,7 @@ def load_profile_data(portdir=None, repo='gentoo'):
 
 	Returns:
 	  A dict mapping the keyword to its preferred state:
-	  {'x86': 'stable', 'mips': 'dev', ...}
+	  {'x86': ('stable', 'arch'), 'mips': ('dev', '~arch'), ...}
 	"""
 	if portdir is None:
 		portdir = portage.db[portage.root]['vartree'].settings.repositories[repo].location
@@ -71,16 +71,28 @@ def load_profile_data(portdir=None, repo='gentoo'):
 		warning('could not read profile files: %s' % arch_list)
 		warning('will not be able to verify args are correct')
 
+	# TODO: support arches.desc once the GLEP is finalized
+	# for now, we just hardcode ~mips + *-* (fbsd, prefix)
+	for k, v in arch_status.items():
+		if k == 'mips' or '-' in k:
+			arch_status[k] = (v, '~arch')
+		else:
+			arch_status[k] = (v, 'arch')
+
 	return arch_status
 
 def gen_arch_list(status):
 	_arch_status = load_profile_data()
 	if status == "stable":
-		return [arch for arch in _arch_status if _arch_status[arch] == "stable"]
+		return [arch for arch in _arch_status if _arch_status[arch][0] == "stable"]
 	elif status == "dev":
-		return [arch for arch in _arch_status if _arch_status[arch] == "dev"]
+		return [arch for arch in _arch_status if _arch_status[arch][0] == "dev"]
 	elif status == "exp":
-		return [arch for arch in _arch_status if _arch_status[arch] == "exp"]
+		return [arch for arch in _arch_status if _arch_status[arch][0] == "exp"]
+	elif status == "arch":
+		return [arch for arch in _arch_status if _arch_status[arch][1] == "arch"]
+	elif status == "~arch":
+		return [arch for arch in _arch_status if _arch_status[arch][1] == "~arch"]
 	else:
 		raise TypeError
 
@@ -88,6 +100,7 @@ class keywords_header:
 	__IMPARCHS = gen_arch_list("stable")
 	__DEV_ARCHS = gen_arch_list("dev")
 	__EXP_ARCHS = gen_arch_list("exp")
+	__TESTING_KW_ARCHS = gen_arch_list("~arch")
 	__ADDITIONAL_FIELDS = [ 'eapi', 'unused', 'slot' ]
 	__EXTRA_FIELDS = [ 'repo' ]
 
@@ -128,7 +141,13 @@ class keywords_header:
 					levels[kw] = level
 					break
 
-		normal.sort(key=lambda kw: (levels.get(kw, 99), kw.count('-'), kw))
+		# sort by, in order (to match Bugzilla):
+		# 1. arch, then ~arch
+		# 2. profile stability
+		# 3. short keywords, then long (prefix, fbsd)
+		# 4. keyword name
+		normal.sort(key=lambda kw: (kw in self.__TESTING_KW_ARCHS,
+			levels.get(kw, 99), kw.count('-'), kw))
 		return normal
 
 	def __readAdditionalFields(self):
