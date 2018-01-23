@@ -120,7 +120,7 @@ class keywords_header:
 			longer = [k for k in keywords if self.__isPrefix(k)]
 			normal.extend(longer)
 
-		lists = self.__IMPARCHS, self.__DEV_ARCHS, self.__EXP_ARCHS
+		lists = (self.__IMPARCHS + self.__DEV_ARCHS), self.__EXP_ARCHS
 		levels = {}
 		for kw in normal:
 			for level, ls in enumerate(lists):
