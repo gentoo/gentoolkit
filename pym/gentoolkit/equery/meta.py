@@ -89,6 +89,7 @@ def print_help(with_description=True, with_usage=True):
 		(" -k, --keywords", "show keywords for all matching package versions"),
 		(" -l, --license", "show licenses for the best maching version"),
 		(" -m, --maintainer", "show the maintainer(s) for the package"),
+		(" -r, --reverse", "show the output in reverse order if applicable"),
 		(" -S, --stablreq", "show STABLEREQ arches (cc's) for all matching package versions"),
 		(" -u, --useflags", "show per-package USE flag descriptions"),
 		(" -U, --upstream", "show package's upstream information"),
@@ -525,9 +526,9 @@ def parse_module_options(module_opts):
 def main(input_args):
 	"""Parse input and run the program."""
 
-	short_opts = "hdHklmSuUx"
+	short_opts = "hdHklmrSuUx"
 	long_opts = ('help', 'description', 'herd', 'keywords', 'license',
-		'maintainer', 'stablereq', 'useflags', 'upstream', 'xml')
+		'maintainer', 'reverse', 'stablereq', 'useflags', 'upstream', 'xml')
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
@@ -561,6 +562,8 @@ def main(input_args):
 			print()
 
 		matches.sort()
+		matches.sort(reverse=any(name in ('-r', '--reverse')
+		    for name, opt in module_opts))
 		call_format_functions(best_match, matches)
 
 		first_run = False
