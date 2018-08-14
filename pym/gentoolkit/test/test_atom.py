@@ -126,9 +126,8 @@ class TestGentoolkitAtom(unittest.TestCase):
 			('=cat/pkg-1-r1*', '<cat/pkg-1-r1', False),
 			('=cat/pkg-1*', '>cat/pkg-2', False),
 			('>=cat/pkg-8.4', '=cat/pkg-8.3.4*', False),
-			# Repos not yet supported by Portage
-			#('cat/pkg::gentoo', 'cat/pkg', True),
-			#('cat/pkg::gentoo', 'cat/pkg::foo', False),
+			('cat/pkg::gentoo', 'cat/pkg', True),
+			('cat/pkg::gentoo', 'cat/pkg::foo', False),
 			('=sys-devel/gcc-4.1.1-r3', '=sys-devel/gcc-3.3*', False),
 			('=sys-libs/db-4*', '~sys-libs/db-4.3.29', True),
 		]:

@@ -227,10 +227,9 @@ class Atom(portage.dep.Atom, CPV):
 			this_slot != that_slot):
 			return False
 
-		# TODO: Uncomment when Portage's Atom supports repo
-		#if (self.repo_name is not None and other.repo_name is not None and
-		#   self.repo_name != other.repo_name):
-		#   return False
+		if (self.repo is not None and other.repo is not None and
+			self.repo != other.repo):
+			return False
 
 		# Use deps are similar: if one of us forces a flag on and the
 		# other forces it off we do not intersect. If only one of us
