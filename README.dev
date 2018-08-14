@@ -25,12 +25,12 @@ Adding or modifying code:
 - If you add new code, best practice is to write a test for it.
 - If you're modifying code that doesn't have a test and you can write a test
   for it, please do.
-- Before committing your changes to a python file, please make sure it passes
-  pylint with:
-pylint --rcfile=pylintrc yourfile.py
-- If pylint raises a warning or error that you don't agree with, it's probably
+- Before committing your changes, run "tox" to ensure that you didn't break
+  tests or introduced a flake8 error.
+- If flake8 raises a warning or error that you don't agree with, it's probably
   better to just change your code. If you're sure you have a good reason for
-  doing what you're doing, you can add an exception to our pylintrc.
+  doing what you're doing, you can add "# noqa" at the end of the line to
+  silence it.
 
 Creating a release:
 ===================

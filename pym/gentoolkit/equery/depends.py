@@ -58,8 +58,6 @@ class DependPrinter(object):
 		pp.uprint(indent + pp.cpv(cpv), "(" + use_conditional +
 			sep + depatom + ")")
 
-	# W0613: *Unused argument %r*
-	# pylint: disable-msg=W0613
 	@staticmethod
 	def print_quiet(indent, cpv, use_conditional, depatom):
 		"""Quietly prints a subset set of dep strings."""

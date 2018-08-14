@@ -343,7 +343,6 @@ def process_ebuild(ebuild, ops, arch_status=None, verbose=0, quiet=0,
 def portage_settings():
 	"""Return the portage settings we care about."""
 	# Portage creates the db member on the fly which confuses the linter.
-	# pylint: disable=no-member
 	return portage.db['/']['vartree'].settings
 
 
