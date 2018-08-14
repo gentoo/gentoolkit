@@ -8,6 +8,7 @@
 import unittest
 
 from gentoolkit.atom import Atom
+from gentoolkit.cpv import CPV
 from gentoolkit.test import cmp
 
 """Atom test suite (verbatim) from pkgcore."""
@@ -140,10 +141,16 @@ class TestGentoolkitAtom(unittest.TestCase):
 				result, that_atom.intersects(this_atom),
 				'%s intersecting %s should be %s' % (that, this, result))
 
+	def test_intersects_nameonly(self):
+		atom = Atom('cat/pkg')
+		self.assertTrue(atom.intersects(CPV('pkg')))
+		self.assertFalse(atom.intersects(CPV('other')))
+		self.assertFalse(atom.intersects(CPV('dkg')))
+
 
 def test_main():
-        suite = unittest.TestLoader().loadTestsFromTestCase(TestGentoolkitAtom)
-        unittest.TextTestRunner(verbosity=2).run(suite)
+		suite = unittest.TestLoader().loadTestsFromTestCase(TestGentoolkitAtom)
+		unittest.TextTestRunner(verbosity=2).run(suite)
 test_main.__test__ = False
 
 
