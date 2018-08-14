@@ -44,10 +44,6 @@ from portage import archlist
 # Functions
 # =========
 
-# output creates color functions on the fly, which confuses pylint.
-# E1101: *%s %r has no %r member*
-# pylint: disable-msg=E1101
-
 def command(string):
 	"""Returns a program command string."""
 	return output.green(string)

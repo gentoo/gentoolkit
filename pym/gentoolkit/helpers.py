@@ -414,8 +414,6 @@ def get_cpvs(predicate=None, include_installed=True):
 				yield cpv
 
 
-# pylint thinks this is a global variable
-# pylint: disable-msg=C0103
 get_uninstalled_cpvs = partial(get_cpvs, include_installed=False)
 
 

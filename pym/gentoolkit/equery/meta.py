@@ -31,10 +31,6 @@ from gentoolkit.query import Query
 # Globals
 # =======
 
-# E1101: Module 'portage.output' has no $color member
-# portage.output creates color functions dynamically
-# pylint: disable-msg=E1101
-
 QUERY_OPTS = {
 	'current': False,
 	'description': False,
@@ -293,8 +289,6 @@ def format_homepage(homepage):
 	return result
 
 
-# R0912: *Too many branches (%s/%s)*
-# pylint: disable-msg=R0912
 def call_format_functions(best_match, matches):
 	"""Call information gathering functions and display the results."""
 

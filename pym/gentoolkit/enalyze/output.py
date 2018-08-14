@@ -95,8 +95,6 @@ class AnalysisPrinter(CpvValueWrapper):
 			cpv = _pkgs.pop(0)
 			print(' '*52 + pp.cpv(cpv))
 
-	# W0613: *Unused argument %r*
-	# pylint: disable-msg=W0613
 	def print_use_quiet(self, key, active, default, count, pkgs):
 		"""Quietly prints a subset set of USE flag info..
 		"""
@@ -120,8 +118,6 @@ class AnalysisPrinter(CpvValueWrapper):
 			cpv = _pkgs.pop(0)
 			print(' '*37 + pp.cpv(cpv))
 
-	# W0613: *Unused argument %r*
-	# pylint: disable-msg=W0613
 	def print_keyword_quiet(self, key, stability, default, count, pkgs):
 		"""Quietly prints a subset set of USE flag info..
 		"""
@@ -129,8 +125,6 @@ class AnalysisPrinter(CpvValueWrapper):
 			hard_masked=stability=="-"))
 		print(self.prepend + _key,'.'*(20-len(key)), default, pp.number(count))
 
-	# W0613: *Unused argument %r*
-	# pylint: disable-msg=W0613
 	def _format_pkg(self, key, active, flags):
 		"""Determines the stats for key, formats it and
 		calls the pre-determined print function

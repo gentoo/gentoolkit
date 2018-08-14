@@ -54,8 +54,6 @@ class BelongsPrinter(object):
 	def __call__(self, pkg, cfile):
 		self.print_fn(pkg, cfile)
 
-	# W0613: *Unused argument %r*
-	# pylint: disable-msg=W0613
 	def print_quiet(self, pkg, cfile):
 		"Format for minimal output."
 		if self.name_only:

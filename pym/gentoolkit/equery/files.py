@@ -77,8 +77,6 @@ def print_help(with_description=True):
 	print(" " * 24, ', '.join(pp.emph(x) for x in FILTER_RULES))
 
 
-# R0912: *Too many branches (%s/%s)*
-# pylint: disable-msg=R0912
 def display_files(contents):
 	"""Display the content of an installed package.
 

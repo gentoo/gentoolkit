@@ -188,9 +188,6 @@ class Atom(portage.dep.Atom, CPV):
 	def __setattr__(self, name, value):
 		object.__setattr__(self, name, value)
 
-	#R0911:121:Atom.intersects: Too many return statements (20/6)
-	#R0912:121:Atom.intersects: Too many branches (23/12)
-	# pylint: disable-msg=R0911,R0912
 	def intersects(self, other):
 		"""Check if a passed in package atom "intersects" this atom.
 
@@ -292,9 +289,6 @@ class Atom(portage.dep.Atom, CPV):
 
 		# If we get here at least one of us is a <, <=, > or >=:
 		if self.operator in ('<', '<=', '>', '>='):
-			# pylint screwup:
-			# E0601: Using variable 'ranged' before assignment
-			# pylint: disable-msg=E0601
 			ranged, ranged.operator = self, self.operator
 		else:
 			ranged, ranged.operator = other, other.operator
