@@ -1,6 +1,4 @@
 import unittest
-import warnings
-from tempfile import NamedTemporaryFile, mktemp
 
 from gentoolkit import query
 from gentoolkit import errors
@@ -15,13 +13,11 @@ class TestQuery(unittest.TestCase):
 		pass
 
 	def test_init(self):
-		# valid queries must have at least one ascii letter or '*'
+		# valid queries must have at least one ascii letter or digit or
+                # '*'
 		invalid_queries = [
 			'',
-			'1',
 			'/',
-			'-1',
-			'1/1',
 		]
 		for q in invalid_queries:
 			self.failUnlessRaises(errors.GentoolkitInvalidPackage,
