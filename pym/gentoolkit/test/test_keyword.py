@@ -1,10 +1,7 @@
 import sys
 import unittest
-import warnings
-from tempfile import NamedTemporaryFile
 
 from gentoolkit import keyword
-from gentoolkit.test import cmp
 
 class TestGentoolkitKeyword(unittest.TestCase):
 

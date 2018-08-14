@@ -11,7 +11,7 @@ import sys
 if sys.hexversion < 0x3000000:
 	from io import open
 
-from portage import _encodings, _unicode_decode, _unicode_encode
+from portage import _encodings, _unicode_encode
 from portage.output import bold, blue, yellow, green
 
 from .stuff import scan

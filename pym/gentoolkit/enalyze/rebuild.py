@@ -23,13 +23,13 @@ from gentoolkit.module_base import ModuleBase
 from gentoolkit import pprinter as pp
 from gentoolkit.enalyze.lib import (get_installed_use, get_flags, FlagAnalyzer,
 	KeywordAnalyser)
-from gentoolkit.flag import reduce_flags
 from gentoolkit.enalyze.output import RebuildPrinter
 from gentoolkit.atom import Atom
+from gentoolkit.package import Package
 
 
 import portage
-from portage import _encodings, _unicode_decode, _unicode_encode
+from portage import _encodings, _unicode_encode
 
 def cpv_all_diff_use(
 		cpvs=None,

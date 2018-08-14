@@ -6,7 +6,6 @@
 #
 # $Header$
 
-import errno
 import sys
 import time
 
@@ -69,7 +68,7 @@ def format_filetype(path, fdesc, show_type=False, show_md5=False,
 		ftype = "sym"
 		stamp = format_timestamp(fdesc[1])
 		tgt = fdesc[2].split()[0]
-		if CONFIG["piping"]:
+		if gentoolkit.CONFIG["piping"]:
 			fpath = path
 		else:
 			fpath = pp.path_symlink(path + " -> " + tgt)

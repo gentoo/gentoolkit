@@ -13,12 +13,12 @@ import re
 import glob
 
 import portage
-from portage import _encodings, _unicode_decode, _unicode_encode
+from portage import _encodings, _unicode_encode
 
 if sys.version_info[0] >= 3:
 	_unicode = str
 else:
-	_unicode = unicode
+	_unicode = unicode  # noqa
 
 portage_root = _unicode(portage.root)
 

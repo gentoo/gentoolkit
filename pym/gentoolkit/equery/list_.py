@@ -17,11 +17,9 @@ __docformat__ = 'epytext'
 import sys
 from getopt import gnu_getopt, GetoptError
 
-import gentoolkit
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
 from gentoolkit.equery import format_options, mod_usage, CONFIG
-from gentoolkit.helpers import get_installed_cpvs
 from gentoolkit.helpers import get_bintree_cpvs
 from gentoolkit.package import PackageFormatter, FORMAT_TMPL_VARS
 from gentoolkit.query import Query

@@ -19,7 +19,6 @@ import os
 from getopt import gnu_getopt, GetoptError
 
 import gentoolkit.pprinter as pp
-from gentoolkit import errors
 from gentoolkit.atom import Atom
 from gentoolkit.equery import format_options, mod_usage
 from gentoolkit.helpers import ChangeLog

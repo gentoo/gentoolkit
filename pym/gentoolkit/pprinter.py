@@ -15,7 +15,6 @@ __all__ = (
 	'emph',
 	'error',
 	'globaloption',
-	'installedflag',
 	'localoption',
 	'number',
 	'path',

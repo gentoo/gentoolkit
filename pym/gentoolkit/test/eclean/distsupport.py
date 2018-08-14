@@ -10,8 +10,7 @@ from __future__ import print_function
 
 import re
 import os
-import unittest
-from tempfile import NamedTemporaryFile, mkdtemp
+from tempfile import mkdtemp
 import subprocess
 import portage
 
@@ -156,9 +155,6 @@ PROPS = {
 	'dev-libs/libisofs-0.6.26': {
 		"SRC_URI": 'http://files.libburnia-project.org/releases/libisofs-0.6.26.tar.gz',
 		"RESTRICT": ''},
-	'app-portage/portage-utils-0.3.1': {
-		"SRC_URI": 'mirror://gentoo/portage-utils-0.3.1.tar.bz2',
-		"RESTRICT": ''},
 	'app-portage/gentoolkit-0.3.0_rc8-r1': {
 		"SRC_URI": 'mirror://gentoo/gentoolkit-0.3.0_rc8.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc8.tar.gz',
 		"RESTRICT": ''},
@@ -170,9 +166,6 @@ PROPS = {
 		"RESTRICT": ''},
 	'app-portage/gentoolkit-0.2.4.5': {
 		"SRC_URI": 'mirror://gentoo/gentoolkit-0.2.4.5.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.2.4.5.tar.gz',
-		"RESTRICT": ''},
-	'app-portage/portage-utils-0.2.1': {
-		"SRC_URI": 'mirror://gentoo/portage-utils-0.2.1.tar.bz2',
 		"RESTRICT": ''},
 	'app-portage/gentoolkit-0.3.0_rc8': {
 		"SRC_URI": 'mirror://gentoo/gentoolkit-0.3.0_rc8.tar.gz http://dev.gentoo.org/~fuzzyray/distfiles/gentoolkit-0.3.0_rc8.tar.gz',
@@ -460,7 +453,7 @@ class TestDisfiles(object):
 		dir = os.path.dirname(os.path.abspath(__file__))
 		file = os.path.join(dir,"testdistfiles.tar.gz")
 		command = "tar -xpf %s -C %s" %(file, self.tmpdir)
-		retcode = subprocess.call(command, shell=True)
+		subprocess.call(command, shell=True)
 		# create a symlink as part of the test files
 		#print()
 		self.target_symlink = "symlink-1.0.0.tar.gz"

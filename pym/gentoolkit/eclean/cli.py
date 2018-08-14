@@ -23,7 +23,7 @@ import time
 import getopt
 
 import portage
-from portage.output import white, yellow, turquoise, green, teal, red
+from portage.output import white, yellow, turquoise, green
 
 import gentoolkit.pprinter as pp
 from gentoolkit.eclean.search import (DistfilesSearch,

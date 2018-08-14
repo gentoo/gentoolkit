@@ -10,11 +10,11 @@ import time
 import sys
 if sys.hexversion < 0x3000000:
 	from io import open
-	_unicode = unicode
+	_unicode = unicode  # noqa
 else:
 	_unicode = str
 
-from portage import _encodings, _unicode_decode, _unicode_encode
+from portage import _encodings, _unicode_encode
 from portage.output import red
 from .settings import DEFAULTS
 

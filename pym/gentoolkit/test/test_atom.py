@@ -7,7 +7,7 @@
 
 import unittest
 
-from gentoolkit.atom import *
+from gentoolkit.atom import Atom
 from gentoolkit.test import cmp
 
 """Atom test suite (verbatim) from pkgcore."""
