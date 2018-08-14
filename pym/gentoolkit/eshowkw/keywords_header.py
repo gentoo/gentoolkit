@@ -2,6 +2,8 @@
 # Copyright 2001-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
+from __future__ import print_function
+
 __all__ = ['keywords_header']
 
 import portage
@@ -9,11 +11,16 @@ import os
 import sys
 if sys.hexversion < 0x3000000:
 	from io import open
-from portage import _encodings, _unicode_decode, _unicode_encode
+from portage import _encodings, _unicode_encode
 from portage import settings as ports
-from portage.output import colorize
 from gentoolkit.eshowkw.display_pretty import colorize_string
 from gentoolkit.eshowkw.display_pretty import align_string
+
+# Copied from ekeyword
+def warning(msg):
+	"""Write |msg| as a warning to stderr"""
+	print('warning: %s' % msg, file=sys.stderr)
+
 
 # Copied from ekeyword, modified to support arch vs ~arch status
 def load_profile_data(portdir=None, repo='gentoo'):

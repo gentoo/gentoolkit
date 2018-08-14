@@ -12,11 +12,13 @@
 from __future__ import print_function
 
 
-from tempfile import NamedTemporaryFile, mkdtemp
 import unittest
 import re
+import os
 
-from gentoolkit.test.eclean.distsupport import *
+from gentoolkit.test.eclean.distsupport import (
+    FILES, TestDisfiles, OutputSimulator, Dbapi, CPVS, CPVS2, CPVS3, PROPS,
+    PKGS, CLEAN_ME, get_props)
 import gentoolkit.eclean.search as search
 from gentoolkit.eclean.search import DistfilesSearch
 from gentoolkit.eclean.exclude import parseExcludeFile

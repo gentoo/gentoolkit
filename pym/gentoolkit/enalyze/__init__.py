@@ -34,7 +34,6 @@ MODULE_INFO = {
 
 import errno
 import sys
-import time
 from getopt import getopt, GetoptError
 
 import portage
@@ -44,7 +43,6 @@ from gentoolkit import errors
 from gentoolkit import pprinter as pp
 from gentoolkit.base import (initialize_configuration, split_arguments,
 	parse_global_options, print_help)
-from gentoolkit.formatters import format_options
 
 
 NAME_MAP = {

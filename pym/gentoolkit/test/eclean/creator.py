@@ -17,7 +17,7 @@ import shutil
 import random
 
 import gentoolkit.pprinter as pp
-from portage import _encodings, _unicode_decode, _unicode_encode
+from portage import _encodings, _unicode_encode
 
 __version__= "0.0.1"
 __author__ = "Brian Dolbec"
@@ -97,7 +97,7 @@ def make_symlinks(path, links, targets):
 			and need to be in the same index order as links
 	"""
 	for i in range(len(links)):
-		os.symlink(os.path.join(path,target[i]),
+		os.symlink(os.path.join(path,targets[i]),
 			os.path.join(path, links[i]))
 
 
@@ -236,11 +236,9 @@ class TestDirCreation(object):
         make_dist(self.options['target_path'], self.distfile_list, self.dist_clean)
         # add some symlinks to it
         path = os.path.join(self.options['target_path'], 'distfiles')
-        make_symlinks(path, distfile_symlink,
-            dist_clean['symlink-test-1.2.3.tar.bz2'])
+        make_symlinks(path, self.distfile_symlink,
+            self.dist_clean['symlink-test-1.2.3.tar.bz2'])
         # create the packages dir and populate it
         path = os.path.join(self.options['target_path'], 'packages')
         make_pkgs(path, self.package_dict, self.pkg_clean)
         self.targets_init = True
-
-    #def get_

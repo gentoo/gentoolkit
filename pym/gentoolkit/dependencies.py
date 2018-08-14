@@ -18,7 +18,6 @@ from portage.dep import paren_reduce
 
 from gentoolkit import errors
 from gentoolkit.atom import Atom
-from gentoolkit.cpv import CPV
 from gentoolkit.helpers import uniqify
 from gentoolkit.query import Query
 
@@ -165,7 +164,7 @@ class Dependencies(Query):
 				if depth < max_depth or max_depth == 0:
 					# result is passed in and added to directly
 					# so rdeps is disposable
-					rdeps = pkgdep.deps.graph_depends(
+					rdeps = pkgdep.deps.graph_depends(  # noqa
 							max_depth=max_depth,
 							printer_fn=printer_fn,
 							# The rest of these are only used internally:

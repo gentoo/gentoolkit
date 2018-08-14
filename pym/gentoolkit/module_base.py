@@ -14,15 +14,12 @@ from __future__ import print_function
 __docformat__ = 'epytext'
 
 
-import errno
 import sys
-import time
 from getopt import gnu_getopt, GetoptError
 
 import gentoolkit.pprinter as pp
 from gentoolkit.formatters import format_options
 from gentoolkit.base import mod_usage
-from gentoolkit import CONFIG
 
 class ModuleBase(object):
 	"""E-app base module class to parse module options print module help, etc.."""

@@ -10,8 +10,6 @@ what packages according to the Installed package database"""
 
 from __future__ import print_function
 
-import sys
-
 import gentoolkit
 from gentoolkit.module_base import ModuleBase
 from gentoolkit import pprinter as pp
@@ -298,10 +296,10 @@ class Analyse(ModuleBase):
 		flag_keys = sorted(flag_users)
 		if self.options["verbose"]:
 			print(" Flag                                 System  #pkgs   cat/pkg-ver")
-			blankline = nl
+			#blankline = nl
 		elif not self.options['quiet']:
 			print(" Flag                                 System  #pkgs")
-			blankline = lambda: None
+			#blankline = lambda: None
 		for flag in flag_keys:
 			flag_pos = flag_users[flag]["+"]
 			if len(flag_pos):
@@ -442,10 +440,10 @@ class Analyse(ModuleBase):
 		if self.options["verbose"]:
 			print("   cat/pkg-ver                             USE Flags")
 				#   "app-emulation/emul-linux-x86-sdl-20100915 ...."
-			blankline = nl
+			#blankline = nl
 		elif not self.options['quiet']:
 			print("   cat/pkg-ver                             USE Flags")
-			blankline = lambda: None
+			#blankline = lambda: None
 		for cpv in cpvs:
 			(flag_plus, flag_neg, unset) = flags.analyse_cpv(cpv)
 			if self.options["unset"]:

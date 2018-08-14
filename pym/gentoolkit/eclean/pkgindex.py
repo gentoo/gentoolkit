@@ -36,10 +36,12 @@ class PkgIndex(object):
 		@sets: self.binhost to BinhostHandler class
 		@rtype: boolean
 		"""
+                # About noqa below: I don't understand how this code can run at all.
+                # TODO: verify soundness
 		try:
-			self.emaint_control = Modules()
+			self.emaint_control = Modules()  # noqa
 			self.binhost = self.emaint_control._get_class('binhost')
-		except InvalidModuleName as er:
+		except InvalidModuleName as er:  # noqa
 			print( pp.error("Error importing emaint binhost module"), file=sys.stderr)
 			print( pp.error("Original error: " + er), file=sys.stderr)
 		except:
@@ -51,8 +53,8 @@ class PkgIndex(object):
 		"""Import the emaint modules and report the success/fail of them
 		"""
 		try:
-			from emaint.module import Modules
-			from emaint.main import TaskHandler
+			from emaint.module import Modules  # noqa
+			from emaint.main import TaskHandler  # noqa
 		except ImportError as e:
 			return False
 		return True
@@ -63,7 +65,7 @@ class PkgIndex(object):
 		go = self._load_modules()
 		if go:
 			if self.get_emaint_binhost():
-				self.taskmaster = TaskHandler(show_progress_bar=True)
+				self.taskmaster = TaskHandler(show_progress_bar=True)  # noqa
 				tasks = [self.binhost]
 				self.taskmaster.run_tasks(tasks)
 

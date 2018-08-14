@@ -37,11 +37,11 @@ if sys.version_info[0:2] < (2,3):
 
 try:
 	import portage
-	from portage import _encodings, _unicode_decode, _unicode_encode
+	from portage import _encodings, _unicode_encode
 except ImportError:
 	sys.path.insert(0, "/usr/lib/portage/pym")
 	import portage
-	from portage import _encodings, _unicode_decode, _unicode_encode
+	from portage import _encodings, _unicode_encode
 
 
 # Note: the space for rgt and rlt is important !!
@@ -406,7 +406,6 @@ def getMinUpgrade(vulnerableList, unaffectedList, minimize=True):
 	@return:	the lowest unaffected version that is greater than
 				the installed version.
 	"""
-	rValue = ""
 	v_installed = reduce(operator.add, [match(v, "vartree") for v in vulnerableList], [])
 	u_installed = reduce(operator.add, [match(u, "vartree") for u in unaffectedList], [])
 

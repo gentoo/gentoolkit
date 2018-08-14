@@ -18,7 +18,6 @@ import re
 import os
 import sys
 from getopt import gnu_getopt, GetoptError
-from functools import partial
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors

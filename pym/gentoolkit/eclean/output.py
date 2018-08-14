@@ -8,9 +8,8 @@ from __future__ import print_function
 
 
 import sys
-import portage
-from portage.output import *
-from gentoolkit.pprinter import cpv, number, emph
+from portage.output import blue, yellow, teal, green, red
+from gentoolkit.pprinter import cpv, number
 
 
 class OutputControl(object):
@@ -90,13 +89,11 @@ class OutputControl(object):
 		if color == None:
 			color = self.numbers
 		units = [" G"," M"," K"," B"]
-		approx = 0
 		# by using 1000 as the changeover, the integer portion
 		# of the number will never be more than 3 digits long
 		# but the true base 2 value of 1024 is used for the actual
 		# calulation to maintain better accuracy.
 		while len(units) and size >= 1000:
-			approx = 1
 			size = size / 1024.0
 			units.pop()
 		sizestr = "%.1f" %(round(size,1)) + units[-1]

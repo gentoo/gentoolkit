@@ -8,12 +8,10 @@
 
 """Provides support functions to enalyze modules"""
 
-import sys
-
 from gentoolkit import errors
 from gentoolkit.keyword import reduce_keywords
 from gentoolkit.flag import (reduce_flags, get_flags, get_all_cpv_use,
-	filter_flags, get_installed_use, get_iuse, defaulted_flags)
+	filter_flags, get_installed_use, defaulted_flags)
 #from gentoolkit.package import Package
 
 import portage

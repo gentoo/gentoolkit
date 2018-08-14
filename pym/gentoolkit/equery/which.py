@@ -28,7 +28,7 @@ from gentoolkit import errors
 from gentoolkit.equery import format_options, mod_usage
 from gentoolkit.query import Query
 
-from portage import _encodings, _unicode_decode, _unicode_encode
+from portage import _encodings, _unicode_encode
 
 # =======
 # Globals

@@ -13,13 +13,13 @@ if sys.hexversion < 0x3000000:
 	from io import open
 
 import portage
-from portage import _encodings, _unicode_decode, _unicode_encode
+from portage import _encodings, _unicode_encode
 from portage.output import blue, yellow
 from .settings import parse_revdep_config
 
 
 if sys.hexversion < 0x3000000:
-	_basestring = basestring
+	_basestring = basestring  # noqa
 else:
 	_basestring = str
 

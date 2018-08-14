@@ -24,12 +24,11 @@ from getopt import gnu_getopt, GetoptError
 from glob import glob
 
 from portage import settings
-from portage import _encodings, _unicode_decode, _unicode_encode
+from portage import _encodings, _unicode_encode
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
 from gentoolkit.equery import format_options, mod_usage, CONFIG
-from gentoolkit.helpers import uniqify
 from gentoolkit.textwrap_ import TextWrapper
 from gentoolkit.query import Query
 from gentoolkit.flag import get_flags, reduce_flags

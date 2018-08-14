@@ -29,7 +29,6 @@ from getopt import getopt, GetoptError
 
 import portage
 
-import gentoolkit
 from gentoolkit import CONFIG
 from gentoolkit import errors
 from gentoolkit import pprinter as pp

@@ -12,7 +12,6 @@ from __future__ import print_function
 
 import time
 
-import gentoolkit
 from gentoolkit import pprinter as pp
 from gentoolkit.formatters import CpvValueWrapper
 from gentoolkit.cpv import split_cpv

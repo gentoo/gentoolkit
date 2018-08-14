@@ -8,7 +8,7 @@
 
 import unittest
 
-from gentoolkit.cpv import *
+from gentoolkit.cpv import CPV, compare_strs
 from gentoolkit.test import cmp
 
 class TestGentoolkitCPV(unittest.TestCase):

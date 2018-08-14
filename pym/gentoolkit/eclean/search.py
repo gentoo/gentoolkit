@@ -8,14 +8,12 @@ from __future__ import print_function
 
 
 import os
-import re
 import stat
 import sys
 from functools import partial
 
 import portage
 
-import gentoolkit
 import gentoolkit.pprinter as pp
 from gentoolkit.eclean.exclude import (exclDictMatchCP, exclDictExpand,
 	exclDictExpandPkgname, exclMatchFilename)
@@ -264,7 +262,7 @@ class DistfilesSearch(object):
 			while uris:
 				uri = uris.pop()
 				if uris and uris[-1] == "->":
-					operator = uris.pop()
+					operator = uris.pop()  # noqa
 					file = uris.pop()
 				else:
 					file = os.path.basename(uri)

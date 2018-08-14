@@ -13,15 +13,10 @@ from __future__ import print_function
 __docformat__ = 'epytext'
 
 
-import errno
 import os
 import sys
-import time
-from getopt import gnu_getopt, GetoptError
 
 import gentoolkit
-from gentoolkit import errors
-#from gentoolkit.textwrap_ import TextWrapper
 import gentoolkit.pprinter as pp
 from gentoolkit.formatters import format_options
 

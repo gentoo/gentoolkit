@@ -34,7 +34,7 @@ from functools import partial
 from itertools import chain
 
 import portage
-from portage import _encodings, _unicode_decode, _unicode_encode
+from portage import _encodings, _unicode_encode
 
 from gentoolkit import pprinter as pp
 from gentoolkit import errors
@@ -197,7 +197,7 @@ class ChangeLog(object):
 
 		result = []
 		partial_entries = []
-		with open(_unicode_encode(self.changelog_path, 
+		with open(_unicode_encode(self.changelog_path,
 			encoding=_encodings['fs'], errors="replace"),
 			encoding=_encodings['content']) as log:
 			for line in log:
