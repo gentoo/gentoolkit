@@ -5,8 +5,9 @@ from __future__ import print_function
 
 import re
 import sys
-import distutils
-from distutils import core #, log
+import subprocess
+from distutils import core
+from distutils.cmd import Command
 from glob import glob
 
 import os
@@ -98,26 +99,19 @@ class set_version(core.Command):
 		sub(manpages, man_re)
 
 
-def	load_test():
-	"""Only return the real test class if it's actually being run so that we
-	don't depend on snakeoil just to install."""
+class TestCommand(Command):
+	user_options = []
 
-	desc = "run the test suite"
-	if 'test' in sys.argv[1:]:
-		try:
-			from snakeoil import distutils_extensions
-		except ImportError:
-			sys.stderr.write("Error: We depend on dev-python/snakeoil ")
-			sys.stderr.write("to run tests.\n")
-			sys.exit(1)
-		class test(distutils_extensions.test):
-			description = desc
-			default_test_namespace = 'gentoolkit.test'
-	else:
-		class test(core.Command):
-			description = desc
+	def initialize_options(self):
+		pass
 
-	return test
+	def finalize_options(self):
+		pass
+
+	def run(self):
+		args = [sys.executable, '-m', 'unittest', 'discover', 'pym']
+		raise SystemExit(subprocess.call(args))
+
 
 packages = [
 	str('.'.join(root.split(os.sep)[1:]))
@@ -156,7 +150,7 @@ core.setup(
 		(os.path.join(os.sep, EPREFIX.lstrip(os.sep), 'usr/lib/tmpfiles.d'), ['data/tmpfiles.d/revdep-rebuild.conf']),
 	),
 	cmdclass={
-		'test': load_test(),
+		'test': TestCommand,
 		'set_version': set_version,
 	},
 )
