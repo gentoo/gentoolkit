@@ -1,0 +1,3 @@
+equery meta dev-lang/python
+equery d -a llvm
+equery l "vim*"
