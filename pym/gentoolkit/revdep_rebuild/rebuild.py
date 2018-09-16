@@ -65,34 +65,33 @@ def init_logger(settings):
 def rebuild(logger, assigned, settings):
 	"""rebuilds the assigned pkgs"""
 
-	args = settings['pass_through_options']
+	args = list(settings['pass_through_options'])
 	if settings['EXACT']:
 		_assigned = filter_masked(assigned, logger)
-		emerge_command = '=' + ' ='.join(_assigned)
+		emerge_command = ['='+a for a in _assigned]
 	else:
 		_assigned = get_slotted_cps(assigned, logger)
-		emerge_command = ' '.join(_assigned)
+		emerge_command = [a for a in _assigned]
 	if settings['PRETEND']:
-		args += ' --pretend'
+		args.append('--pretend')
 	if settings['VERBOSITY'] >= 2:
-		args += ' --verbose'
+		args.append('--verbose')
 	elif settings['VERBOSITY'] < 1:
-		args += ' --quiet'
+		args.append('--quiet')
 	if settings['nocolor']:
-		args += ' --color n'
+		args.extend(['--color', 'n'])
 
 	if len(emerge_command) == 0:
 		logger.warning(bold('\nThere is nothing to emerge. Exiting.'))
 		return 0
 
 	logger.warning(yellow(
-		'\nemerge') + args +
+		'\nemerge') +  ' ' + ' '.join(args) +
 		' --oneshot --complete-graph=y ' +
-		bold(emerge_command))
+		bold(' '.join(emerge_command)))
 
 	stime = current_milli_time()
-	_args = 'emerge ' + args + ' --oneshot --complete-graph=y ' + emerge_command
-	_args = _args.split()
+	_args = ['emerge'] + args + ['--oneshot', '--complete-graph=y'] + emerge_command
 	success = subprocess.call(_args)
 	ftime = current_milli_time()
 	logger.debug("\trebuild(); emerge call for %d ebuilds took: %s seconds"

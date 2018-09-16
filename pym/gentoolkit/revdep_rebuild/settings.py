@@ -46,7 +46,7 @@ DEFAULTS = {
 		'debug': False,
 		'no-ld-path': False,
 		'no-order': False,
-		'pass_through_options': '',
+		'pass_through_options': [],
 		'stdout': sys.stdout,
 		'stdin': sys.stdin,
 		'stderr': sys.stderr
@@ -121,7 +121,7 @@ def parse_options():
 	if args.library:
 		settings['library'].update(set(args.library))
 	settings['USE_TMP_FILES'] = not args.ignore
-	settings['pass_through_options'] = " " + " ".join(args.portage_options)
+	settings['pass_through_options'].extend(args.portage_options)
 
 	return settings
 
