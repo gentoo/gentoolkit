@@ -209,15 +209,9 @@ class Atom(portage.dep.Atom, CPV):
 		# Our "cp" (cat/pkg) must match exactly:
 		if self.cp != other.cp:
 			# Check to see if one is name only:
-			# Avoid slow partitioning if we're definitely not matching
-			# (yes, this is hackish, but it's faster):
-			if self.cp[-1:] != other.cp[-1:]:
-				return False
-
-			if ((not self.category and self.name == other.name) or
-				(not other.category and other.name == self.name)):
-				return True
-			return False
+			# We don't bother checking if self.category is None: it can't be
+			# because we're an Atom subclass and that would be invalid.
+			return (not other.category and self.name == other.name)
 
 		# Slot dep only matters if we both have one. If we do they
 		# must be identical:
