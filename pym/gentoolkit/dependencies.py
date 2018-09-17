@@ -77,38 +77,31 @@ class Dependencies(Query):
 				return []
 		return result
 
-	def get_depend(self):
+	def _get_depend(self, env_vars, raw=False):
+		raw_depend = ' '.join(self.environment(env_vars))
+		if raw:
+			return raw_depend
+		try:
+			return self.parser(raw_depend)
+		except portage.exception.InvalidPackageName as err:
+			raise errors.GentoolkitInvalidCPV(err)
+
+	def get_depend(self, **kwargs):
 		"""Get the contents of DEPEND and parse it with self.parser."""
+		return self._get_depend(('DEPEND', ), **kwargs)
 
-		try:
-			return self.parser(self.environment(('DEPEND',))[0])
-		except portage.exception.InvalidPackageName as err:
-			raise errors.GentoolkitInvalidCPV(err)
-
-	def get_pdepend(self):
+	def get_pdepend(self, **kwargs):
 		"""Get the contents of PDEPEND and parse it with self.parser."""
+		return self._get_depend(('PDEPEND', ), **kwargs)
 
-		try:
-			return self.parser(self.environment(('PDEPEND',))[0])
-		except portage.exception.InvalidPackageName as err:
-			raise errors.GentoolkitInvalidCPV(err)
-
-	def get_rdepend(self):
+	def get_rdepend(self, **kwargs):
 		"""Get the contents of RDEPEND and parse it with self.parser."""
+		return self._get_depend(('RDEPEND', ), **kwargs)
 
-		try:
-			return self.parser(self.environment(('RDEPEND',))[0])
-		except portage.exception.InvalidPackageName as err:
-			raise errors.GentoolkitInvalidCPV(err)
-
-	def get_all_depends(self):
+	def get_all_depends(self, **kwargs):
 		"""Get the contents of ?DEPEND and parse it with self.parser."""
-
 		env_vars = ('DEPEND', 'PDEPEND', 'RDEPEND')
-		try:
-			return self.parser(' '.join(self.environment(env_vars)))
-		except portage.exception.InvalidPackageName as err:
-			raise errors.GentoolkitInvalidCPV(err)
+		return self._get_depend(env_vars, **kwargs)
 
 	def graph_depends(
 		self,
@@ -237,6 +230,12 @@ class Dependencies(Query):
 
 		pkgdep = None
 		for pkgdep in pkgset:
+			raw_depends = pkgdep.get_all_depends(raw=True)
+			if self.cp not in raw_depends:
+				# fast path for obviously non-matching packages. This saves
+				# us the work of instantiating a whole Atom() for *every*
+				# dependency of *every* package in pkgset.
+				continue
 			try:
 				all_depends = depcache[pkgdep]
 			except KeyError:
