@@ -1,5 +1,22 @@
 News (new features/major bug fixes)
 
+gentoolkit-0.4.3
+----------------
+  * epkginfo: Add 'reverse' display option for equery
+  * Speed up "equery depends" by a great deal
+  * Fix broken test suite and add new tests
+  * Add tox config
+
+gentoolkit-0.4.2
+----------------
+  * Improve keyword grouping and sorting in eshowkw
+  * Bug fixes in eshowkw
+
+gentoolkit-0.4.1
+----------------
+  * ekeyword: Support sorting keywords without additional changes
+  * Bug fixes in revdep_rebuild, equery, eclean
+
 gentoolkit-0.4.0
 ----------------
   * Merge ekeyword, ebump, imlate tools from gentoolkit-dev
