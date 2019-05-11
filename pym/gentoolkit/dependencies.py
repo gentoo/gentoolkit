@@ -100,7 +100,7 @@ class Dependencies(Query):
 
 	def get_all_depends(self, **kwargs):
 		"""Get the contents of ?DEPEND and parse it with self.parser."""
-		env_vars = ('DEPEND', 'PDEPEND', 'RDEPEND')
+		env_vars = ('DEPEND', 'PDEPEND', 'RDEPEND', 'BDEPEND')
 		return self._get_depend(env_vars, **kwargs)
 
 	def graph_depends(
