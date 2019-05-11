@@ -1,5 +1,13 @@
 News (new features/major bug fixes)
 
+gentoolkit-0.4.5
+----------------
+  * Include BDEPEND in dep checks
+
+gentoolkit-0.4.4
+----------------
+  * eshowkw: Add riscv to ~arch-only arches
+
 gentoolkit-0.4.3
 ----------------
   * epkginfo: Add 'reverse' display option for equery
