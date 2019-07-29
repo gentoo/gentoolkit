@@ -116,22 +116,21 @@ def filter_flags(use, use_expand_hidden, usemasked, useforced):
 	"""
 	# clean out some environment flags, since they will most probably
 	# be confusing for the user
+	use = dict((reduce_flag(flag), flag) for flag in use)
 	for f in use_expand_hidden:
 		f=f.lower() + "_"
-		for x in use:
-			if f in x:
-				use.remove(x)
+		for x in list(use):
+			if x.startswith(f):
+				del use[x]
 	# clean out any arch's
 	archlist = portage.settings["PORTAGE_ARCHLIST"].split()
-	for a in use[:]:
-		if a in archlist:
-			use.remove(a)
+	for a in archlist:
+		use.pop(a, None)
 	# dbl check if any from usemasked  or useforced are still there
 	masked = usemasked + useforced
-	for a in use[:]:
-		if a in masked:
-			use.remove(a)
-	return use
+	for a in masked:
+		use.pop(a, None)
+	return list(use.values())
 
 
 def get_all_cpv_use(cpv):
