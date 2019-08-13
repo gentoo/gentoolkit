@@ -42,7 +42,6 @@ python_scripts = [(os.path.join(cwd, path), '__version__ = ') for path in (
 	'bin/eclean-dist',
 	'bin/eclean-pkg',
 	'bin/epkginfo',
-	'bin/glsa-check',
 	'pym/gentoolkit/eclean/cli.py',
 	'pym/gentoolkit/enalyze/__init__.py',
 	'pym/gentoolkit/ekeyword/ekeyword.py',
@@ -61,7 +60,6 @@ manpages = [(os.path.join(cwd, path[0]), path[1]) for path in (
 	('man/eread.1', 'EREAD'),
 	('man/eshowkw.1', 'ESHOWKW'),
 	('man/euse.1', 'EUSE'),
-	('man/glsa-check.1', 'GLSA-CHECK'),
 	('man/imlate.1', 'IMLATE'),
 	('man/revdep-rebuild.1', 'REVDEP-REBUILD'),
 )]
