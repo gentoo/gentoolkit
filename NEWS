@@ -1,5 +1,12 @@
 News (new features/major bug fixes)
 
+gentoolkit-0.4.6
+----------------
+  * glsa-check moved to portage repository (bug 463952)
+  * equery: fix incorrect status for forced flags (bug 634824)
+  * revdep-rebuild: Fix pass_through_options to handle args containing
+    spaces
+
 gentoolkit-0.4.5
 ----------------
   * Include BDEPEND in dep checks
