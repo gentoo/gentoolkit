@@ -55,7 +55,7 @@ class PkgIndex(object):
 		try:
 			from emaint.module import Modules  # noqa
 			from emaint.main import TaskHandler  # noqa
-		except ImportError as e:
+		except ImportError:
 			return False
 		return True
 
