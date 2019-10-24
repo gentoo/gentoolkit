@@ -346,7 +346,7 @@ def portage_settings():
 	return portage.db[portage.root]['vartree'].settings
 
 
-def load_profile_data(portdir=None, repo='gentoo'):
+def load_profile_data(portdir=None, repo=None):
 	"""Load the list of known arches from the tree
 
 	Args:
@@ -357,6 +357,8 @@ def load_profile_data(portdir=None, repo='gentoo'):
 	  A dict mapping the keyword to its preferred state:
 	  {'x86': 'stable', 'mips': 'dev', ...}
 	"""
+	if repo is None:
+		repo = portage_settings().repositories.mainRepo().name
 	if portdir is None:
 		portdir = portage_settings().repositories[repo].location
 
@@ -444,7 +446,7 @@ def ignorable_arg(arg, quiet=0):
 	return False
 
 
-def args_to_work(args, arch_status=None, _repo='gentoo', quiet=0):
+def args_to_work(args, arch_status=None, _repo=None, quiet=0):
 	"""Process |args| into a list of work itmes (ebuild/arches to update)"""
 	work = []
 	todo_arches = []
