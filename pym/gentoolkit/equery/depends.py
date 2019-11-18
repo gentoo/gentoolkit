@@ -20,8 +20,10 @@ from getopt import gnu_getopt, GetoptError
 import gentoolkit.pprinter as pp
 from gentoolkit.dependencies import Dependencies
 from gentoolkit.equery import format_options, mod_usage, CONFIG
+from gentoolkit.package import PackageFormatter, FORMAT_TMPL_VARS
 from gentoolkit.helpers import get_cpvs, get_installed_cpvs
 from gentoolkit.cpv import CPV
+from gentoolkit.package import Package
 
 # =======
 # Globals
@@ -31,6 +33,7 @@ QUERY_OPTS = {
 	"include_masked": False,
 	"only_direct": True,
 	"max_depth": -1,
+	"package_format": None
 }
 
 # =======
@@ -64,6 +67,26 @@ class DependPrinter(object):
 
 		pp.uprint(indent + cpv)
 
+	@staticmethod
+	def print_formated(pkg):
+		"""Print pkg as formatted output depending on CONFIG."""
+
+		if None is pkg:
+			return
+
+		if CONFIG['verbose']:
+			print (PackageFormatter(
+				pkg,
+				do_format=True,
+				custom_format=QUERY_OPTS["package_format"]
+			))
+		else:
+			print (PackageFormatter(
+				pkg,
+				do_format=False,
+				custom_format=QUERY_OPTS["package_format"]
+			))
+
 	def format_depend(self, dep, dep_is_displayed):
 		"""Format a dependency for printing.
 
@@ -79,27 +102,33 @@ class DependPrinter(object):
 		indent = " " * depth
 		mdep = dep.matching_dep
 		use_conditional = ""
-		if mdep.use_conditional:
-			use_conditional = " & ".join(
-				pp.useflag(u) for u in mdep.use_conditional.split()
-			)
-		if mdep.operator == '=*':
-			formatted_dep = '=%s*' % str(mdep.cpv)
-		else:
-			formatted_dep = mdep.operator + str(mdep.cpv)
-		if mdep.slot:
-			formatted_dep += pp.emph(':') + pp.slot(mdep.slot)
-			if mdep.sub_slot:
-				formatted_dep += pp.slot('/') + pp.slot(mdep.sub_slot)
-		if mdep.use:
-			useflags = pp.useflag(','.join(mdep.use.tokens))
-			formatted_dep += (pp.emph('[') + useflags + pp.emph(']'))
 
-		if dep_is_displayed:
-			indent = indent + " " * len(str(dep.cpv))
-			self.print_fn(indent, '', use_conditional, formatted_dep)
+		if None != QUERY_OPTS["package_format"]:
+			pkg = Package(str(dep.cpv))
+			self.print_formated(pkg)
 		else:
-			self.print_fn(indent, str(dep.cpv), use_conditional, formatted_dep)
+			if mdep.use_conditional:
+				use_conditional = " & ".join(
+					pp.useflag(u) for u in mdep.use_conditional.split()
+				)
+			if mdep.operator == '=*':
+				formatted_dep = '=%s*' % str(mdep.cpv)
+			else:
+				formatted_dep = mdep.operator + str(mdep.cpv)
+			if mdep.slot:
+				formatted_dep += pp.emph(':') + pp.slot(mdep.slot)
+				if mdep.sub_slot:
+					formatted_dep += pp.slot('/') + pp.slot(mdep.sub_slot)
+			if mdep.use:
+				useflags = pp.useflag(','.join(mdep.use.tokens))
+				formatted_dep += (pp.emph('[') + useflags + pp.emph(']'))
+
+			if dep_is_displayed:
+				indent = indent + " " * len(str(dep.cpv))
+				self.print_fn(indent, '', use_conditional, formatted_dep)
+			else:
+				self.print_fn(indent, \
+					str(dep.cpv), use_conditional, formatted_dep)
 
 # =========
 # Functions
@@ -124,6 +153,7 @@ def print_help(with_description=True):
 			"include dependencies that are not installed (slow)"),
 		(" -D, --indirect",
 			"search both direct and indirect dependencies"),
+		(" -F, --format=TMPL", "specify a custom output format"),
 		("     --depth=N", "limit indirect dependency tree to specified depth")
 	)))
 
@@ -141,6 +171,8 @@ def parse_module_options(module_opts):
 			QUERY_OPTS['include_masked'] = True
 		elif opt in ('-D', '--indirect'):
 			QUERY_OPTS['only_direct'] = False
+		elif opt in ('-F', '--format'):
+			QUERY_OPTS["package_format"] = posarg
 		elif opt in ('--depth'):
 			if posarg.isdigit():
 				depth = int(posarg)
@@ -152,11 +184,11 @@ def parse_module_options(module_opts):
 				sys.exit(2)
 			QUERY_OPTS["max_depth"] = depth
 
-
 def main(input_args):
 	"""Parse input and run the program"""
-	short_opts = "hadD" # -d, --direct was old option for default action
-	long_opts = ('help', 'all-packages', 'direct', 'indirect', 'depth=')
+	short_opts = "hadDF:" # -d, --direct was old option for default action
+	long_opts = ('help', 'all-packages', 'direct', 'indirect', \
+					'format', 'depth=')
 
 	try:
 		module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
