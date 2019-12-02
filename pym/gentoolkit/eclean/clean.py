@@ -36,10 +36,9 @@ class CleanUp(object):
 		@return: total size that was cleaned
 		"""
 		file_type = 'file'
-		clean_keys = self._sort_keys(clean_dict)
 		clean_size = 0
-		# clean all entries one by one
-		for key in clean_keys:
+		# clean all entries one by one; sorting helps reading
+		for key in sorted(clean_dict):
 			clean_size += self._clean_files(clean_dict[key], key, file_type)
 		# return total size of deleted or to delete files
 		return clean_size
@@ -57,10 +56,9 @@ class CleanUp(object):
 		@return: total size that was cleaned
 		"""
 		file_type = 'binary package'
-		clean_keys = self._sort_keys(clean_dict)
 		clean_size = 0
-		# clean all entries one by one
-		for key in clean_keys:
+		# clean all entries one by one; sorting helps reading
+		for key in sorted(clean_dict):
 			clean_size += self._clean_files(clean_dict[key], key, file_type)
 
 		#  run 'emaint --fix' here
@@ -83,10 +81,9 @@ class CleanUp(object):
 		@return: total size that would be cleaned
 		"""
 		file_type = 'file'
-		clean_keys = self._sort_keys(clean_dict)
 		clean_size = 0
-		# tally all entries one by one
-		for key in clean_keys:
+		# tally all entries one by one; sorting helps reading
+		for key in sorted(clean_dict):
 			key_size = self._get_size(clean_dict[key])
 			self.controller(key_size, key, clean_dict[key], file_type)
 			clean_size += key_size
@@ -109,12 +106,6 @@ class CleanUp(object):
 					"Could not get stat info for:" + file_), file=sys.stderr)
 				print( pp.error("Error: %s" %str(er)), file=sys.stderr)
 		return key_size
-
-	def _sort_keys(self, clean_dict):
-		"""Returns a list of sorted dictionary keys."""
-		# sorting helps reading
-		clean_keys = sorted(clean_dict)
-		return clean_keys
 
 	def _clean_files(self, files, key, file_type):
 		"""File removal function."""
