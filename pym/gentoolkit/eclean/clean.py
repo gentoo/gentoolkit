@@ -139,6 +139,10 @@ class CleanUp(object):
 					# only count size if successfully deleted and not a link
 					if statinfo.st_nlink == 1:
 						clean_size += statinfo.st_size
+						try:
+							os.rmdir(os.path.dirname(file_))
+						except OSError:
+							pass
 				except EnvironmentError as er:
 					print( pp.error("Could not delete "+file_), file=sys.stderr)
 					print( pp.error("Error: %s" %str(er)), file=sys.stderr)
