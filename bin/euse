@@ -255,8 +255,11 @@ get_useflags() {
 	if [[ -z ${ACTIVE_FLAGS[4]} && ( $SCOPE == "local" || -z $SCOPE ) ]]; then
 		# Parse through /etc/portage/package.use
 		if [[ -d ${PACKAGE_USE_PATH} ]]; then
-			ACTIVE_FLAGS[4]="$( cat ${PACKAGE_USE_PATH}/* \
-				| sed -re "s/ *#.*$//g" -e "s/^ *$//g" )"
+			local pkg_use_files=$( find ${PACKAGE_USE_PATH} -maxdepth 1 -type f )
+			if [[ ! -z ${pkg_use_files} ]]; then
+				ACTIVE_FLAGS[4]="$( cat ${pkg_use_files} \
+					| sed -re "s/ *#.*$//g" -e "s/^ *$//g" )"
+			fi
 		elif [[ -e ${PACKAGE_USE_PATH} ]]; then
 			# JWM, 23/12/2009: I edited this following line but I'm not sure if it's 100% correct.
 			ACTIVE_FLAGS[4]="$( sed -re "s/ *#.*$//g" -e "s/^ *$//g" \
