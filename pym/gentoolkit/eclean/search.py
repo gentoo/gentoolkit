@@ -574,7 +574,7 @@ def findPackages(
 				del clean_me[cpv]
 				continue
 		if portage.cpv_getkey(cpv) in cp_all and port_dbapi.cpv_exists(cpv):
-			# exlusion because of --package-names
+			# exclusion because of --package-names
 			del clean_me[cpv]
 
 	# the getname method correctly supports FEATURES=binpkg-multi-instance,

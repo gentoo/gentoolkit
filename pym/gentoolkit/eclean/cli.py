@@ -304,7 +304,7 @@ def parseArgs(options={}):
 	options['size-limit'] = 0
 	options['verbose'] = False
 	options['ignore-failure'] = False
-	# if called by a well-named symlink, set the acction accordingly:
+	# if called by a well-named symlink, set the action accordingly:
 	action = None
 	# temp print line to ensure it is the svn/branch code running, etc..
 	#print(  "###### svn/branch/gentoolkit_eclean ####### ==> ", os.path.basename(sys.argv[0]))
@@ -400,7 +400,7 @@ def doAction(action,options,exclude={}, output=None):
 		)
 
 	# initialize our cleaner
-	cleaner = CleanUp( output.progress_controller)
+	cleaner = CleanUp(output.progress_controller)
 
 	# actually clean files if something was found
 	if clean_me:
