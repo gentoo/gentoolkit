@@ -67,11 +67,18 @@ def _fill( width, line, fill = " " ):
 # create a hopefully pretty result
 def show_result( conf, pkgs ):
 	# X - len(colX) = space to fill
-	col1 = 40
-	col2 = 20
+	col1 = -1
+	col2 = -1
+	for cat in pkgs:
+		for pkg in pkgs[cat]:
+			col1 = max(col1, len(("%s/%s" % (cat, pkg))))
+			col2 = max(col2, len(pkgs[cat][pkg][1]))
+	col1 += 1
+	col2 += 1
 
 	_header = "%s candidates for 'gentoo' on '%s'"
-	_helper = "category/package[:SLOT]                 our version         best version"
+	_helper = "%s%s%s" % (_fill(col1, "category/package[:SLOT])"),
+						  _fill(col2, "our version"), "best version")
 	_cand = ""
 	header = ""
 
@@ -102,11 +109,10 @@ def show_result( conf, pkgs ):
 	print(_fill( len( _helper ), "", "-" ), file=out)
 
 	for cat in sorted( pkgs.keys() ):
-		print("%s/" % cat, file=out)
 		for pkg in sorted( pkgs[cat].keys() ):
-			print("%s%s%s" % ( _fill( col1, ( "  %s" % pkg ) ),
-									_fill( col2, pkgs[cat][pkg][1] ),
-									pkgs[cat][pkg][0] ), file=out)
+			print("%s%s%s" % (_fill(col1, ("%s/%s" % (cat, pkg))),
+							  _fill(col2, pkgs[cat][pkg][1]),
+							  pkgs[cat][pkg][0] ), file=out)
 
 	if conf["FILE"] != "stdout":
 		out.close()
