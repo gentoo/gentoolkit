@@ -76,7 +76,7 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 
 	libnames = []
 	for lib in libraries:
-		match = re.match('.+\/(.+)\.(so|la|a)(\..+)?', lib)
+		match = re.match(r'.+\/(.+)\.(so|la|a)(\..+)?', lib)
 		if match is not None:
 			libname = match.group(1)
 			if libname not in libnames:
@@ -90,7 +90,7 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 			encoding=_encodings['content']).readlines():
 			line = line.strip()
 			if line.startswith('dependency_libs='):
-				match = re.match("dependency_libs='([^']+)'", line)
+				match = re.match(r"dependency_libs='([^']+)'", line)
 				if match is not None:
 					for el in match.group(1).split(' '):
 						el = el.strip()

@@ -90,8 +90,8 @@ def parseExcludeFile(filepath, output):
 			filepath)
 	filecontents = file_.readlines()
 	file_.close()
-	cat_re = re.compile('^(?P<cat>[a-zA-Z0-9]+-[a-zA-Z0-9]+)(/\*)?$')
-	cp_re = re.compile('^(?P<cp>[-a-zA-Z0-9_]+/[-a-zA-Z0-9_]+)$')
+	cat_re = re.compile(r'^(?P<cat>[a-zA-Z0-9]+-[a-zA-Z0-9]+)(/\*)?$')
+	cp_re = re.compile(r'^(?P<cp>[-a-zA-Z0-9_]+/[-a-zA-Z0-9_]+)$')
 	# used to output the line number for exception error reporting
 	linenum = 0
 	for line in filecontents:

@@ -54,7 +54,7 @@ class TestCheckLimits(unittest.TestCase):
 	test_excludes = {
 		'blank': {},
 		'filenames': {
-			'filenames': {'help2man-1.37.1.tar.gz': re.compile('help2man-1.37.1.tar.gz')}
+			'filenames': {'help2man-1.37.1.tar.gz': re.compile(r'help2man-1\.37\.1\.tar\.gz')}
 			}
 		}
 

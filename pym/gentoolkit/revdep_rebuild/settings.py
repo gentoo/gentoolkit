@@ -151,15 +151,15 @@ def parse_revdep_config(revdep_confdir):
 			line = line.strip()
 			#first check for comment, we do not want to regex all lines
 			if not line.startswith('#'):
-				match = re.match('LD_LIBRARY_MASK=\\"([^"]+)\\"', line)
+				match = re.match(r'LD_LIBRARY_MASK=\\"([^"]+)\\"', line)
 				if match is not None:
 					masked_files += ' ' + match.group(1)
 					continue
-				match = re.match('SEARCH_DIRS_MASK=\\"([^"]+)\\"', line)
+				match = re.match(r'SEARCH_DIRS_MASK=\\"([^"]+)\\"', line)
 				if match is not None:
 					masked_dirs += ' ' + match.group(1)
 					continue
-				match = re.match('SEARCH_DIRS=\\"([^"]+)\\"', line)
+				match = re.match(r'SEARCH_DIRS=\\"([^"]+)\\"', line)
 				if match is not None:
 					search_dirs += ' ' + match.group(1)
 					continue

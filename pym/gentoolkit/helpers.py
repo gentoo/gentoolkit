@@ -257,7 +257,7 @@ class FileOwner(object):
 			raise errors.GentoolkitInvalidRegex(err)
 
 		use_match = False
-		if ((self.is_regex or query_re_string.startswith('^\/'))
+		if ((self.is_regex or query_re_string.startswith(r'^\/'))
 			and '|' not in query_re_string ):
 			# If we were passed a regex or a single path starting with root,
 			# we can use re.match, else use re.search.
@@ -350,7 +350,7 @@ class FileOwner(object):
 		else:
 			result = []
 			# Trim trailing and multiple slashes from queries
-			slashes = re.compile('/+')
+			slashes = re.compile(r'/+')
 			queries = self.expand_abspaths(queries)
 			queries = self.extend_realpaths(queries)
 			for query in queries:

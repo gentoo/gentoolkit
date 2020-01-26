@@ -94,7 +94,7 @@ def assign_packages(broken, logger, settings):
 				try:
 					with io.open(f, 'r', encoding='utf_8') as cnt:
 						for line in cnt.readlines():
-							m = re.match('^obj (/[^ ]+)', line)
+							m = re.match(r'^obj (/[^ ]+)', line)
 							if m is not None:
 								contents_matcher.add(m.group(1))
 				except Exception as e:

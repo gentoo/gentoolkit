@@ -105,7 +105,7 @@ class _Useflag(object):
 			_desc += child.text if child.text else ''
 			_desc += child.tail if child.tail else ''
 		# This takes care of tabs and newlines left from the file
-		self.description = re.sub('\s+', ' ', _desc)
+		self.description = re.sub(r'\s+', ' ', _desc)
 
 	def __repr__(self):
 		return "<%s %r>" % (self.__class__.__name__, self.name)

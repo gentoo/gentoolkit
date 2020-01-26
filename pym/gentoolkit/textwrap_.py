@@ -43,7 +43,7 @@ class TextWrapper(textwrap.TextWrapper):
 
 		# Regex to strip ANSI escape codes. It's only used for the
 		# length calculations of indent and each chuck.
-		ansi_re = re.compile('\x1b\[[0-9;]*m')
+		ansi_re = re.compile(r'\x1b\[[0-9;]*m')
 
 		while chunks:
 

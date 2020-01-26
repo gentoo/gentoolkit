@@ -84,7 +84,7 @@ def prepare_search_dirs(logger, settings):
 		encoding=_encodings['content']) as _file:
 		for line in _file.readlines():
 			line = line.strip()
-			match = re.match("^export (ROOT)?PATH='([^']+)'", line)
+			match = re.match(r"^export (ROOT)?PATH='([^']+)'", line)
 			if match is not None:
 				bin_dirs.update(set(match.group(2).split(':')))
 	#except EnvironmentError:

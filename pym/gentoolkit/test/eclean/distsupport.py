@@ -328,7 +328,7 @@ Exclude= {'packages': {
 	'categories': {'app-portage': None,
 		'app-portage/gentoolkit': None
 		},
-	'filenames': {'sys-auth/consolekit-0.4.1': re.compile('sys-auth/consolekit-0.4.1')
+	'filenames': {'sys-auth/consolekit-0.4.1': re.compile(r'sys-auth/consolekit-0\.4\.1')
 		}
 	}
 

@@ -428,7 +428,7 @@ def format_line(line, first="", subsequent="", force_quiet=False):
 		twrap = TextWrapper(width=CONFIG['termWidth'], expand_tabs=False,
 			initial_indent=first, subsequent_indent=subsequent)
 		line = " ".join(line)
-		line = re.sub("\s+", " ", line)
+		line = re.sub(r"\s+", " ", line)
 		line = line.lstrip()
 		result = twrap.fill(line)
 	else:
