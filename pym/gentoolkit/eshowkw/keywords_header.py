@@ -81,7 +81,7 @@ def load_profile_data(portdir=None, repo='gentoo'):
 	# TODO: support arches.desc once the GLEP is finalized
 	# for now, we just hardcode ~mips + *-* (fbsd, prefix)
 	for k, v in arch_status.items():
-		if k in ('mips', 'riscv') or '-' in k:
+		if k in ('alpha', 'mips', 'riscv') or '-' in k:
 			arch_status[k] = (v, '~arch')
 		else:
 			arch_status[k] = (v, 'arch')
