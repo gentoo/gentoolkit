@@ -73,7 +73,7 @@ class TestFileOwner(unittest.TestCase):
 			os.path.join(os.getcwd(), os.path.normpath(initial_file_list[3]))
 		]
 
-		self.failUnlessEqual(expand_abspaths(initial_file_list), final_file_list)
+		self.assertEqual(expand_abspaths(initial_file_list), final_file_list)
 
 	def test_extend_realpaths(self):
 		extend_realpaths = helpers.FileOwner.extend_realpaths
@@ -96,19 +96,19 @@ class TestFileOwner(unittest.TestCase):
 		p = [f1.name, f2.name, sym1, sym2]
 		p_xr = extend_realpaths(p)
 
-		self.failUnlessEqual(p_xr[0], f1.name)
-		self.failUnlessEqual(p_xr[1], f2.name)
-		self.failUnlessEqual(p_xr[2], sym1)
-		self.failUnlessEqual(p_xr[3], sym2)
-		self.failUnlessEqual(p_xr[4], f3.name)
+		self.assertEqual(p_xr[0], f1.name)
+		self.assertEqual(p_xr[1], f2.name)
+		self.assertEqual(p_xr[2], sym1)
+		self.assertEqual(p_xr[3], sym2)
+		self.assertEqual(p_xr[4], f3.name)
 
 		# Clean up
 		os.unlink(sym1)
 		os.unlink(sym2)
 
 		# Make sure we raise an exception if we don't get acceptable input
-		self.failUnlessRaises(AttributeError, extend_realpaths, 'str')
-		self.failUnlessRaises(AttributeError, extend_realpaths, set())
+		self.assertRaises(AttributeError, extend_realpaths, 'str')
+		self.assertRaises(AttributeError, extend_realpaths, set())
 
 
 def test_main():

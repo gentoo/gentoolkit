@@ -21,13 +21,13 @@ class TestGentoolkitKeyword(unittest.TestCase):
 		]
 		# Check less than
 		for vt in version_tests:
-			self.failUnless(compare_strs(vt[0], vt[1]) == -1)
+			self.assertTrue(compare_strs(vt[0], vt[1]) == -1)
 		# Check greater than
 		for vt in version_tests:
-			self.failUnless(compare_strs(vt[1], vt[0]) == 1)
+			self.assertTrue(compare_strs(vt[1], vt[0]) == 1)
 		# Check equal
 		vt = ('~amd64-linux', '~amd64-linux')
-		self.failUnless(compare_strs(vt[0], vt[1]) == 0)
+		self.assertTrue(compare_strs(vt[0], vt[1]) == 0)
 
 		kwds_presort = [
 			'~amd64', '~amd64-linux', '~ppc', '~ppc-macos', '~x86',
@@ -38,8 +38,8 @@ class TestGentoolkitKeyword(unittest.TestCase):
 			'~ppc-macos', '~x86-macos', '~x86-solaris'
 		]
 		if sys.hexversion < 0x3000000:
-			self.failUnlessEqual(sorted(kwds_presort, cmp=compare_strs), kwds_postsort)
-		self.failUnlessEqual(sorted(kwds_presort, key = keyword.Keyword), kwds_postsort)
+			self.assertEqual(sorted(kwds_presort, cmp=compare_strs), kwds_postsort)
+		self.assertEqual(sorted(kwds_presort, key = keyword.Keyword), kwds_postsort)
 
 
 def test_main():

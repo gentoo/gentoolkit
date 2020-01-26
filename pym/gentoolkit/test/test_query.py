@@ -20,7 +20,7 @@ class TestQuery(unittest.TestCase):
 			'/',
 		]
 		for q in invalid_queries:
-			self.failUnlessRaises(errors.GentoolkitInvalidPackage,
+			self.assertRaises(errors.GentoolkitInvalidPackage,
 				query.Query, q
 			)
 
@@ -32,7 +32,7 @@ class TestQuery(unittest.TestCase):
 			(q1.query_type, "simple")
 		]
 		for t in q1_tests:
-			self.failUnlessEqual(t[0], t[1])
+			self.assertEqual(t[0], t[1])
 
 		q2 = query.Query('gentoolkit-.*', is_regex=True)
 		q2_tests = [
@@ -42,7 +42,7 @@ class TestQuery(unittest.TestCase):
 			(q2.query_type, "complex")
 		]
 		for t in q2_tests:
-			self.failUnlessEqual(t[0], t[1])
+			self.assertEqual(t[0], t[1])
 
 		q3 = query.Query('*::gentoo')
 		q3_tests = [
@@ -52,7 +52,7 @@ class TestQuery(unittest.TestCase):
 			(q3.query_type, "complex")
 		]
 		for t in q3_tests:
-			self.failUnlessEqual(t[0], t[1])
+			self.assertEqual(t[0], t[1])
 
 		q4 = query.Query('gcc:4.3')
 		q4_tests = [
@@ -62,7 +62,7 @@ class TestQuery(unittest.TestCase):
 			(q4.query_type, "simple")
 		]
 		for t in q4_tests:
-			self.failUnlessEqual(t[0], t[1])
+			self.assertEqual(t[0], t[1])
 
 		q5 = query.Query('@system')
 		q5_tests = [
@@ -72,7 +72,7 @@ class TestQuery(unittest.TestCase):
 			(q5.query_type, "set")
 		]
 		for t in q5_tests:
-			self.failUnlessEqual(t[0], t[1])
+			self.assertEqual(t[0], t[1])
 
 	def test_uses_globbing(self):
 		globbing_tests = [
@@ -88,7 +88,7 @@ class TestQuery(unittest.TestCase):
 		]
 
 		for gt in globbing_tests:
-			self.failUnless(
+			self.assertTrue(
 				query.Query(gt[0]).uses_globbing() == gt[1]
 			)
 

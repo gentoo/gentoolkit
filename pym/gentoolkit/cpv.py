@@ -28,8 +28,8 @@ from gentoolkit import errors
 # Globals
 # =======
 
-isvalid_version_re = re.compile(r"^(?:cvs\\.)?(?:\\d+)(?:\\.\\d+)*[a-z]?"
-	r"(?:_(p(?:re)?|beta|alpha|rc)\\d*)*$")
+isvalid_version_re = re.compile(r"^(?:cvs\.)?(?:\d+)(?:\.\d+)*[a-z]?"
+	r"(?:_(p(?:re)?|beta|alpha|rc)\d*)*$")
 isvalid_cat_re = re.compile(r"^(?:[a-zA-Z0-9][-a-zA-Z0-9+._]*(?:/(?!$))?)+$")
 _pkg_re = re.compile(r"^[a-zA-Z0-9+._]+$")
 # Prefix specific revision is of the form -r0<digit>+.<digit>+

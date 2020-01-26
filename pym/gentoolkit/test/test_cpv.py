@@ -65,13 +65,13 @@ class TestGentoolkitCPV(unittest.TestCase):
 		]
 		# Check less than
 		for vt in version_tests:
-			self.failUnless(compare_strs(vt[0], vt[1]) == -1)
+			self.assertTrue(compare_strs(vt[0], vt[1]) == -1)
 		# Check greater than
 		for vt in version_tests:
-			self.failUnless(compare_strs(vt[1], vt[0]) == 1)
+			self.assertTrue(compare_strs(vt[1], vt[0]) == 1)
 		# Check equal
 		vt = ('sys-auth/pambase-20080318', 'sys-auth/pambase-20080318')
-		self.failUnless(compare_strs(vt[0], vt[1]) == 0)
+		self.assertTrue(compare_strs(vt[0], vt[1]) == 0)
 
 	def test_chunk_splitting(self):
 		all_tests = [
@@ -126,7 +126,7 @@ class TestGentoolkitCPV(unittest.TestCase):
 			cpv = CPV(test[0])
 			keys = ('category', 'name', 'cp', 'version', 'revision', 'fullversion')
 			for k in keys:
-				self.failUnlessEqual(
+				self.assertEqual(
 					getattr(cpv, k), test[1][k]
 				)
 

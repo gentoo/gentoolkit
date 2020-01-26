@@ -166,12 +166,12 @@ class TestCheckLimits(unittest.TestCase):
 			test['results'].sort()
 			#print("actual=", run_results[i])
 			#print("should-be=", test['results'])
-			self.failUnlessEqual(run_results[i], test["results"],
+			self.assertEqual(run_results[i], test["results"],
 				"/ntest_check_limits, test# %d, test=%s, diff=%s"
 				%(i, test['test'], str(set(run_results[i]).difference(test['results'])))
 			)
 			test['output'].sort()
-			self.failUnlessEqual(run_callbacks[i], test['output'])
+			self.assertEqual(run_callbacks[i], test['output'])
 
 
 class TestFetchRestricted(unittest.TestCase):
@@ -290,7 +290,7 @@ class TestFetchRestricted(unittest.TestCase):
 				else:
 					test = "FAILED"
 				print("comparing %s, %s" %(key, item), test)
-				self.failUnlessEqual(sorted(testdata[item]), sorted(results[item]),
+				self.assertEqual(sorted(testdata[item]), sorted(results[item]),
 					"\n%s: %s %s data does not match\nresult=" %(test_name, key, item) +\
 					str(results[item]) + "\ntestdata=" + str(testdata[item]))
 
@@ -530,7 +530,7 @@ class TestNonDestructive(unittest.TestCase):
 				print("comparing %s, %s..." %(key, item), test)
 				if test == "FAILED":
 					print("", sorted(results[item]), "\n",  sorted(testdata[item]))
-				self.failUnlessEqual(sorted(testdata[item]), sorted(results[item]),
+				self.assertEqual(sorted(testdata[item]), sorted(results[item]),
 					"\n%s: %s, %s data does not match\n"
 					%(test_name, key, item) + \
 					"result=" + str(results[item]) + "\ntestdata=" + str(testdata[item])
@@ -609,7 +609,7 @@ class TestRemoveProtected(unittest.TestCase):
 
 	def test_remove_protected(self):
 		results = self.target_class._remove_protected(PKGS, CLEAN_ME)
-		self.failUnlessEqual(results, self.results,
+		self.assertEqual(results, self.results,
 			"\ntest_remove_protected: data does not match\nresult=" +\
 			str(results) + "\ntestdata=" + str(self.results))
 
