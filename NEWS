@@ -1,5 +1,10 @@
 News (new features/major bug fixes)
 
+gentoolkit-0.4.7
+----------------
+  * eshowkw: Add alpha to ~arch-only arches
+  * Fixed deprecation warnings
+
 gentoolkit-0.4.6
 ----------------
   * glsa-check moved to portage repository (bug 463952)
