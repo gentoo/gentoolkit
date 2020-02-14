@@ -19,6 +19,7 @@ def call_program(args):
 	@param, args: arument list to pass to subprocess
 	@return str
 	'''
+	args = [arg if isinstance(arg, bytes) else arg.encode('utf-8') for arg in args]
 	subp = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	stdout, stderr = subp.communicate()
 	stdout = stdout.decode('utf-8')
