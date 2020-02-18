@@ -13,6 +13,8 @@ import sys
 from functools import partial
 
 import portage
+from portage.dep import Atom, use_reduce
+from portage.dep._slot_operator import strip_slots
 
 import gentoolkit.pprinter as pp
 from gentoolkit.eclean.exclude import (exclDictMatchCP, exclDictExpand,
@@ -488,6 +490,17 @@ class DistfilesSearch(object):
 		return clean_me, saved
 
 
+def _deps_equal(deps_a, deps_b, eapi, uselist=None):
+	"""Compare two dependency lists given a set of USE flags"""
+	if deps_a == deps_b: return True
+
+	deps_a = use_reduce(deps_a, uselist=uselist, eapi=eapi, token_class=Atom)
+	deps_b = use_reduce(deps_b, uselist=uselist, eapi=eapi, token_class=Atom)
+	strip_slots(deps_a)
+	strip_slots(deps_b)
+	return deps_a == deps_b
+
+
 def findPackages(
 		options,
 		exclude=None,
@@ -562,7 +575,16 @@ def findPackages(
 
 		# Exclude if binpkg exists in the porttree and not --deep
 		if not destructive and port_dbapi.cpv_exists(cpv):
-			continue
+			if not options['changed-deps']:
+				continue
+
+			keys = ('RDEPEND', 'PDEPEND')
+			binpkg_deps = ' '.join(bin_dbapi.aux_get(cpv, keys))
+			ebuild_deps = ' '.join(port_dbapi.aux_get(cpv, keys))
+			uselist = bin_dbapi.aux_get(cpv, ['USE'])[0].split()
+
+			if _deps_equal(binpkg_deps, ebuild_deps, cpv.eapi, uselist):
+				continue
 
 		if destructive and var_dbapi.cpv_exists(cpv):
 			# Exclude if an instance of the package is installed due to

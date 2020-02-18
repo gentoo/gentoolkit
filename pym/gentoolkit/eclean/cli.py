@@ -147,6 +147,8 @@ def printUsage(_error=None, help=None):
 	or help in ('all','packages'):
 		print( "Available", yellow("options"),"for the",
 				green("packages"),"action:", file=out)
+		print( yellow("     --changed-deps")+
+			"               - delete packages for which ebuild dependencies have changed", file=out)
 		print( yellow(" -i, --ignore-failure")+
 			"             - ignore failure to locate PKGDIR", file=out)
 		print( file=out)
@@ -263,6 +265,8 @@ def parseArgs(options={}):
 				options['size-limit'] = parseSize(a)
 			elif o in ("-v", "--verbose") and not options['quiet']:
 					options['verbose'] = True
+			elif o in ("--changed-deps"):
+				options['changed-deps'] = True
 			elif o in ("-i", "--ignore-failure"):
 				options['ignore-failure'] = True
 			else:
@@ -290,7 +294,7 @@ def parseArgs(options={}):
 	getopt_options['short']['distfiles'] = "fs:"
 	getopt_options['long']['distfiles'] = ["fetch-restricted", "size-limit="]
 	getopt_options['short']['packages'] = "i"
-	getopt_options['long']['packages'] = ["ignore-failure"]
+	getopt_options['long']['packages'] = ["ignore-failure", "changed-deps"]
 	# set default options, except 'nocolor', which is set in main()
 	options['interactive'] = False
 	options['pretend'] = False
@@ -303,6 +307,7 @@ def parseArgs(options={}):
 	options['fetch-restricted'] = False
 	options['size-limit'] = 0
 	options['verbose'] = False
+	options['changed-deps'] = False
 	options['ignore-failure'] = False
 	# if called by a well-named symlink, set the action accordingly:
 	action = None
