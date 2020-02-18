@@ -498,89 +498,86 @@ def findPackages(
 		port_dbapi=portage.db[portage.root]["porttree"].dbapi,
 		var_dbapi=portage.db[portage.root]["vartree"].dbapi
 	):
-	"""Find all obsolete binary packages.
-
-	XXX: packages are found only by symlinks.
-	Maybe i should also return .tbz2 files from All/ that have
-	no corresponding symlinks.
+	"""Find obsolete binary packages.
 
 	@param options: dict of options determined at runtime
-	@param exclude: an exclusion dict as defined in
-			exclude.parseExcludeFile class.
-	@param destructive: boolean, defaults to False
-	@param time_limit: integer time value as returned by parseTime()
-	@param package_names: boolean, defaults to False.
-			used only if destructive=True
-	@param pkgdir: path to the binary package dir being checked
+	@type  options: dict
+	@param exclude: exclusion dict (as defined in the exclude.parseExcludeFile class)
+	@type  exclude: dict, optional
+	@param destructive: binpkg is obsolete if not installed (default: `False`)
+	@type  destructive: bool, optional
+	@param time_limit: exclude binpkg if newer than time value as returned by parseTime()
+	@type  time_limit: int, optional
+	@param package_names: exclude all binpkg versions if package is installed
+						  (used with `destructive=True`) (default: `False`)
+	@type  package_names: bool, optional
+	@param pkgdir: path to the binpkg cache (PKGDIR)
+	@type  pkgdir: str
 	@param port_dbapi: defaults to portage.db[portage.root]["porttree"].dbapi
-					can be overridden for tests.
-	@param var_dbapi: defaults to portage.db[portage.root]["vartree"].dbapi
-					can be overridden for tests.
+					   Can be overridden for tests.
+	@param  var_dbapi: defaults to portage.db[portage.root]["vartree"].dbapi
+					   Can be overridden for tests.
 
+	@return binary packages to remove. e.g. {'cat/pkg-ver': [filepath]}
 	@rtype: dict
-	@return clean_me i.e. {'cat/pkg-ver.tbz2': [filepath],}
 	"""
 	if exclude is None:
 		exclude = {}
-	clean_me = {}
-	# create a full package dictionary
 
-	# now do an access test, os.walk does not error for "no read permission"
+	# Access test, os.walk does not error for "no read permission"
 	try:
 		test = os.listdir(pkgdir)
 		del test
 	except EnvironmentError as er:
 		if options['ignore-failure']:
 			exit(0)
-		print( pp.error("Error accessing PKGDIR." ), file=sys.stderr)
-		print( pp.error("(Check your make.conf file and environment)."), file=sys.stderr)
-		print( pp.error("Error: %s" %str(er)), file=sys.stderr)
+		print(pp.error("Error accessing PKGDIR."), file=sys.stderr)
+		print(pp.error("(Check your make.conf file and environment)."), file=sys.stderr)
+		print(pp.error("Error: %s" % str(er)), file=sys.stderr)
 		exit(1)
 
-	# if portage supports FEATURES=binpkg-multi-instance, then
-	# cpv_all can return multiple instances per cpv, where
-	# instances are distinguishable by some extra attributes
-	# provided by portage's _pkg_str class
+	# Create a dictionary of all installed packages
+	if destructive and package_names:
+		installed = dict.fromkeys(var_dbapi.cp_all())
+	else:
+		installed = {}
+
+	# Dictionary of binary packages to clean. Organized as cpv->[pkgs] in order
+	# to support FEATURES=binpkg-multi-instance.
+	dead_binpkgs = {}
+
 	bin_dbapi = portage.binarytree(pkgdir=pkgdir, settings=var_dbapi.settings).dbapi
 	for cpv in bin_dbapi.cpv_all():
-		mtime = int(bin_dbapi.aux_get(cpv, ['_mtime_'])[0])
-		if time_limit and mtime >= time_limit:
-			# time-limit exclusion
-			continue
-		# dict is cpv->[pkgs] (supports binpkg-multi-instance)
-		clean_me.setdefault(cpv, []).append(cpv)
+		cp = portage.cpv_getkey(cpv)
 
-	# keep only obsolete ones
-	if destructive and package_names:
-		cp_all = dict.fromkeys(var_dbapi.cp_all())
-	else:
-		cp_all = {}
-	for cpv in list(clean_me):
-		if exclDictMatchCP(exclude,portage.cpv_getkey(cpv)):
-			# exclusion because of the exclude file
-			del clean_me[cpv]
+		# Exclude per --exclude-file=...
+		if exclDictMatchCP(exclude, cp):
 			continue
-		if not destructive and port_dbapi.cpv_exists(cpv):
-			# exclusion because pkg still exists (in porttree)
-			del clean_me[cpv]
-			continue
-		if destructive and var_dbapi.cpv_exists(cpv):
-			buildtime = var_dbapi.aux_get(cpv, ['BUILD_TIME'])[0]
-			clean_me[cpv] = [pkg for pkg in clean_me[cpv]
-				# only keep path if BUILD_TIME is identical with vartree
-				if bin_dbapi.aux_get(pkg, ['BUILD_TIME'])[0] != buildtime]
-			if not clean_me[cpv]:
-				# nothing we can clean for this package
-				del clean_me[cpv]
+
+		# Exclude if binpkg is newer than --time-limit=...
+		if time_limit:
+			mtime = int(bin_dbapi.aux_get(cpv, ['_mtime_'])[0])
+			if mtime >= time_limit:
 				continue
-		if portage.cpv_getkey(cpv) in cp_all and port_dbapi.cpv_exists(cpv):
-			# exclusion because of --package-names
-			del clean_me[cpv]
 
-	# the getname method correctly supports FEATURES=binpkg-multi-instance,
-	# allowing for multiple paths per cpv (the API used here is also compatible
-	# with older portage which does not support binpkg-multi-instance)
-	for cpv, pkgs in clean_me.items():
-		clean_me[cpv] = [bin_dbapi.bintree.getname(pkg) for pkg in pkgs]
+		# Exclude if binpkg exists in the porttree and not --deep
+		if not destructive and port_dbapi.cpv_exists(cpv):
+			continue
 
-	return clean_me
+		if destructive and var_dbapi.cpv_exists(cpv):
+			# Exclude if an instance of the package is installed due to
+			# the --package-names option.
+			if cp in installed and port_dbapi.cpv_exists(cpv):
+				continue
+
+			# Exclude if BUILD_TIME of binpkg is same as vartree
+			buildtime = var_dbapi.aux_get(cpv, ['BUILD_TIME'])[0]
+			if buildtime == bin_dbapi.aux_get(cpv, ['BUILD_TIME'])[0]:
+				continue
+
+		binpkg_path = bin_dbapi.bintree.getname(cpv)
+		dead_binpkgs.setdefault(cpv, []).append(binpkg_path)
+
+	return dead_binpkgs
+
+# vim: set ts=4 sw=4 tw=79:
