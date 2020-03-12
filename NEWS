@@ -1,5 +1,11 @@
 News (new features/major bug fixes)
 
+gentoolkit-0.4.8
+----------------
+  * eclean packages: Add --changed-deps option to remove binpkgs
+                     whose runtime depenedencies have changed
+  * revdep-rebuild: Encode Popen arguments as utf8 (bug 709610)
+
 gentoolkit-0.4.7
 ----------------
   * eshowkw: Add alpha to ~arch-only arches
