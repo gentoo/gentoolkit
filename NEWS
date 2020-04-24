@@ -1,5 +1,12 @@
 News (new features/major bug fixes)
 
+gentoolkit-0.5.0
+----------------
+  * discontinued Support for Python 2
+  * ekeyword and eshowkw now share logic for determining arch status
+  * support for arches.desc to determine arch/~arch
+  * updated fallback ~arch list with ~ia64 and ~m68k
+
 gentoolkit-0.4.8
 ----------------
   * eclean packages: Add --changed-deps option to remove binpkgs
