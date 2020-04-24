@@ -47,6 +47,8 @@ import re
 import subprocess
 import sys
 
+from gentoolkit.profile import load_profile_data
+
 import portage
 from portage.output import colorize, nocolor
 
@@ -179,7 +181,7 @@ def process_keywords(keywords, ops, arch_status=None):
 			if op is None:
 				# Process just stable keywords.
 				arches = [k for k, v in arch_status.items()
-				          if v == 'stable' and k in old_arches]
+					if v[1] == 'arch' and k in old_arches]
 			else:
 				# Process all possible keywords.  We use the arch_status as a
 				# master list.  If it lacks some keywords, then we might miss
@@ -344,64 +346,6 @@ def portage_settings():
 	"""Return the portage settings we care about."""
 	# Portage creates the db member on the fly which confuses the linter.
 	return portage.db[portage.root]['vartree'].settings
-
-
-def load_profile_data(portdir=None, repo=None):
-	"""Load the list of known arches from the tree
-
-	Args:
-	  portdir: The repository to load all data from (and ignore |repo|)
-	  repo: Look up this repository by name to locate profile data
-
-	Returns:
-	  A dict mapping the keyword to its preferred state:
-	  {'x86': 'stable', 'mips': 'dev', ...}
-	"""
-	if repo is None:
-		repo = portage_settings().repositories.mainRepo().name
-	if portdir is None:
-		portdir = portage_settings().repositories[repo].location
-
-	arch_status = {}
-
-	try:
-		arch_list = os.path.join(portdir, 'profiles', 'arch.list')
-		with open(arch_list) as f:
-			for line in f:
-				line = line.split('#', 1)[0].strip()
-				if line:
-					arch_status[line] = None
-	except IOError:
-		pass
-
-	try:
-		profile_status = {
-			'stable': 0,
-			'dev': 1,
-			'exp': 2,
-			None: 3,
-		}
-		profiles_list = os.path.join(portdir, 'profiles', 'profiles.desc')
-		with open(profiles_list) as f:
-			for line in f:
-				line = line.split('#', 1)[0].split()
-				if line:
-					arch, _profile, status = line
-					arch_status.setdefault(arch, status)
-					curr_status = profile_status[arch_status[arch]]
-					new_status = profile_status[status]
-					if new_status < curr_status:
-						arch_status[arch] = status
-	except IOError:
-		pass
-
-	if arch_status:
-		arch_status['all'] = None
-	else:
-		warning('could not read profile files: %s' % arch_list)
-		warning('will not be able to verify args are correct')
-
-	return arch_status
 
 
 def arg_to_op(arg):

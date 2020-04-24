@@ -343,42 +343,6 @@ class TestProcessEbuild(unittest.TestCase):
 		self.assertEqual(m.call_count, 0)
 
 
-class TestLoadProfileData(unittest.TestCase):
-	"""Tests for load_profile_data"""
-
-	def _test(self, subdir):
-		portdir = os.path.join(TESTDIR, 'profiles', subdir)
-		return ekeyword.load_profile_data(portdir=portdir)
-
-	def testLoadBoth(self):
-		"""Test loading both arch.list and profiles.desc"""
-		ret = self._test('both')
-		self.assertIn('arm', ret)
-		self.assertEqual(ret['arm'], 'stable')
-		self.assertIn('arm64', ret)
-		self.assertEqual(ret['arm64'], 'exp')
-
-	def testLoadArchOnly(self):
-		"""Test loading only arch.list"""
-		ret = self._test('arch-only')
-		self.assertIn('arm', ret)
-		self.assertEqual(ret['arm'], None)
-		self.assertIn('x86-solaris', ret)
-
-	def testLoadProfilesOnly(self):
-		"""Test loading only profiles.desc"""
-		ret = self._test('profiles-only')
-		self.assertIn('arm', ret)
-		self.assertEqual(ret['arm'], 'stable')
-		self.assertIn('arm64', ret)
-		self.assertEqual(ret['arm64'], 'exp')
-
-	def testLoadNone(self):
-		"""Test running when neither files exists"""
-		ret = self._test('none')
-		self.assertEqual(ret, {})
-
-
 class TestArgToOps(unittest.TestCase):
 	"""Tests for arg_to_op()"""
 
