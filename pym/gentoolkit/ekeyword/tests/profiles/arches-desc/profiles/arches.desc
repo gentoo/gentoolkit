@@ -1,0 +1,17 @@
+alpha		testing
+amd64		stable
+amd64-fbsd	testing
+arm		stable
+arm64		stable
+hppa		stable
+ia64		testing
+m68k		testing
+mips		testing
+ppc		stable
+ppc64		stable
+s390		stable
+sh		stable
+sparc		stable
+sparc-fbsd	testing
+x86		stable
+x86-fbsd	testing

@@ -81,12 +81,34 @@ def load_profile_data(portdir=None, repo='gentoo'):
 		warning('could not read profile files: %s' % arch_list)
 		warning('will not be able to verify args are correct')
 
-	# TODO: support arches.desc once the GLEP is finalized
-	# for now, we just hardcode everything + *-* (fbsd, prefix)
+	arches_desc = {}
+	try:
+		arches_list = os.path.join(portdir, 'profiles', 'arches.desc')
+		with open(_unicode_encode(arches_list, encoding=_encodings['fs']),
+				encoding=_encodings['content']) as f:
+			for line in f:
+				line = line.split('#', 1)[0].split()
+				if line:
+					arch, status = line
+					arches_desc[arch] = status
+	except IOError:
+		# backwards compatibility
+		arches_desc = {
+			'alpha': 'testing',
+			'ia64': 'testing',
+			'm68k': 'testing',
+			'mips': 'testing',
+			'riscv': 'testing',
+		}
+		for k in arch_status:
+			if '-' in k:
+				arches_desc[k] = 'testing'
+
 	for k, v in arch_status.items():
-		if k in ('alpha', 'ia64', 'm68k', 'mips', 'riscv') or '-' in k:
+		if arches_desc.get(k) == 'testing':
 			arch_status[k] = (v, '~arch')
 		else:
+			# TODO: explicit distinction of transitional, bad values?
 			arch_status[k] = (v, 'arch')
 
 	return arch_status

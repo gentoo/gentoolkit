@@ -43,6 +43,18 @@ class TestLoadProfileData(unittest.TestCase):
 		self.assertIn('arm64', ret)
 		self.assertEqual(ret['arm64'], ('exp', 'arch'))
 
+	def testLoadArchesDesc(self):
+		"""Test loading arch.list, arches.desc and profiles.desc"""
+		ret = self._test('arches-desc')
+		self.assertIn('arm', ret)
+		self.assertEqual(ret['arm'], ('stable', 'arch'))
+		self.assertIn('arm64', ret)
+		self.assertEqual(ret['arm64'], ('exp', 'arch'))
+		self.assertIn('alpha', ret)
+		self.assertEqual(ret['alpha'], ('stable', '~arch'))
+		self.assertIn('sparc-fbsd', ret)
+		self.assertEqual(ret['sparc-fbsd'], ('exp', '~arch'))
+
 	def testLoadNone(self):
 		"""Test running when neither files exists"""
 		ret = self._test('none')
