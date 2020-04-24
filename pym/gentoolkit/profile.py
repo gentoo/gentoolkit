@@ -82,9 +82,9 @@ def load_profile_data(portdir=None, repo='gentoo'):
 		warning('will not be able to verify args are correct')
 
 	# TODO: support arches.desc once the GLEP is finalized
-	# for now, we just hardcode ~mips + *-* (fbsd, prefix)
+	# for now, we just hardcode everything + *-* (fbsd, prefix)
 	for k, v in arch_status.items():
-		if k in ('alpha', 'mips', 'riscv') or '-' in k:
+		if k in ('alpha', 'ia64', 'm68k', 'mips', 'riscv') or '-' in k:
 			arch_status[k] = (v, '~arch')
 		else:
 			arch_status[k] = (v, 'arch')
