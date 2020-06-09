@@ -490,12 +490,12 @@ class DistfilesSearch(object):
 		return clean_me, saved
 
 
-def _deps_equal(deps_a, deps_b, eapi, uselist=None):
+def _deps_equal(deps_a, eapi_a, deps_b, eapi_b, uselist=None):
 	"""Compare two dependency lists given a set of USE flags"""
 	if deps_a == deps_b: return True
 
-	deps_a = use_reduce(deps_a, uselist=uselist, eapi=eapi, token_class=Atom)
-	deps_b = use_reduce(deps_b, uselist=uselist, eapi=eapi, token_class=Atom)
+	deps_a = use_reduce(deps_a, uselist=uselist, eapi=eapi_a, token_class=Atom)
+	deps_b = use_reduce(deps_b, uselist=uselist, eapi=eapi_b, token_class=Atom)
 	strip_slots(deps_a)
 	strip_slots(deps_b)
 	return deps_a == deps_b
@@ -578,12 +578,14 @@ def findPackages(
 			if not options['changed-deps']:
 				continue
 
-			keys = ('RDEPEND', 'PDEPEND')
-			binpkg_deps = ' '.join(bin_dbapi.aux_get(cpv, keys))
-			ebuild_deps = ' '.join(port_dbapi.aux_get(cpv, keys))
-			uselist = bin_dbapi.aux_get(cpv, ['USE'])[0].split()
+			dep_keys = ('RDEPEND', 'PDEPEND')
+			keys = ('EAPI', 'USE') + dep_keys
+			binpkg_metadata = dict(zip(keys, bin_dbapi.aux_get(cpv, keys)))
+			ebuild_metadata = dict(zip(keys, port_dbapi.aux_get(cpv, keys)))
 
-			if _deps_equal(binpkg_deps, ebuild_deps, cpv.eapi, uselist):
+			if _deps_equal(' '.join(binpkg_metadata[key] for key in dep_keys), binpkg_metadata['EAPI'],
+				' '.join(ebuild_metadata[key] for key in dep_keys), ebuild_metadata['EAPI'],
+				frozenset(binpkg_metadata['USE'].split())):
 				continue
 
 		if destructive and var_dbapi.cpv_exists(cpv):
