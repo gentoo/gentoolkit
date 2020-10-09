@@ -235,9 +235,19 @@ countdown() {
 # Replace whitespace with linebreaks, normalize repeated '/' chars, and sort -u
 # (If any libs have whitespace in their filenames, someone needs punishment.)
 clean_var() {
-	gawk 'BEGIN         {RS="[[:space:]]"}
-	     /-\*/         {exit}
-	     /[^[:space:]]/ {gsub(/\/\/+/, "/"); print}' | sort -u
+	awk '
+		BEGIN {FS = "[[:space:]]"}
+
+		{
+			for(i = 1; i <= NF; ++i) {
+				if($i ~ /-\*/)
+					exit
+				else if($i){
+					gsub(/\/\/+/, "/", $i)
+					print $i
+				}
+			}
+		}' | sort -u
 }
 ##
 # Exit and optionally output to sterr
@@ -805,8 +815,8 @@ main_checks() {
 					# Look for symbol not defined errors
 					if grep -vF "${LD_LIBRARY_MASK:=$'\a'}" <<< "$ldd_output" |
 						grep -q -E 'symbol .* not defined'; then
-						message=$(gawk '/symbol .* not defined/ {NF--; print $0}' <<< "$ldd_output")
-						broken_lib=$(gawk '/symbol .* not defined/ {print $NF}' <<< "$ldd_output" | \
+						message=$(awk '/symbol .* not defined/ {ORS = FS; for(i = 1; i < NF; ++i) print $i; printf "\n"}' <<< "$ldd_output")
+						broken_lib=$(awk '/symbol .* not defined/ {print $NF}' <<< "$ldd_output" | \
 							sed 's/[()]//g')
 						echo "obj $broken_lib" >> "$BROKEN_FILE"
 						echo_v "  broken $broken_lib ($message)"
@@ -820,7 +830,7 @@ main_checks() {
 					*)
 						if grep -vF "${LD_LIBRARY_MASK:=$'\a'}" <<< "$ldd_output" |
 							grep -q -F 'undefined symbol:'; then
-							message=$(gawk '/undefined symbol:/ {print $3}' <<< "$ldd_output")
+							message=$(awk '/undefined symbol:/ {print $3}' <<< "$ldd_output")
 							message="${message//$'\n'/ }"
 							echo "obj $target_file" >> "$BROKEN_FILE"
 							echo_v "  broken $target_file (undefined symbols(s): $message)"
@@ -835,7 +845,7 @@ main_checks() {
 				la_broken=""
 				la_lib=""
 				for depend in $(
-					gawk -F"[=']" '/^dependency_libs/{
+					awk -F"[=']" '/^dependency_libs/{
 						print $3
 					}' "$target_file"
 				); do
@@ -876,7 +886,7 @@ main_checks() {
 			done < <(
 				# Regexify LD_LIBRARY_MASK. Exclude it from the search.
 				LD_LIBRARY_MASK="${LD_LIBRARY_MASK//$'\n'/|}"
-				gawk -v ldmask="(${LD_LIBRARY_MASK//./\\\\.})" '
+				awk -v ldmask="(${LD_LIBRARY_MASK//./\\\\.})" '
 					/no version information available/ && $0 !~ ldmask {
 						gsub(/[()]/, "", $NF)
 						if (seen[$NF]++)  next
@@ -1068,7 +1078,7 @@ show_unowned_files() {
 		ewarn "The broken files are:"
 		while read filename junk; do
 			[[ $junk = *none* ]] && ewarn "  $filename"
-		done < "$OWNERS_FILE" | gawk '!s[$0]++' # (omit dupes)
+		done < "$OWNERS_FILE" | awk '!s[$0]++' # (omit dupes)
 	fi
 }
 
