@@ -101,8 +101,11 @@ class _Useflag(object):
 		if node.text:
 			_desc = node.text
 		for child in node.iter():
-			_desc += child.text if child.text else ''
-			_desc += child.tail if child.tail else ''
+			# prevent duplicate text
+			if child.text and child.text not in _desc:
+				_desc += child.text
+			if child.tail and not child.tail in _desc:
+				_desc += child.tail
 		# This takes care of tabs and newlines left from the file
 		self.description = re.sub(r'\s+', ' ', _desc)
 
