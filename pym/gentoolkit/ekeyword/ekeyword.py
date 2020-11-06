@@ -429,7 +429,7 @@ def get_parser():
 		help='Be quiet while processing things (only show errors)')
 	parser.add_argument('--format', default='auto', dest='style',
 		choices=('auto', 'color-inline', 'inline', 'short-multi', 'long-multi'),
-		help='Selet output format for showing differences')
+		help='Select output format for showing differences')
 	parser.add_argument('-V', '--version', action='version', version=__version__,
 		help='Show version information')
 	return parser
