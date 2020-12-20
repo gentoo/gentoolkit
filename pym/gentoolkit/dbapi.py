@@ -11,8 +11,6 @@
 	take advantage of them being lazy-loaded.
 """
 
-from __future__ import print_function
-
 print("gentoolkit.dbapi is deprecated.\n",
 	"Please migrate to using the assigned calls directly")
 

@@ -3,8 +3,6 @@
 Functions for reading, saving and verifying the data caches
 """
 
-from __future__ import print_function
-
 from portage import os
 import time
 import sys

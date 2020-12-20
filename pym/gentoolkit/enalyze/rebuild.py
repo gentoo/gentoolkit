@@ -10,9 +10,6 @@
 what packages according to the Installed package database"""
 
 
-from __future__ import print_function
-
-
 import os
 import sys
 if sys.hexversion < 0x3000000:

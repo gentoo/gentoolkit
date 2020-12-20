@@ -6,8 +6,6 @@
 #
 # $Header$
 
-from __future__ import print_function
-
 __version__= "0.0.1"
 __author__ = "Brian Dolbec"
 __email__ = "brian.dolbec@gmail.com"

@@ -6,8 +6,6 @@
 
 """Gentoo package query tool"""
 
-from __future__ import print_function
-
 __all__ = (
 	'format_options',
 	'format_package_names',

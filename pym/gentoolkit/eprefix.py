@@ -4,8 +4,6 @@
 # Distributed under the terms of the GNU General Public License v2
 
 
-#from __future__ import print_function
-
 """Eprefix support module to set the EPREFIX variable
 used in all gentoolkit modules
 

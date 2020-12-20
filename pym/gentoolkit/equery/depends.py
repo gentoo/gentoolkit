@@ -6,8 +6,6 @@
 
 """List all packages that depend on a atom given query"""
 
-from __future__ import print_function
-
 __docformat__ = 'epytext'
 
 # =======

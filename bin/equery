@@ -10,8 +10,6 @@ information about packages, such as the files they own, their USE flags,
 the MD5 sum of each file owned by a given package, and many other things.
 """
 
-from __future__ import print_function
-
 import os
 import sys
 # This block ensures that ^C interrupts are handled quietly.

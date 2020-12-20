@@ -13,8 +13,6 @@ the current list as they appear, and ebuilds are processed as they appear.
 
 """
 
-from __future__ import print_function
-
 import os
 import sys
 # This block ensures that ^C interrupts are handled quietly.

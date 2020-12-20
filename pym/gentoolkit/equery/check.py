@@ -6,8 +6,6 @@
 
 """Checks timestamps and MD5 sums for files owned by a given installed package"""
 
-from __future__ import print_function
-
 __docformat__ = 'epytext'
 
 # =======

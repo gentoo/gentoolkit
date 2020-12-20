@@ -14,8 +14,6 @@ Creation date: 2010/10/17
 License: BSD
 """
 
-from __future__ import print_function
-
 import os
 import sys
 import logging

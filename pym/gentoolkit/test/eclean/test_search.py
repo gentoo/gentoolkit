@@ -9,9 +9,6 @@
 # $Header$
 
 
-from __future__ import print_function
-
-
 import unittest
 import re
 import os

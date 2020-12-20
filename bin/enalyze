@@ -12,8 +12,6 @@ packages that use them.  It can also be used to help rebuild /etc/portage/packag
 files in the event of corruption, and possibly more.
 """
 
-from __future__ import print_function
-
 import sys
 # This block ensures that ^C interrupts are handled quietly.
 try:

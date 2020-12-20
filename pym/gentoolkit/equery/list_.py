@@ -6,8 +6,6 @@
 
 """List installed packages matching the query pattern"""
 
-from __future__ import print_function
-
 __docformat__ = 'epytext'
 
 # =======

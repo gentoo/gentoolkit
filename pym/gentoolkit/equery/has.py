@@ -6,8 +6,6 @@
 
 """List all installed packages that match for a given ENVIRONMENT variable"""
 
-from __future__ import print_function
-
 __docformat__ = 'epytext'
 
 # =======

@@ -36,8 +36,6 @@ Examples:
   $ %(prog)s s390=amd64 foo-1.ebuild
 """
 
-from __future__ import print_function
-
 import argparse
 import collections
 import difflib

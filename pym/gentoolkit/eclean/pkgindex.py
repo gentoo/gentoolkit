@@ -3,9 +3,6 @@
 # Copyright 2003-2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-from __future__ import print_function
-
-
 import subprocess
 import os
 import sys

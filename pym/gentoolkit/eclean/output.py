@@ -4,9 +4,6 @@
 # Distributed under the terms of the GNU General Public License v2
 
 
-from __future__ import print_function
-
-
 import sys
 from portage.output import blue, yellow, teal, green, red
 from gentoolkit.pprinter import cpv, number

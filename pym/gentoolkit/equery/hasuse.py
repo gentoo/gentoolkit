@@ -6,8 +6,6 @@
 
 """List all installed packages that have a given USE flag"""
 
-from __future__ import print_function
-
 __docformat__ = 'epytext'
 
 # =======

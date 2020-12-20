@@ -7,8 +7,6 @@
 
 """Shortcut to equery meta"""
 
-from __future__ import print_function
-
 __authors__ = (
 	'Douglas Anderson <douglasjanderson@gmail.com>: equery meta',
 	'Ned Ludd <solar@gentoo.org>: first full implimentation'

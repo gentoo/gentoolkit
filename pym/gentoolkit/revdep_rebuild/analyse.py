@@ -2,8 +2,6 @@
 
 """Analysis module"""
 
-from __future__ import print_function
-
 import os
 import re
 import time

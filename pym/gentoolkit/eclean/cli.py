@@ -4,9 +4,6 @@
 # Distributed under the terms of the GNU General Public License v2
 
 
-from __future__ import print_function
-
-
 __author__ = "Thomas de Grenier de Latour (tgl), " + \
 	"modular re-write by: Brian Dolbec (dol-sen)"
 __email__ = "degrenier@easyconnect.fr, " + \

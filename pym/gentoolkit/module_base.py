@@ -9,8 +9,6 @@
 """General Base Module class to hold common module operation functions
 """
 
-from __future__ import print_function
-
 __docformat__ = 'epytext'
 
 

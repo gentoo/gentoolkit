@@ -10,8 +10,6 @@ Note: Normally, only one package will own a file. If multiple packages own
       the same file, it usually constitutes a problem, and should be reported.
 """
 
-from __future__ import print_function
-
 __docformat__ = 'epytext'
 
 # =======

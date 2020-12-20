@@ -6,8 +6,6 @@
 
 """Displays the ChangeLog entry for the latest installable version of an atom"""
 
-from __future__ import print_function
-
 __docformat__ = 'epytext'
 
 # =======

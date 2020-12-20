@@ -2,8 +2,6 @@
 
 """Data collection module"""
 
-from __future__ import print_function
-
 import re
 from portage import os
 import glob

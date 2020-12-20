@@ -6,8 +6,6 @@
 
 """List files owned by a given package."""
 
-from __future__ import print_function
-
 __docformat__ = 'epytext'
 
 # =======

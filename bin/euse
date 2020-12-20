@@ -184,7 +184,7 @@ VER
 #       worth another look to avoid calling python unnecessariy. Or we could
 #       just write the whole thing in python. ;)
 reduce_incrementals() {
-	echo $@ | python -c "from __future__ import print_function;import sys
+	echo $@ | python -c "import sys
 r=[]
 for x in sys.stdin.read().split():
 	if x[0] == '-' and x[1:] in r:
@@ -202,7 +202,7 @@ print(' '.join(r))"
 # Similar to reduce_incrementals but negative flags trump positive
 # flags, regardless of which follows which
 reduce_incrementals_trump() {
-	echo $@ | python -c "from __future__ import print_function;import sys
+	echo $@ | python -c "import sys
 r=[]
 for x in sys.stdin.read().split():
 	if x[0] == '-' and x[1:] in r:
@@ -221,7 +221,7 @@ print(' '.join(r))"
 # * - Lines of package atom followed by flags
 #     (app-editors/vim flag1 flag2 -flag3)
 reduce_package_use() {
-	echo "${@}" | python -c "from __future__ import print_function;import sys,re
+	echo "${@}" | python -c "import sys,re
 h={}; getflags=re.compile(r'(-?[\w*-]+)')
 for x in sys.stdin.read().split('\n'):
 	if not x: continue
@@ -541,7 +541,7 @@ get_flagstatus_helper_pkg() {
 		if [[ -z "${atoms[@]/[<>=]*/}" ]]; then
 			atoms=($(
 				echo "${atoms[@]}" | python -c "
-from __future__ import print_function;import portage.dep as dep, sys
+import portage.dep as dep, sys
 print(' '.join(dep.match_to_list('$5-$6',sys.stdin.read().split())))"))
 		fi
 		flags=$(for atom in ${atoms[@]}; do

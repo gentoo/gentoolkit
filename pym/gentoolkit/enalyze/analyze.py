@@ -8,8 +8,6 @@
 """Provides a breakdown list of USE flags or keywords used and by
 what packages according to the Installed package database"""
 
-from __future__ import print_function
-
 import gentoolkit
 from gentoolkit.module_base import ModuleBase
 from gentoolkit import pprinter as pp

@@ -8,8 +8,6 @@
 both screen and file output
 """
 
-from __future__ import print_function
-
 import time
 
 from gentoolkit import pprinter as pp

@@ -4,9 +4,6 @@
 # $Id$
 # Author: Christian Ruppert <idl0r@gentoo.org>
 
-# Python 2.6 compatibility
-from __future__ import print_function
-
 __version__ = "git"
 
 # works just with stable keywords!
