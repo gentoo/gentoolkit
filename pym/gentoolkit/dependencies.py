@@ -1,8 +1,6 @@
 # Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
-#
-# $Header: $
 
 """Provides a class for easy calculating dependencies for a given CPV."""
 

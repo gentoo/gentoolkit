@@ -1,8 +1,6 @@
 # Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2 or higher
-#
-# $Header: $
 
 """Displays the ChangeLog entry for the latest installable version of an atom"""
 

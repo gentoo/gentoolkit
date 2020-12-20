@@ -6,8 +6,6 @@
 #
 # License: GPL2/BSD
 
-# $Header$
-
 
 import unittest
 import re

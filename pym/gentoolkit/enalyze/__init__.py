@@ -4,8 +4,6 @@
 # Copyright(c) 2010, Gentoo Foundation
 # Copyright 2003-2004 Karl Trygve Kalleberg
 # Licensed under the GNU General Public License, v2
-#
-# $Header: $
 
 """Gentoo's installed packages analysis and repair tool"""
 

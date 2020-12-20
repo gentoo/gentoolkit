@@ -2,8 +2,6 @@
 # Copyright(c) 2004-2010, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
-#
-# $Header$
 
 """Provides an interface to package information stored by package managers.
 

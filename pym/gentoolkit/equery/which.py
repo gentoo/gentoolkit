@@ -1,8 +1,6 @@
 # Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
-#
-# $Header: $
 
 """Display the path to the ebuild that would be used by Portage with the current
 configuration

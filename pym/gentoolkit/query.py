@@ -3,8 +3,6 @@
 # Copyright(c) 2004-2010, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
-#
-# $Header$
 
 """Provides common methods on a package query."""
 

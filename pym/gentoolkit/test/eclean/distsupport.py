@@ -3,8 +3,6 @@
 #
 # License: GPL2/BSD
 
-# $Header$
-
 
 import re
 import os

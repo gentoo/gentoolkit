@@ -3,8 +3,6 @@
 # Copyright 2003-2004 Karl Trygve Kalleberg
 # Copyright 2003-2009 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-#
-# $Header$
 
 """Gentoolkit is a collection of administration scripts for Gentoo"""
 

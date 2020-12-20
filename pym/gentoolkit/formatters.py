@@ -3,8 +3,6 @@
 # Copyright 2004 Karl Trygve Kalleberg <karltk@gentoo.org>
 # Copyright(c) 2010, Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-#
-# $Header$
 
 import sys
 import time

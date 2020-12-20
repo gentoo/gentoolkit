@@ -2,8 +2,6 @@
 #
 # Copyright(c) 2009 - 2010, Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-#
-# $Header: $
 
 """Gentoolkit Base Module class to hold common module operation functions
 """

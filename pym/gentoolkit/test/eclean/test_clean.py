@@ -3,8 +3,6 @@
 # Copyright 2010 Brian Dolbec <brian.dolbec@gmail.com>
 # Copyright 2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-#
-# $Header$
 
 __version__= "0.0.1"
 __author__ = "Brian Dolbec"

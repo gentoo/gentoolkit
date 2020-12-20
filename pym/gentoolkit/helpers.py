@@ -1,8 +1,6 @@
 # Copyright(c) 2009-2010, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2 or higher
-#
-# $Header$
 
 """Miscellaneous helper functions and classes.
 

@@ -3,8 +3,6 @@
 # Copyright 2010 Brian Dolbec <brian.dolbec@gmail.com>
 # Copyright 2002-2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2 or later
-#
-# $Header$
 
 """'enalyze' is a flexible utility for Gentoo linux which can display various
 information about installed packages, such as the USE flags used and the

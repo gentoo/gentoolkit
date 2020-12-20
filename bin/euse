@@ -2,8 +2,6 @@
 # Disable globbing because "-*" and such is valid as a use flag.
 set -f
 
-# $Header$
-
 # bash replacement for the original euse by Arun Bhanu
 # Author: Marius Mauch <genone@gentoo.org>
 #         Jared Hancock (Signigicant rewrite for package.use support)

@@ -3,8 +3,6 @@
 # Copyright 2010 Brian Dolbec <brian.dolbec@gmail.com>
 # Copyright(c) 2010, Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-#
-# $Header: $
 
 """General Base Module class to hold common module operation functions
 """

@@ -1,8 +1,6 @@
 # Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
-#
-# $Header: $
 
 """List all packages that depend on a atom given query"""
 

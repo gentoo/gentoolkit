@@ -1,8 +1,6 @@
 # Copyright(c) 2009, Gentoo Foundation
 #
 # Licensed under the GNU General Public License, v2
-#
-# $Header$
 
 """Provides an easy-to-use python interface to Gentoo's metadata.xml file.
 
