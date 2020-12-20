@@ -13,7 +13,7 @@ from gentoolkit.eprefix import EPREFIX
 import portage
 
 
-class PkgIndex(object):
+class PkgIndex:
 	"""Handle the cleaning of the binpkg Package
 	Index file
 

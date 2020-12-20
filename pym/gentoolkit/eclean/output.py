@@ -9,7 +9,7 @@ from portage.output import blue, yellow, teal, green, red
 from gentoolkit.pprinter import cpv, number
 
 
-class OutputControl(object):
+class OutputControl:
 	"""Outputs data according to predetermined options and handles any user
 	interaction.
 

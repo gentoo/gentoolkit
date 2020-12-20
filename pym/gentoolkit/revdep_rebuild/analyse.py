@@ -115,7 +115,7 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 	return broken
 
 
-class LibCheck(object):
+class LibCheck:
 	def __init__(self, scanned_files, logger, searchlibs=None, searchbits=None,
 				all_masks=None, masked_dirs=None):
 		'''LibCheck init function.

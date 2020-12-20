@@ -37,7 +37,7 @@ isvalid_rev_re = re.compile(r'(\d+|0\d+\.\d+)')
 # Classes
 # =======
 
-class CPV(object):
+class CPV:
 	"""Provides methods on a category/package-version string.
 
 	Will also correctly split just a package or package-version string.

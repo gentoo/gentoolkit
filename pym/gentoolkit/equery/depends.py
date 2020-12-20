@@ -33,7 +33,7 @@ QUERY_OPTS = {
 # Classes
 # =======
 
-class DependPrinter(object):
+class DependPrinter:
 	"""Output L{gentoolkit.dependencies.Dependencies} objects."""
 	def __init__(self, verbose=True):
 		self.verbose = verbose

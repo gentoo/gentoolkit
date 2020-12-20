@@ -36,7 +36,7 @@ QUERY_OPTS = {
 # Classes
 # =======
 
-class BelongsPrinter(object):
+class BelongsPrinter:
 	"""Outputs a formatted list of packages that claim to own a files."""
 
 	def __init__(self, verbose=True, name_only=False):

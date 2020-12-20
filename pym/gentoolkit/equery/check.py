@@ -41,7 +41,7 @@ QUERY_OPTS = {
 # Classes
 # =======
 
-class VerifyContents(object):
+class VerifyContents:
 	"""Verify installed packages' CONTENTS files.
 
 	The CONTENTS file contains timestamps and MD5 sums for each file owned

@@ -50,7 +50,7 @@ def get_distdir():
 distdir = get_distdir()
 
 
-class DistfilesSearch(object):
+class DistfilesSearch:
 	"""
 
 		@param output: verbose output method or (lambda x: None) to turn off

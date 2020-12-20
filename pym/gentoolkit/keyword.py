@@ -23,7 +23,7 @@ __all__ = (
 # Classes
 # =======
 
-class Keyword(object):
+class Keyword:
 	"""Provides common methods on a GLEP 53 keyword."""
 
 	def __init__(self, keyword):

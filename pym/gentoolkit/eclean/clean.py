@@ -11,7 +11,7 @@ import gentoolkit.pprinter as pp
 from gentoolkit.eclean.pkgindex import PkgIndex
 
 
-class CleanUp(object):
+class CleanUp:
 	"""Performs all cleaning actions to distfiles or package directories.
 
 	@param controller: a progress output/user interaction controller function

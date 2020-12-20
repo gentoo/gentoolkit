@@ -423,7 +423,7 @@ class Package(CPV):
 		return self.cpv not in unmasked
 
 
-class PackageFormatter(object):
+class PackageFormatter:
 	"""When applied to a L{gentoolkit.package.Package} object, determine the
 	location (Portage Tree vs. overlay), install status and masked status. That
 	information can then be easily formatted and displayed.

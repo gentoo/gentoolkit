@@ -21,7 +21,7 @@ from gentoolkit.cpv import CPV
 # Classes
 # =======
 
-class VersionMatch(object):
+class VersionMatch:
 	"""Gentoo version comparison object from pkgcore.ebuild.atom_restricts.
 
 	Any overriding of this class *must* maintain numerical order of

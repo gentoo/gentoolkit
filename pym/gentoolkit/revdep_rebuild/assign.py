@@ -16,7 +16,7 @@ from portage import portdb
 from portage.output import bold, red, yellow, green
 
 
-class _file_matcher(object):
+class _file_matcher:
 	"""
 	Compares files by basename and parent directory (device, inode),
 	so comparisons work regardless of directory symlinks. If a

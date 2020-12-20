@@ -94,7 +94,7 @@ def make_symlinks(path, links, targets):
 			os.path.join(path, links[i]))
 
 
-class TestDirCreation(object):
+class TestDirCreation:
     """"""
 
     distfile_list = ['ExtUtils-ParseXS-2.22.tar.gz',

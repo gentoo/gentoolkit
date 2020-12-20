@@ -94,7 +94,7 @@ def format_timestamp(timestamp):
 
 	return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(timestamp)))
 
-class CpvValueWrapper(object):
+class CpvValueWrapper:
 	"""Format a cpv and linewrap pre-formatted values"""
 
 	def __init__(self, cpv_width=None, width=None):

@@ -335,7 +335,7 @@ def get_props(cpvs):
 		props[cpv] = PROPS[cpv].copy()
 	return props
 
-class Dbapi(object):
+class Dbapi:
 	"""Fake portage dbapi class used to return
 	pre-determined test data in place of a live system
 
@@ -397,7 +397,7 @@ class Dbapi(object):
 		return props
 
 
-class OutputSimulator(object):
+class OutputSimulator:
 	"""Simple output accumulator used for testing.
 	Simulates eclean.output.OutputControl class """
 
@@ -432,7 +432,7 @@ class OutputSimulator(object):
 		self.callback('list_pkgs', pkgs)
 
 
-class TestDisfiles(object):
+class TestDisfiles:
 
 	def __init__(self):
 		self.workdir = None

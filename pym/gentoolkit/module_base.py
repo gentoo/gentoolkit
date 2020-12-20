@@ -17,7 +17,7 @@ import gentoolkit.pprinter as pp
 from gentoolkit.formatters import format_options
 from gentoolkit.base import mod_usage
 
-class ModuleBase(object):
+class ModuleBase:
 	"""E-app base module class to parse module options print module help, etc.."""
 
 	def __init__(self):

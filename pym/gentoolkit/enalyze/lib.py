@@ -17,7 +17,7 @@ from gentoolkit.flag import (reduce_flags, get_flags, get_all_cpv_use,
 import portage
 
 
-class FlagAnalyzer(object):
+class FlagAnalyzer:
 	"""Specialty functions for analysing an installed package's
 	USE flags.  Can be used for single or mulitple use without
 	needing to be reset unless the system USE flags are changed.
@@ -142,7 +142,7 @@ class FlagAnalyzer(object):
 		return _flags
 
 
-class KeywordAnalyser(object):
+class KeywordAnalyser:
 	"""Specialty functions for analysing the installed package db for
 	keyword useage and the packages that used them.
 

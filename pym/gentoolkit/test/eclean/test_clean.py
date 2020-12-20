@@ -20,7 +20,7 @@ __email__ = "brian.dolbec@gmail.com"
 #  from gentoolkit.eclean.clean import CleanUp
 
 
-#  class Controllers(object):
+#  class Controllers:
 #          """Contains controller methods for use in testing
 #          the clean module methods"""
 

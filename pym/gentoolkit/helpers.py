@@ -44,7 +44,7 @@ from gentoolkit.versionmatch import VersionMatch
 # Classes
 # =======
 
-class ChangeLog(object):
+class ChangeLog:
 	"""Provides methods for working with a Gentoo ChangeLog file.
 
 	Example usage:
@@ -216,7 +216,7 @@ class ChangeLog(object):
 		return result
 
 
-class FileOwner(object):
+class FileOwner:
 	"""Creates a function for locating the owner of filename queries.
 
 	Example usage:
