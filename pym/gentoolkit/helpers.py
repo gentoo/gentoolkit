@@ -25,8 +25,6 @@ __docformat__ = 'epytext'
 
 import os
 import sys
-if sys.hexversion < 0x3000000:
-	from io import open
 import re
 from functools import partial
 from itertools import chain

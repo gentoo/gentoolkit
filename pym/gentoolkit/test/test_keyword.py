@@ -37,8 +37,6 @@ class TestGentoolkitKeyword(unittest.TestCase):
 			'~amd64', '~ppc', '~x86', '~amd64-linux', '~x86-linux',
 			'~ppc-macos', '~x86-macos', '~x86-solaris'
 		]
-		if sys.hexversion < 0x3000000:
-			self.assertEqual(sorted(kwds_presort, cmp=compare_strs), kwds_postsort)
 		self.assertEqual(sorted(kwds_presort, key = keyword.Keyword), kwds_postsort)
 
 

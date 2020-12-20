@@ -6,8 +6,6 @@
 
 import os
 import sys
-if sys.hexversion < 0x3000000:
-	from io import open
 import re
 import portage
 from portage import _encodings, _unicode_encode

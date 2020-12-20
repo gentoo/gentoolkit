@@ -15,9 +15,6 @@ import os.path
 import portage
 import sys
 
-if sys.hexversion < 0x3000000:
-	from io import open
-
 from portage import _encodings, _unicode_encode
 
 

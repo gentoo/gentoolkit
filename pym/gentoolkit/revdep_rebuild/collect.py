@@ -7,19 +7,11 @@ from portage import os
 import glob
 import stat
 import sys
-if sys.hexversion < 0x3000000:
-	from io import open
 
 import portage
 from portage import _encodings, _unicode_encode
 from portage.output import blue, yellow
 from .settings import parse_revdep_config
-
-
-if sys.hexversion < 0x3000000:
-	_basestring = basestring  # noqa
-else:
-	_basestring = str
 
 
 def parse_conf(conf_file, visited=None, logger=None):
@@ -30,7 +22,7 @@ def parse_conf(conf_file, visited=None, logger=None):
 	lib_dirs = set()
 	to_parse = set()
 
-	if isinstance(conf_file, _basestring):
+	if isinstance(conf_file, str):
 		conf_file = [conf_file]
 
 	for conf in conf_file:

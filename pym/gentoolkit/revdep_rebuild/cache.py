@@ -6,11 +6,6 @@ Functions for reading, saving and verifying the data caches
 from portage import os
 import time
 import sys
-if sys.hexversion < 0x3000000:
-	from io import open
-	_unicode = unicode  # noqa
-else:
-	_unicode = str
 
 from portage import _encodings, _unicode_encode
 from portage.output import red
@@ -59,7 +54,7 @@ def save_cache(logger, to_save={}, temp_path=DEFAULTS['DEFAULT_TMP_DIR']):
 	try:
 		_file = open(_unicode_encode(os.path.join(temp_path, 'timestamp'),
 			encoding=_encodings['fs']), mode='w', encoding=_encodings['content'])
-		_file.write(_unicode(int(time.time())))
+		_file.write(str(int(time.time())))
 		_file.close()
 
 		for key,val in to_save.items():

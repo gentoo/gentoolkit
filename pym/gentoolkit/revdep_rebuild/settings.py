@@ -5,20 +5,13 @@
 import argparse
 import os
 import sys
-if sys.hexversion < 0x3000000:
-	from io import open
 import re
 import glob
 
 import portage
 from portage import _encodings, _unicode_encode
 
-if sys.version_info[0] >= 3:
-	_unicode = str
-else:
-	_unicode = unicode  # noqa
-
-portage_root = _unicode(portage.root)
+portage_root = str(portage.root)
 
 DEFAULTS = {
 		'DEFAULT_LD_FILE': os.path.join(portage_root, 'etc/ld.so.conf'),
