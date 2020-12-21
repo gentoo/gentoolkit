@@ -24,7 +24,6 @@ __docformat__ = 'epytext'
 # =======
 
 import os
-import sys
 import re
 from functools import partial
 from itertools import chain

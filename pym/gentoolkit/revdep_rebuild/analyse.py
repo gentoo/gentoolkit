@@ -5,7 +5,6 @@
 import os
 import re
 import time
-import sys
 
 from portage import _encodings, _unicode_encode
 from portage.output import bold, blue, yellow, green

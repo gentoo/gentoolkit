@@ -5,7 +5,6 @@ Functions for reading, saving and verifying the data caches
 
 from portage import os
 import time
-import sys
 
 from portage import _encodings, _unicode_encode
 from portage.output import red

@@ -5,7 +5,6 @@
 
 
 import os
-import sys
 import re
 import portage
 from portage import _encodings, _unicode_encode

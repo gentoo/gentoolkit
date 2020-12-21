@@ -6,7 +6,6 @@ import re
 from portage import os
 import glob
 import stat
-import sys
 
 import portage
 from portage import _encodings, _unicode_encode

@@ -11,7 +11,6 @@ what packages according to the Installed package database"""
 
 
 import os
-import sys
 
 import gentoolkit
 from gentoolkit.module_base import ModuleBase
