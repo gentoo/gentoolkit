@@ -434,12 +434,6 @@ class OutputSimulator:
 
 class TestDisfiles:
 
-	def __init__(self):
-		self.workdir = None
-		self.target_file = None
-		self.target_symlink = None
-		self.test_filepaths = None
-
 	def setUp(self):
 		# create the dist dir
 		self.tmpdir = mkdtemp()
