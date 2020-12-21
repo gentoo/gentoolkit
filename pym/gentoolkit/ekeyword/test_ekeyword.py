@@ -165,28 +165,26 @@ class TestProcessKeywords(unittest.TestCase):
 			ekeyword.Op(None, 'all', None),
 		)
 		arch_status = {
-			'alpha': None,
-			'arm': 'stable',
-			'arm64': 'exp',
-			'm68k': 'dev',
+			'alpha': ('stable', '~arch'),
+			'arm':   ('stable', 'arch'),
+			'm68k':  ('exp', '~arch'),
+			's390':  ('exp', 'arch'),
 		}
-		self._test('* ~alpha ~arm ~arm64 ~m68k ~mips ~arm-linux', ops,
-		           '* ~alpha arm ~arm64 ~m68k ~mips ~arm-linux', arch_status)
+		self._test('* ~alpha ~arm ~m68k ~mips ~s390 ~arm-linux', ops,
+		           '* ~alpha arm ~m68k ~mips s390 ~arm-linux', arch_status)
 
 	def testAllUnstable(self):
 		ops = (
 			ekeyword.Op('~', 'all', None),
 		)
 		arch_status = {
-			'alpha': None,
-			'arm': 'stable',
-			'arm64': 'exp',
-			'm68k': 'dev',
-			's390': 'dev',
-			'sh': 'dev',
+			'alpha': ('stable', '~arch'),
+			'arm':   ('stable', 'arch'),
+			'm68k':  ('exp', '~arch'),
+			's390':  ('exp', 'arch'),
 		}
-		self._test('-* ~* * alpha arm arm64 m68k arm-linux', ops,
-		           '-* ~* * ~alpha ~arm ~arm64 ~m68k ~arm-linux', arch_status)
+		self._test('-* ~* * alpha arm m68k s390 arm-linux', ops,
+		           '-* ~* * ~alpha ~arm ~m68k ~s390 ~arm-linux', arch_status)
 
 	def testAllMultiUnstableStable(self):
 		ops = (
@@ -194,13 +192,13 @@ class TestProcessKeywords(unittest.TestCase):
 			ekeyword.Op(None, 'all', None),
 		)
 		arch_status = {
-			'alpha': None,
-			'arm': 'stable',
-			'arm64': 'exp',
-			'm68k': 'dev',
+			'alpha': ('stable', '~arch'),
+			'arm':   ('stable', 'arch'),
+			'm68k':  ('exp', '~arch'),
+			's390':  ('exp', 'arch'),
 		}
-		self._test('-* ~* * alpha arm arm64 m68k', ops,
-		           '-* ~* * ~alpha arm ~arm64 ~m68k', arch_status)
+		self._test('-* ~* * alpha arm m68k s390', ops,
+		           '-* ~* * ~alpha arm ~m68k s390', arch_status)
 
 	def testAllDisabled(self):
 		"""Make sure ~all does not change -arch to ~arch"""
