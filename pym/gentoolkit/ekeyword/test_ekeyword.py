@@ -12,7 +12,7 @@ import unittest
 
 import mock
 
-import ekeyword
+from gentoolkit.ekeyword import ekeyword
 
 
 TESTDIR = os.path.join(os.path.dirname(__file__), 'tests')
