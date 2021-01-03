@@ -7,7 +7,6 @@
 import unittest
 
 from gentoolkit.cpv import CPV, compare_strs
-from gentoolkit.test import cmp
 
 class TestGentoolkitCPV(unittest.TestCase):
 
@@ -15,26 +14,12 @@ class TestGentoolkitCPV(unittest.TestCase):
 		# logic bugs hidden behind short circuiting comparisons for metadata
 		# is why we test the comparison *both* ways.
 		self.assertEqual(o1, o2)
-		c = cmp(o1, o2)
-		self.assertEqual(c, 0,
-			msg="checking cmp for %r, %r, aren't equal: got %i" % (o1, o2, c))
 		self.assertEqual(o2, o1)
-		c = cmp(o2, o1)
-		self.assertEqual(c, 0,
-			msg="checking cmp for %r, %r,aren't equal: got %i" % (o2, o1, c))
 
 	def assertNotEqual2(self, o1, o2):
 		# is why we test the comparison *both* ways.
 		self.assertNotEqual(o1, o2)
-		c = cmp(o1, o2)
-		self.assertNotEqual(c, 0,
-			msg="checking cmp for %r, %r, not supposed to be equal, got %i"
-				% (o1, o2, c))
 		self.assertNotEqual(o2, o1)
-		c = cmp(o2, o1)
-		self.assertNotEqual(c, 0,
-			msg="checking cmp for %r, %r, not supposed to be equal, got %i"
-				% (o2, o1, c))
 
 	def test_comparison(self):
 		self.assertEqual2(CPV('pkg'), CPV('pkg'))
