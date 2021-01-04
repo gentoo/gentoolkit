@@ -42,7 +42,6 @@ __authors__ = (
 
 NAME_MAP = {
 	'b': 'belongs',
-	'c': 'changes',
 	'k': 'check',
 	'd': 'depends',
 	'g': 'depgraph',

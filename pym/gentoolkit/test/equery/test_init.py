@@ -15,7 +15,6 @@ class TestEqueryInit(unittest.TestCase):
 		name_map = {
 			'a': 'has',
 			'b': 'belongs',
-			'c': 'changes',
 			'k': 'check',
 			'd': 'depends',
 			'g': 'depgraph',

@@ -6,52 +6,6 @@ from tempfile import NamedTemporaryFile, mktemp
 from gentoolkit import helpers
 
 
-class TestChangeLog(unittest.TestCase):
-
-	def setUp(self):
-		pass
-
-	def tearDown(self):
-		pass
-
-#  Commented out for being useless
-#          def test_split_changelog(self):
-#                  changelog = """
-#  *portage-2.1.6.2 (20 Dec 2008)
-
-#    20 Dec 2008; Zac Medico <zmedico@gentoo.org> +portage-2.1.6.2.ebuild:
-#    2.1.6.2 bump. This fixes bug #251591 (repoman inherit.autotools false
-#    positives) and bug #251616 (performance issue in build log search regex
-#    makes emerge appear to hang). Bug #216231 tracks all bugs fixed since
-#    2.1.4.x.
-
-#    20 Dec 2008; Zac Medico <zmedico@gentoo.org> -portage-2.1.6.ebuild,
-#    -portage-2.1.6.1.ebuild, -portage-2.2_rc17.ebuild:
-#    Remove old versions.
-
-
-#  *portage-2.1.6.1 (12 Dec 2008)
-
-#    12 Dec 2008; Zac Medico <zmedico@gentoo.org> +portage-2.1.6.1.ebuild:
-#    2.1.6.1 bump. This fixes bug #250148 (emerge hangs with selinux if ebuild
-#    spawns a daemon), bug #250166 (trigger download when generating manifest
-#    if file size differs from existing entry), and bug #250212 (new repoman
-#    upstream.workaround category for emake -j1 warnings). Bug #216231 tracks
-#    all bugs fixed since 2.1.4.x.
-
-
-#  *portage-2.1.6 (07 Dec 2008)
-
-#    07 Dec 2008; Zac Medico <zmedico@gentoo.org> +portage-2.1.6.ebuild:
-#    2.1.6 final release. This fixes bug #249586. Bug #216231 tracks all bugs
-#    fixed since 2.1.4.x.
-
-#    07 Dec 2008; Zac Medico <zmedico@gentoo.org> -portage-2.1.6_rc1.ebuild,
-#    -portage-2.1.6_rc2.ebuild, -portage-2.1.6_rc3.ebuild,
-#    -portage-2.2_rc16.ebuild:
-#    Remove old versions.
-#                  """
-
 class TestFileOwner(unittest.TestCase):
 
 	def setUp(self):
@@ -113,7 +67,6 @@ class TestFileOwner(unittest.TestCase):
 
 def test_main():
 	suite = unittest.TestLoader()
-	suite.loadTestsFromTestCase(TestChangeLog)
 	suite.loadTestsFromTestCase(TestFileOwner)
 	unittest.TextTestRunner(verbosity=2).run(suite)
 test_main.__test__ = False
