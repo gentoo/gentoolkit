@@ -93,10 +93,11 @@ def apply_keyword_changes(ebuild: str, pathname: str,
 
         for removals, additions in changes:
             args = []
-            for rem in removals:
-                # Drop leading '~' and '-' characters and prepend '^'
-                i = 1 if rem[0] in ('~', '-') else 0
-                args.append('^' + rem[i:])
+            if removals:
+                for rem in removals:
+                    # Drop leading '~' and '-' characters and prepend '^'
+                    i = 1 if rem[0] in ('~', '-') else 0
+                    args.append('^' + rem[i:])
             if additions:
                 args.extend(additions)
             args.append(ebuild_symlink)
