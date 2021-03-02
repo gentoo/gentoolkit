@@ -1,5 +1,14 @@
 News (new features/major bug fixes)
 
+gentoolkit-0.5.1
+----------------
+  * Added support for Python 3.9
+  * Removed support for Python < 3.6 and other clean ups
+  * merge-driver-ekeyword: Added git merge driver for automatically resolving
+    conflicts involving the KEYWORDS=... line
+  * equery: Removed 'changes' subcommand
+  * Enable ekeyword unit tests
+
 gentoolkit-0.5.0
 ----------------
   * discontinued Support for Python 2
