@@ -14,10 +14,12 @@ import os
 import sys
 import tempfile
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 from gentoolkit.ekeyword import ekeyword
 
+
+KeywordChanges = List[Tuple[Optional[List[str]], Optional[List[str]]]]
 
 def keyword_array(keyword_line: str) -> List[str]:
     # Find indices of string inside the double-quotes
@@ -28,14 +30,13 @@ def keyword_array(keyword_line: str) -> List[str]:
     return keyword_line[i1:i2].split(' ')
 
 
-def keyword_line_changes(old: str, new: str) -> List[Tuple[Optional[str],
-                                                           Optional[str]]]:
+def keyword_line_changes(old: str, new: str) -> KeywordChanges:
     a: List[str] = keyword_array(old)
     b: List[str] = keyword_array(new)
 
     s = difflib.SequenceMatcher(a=a, b=b)
 
-    changes = []
+    changes: KeywordChanges = []
     for tag, i1, i2, j1, j2 in s.get_opcodes():
         if tag == 'replace':
             changes.append((a[i1:i2], b[j1:j2]),)
@@ -48,8 +49,7 @@ def keyword_line_changes(old: str, new: str) -> List[Tuple[Optional[str],
     return changes
 
 
-def keyword_changes(ebuild1: str, ebuild2: str) -> List[Tuple[Optional[str],
-                                                              Optional[str]]]:
+def keyword_changes(ebuild1: str, ebuild2: str) -> Optional[KeywordChanges]:
     with open(ebuild1) as e1, open(ebuild2) as e2:
         lines1 = e1.readlines()
         lines2 = e2.readlines()
@@ -82,8 +82,7 @@ def keyword_changes(ebuild1: str, ebuild2: str) -> List[Tuple[Optional[str],
 
 
 def apply_keyword_changes(ebuild: str, pathname: str,
-                          changes: List[Tuple[Optional[str],
-                                              Optional[str]]]) -> int:
+                          changes: KeywordChanges) -> int:
     result: int = 0
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -109,7 +108,7 @@ def apply_keyword_changes(ebuild: str, pathname: str,
     return result
 
 
-def main(argv):
+def main(argv: Sequence[str]) -> int:
     if len(argv) != 5:
         sys.exit(-1)
 
@@ -122,10 +121,10 @@ def main(argv):
     changes = keyword_changes(O, B)
     if changes:
         # Apply O -> B changes to A
-        result: int = apply_keyword_changes(A, P, changes)
+        result = apply_keyword_changes(A, P, changes)
         sys.exit(result)
     else:
-        result: int = os.system(f"git merge-file -L HEAD -L base -L ours {A} {O} {B}")
+        result = os.system(f"git merge-file -L HEAD -L base -L ours {A} {O} {B}")
         sys.exit(0 if result == 0 else -1)
 
 
