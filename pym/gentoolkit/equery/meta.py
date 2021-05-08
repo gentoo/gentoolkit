@@ -13,6 +13,7 @@ __docformat__ = "epytext"
 import re
 import os
 import sys
+import warnings
 from getopt import gnu_getopt, GetoptError
 
 import gentoolkit.pprinter as pp
@@ -524,7 +525,8 @@ def main(input_args):
         best_match = query.find_best()
         matches = query.find(include_masked=True)
         if best_match is None or not matches:
-            raise errors.GentoolkitNoMatches(query)
+            warnings.warn(errors.GentoolkitNoMatches(query))
+            continue
 
         if best_match.metadata is None:
             print(

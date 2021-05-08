@@ -29,6 +29,16 @@ except KeyboardInterrupt:
     sys.exit(1)
 
 from gentoolkit import equery, errors
+import warnings
+
+
+def formatwarning(message, category, filename, llineno, line=None):
+    from gentoolkit import pprinter as pp
+    return pp.warn(str(message))
+
+
+if '--debug' not in sys.argv and not bool(os.getenv('DEBUG', False)):
+    warnings.formatwarning = formatwarning
 
 try:
     equery.main(sys.argv)
