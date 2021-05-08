@@ -244,7 +244,7 @@ def process_content(ebuild, data, ops, arch_status=None, verbose=0,
 			pass
 	else:
 		# Chop the full path and the .ebuild suffix.
-		disp_name = os.path.basename(ebuild)[:-7]
+		disp_name, _, _ = os.path.basename(ebuild).partition('.ebuild')
 		def logit(msg):
 			print('%s: %s' % (disp_name, msg))
 
@@ -395,7 +395,9 @@ def args_to_work(args, arch_status=None, _repo=None, quiet=0):
 	last_todo_arches = []
 
 	for arg in args:
-		if arg.endswith('.ebuild'):
+		if ignorable_arg(arg, quiet=quiet):
+			pass
+		elif os.path.isfile(arg):
 			if not todo_arches:
 				todo_arches = last_todo_arches
 			work.append([arg, todo_arches])
@@ -405,7 +407,7 @@ def args_to_work(args, arch_status=None, _repo=None, quiet=0):
 			op = arg_to_op(arg)
 			if not arch_status or op.arch in arch_status:
 				todo_arches.append(op)
-			elif not ignorable_arg(arg, quiet=quiet):
+			else:
 				raise ValueError('unknown arch/argument: %s' % arg)
 
 	if todo_arches:
