@@ -538,8 +538,10 @@ def main(input_args):
 	for query in (Query(x) for x in queries):
 		best_match = query.find_best()
 		matches = query.find(include_masked=True)
+		import warnings
 		if best_match is None or not matches:
-			raise errors.GentoolkitNoMatches(query)
+			warnings.warn(errors.GentoolkitNoMatches(query))
+			continue
 
 		if best_match.metadata is None:
 			print(pp.warn("Package {0} is missing "
