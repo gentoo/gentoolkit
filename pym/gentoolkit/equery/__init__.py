@@ -82,7 +82,6 @@ def print_help(with_description=True):
 	print(pp.command("modules") + " (" + pp.command("short name") + ")")
 	print(format_options((
 		(" (b)elongs", "list what package FILES belong to"),
-		(" (c)hanges", "list changelog entries for ATOM"),
 		(" chec(k)", "verify checksums and timestamps for PKG"),
 		(" (d)epends", "list all packages directly depending on ATOM"),
 		(" dep(g)raph", "display a tree of all dependencies for PKG"),

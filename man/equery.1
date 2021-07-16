@@ -88,54 +88,6 @@ Tell
 to reinstall or update any package that installed a file matching a regular expression.
 
 .SS
-.BI "changes (c) [OPTIONS] " "PKG"
-Display the Gentoo ChangeLog entry for the latest installable version of \fIPKG\fP.
-
-.I R "LOCAL OPTIONS" ":"
-.HP
-.B \-l, \-\-latest
-.br
-Display only the latest ChangeLog entry. It's not uncommon for changes to be prepended to the ChangeLog without a version header if the changes did not require a version bump. Use this option to display such entries.
-.HP
-.B \-f, \-\-full
-.br
-Display the full ChangeLog.
-.br
-\fBHint\fP: Try piping (|) the output to a pager, like 'less'.
-.HP
-.BI "\-\-limit=" "NUM"
-.br
-Limit the \fINUM\fP of entries displayed. Use  this option in conjunction with \fB\-\-full\fP. \fB\-\-limit=3\fP would display the three latest entries.
-.HP
-.BI "\-\-from=" "VER"
-.br
-Set which \fIVER\fP to display from. Using this option by itself is equivalent to passing \fBchanges\fP a ranged package atom, e.g., '>=foo/bar\-1.5'. It can be used in conjunction with \fB\-\-to\fP to request a more complex range of entries.
-.HP
-.BI "\-\-to=" "VER"
-.br
-Set which \fIVER\fP to display to. (See \fB\-\-from\fP)
-.P
-.I R "EXAMPLES" ":"
-.EX
-.HP
-equery changes portage
-.EE
-.br
-Display the Gentoo ChangeLog entry for the latest installable version of Portage.
-.EX
-.HP
-equery changes '=sys\-apps/portage\-2.1.6*'
-.EE
-.br
-Use Portage's atom syntax. (See \fBman 5 ebuild\fP)
-.EX
-.HP
-equery changes portage \-\-from=2.2_rc1 \-\-to=2.2
-.EE
-.br
-Display any ChangeLog entry within a range of versions.
-
-.SS
 .BI "check (k) [OPTIONS] " "PKG"
 Check timestamps and MD5 sums for files owned by \fIPKG\fP, where \fIPKG\fP is an installed package.
 
