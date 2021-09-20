@@ -1,13 +1,5 @@
-Package: gentoolkit/gentoolkit-dev
-Authors: Aron Griffis <agriffis@gentoo.org>
-         Brandon Low <lostlogic@gentoo.org>
-         Ian Leitch <port001@gentoo.org>
-         Karl Trygve Kalleberg <karltk@gentoo.org>
-         Marius Mauch <genone@gentoo.org>
-         Paul Varner <fuzzyray@gentoo.org>
-         See src/<tool>/AUTHORS for tool-specific authors
-
 MOTIVATION
+==========
 
 The gentoolkit and gentoolkit-dev packages contain a collection of useful
 administration scripts particular to the Gentoo Linux distribution. It contains
@@ -17,9 +9,10 @@ Portage, or into full-fledged tools in their own right.
 The gentoolkit-dev package is intended primarily for Gentoo developers.
 
 CONTENTS
+========
 
 gentoolkit
-==========
+----------
 ebump          - Ebuild revision bumper
 eclean         - tool to clean up outdated distfiles and packages
 ekeyword       - modify package KEYWORDS
@@ -34,10 +27,11 @@ qpkg           - convient package query tool (deprecated)
 revdep-rebuild - scans/fixes broken shared libs and binaries
 
 gentoolkit-dev
-==============
+--------------
 DEPRECATED
 
 IMPROVEMENTS
+============
 
 Any suggestions for improvements should be sent to tools-portage@gentoo.org, or
 added as a bug assigned to us.
