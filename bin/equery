@@ -12,35 +12,35 @@ import os
 import sys
 # This block ensures that ^C interrupts are handled quietly.
 try:
-	import signal
+    import signal
 
-	def exithandler(signum,frame):
-		signal.signal(signal.SIGINT, signal.SIG_IGN)
-		signal.signal(signal.SIGTERM, signal.SIG_IGN)
-		print()
-		sys.exit(1)
+    def exithandler(signum, frame):
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        print()
+        sys.exit(1)
 
-	signal.signal(signal.SIGINT, exithandler)
-	signal.signal(signal.SIGTERM, exithandler)
-	signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+    signal.signal(signal.SIGINT, exithandler)
+    signal.signal(signal.SIGTERM, exithandler)
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 except KeyboardInterrupt:
-	print()
-	sys.exit(1)
+    print()
+    sys.exit(1)
 
 from gentoolkit import equery, errors
 
 try:
-	equery.main(sys.argv)
+    equery.main(sys.argv)
 except errors.GentoolkitNonZeroExit as err:
-	sys.exit(err.return_code)
+    sys.exit(err.return_code)
 except errors.GentoolkitException as err:
-	if '--debug' in sys.argv or bool(os.getenv('DEBUG', False)):
-		raise
-	else:
-		from gentoolkit import pprinter as pp
-		sys.stderr.write(pp.error(str(err)))
-		if err.is_serious:
-			print()
-			print("Add '--debug' to global options for traceback.")
-		sys.exit(1)
+    if '--debug' in sys.argv or bool(os.getenv('DEBUG', False)):
+        raise
+    else:
+        from gentoolkit import pprinter as pp
+        sys.stderr.write(pp.error(str(err)))
+        if err.is_serious:
+            print()
+            print("Add '--debug' to global options for traceback.")
+        sys.exit(1)

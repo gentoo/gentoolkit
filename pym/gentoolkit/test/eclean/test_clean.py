@@ -4,7 +4,7 @@
 # Copyright 2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-__version__= "0.0.1"
+__version__ = "0.0.1"
 __author__ = "Brian Dolbec"
 __email__ = "brian.dolbec@gmail.com"
 
@@ -87,7 +87,6 @@ __email__ = "brian.dolbec@gmail.com"
 #                  data = controller.gathered_data
 
 
-
 #  def useage():
 #          """output run options"""
 #          print("Useage: test_clean [OPTONS] path=test-dir")
@@ -125,7 +124,6 @@ __email__ = "brian.dolbec@gmail.com"
 #                  sys.exit(1)
 
 
-
 #  def main(cmdline=False):
 #          """parse options and run the tests"""
 
@@ -141,5 +139,3 @@ __email__ = "brian.dolbec@gmail.com"
 #                  print("Aborted.")
 #                  sys.exit(130)
 #          sys.exit(0)
-
-

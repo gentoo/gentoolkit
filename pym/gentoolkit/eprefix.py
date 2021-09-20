@@ -14,9 +14,9 @@ then in code add it to the filepath eg.:
 """
 # Load EPREFIX from Portage, fall back to the empty string if it fails
 try:
-	from portage.const import EPREFIX
+    from portage.const import EPREFIX
 except ImportError:
-	EPREFIX = ''
+    EPREFIX = ""
 
 if __name__ == "__main__":
-	print("EPREFIX set to:", EPREFIX)
+    print("EPREFIX set to:", EPREFIX)
