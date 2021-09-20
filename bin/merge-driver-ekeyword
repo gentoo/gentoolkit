@@ -21,6 +21,7 @@ from gentoolkit.ekeyword import ekeyword
 
 KeywordChanges = List[Tuple[Optional[List[str]], Optional[List[str]]]]
 
+
 def keyword_array(keyword_line: str) -> List[str]:
     # Find indices of string inside the double-quotes
     i1: int = keyword_line.find('"') + 1
@@ -112,10 +113,10 @@ def main(argv: Sequence[str]) -> int:
     if len(argv) != 5:
         sys.exit(-1)
 
-    O = argv[1] # %O - filename of original
-    A = argv[2] # %A - filename of our current version
-    B = argv[3] # %B - filename of the other branch's version
-    P = argv[4] # %P - original path of the file
+    O = argv[1]  # %O - filename of original
+    A = argv[2]  # %A - filename of our current version
+    B = argv[3]  # %B - filename of the other branch's version
+    P = argv[4]  # %P - original path of the file
 
     # Get changes from %O to %B
     changes = keyword_changes(O, B)

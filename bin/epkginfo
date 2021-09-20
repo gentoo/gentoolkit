@@ -6,11 +6,11 @@
 """Shortcut to equery meta"""
 
 __authors__ = (
-	'Douglas Anderson <douglasjanderson@gmail.com>: equery meta',
-	'Ned Ludd <solar@gentoo.org>: first full implimentation'
-	'Eldad Zack <eldad@gentoo.org>: earch',
-	'Eric Olinger <EvvL AT RustedHalo DOT net>: metadata'
-	)
+    'Douglas Anderson <douglasjanderson@gmail.com>: equery meta',
+    'Ned Ludd <solar@gentoo.org>: first full implimentation'
+    'Eldad Zack <eldad@gentoo.org>: earch',
+    'Eric Olinger <EvvL AT RustedHalo DOT net>: metadata'
+)
 
 import sys
 
@@ -19,32 +19,34 @@ from gentoolkit.equery import mod_usage
 from gentoolkit.equery.meta import main, print_help
 from portage.exception import AmbiguousPackageName
 
+
 def print_epkginfo_help():
-	print(mod_usage(mod_name="epkginfo"))
-	print()
-	print_help(with_usage=False)
+    print(mod_usage(mod_name="epkginfo"))
+    print()
+    print_help(with_usage=False)
+
 
 equery.initialize_configuration()
 args = sys.argv[1:]
 if not args or set(('-h', '--help')).intersection(args):
-	print_epkginfo_help()
+    print_epkginfo_help()
 else:
-	try:
-		main(args)
-	except AmbiguousPackageName as e:
-		pkgs = e.args[0]
-		for candidate in pkgs:
-			print(candidate)
+    try:
+        main(args)
+    except AmbiguousPackageName as e:
+        pkgs = e.args[0]
+        for candidate in pkgs:
+            print(candidate)
 
-		from gentoolkit import pprinter as pp
-		from os.path import basename # To get the short name
+        from gentoolkit import pprinter as pp
+        from os.path import basename  # To get the short name
 
-		print(file=sys.stderr)
-		print(pp.error("The short ebuild name '%s' is ambiguous. Please specify" % basename(pkgs[0])),
-				file=sys.stderr, end="")
-		pp.die(1, "one of the above fully-qualified ebuild names instead.")
-	except errors.GentoolkitException as err:
-		from gentoolkit import pprinter as pp
-		pp.die(1, str(err))
+        print(file=sys.stderr)
+        print(pp.error("The short ebuild name '%s' is ambiguous. Please specify" % basename(pkgs[0])),
+              file=sys.stderr, end="")
+        pp.die(1, "one of the above fully-qualified ebuild names instead.")
+    except errors.GentoolkitException as err:
+        from gentoolkit import pprinter as pp
+        pp.die(1, str(err))
 
 # vim: set ts=4 sw=4 tw=79:

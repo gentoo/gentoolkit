@@ -9,14 +9,16 @@
 	take advantage of them being lazy-loaded.
 """
 
-print("gentoolkit.dbapi is deprecated.\n",
-	"Please migrate to using the assigned calls directly")
+print(
+    "gentoolkit.dbapi is deprecated.\n",
+    "Please migrate to using the assigned calls directly",
+)
 
 import portage
 
 BINDB = portage.db[portage.root]["bintree"].dbapi
 PORTDB = portage.db[portage.root]["porttree"].dbapi
 VARDB = portage.db[portage.root]["vartree"].dbapi
-#virtuals = portage.db[portage.root]["virtuals"]
+# virtuals = portage.db[portage.root]["virtuals"]
 
 # vim: set ts=8 sw=4 tw=79:

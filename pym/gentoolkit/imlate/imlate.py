@@ -7,8 +7,8 @@
 __version__ = "git"
 
 # works just with stable keywords!
-MAIN_ARCH = "auto" # can be overridden by -m ARCH
-TARGET_ARCH = "auto" # can be overridden by -t ARCH
+MAIN_ARCH = "auto"  # can be overridden by -m ARCH
+TARGET_ARCH = "auto"  # can be overridden by -t ARCH
 # auto means e.g.:
 # MAIN_ARCH = amd64
 # TARGET_ARCH = ~amd64
@@ -25,6 +25,7 @@ from os import stat
 from time import time
 from xml.dom import minidom, NotFoundErr
 from xml.parsers.expat import ExpatError
+
 # TODO: just import needed stuff to safe memory/time and maybe use "as foo"
 import portage
 import portage.versions
@@ -33,450 +34,562 @@ from optparse import OptionParser
 from time import gmtime, strftime
 
 # override/change portage module settings
-def _portage_settings( var, value, settings = None ):
-	if not settings:
-		settings = portage.settings
 
-	settings.unlock()
-	settings[var] = value
-	# backup_changes is very important since it can cause trouble,
-	# if we do not backup our changes!
-	settings.backup_changes( var )
-	settings.lock()
+
+def _portage_settings(var, value, settings=None):
+    if not settings:
+        settings = portage.settings
+
+    settings.unlock()
+    settings[var] = value
+    # backup_changes is very important since it can cause trouble,
+    # if we do not backup our changes!
+    settings.backup_changes(var)
+    settings.lock()
+
 
 # add stuff to our imlate dict
-def _add_ent( imlate, cat, pkg, ver, our_ver ):
-	if not cat in list(imlate.keys()):
-		imlate[cat] = {}
-	if not pkg in list(imlate[cat].keys()):
-		imlate[cat][pkg] = []
 
-	imlate[cat][pkg].append( ver )
-	imlate[cat][pkg].append( our_ver )
 
-	return imlate
+def _add_ent(imlate, cat, pkg, ver, our_ver):
+    if not cat in list(imlate.keys()):
+        imlate[cat] = {}
+    if not pkg in list(imlate[cat].keys()):
+        imlate[cat][pkg] = []
 
-def _fill( width, line, fill = " " ):
-	while len( line ) < width:
-		line = "%s%s" % ( str( line ), str( fill ) )
-	return line
+    imlate[cat][pkg].append(ver)
+    imlate[cat][pkg].append(our_ver)
+
+    return imlate
+
+
+def _fill(width, line, fill=" "):
+    while len(line) < width:
+        line = "%s%s" % (str(line), str(fill))
+    return line
+
 
 # create a hopefully pretty result
-def show_result( conf, pkgs ):
-	# X - len(colX) = space to fill
-	col1 = -1
-	col2 = -1
-	for cat in pkgs:
-		for pkg in pkgs[cat]:
-			col1 = max(col1, len(("%s/%s" % (cat, pkg))))
-			col2 = max(col2, len(pkgs[cat][pkg][1]))
-	col1 += 1
-	col2 += 1
 
-	_header = "%s candidates for 'gentoo' on '%s'"
-	_helper = "%s%s%s" % (_fill(col1, "category/package[:SLOT])"),
-						  _fill(col2, "our version"), "best version")
-	_cand = ""
-	header = ""
 
-	if conf["FILE"] == "stdout":
-		out = stdout
-	elif conf["FILE"] == "stderr":
-		out = stderr
-	else:
-		out = open( conf["FILE"], "w" )
+def show_result(conf, pkgs):
+    # X - len(colX) = space to fill
+    col1 = -1
+    col2 = -1
+    for cat in pkgs:
+        for pkg in pkgs[cat]:
+            col1 = max(col1, len(("%s/%s" % (cat, pkg))))
+            col2 = max(col2, len(pkgs[cat][pkg][1]))
+    col1 += 1
+    col2 += 1
 
-	if conf["STABLE"] and conf["KEYWORD"]:
-		_cand = "%i Stable and %i Keyword(~)" % ( conf["STABLE_SUM"],
-												conf["KEYWORD_SUM"] )
-	elif conf["STABLE"]:
-		_cand = "%i Stable" % conf["STABLE_SUM"]
-	elif conf["KEYWORD"]:
-		_cand = "%i Keyword(~)" % conf["KEYWORD_SUM"]
+    _header = "%s candidates for 'gentoo' on '%s'"
+    _helper = "%s%s%s" % (
+        _fill(col1, "category/package[:SLOT])"),
+        _fill(col2, "our version"),
+        "best version",
+    )
+    _cand = ""
+    header = ""
 
-	header = _header % ( _cand, conf["MAIN_ARCH"] )
+    if conf["FILE"] == "stdout":
+        out = stdout
+    elif conf["FILE"] == "stderr":
+        out = stderr
+    else:
+        out = open(conf["FILE"], "w")
 
-	print("Generated on: %s" % conf["TIME"], file=out)
-	print(_fill( len( header ), "", "=" ), file=out)
-	print(header, file=out)
-	print(_fill( len( header ), "", "=" ), file=out)
-	print(file=out)
+    if conf["STABLE"] and conf["KEYWORD"]:
+        _cand = "%i Stable and %i Keyword(~)" % (
+            conf["STABLE_SUM"],
+            conf["KEYWORD_SUM"],
+        )
+    elif conf["STABLE"]:
+        _cand = "%i Stable" % conf["STABLE_SUM"]
+    elif conf["KEYWORD"]:
+        _cand = "%i Keyword(~)" % conf["KEYWORD_SUM"]
 
-	print(_helper, file=out)
-	print(_fill( len( _helper ), "", "-" ), file=out)
+    header = _header % (_cand, conf["MAIN_ARCH"])
 
-	for cat in sorted( pkgs.keys() ):
-		for pkg in sorted( pkgs[cat].keys() ):
-			print("%s%s%s" % (_fill(col1, ("%s/%s" % (cat, pkg))),
-							  _fill(col2, pkgs[cat][pkg][1]),
-							  pkgs[cat][pkg][0] ), file=out)
+    print("Generated on: %s" % conf["TIME"], file=out)
+    print(_fill(len(header), "", "="), file=out)
+    print(header, file=out)
+    print(_fill(len(header), "", "="), file=out)
+    print(file=out)
 
-	if conf["FILE"] != "stdout":
-		out.close()
+    print(_helper, file=out)
+    print(_fill(len(_helper), "", "-"), file=out)
+
+    for cat in sorted(pkgs.keys()):
+        for pkg in sorted(pkgs[cat].keys()):
+            print(
+                "%s%s%s"
+                % (
+                    _fill(col1, ("%s/%s" % (cat, pkg))),
+                    _fill(col2, pkgs[cat][pkg][1]),
+                    pkgs[cat][pkg][0],
+                ),
+                file=out,
+            )
+
+    if conf["FILE"] != "stdout":
+        out.close()
+
 
 def _get_metadata(metadata, element, tag):
-	values = []
+    values = []
 
-	try:
-		metadatadom = minidom.parse(metadata)
-	except ExpatError as e:
-		raise ExpatError("%s: %s" % (metadata, e,))
+    try:
+        metadatadom = minidom.parse(metadata)
+    except ExpatError as e:
+        raise ExpatError(
+            "%s: %s"
+            % (
+                metadata,
+                e,
+            )
+        )
 
-	try:
-		elements = metadatadom.getElementsByTagName(element)
-		if not elements:
-			return values
-	except NotFoundErr:
-		return values
+    try:
+        elements = metadatadom.getElementsByTagName(element)
+        if not elements:
+            return values
+    except NotFoundErr:
+        return values
 
-	try:
-		for _element in elements:
-			node = _element.getElementsByTagName(tag)
+    try:
+        for _element in elements:
+            node = _element.getElementsByTagName(tag)
 
-			if tag == "herd" and (not node or not node[0].childNodes):
-#				print >> stderr, "'%s' is missing a <herd> tag or it is empty," % metadata
-#				print >> stderr, "please file a bug at https://bugs.gentoo.org and refer to http://www.gentoo.org/proj/en/devrel/handbook/handbook.xml?part=2&chap=4"
-				values.append("no-herd")
-				continue
+            if tag == "herd" and (not node or not node[0].childNodes):
+                # 				print >> stderr, "'%s' is missing a <herd> tag or it is empty," % metadata
+                # 				print >> stderr, "please file a bug at https://bugs.gentoo.org and refer to http://www.gentoo.org/proj/en/devrel/handbook/handbook.xml?part=2&chap=4"
+                values.append("no-herd")
+                continue
 
-			try:
-				values.append(node[0].childNodes[0].data)
-			except IndexError:
-				pass
-	except NotFoundErr:
-		raise NotFoundErr("%s: Malformed input: missing 'flag' tag(s)" % (metadata))
+            try:
+                values.append(node[0].childNodes[0].data)
+            except IndexError:
+                pass
+    except NotFoundErr:
+        raise NotFoundErr("%s: Malformed input: missing 'flag' tag(s)" % (metadata))
 
-	metadatadom.unlink()
-	return values
+    metadatadom.unlink()
+    return values
+
 
 def is_maintainer(maintainer, metadata):
-	data = []
+    data = []
 
-	if maintainer == None:
-		return True
+    if maintainer == None:
+        return True
 
-	mtainer = maintainer.split(",")
+    mtainer = maintainer.split(",")
 
-	data = _get_metadata(metadata, "maintainer", "email")
+    data = _get_metadata(metadata, "maintainer", "email")
 
-	if not data and len(maintainer) == 0:
-		return True
-	elif not data and len(maintainer) > 0:
-		return False
-	else:
-		for addy in data:
-			for contact in mtainer:
-				if addy == contact:
-					return True
-				if addy.startswith(contact):
-					return True
-	return False
+    if not data and len(maintainer) == 0:
+        return True
+    elif not data and len(maintainer) > 0:
+        return False
+    else:
+        for addy in data:
+            for contact in mtainer:
+                if addy == contact:
+                    return True
+                if addy.startswith(contact):
+                    return True
+    return False
+
 
 def is_herd(herd, metadata):
-	data = []
+    data = []
 
-	if herd == None:
-		return True
+    if herd == None:
+        return True
 
-	hrd = herd.split(",")
-	data = _get_metadata(metadata, "pkgmetadata", "herd")
+    hrd = herd.split(",")
+    data = _get_metadata(metadata, "pkgmetadata", "herd")
 
-	if not data and len(herd) == 0:
-		return True
-	elif not data and len(herd) > 0:
-		return False
-	else:
-		for hd in data:
-			for hd2 in hrd:
-				if hd == hd2:
-					return True
-				if hd.startswith(hd2):
-					return True
+    if not data and len(herd) == 0:
+        return True
+    elif not data and len(herd) > 0:
+        return False
+    else:
+        for hd in data:
+            for hd2 in hrd:
+                if hd == hd2:
+                    return True
+                if hd.startswith(hd2):
+                    return True
 
-	return False
+    return False
 
 
 # fetch a list of arch (just stable) packages
 # -* is important to be sure that just arch is used
-def get_packages( conf ):
-	_pkgs = {}
+def get_packages(conf):
+    _pkgs = {}
 
-	_portage_settings( "ACCEPT_KEYWORDS", ( "-* %s" % str( conf["TARGET_ARCH"] ) ),
-					conf["portdb"].settings )
+    _portage_settings(
+        "ACCEPT_KEYWORDS", ("-* %s" % str(conf["TARGET_ARCH"])), conf["portdb"].settings
+    )
 
-	for cp in conf["portdb"].dbapi.cp_all():
-		cpvrs = []
-		slots = {}
+    for cp in conf["portdb"].dbapi.cp_all():
+        cpvrs = []
+        slots = {}
 
-		if conf["USER_PKGS"]:
-			if not cp in conf["USER_PKGS"] and not basename(cp) in conf["USER_PKGS"]:
-				continue
+        if conf["USER_PKGS"]:
+            if not cp in conf["USER_PKGS"] and not basename(cp) in conf["USER_PKGS"]:
+                continue
 
-		# None is important to match also on empty string
-		if conf["MAINTAINER"] != None:
-			if not is_maintainer(conf["MAINTAINER"], join(conf["PORTDIR"], cp, "metadata.xml")):
-				continue
-		if conf["HERD"] != None:
-			if not is_herd(conf["HERD"], join(conf["PORTDIR"], cp, "metadata.xml")):
-				continue
+        # None is important to match also on empty string
+        if conf["MAINTAINER"] != None:
+            if not is_maintainer(
+                conf["MAINTAINER"], join(conf["PORTDIR"], cp, "metadata.xml")
+            ):
+                continue
+        if conf["HERD"] != None:
+            if not is_herd(conf["HERD"], join(conf["PORTDIR"], cp, "metadata.xml")):
+                continue
 
-		cpvrs = conf["portdb"].dbapi.match( cp )
+        cpvrs = conf["portdb"].dbapi.match(cp)
 
-		for cpvr in cpvrs:
-			slot = conf["portdb"].dbapi.aux_get( cpvr, ["SLOT"] )[0]
-			if not slot in slots:
-				slots[slot] = []
-			slots[slot].append(cpvr)
+        for cpvr in cpvrs:
+            slot = conf["portdb"].dbapi.aux_get(cpvr, ["SLOT"])[0]
+            if not slot in slots:
+                slots[slot] = []
+            slots[slot].append(cpvr)
 
-		for slot in sorted(slots):
-			cpvr = portage.versions.best( slots[slot] )
+        for slot in sorted(slots):
+            cpvr = portage.versions.best(slots[slot])
 
-			if cpvr:
-				( cat, pkg, ver, rev ) = portage.versions.catpkgsplit( cpvr )
+            if cpvr:
+                (cat, pkg, ver, rev) = portage.versions.catpkgsplit(cpvr)
 
-				if not cat in list(_pkgs.keys()):
-					_pkgs[cat] = {}
-				if not pkg in list(_pkgs[cat].keys()):
-					_pkgs[cat][pkg] = []
+                if not cat in list(_pkgs.keys()):
+                    _pkgs[cat] = {}
+                if not pkg in list(_pkgs[cat].keys()):
+                    _pkgs[cat][pkg] = []
 
-				if rev != "r0":
-					ver = "%s-%s" % ( ver, rev )
+                if rev != "r0":
+                    ver = "%s-%s" % (ver, rev)
 
-				_pkgs[cat][pkg].append( ver )
+                _pkgs[cat][pkg].append(ver)
 
-	return _pkgs
+    return _pkgs
+
 
 # compare get_packages() against MAIN_ARCH
-def get_imlate( conf, pkgs ):
-	_portage_settings( "ACCEPT_KEYWORDS", ( "-* %s" % str( conf["MAIN_ARCH"] ) ),
-					conf["portdb"].settings )
 
-	stable = str( conf["MAIN_ARCH"].lstrip("~") )
-	testing = "~%s" % stable
-	exclude = "-%s" % stable
-	exclude_all = "-*"
 
-	imlate = {}
+def get_imlate(conf, pkgs):
+    _portage_settings(
+        "ACCEPT_KEYWORDS", ("-* %s" % str(conf["MAIN_ARCH"])), conf["portdb"].settings
+    )
 
-	for cat in sorted( pkgs.keys() ):
-		for pkg in sorted( pkgs[cat].keys() ):
-			for vr in pkgs[cat][pkg]:
-				cpvr = ""
-				abs_pkg = ""
-				kwds = ""
-				our = ""
-				our_ver = ""
-				mtime = 0
-				slot = 0
+    stable = str(conf["MAIN_ARCH"].lstrip("~"))
+    testing = "~%s" % stable
+    exclude = "-%s" % stable
+    exclude_all = "-*"
 
-				# 0 = none(default), 1 = testing(~arch), 2 = stable(arch),
-				# 3 = exclude(-arch), 4 = exclude_all(-*)
-				# -* would be overridden by ~arch or arch
-				kwd_type = 0
+    imlate = {}
 
-				cpvr = "%s/%s-%s" % ( cat, pkg, vr )
+    for cat in sorted(pkgs.keys()):
+        for pkg in sorted(pkgs[cat].keys()):
+            for vr in pkgs[cat][pkg]:
+                cpvr = ""
+                abs_pkg = ""
+                kwds = ""
+                our = ""
+                our_ver = ""
+                mtime = 0
+                slot = 0
 
-				# absolute ebuild path for mtime check
-				abs_pkg = join( conf["PORTDIR"], cat, pkg, basename( cpvr ) )
-				abs_pkg = "%s.ebuild" % str( abs_pkg )
+                # 0 = none(default), 1 = testing(~arch), 2 = stable(arch),
+                # 3 = exclude(-arch), 4 = exclude_all(-*)
+                # -* would be overridden by ~arch or arch
+                kwd_type = 0
 
-				kwds = conf["portdb"].dbapi.aux_get( cpvr, ["KEYWORDS"] )[0]
+                cpvr = "%s/%s-%s" % (cat, pkg, vr)
 
-				# FIXME: %s is bad.. maybe even cast it, else there are issues because its unicode
-				slot = ":%s" % conf["portdb"].dbapi.aux_get( cpvr, ["SLOT"] )[0]
-				if slot == ":0":
-					slot = ""
+                # absolute ebuild path for mtime check
+                abs_pkg = join(conf["PORTDIR"], cat, pkg, basename(cpvr))
+                abs_pkg = "%s.ebuild" % str(abs_pkg)
 
-				# sorted() to keep the right order
-				# e.g. -* first, -arch second, arch third and ~arch fourth
-				# -* -foo ~arch
-				# example: -* would be overridden by ~arch
-				for kwd in sorted( kwds.split() ):
-					if kwd == stable:
-						kwd_type = 2
-						break
-					elif kwd == exclude:
-						kwd_type = 3
-						break
-					elif kwd == exclude_all:
-						kwd_type = 4
-					elif kwd == testing:
-						kwd_type = 1
-						break
+                kwds = conf["portdb"].dbapi.aux_get(cpvr, ["KEYWORDS"])[0]
 
-				# ignore -arch and already stabilized packages
-				if kwd_type == 3 or kwd_type == 2:
-					continue
-				# drop packages with -* and without ~arch or arch
-				# even if there is another version which includes arch or ~arch
-				if kwd_type == 4:
-					continue
-				# drop "stable candidates" with mtime < 30 days
-				# Shall we use gmtime/UTC here?
-				if kwd_type == 1:
-					mtime = int( ( time() - stat( abs_pkg ).st_mtime ) / 60 / 60 / 24 )
-					if mtime < conf["MTIME"]:
-						continue
+                # FIXME: %s is bad.. maybe even cast it, else there are issues because its unicode
+                slot = ":%s" % conf["portdb"].dbapi.aux_get(cpvr, ["SLOT"])[0]
+                if slot == ":0":
+                    slot = ""
 
-				# look for an existing stable version
-				our = portage.versions.best( conf["portdb"].dbapi.match( "%s/%s%s" % ( cat, pkg, slot ) ) )
-				if our:
-					_foo = portage.versions.pkgsplit( our )
-					our_ver = _foo[1]
-					if _foo[2] != "r0":
-						our_ver = "%s-%s" % ( our_ver, _foo[2] )
-				else:
-					our_ver = ""
+                # sorted() to keep the right order
+                # e.g. -* first, -arch second, arch third and ~arch fourth
+                # -* -foo ~arch
+                # example: -* would be overridden by ~arch
+                for kwd in sorted(kwds.split()):
+                    if kwd == stable:
+                        kwd_type = 2
+                        break
+                    elif kwd == exclude:
+                        kwd_type = 3
+                        break
+                    elif kwd == exclude_all:
+                        kwd_type = 4
+                    elif kwd == testing:
+                        kwd_type = 1
+                        break
 
-				# we just need the version if > our_ver
-				if our_ver:
-					if portage.versions.vercmp( our_ver, vr ) >= 0:
-						continue
+                # ignore -arch and already stabilized packages
+                if kwd_type == 3 or kwd_type == 2:
+                    continue
+                # drop packages with -* and without ~arch or arch
+                # even if there is another version which includes arch or ~arch
+                if kwd_type == 4:
+                    continue
+                # drop "stable candidates" with mtime < 30 days
+                # Shall we use gmtime/UTC here?
+                if kwd_type == 1:
+                    mtime = int((time() - stat(abs_pkg).st_mtime) / 60 / 60 / 24)
+                    if mtime < conf["MTIME"]:
+                        continue
 
-				if kwd_type == 1 and conf["STABLE"]:
-					imlate = _add_ent( imlate, cat, ("%s%s" % (pkg, slot)), vr, our_ver )
-					conf["STABLE_SUM"] += 1
-				elif kwd_type == 0 and conf["KEYWORD"]:
-					conf["KEYWORD_SUM"] += 1
-					imlate = _add_ent( imlate, cat, ( "~%s%s" % (pkg, slot) ),
-									vr, our_ver )
+                # look for an existing stable version
+                our = portage.versions.best(
+                    conf["portdb"].dbapi.match("%s/%s%s" % (cat, pkg, slot))
+                )
+                if our:
+                    _foo = portage.versions.pkgsplit(our)
+                    our_ver = _foo[1]
+                    if _foo[2] != "r0":
+                        our_ver = "%s-%s" % (our_ver, _foo[2])
+                else:
+                    our_ver = ""
 
-	return imlate
+                # we just need the version if > our_ver
+                if our_ver:
+                    if portage.versions.vercmp(our_ver, vr) >= 0:
+                        continue
+
+                if kwd_type == 1 and conf["STABLE"]:
+                    imlate = _add_ent(imlate, cat, ("%s%s" % (pkg, slot)), vr, our_ver)
+                    conf["STABLE_SUM"] += 1
+                elif kwd_type == 0 and conf["KEYWORD"]:
+                    conf["KEYWORD_SUM"] += 1
+                    imlate = _add_ent(imlate, cat, ("~%s%s" % (pkg, slot)), vr, our_ver)
+
+    return imlate
+
 
 # fetch portage related settings
-def get_settings( conf = None ):
-	if not isinstance( conf, dict ) and conf:
-		raise TypeError("conf must be dict() or None")
-	if not conf:
-		conf = {}
 
-	# TODO: maybe we should improve it a bit ;)
-	mysettings = portage.config( config_incrementals = portage.const.INCREMENTALS, local_config = False )
 
-	if conf["MAIN_ARCH"] == "auto":
-		conf["MAIN_ARCH"] = "%s" % mysettings["ACCEPT_KEYWORDS"].split(" ")[0].lstrip("~")
-	if conf["TARGET_ARCH"] == "auto":
-		conf["TARGET_ARCH"] = "~%s" % mysettings["ACCEPT_KEYWORDS"].split(" ")[0].lstrip("~")
+def get_settings(conf=None):
+    if not isinstance(conf, dict) and conf:
+        raise TypeError("conf must be dict() or None")
+    if not conf:
+        conf = {}
 
-	# TODO: exclude overlay categories from check
-	if conf["CATEGORIES"]:
-		_mycats = []
-		for _cat in conf["CATEGORIES"].split(","):
-			_cat = _cat.strip()
-			_mycats.append(_cat )
-			if _cat not in mysettings.categories:
-				raise ValueError("invalid category for -C switch '%s'" % _cat)
-		mysettings.categories = _mycats
+    # TODO: maybe we should improve it a bit ;)
+    mysettings = portage.config(
+        config_incrementals=portage.const.INCREMENTALS, local_config=False
+    )
 
-	# maybe thats not necessary because we override porttrees below..
-	_portage_settings( "PORTDIR_OVERLAY", "", mysettings )
-	trees = portage.create_trees()
-	trees["/"]["porttree"].settings = mysettings
-	portdb = trees["/"]["porttree"]
-	portdb.dbapi.settings = mysettings
-	portdb.dbapi.porttrees = [portage.portdb.porttree_root]
-	# does it make sense to remove _all_ useless stuff or just leave it as it is?
-	#portdb.dbapi._aux_cache_keys.clear()
-	#portdb.dbapi._aux_cache_keys.update(["EAPI", "KEYWORDS", "SLOT"])
+    if conf["MAIN_ARCH"] == "auto":
+        conf["MAIN_ARCH"] = "%s" % mysettings["ACCEPT_KEYWORDS"].split(" ")[0].lstrip(
+            "~"
+        )
+    if conf["TARGET_ARCH"] == "auto":
+        conf["TARGET_ARCH"] = "~%s" % mysettings["ACCEPT_KEYWORDS"].split(" ")[
+            0
+        ].lstrip("~")
 
-	conf["PORTDIR"] = portage.settings["PORTDIR"]
-	conf["portdb"] = portdb
+    # TODO: exclude overlay categories from check
+    if conf["CATEGORIES"]:
+        _mycats = []
+        for _cat in conf["CATEGORIES"].split(","):
+            _cat = _cat.strip()
+            _mycats.append(_cat)
+            if _cat not in mysettings.categories:
+                raise ValueError("invalid category for -C switch '%s'" % _cat)
+        mysettings.categories = _mycats
 
-	return conf
+    # maybe thats not necessary because we override porttrees below..
+    _portage_settings("PORTDIR_OVERLAY", "", mysettings)
+    trees = portage.create_trees()
+    trees["/"]["porttree"].settings = mysettings
+    portdb = trees["/"]["porttree"]
+    portdb.dbapi.settings = mysettings
+    portdb.dbapi.porttrees = [portage.portdb.porttree_root]
+    # does it make sense to remove _all_ useless stuff or just leave it as it is?
+    # portdb.dbapi._aux_cache_keys.clear()
+    # portdb.dbapi._aux_cache_keys.update(["EAPI", "KEYWORDS", "SLOT"])
+
+    conf["PORTDIR"] = portage.settings["PORTDIR"]
+    conf["portdb"] = portdb
+
+    return conf
 
 
 # just for standalone
 def main():
-	conf = {}
-	pkgs = {}
+    conf = {}
+    pkgs = {}
 
-	parser = OptionParser( version = "%prog " + __version__ )
-	parser.usage = "%prog [options] [category/package] ..."
-	parser.disable_interspersed_args()
+    parser = OptionParser(version="%prog " + __version__)
+    parser.usage = "%prog [options] [category/package] ..."
+    parser.disable_interspersed_args()
 
-	parser.add_option( "-f", "--file", dest = "filename", action = "store", type = "string",
-			help = "write result into FILE [default: %default]", metavar = "FILE", default = "stdout" )
-	parser.add_option( "-m", "--main", dest = "main_arch", action = "store", type = "string",
-			help = "set main ARCH (e.g. your arch) [default: %default]", metavar = "ARCH", default = MAIN_ARCH )
-	parser.add_option( "-t", "--target", dest = "target_arch", action = "store", type = "string",
-			help = "set target ARCH (e.g. x86) [default: %default]", metavar = "ARCH", default = TARGET_ARCH )
-	parser.add_option( "--mtime", dest = "mtime", action = "store", type = "int",
-			help = "set minimum MTIME in days [default: %default]", metavar = "MTIME", default = 30 )
+    parser.add_option(
+        "-f",
+        "--file",
+        dest="filename",
+        action="store",
+        type="string",
+        help="write result into FILE [default: %default]",
+        metavar="FILE",
+        default="stdout",
+    )
+    parser.add_option(
+        "-m",
+        "--main",
+        dest="main_arch",
+        action="store",
+        type="string",
+        help="set main ARCH (e.g. your arch) [default: %default]",
+        metavar="ARCH",
+        default=MAIN_ARCH,
+    )
+    parser.add_option(
+        "-t",
+        "--target",
+        dest="target_arch",
+        action="store",
+        type="string",
+        help="set target ARCH (e.g. x86) [default: %default]",
+        metavar="ARCH",
+        default=TARGET_ARCH,
+    )
+    parser.add_option(
+        "--mtime",
+        dest="mtime",
+        action="store",
+        type="int",
+        help="set minimum MTIME in days [default: %default]",
+        metavar="MTIME",
+        default=30,
+    )
 
-	# TODO: leave a good comment here (about True/False) :)
-	parser.add_option( "-s", "--stable", dest = "stable", action = "store_true", default = False,
-			help = "just show stable candidates (e.g. -s and -k is the default result) [default: True]" )
-	parser.add_option( "-k", "--keyword", dest = "keyword", action = "store_true", default = False,
-			help = "just show keyword candidates (e.g. -s and -k is the default result) [default: True]" )
+    # TODO: leave a good comment here (about True/False) :)
+    parser.add_option(
+        "-s",
+        "--stable",
+        dest="stable",
+        action="store_true",
+        default=False,
+        help="just show stable candidates (e.g. -s and -k is the default result) [default: True]",
+    )
+    parser.add_option(
+        "-k",
+        "--keyword",
+        dest="keyword",
+        action="store_true",
+        default=False,
+        help="just show keyword candidates (e.g. -s and -k is the default result) [default: True]",
+    )
 
-	parser.add_option( "-M", "--maintainer", dest = "maintainer", action = "store", type = "string",
-			help = "Show only packages from the specified maintainer", metavar = "MAINTAINER", default = None)
+    parser.add_option(
+        "-M",
+        "--maintainer",
+        dest="maintainer",
+        action="store",
+        type="string",
+        help="Show only packages from the specified maintainer",
+        metavar="MAINTAINER",
+        default=None,
+    )
 
-	parser.add_option( "-H", "--herd", dest = "herd", action = "store", type = "string",
-			help = "Show only packages from the specified herd", metavar = "HERD", default = None)
+    parser.add_option(
+        "-H",
+        "--herd",
+        dest="herd",
+        action="store",
+        type="string",
+        help="Show only packages from the specified herd",
+        metavar="HERD",
+        default=None,
+    )
 
-#	# EXPERIMENTAL
-#	parser.add_option( "-e", "--experimental", dest = "experimental", action = "store_true", default = False,
-#			help = "enables experimental functions/features (have a look for # EXPERIMENTAL comments in the source) [default: %default]" )
+    # 	# EXPERIMENTAL
+    # 	parser.add_option( "-e", "--experimental", dest = "experimental", action = "store_true", default = False,
+    # 			help = "enables experimental functions/features (have a look for # EXPERIMENTAL comments in the source) [default: %default]" )
 
-	parser.add_option( "-C", "--category", "--categories", dest = "categories", action = "store", default = None,
-			metavar = "CATEGORIES",
-			help = "just check in the specified category/categories (comma separated) [default: %default]")
+    parser.add_option(
+        "-C",
+        "--category",
+        "--categories",
+        dest="categories",
+        action="store",
+        default=None,
+        metavar="CATEGORIES",
+        help="just check in the specified category/categories (comma separated) [default: %default]",
+    )
 
-	( options, args ) = parser.parse_args()
+    (options, args) = parser.parse_args()
 
-	if len( args ) > 0:
-		conf["USER_PKGS"] = args
-	else:
-		conf["USER_PKGS"] = []
+    if len(args) > 0:
+        conf["USER_PKGS"] = args
+    else:
+        conf["USER_PKGS"] = []
 
-	# cleanup optparse
-	try:
-		parser.destroy()
-	except AttributeError:
-		# to be at least python 2.4 compatible
-		del parser._short_opt
-		del parser._long_opt
-		del parser.defaults
+    # cleanup optparse
+    try:
+        parser.destroy()
+    except AttributeError:
+        # to be at least python 2.4 compatible
+        del parser._short_opt
+        del parser._long_opt
+        del parser.defaults
 
-	# generated timestamp (UTC)
-	conf["TIME"] = strftime( "%a %b %d %H:%M:%S %Z %Y", gmtime() )
+    # generated timestamp (UTC)
+    conf["TIME"] = strftime("%a %b %d %H:%M:%S %Z %Y", gmtime())
 
-	# package counter
-	conf["KEYWORD_SUM"] = 0
-	conf["STABLE_SUM"] = 0
+    # package counter
+    conf["KEYWORD_SUM"] = 0
+    conf["STABLE_SUM"] = 0
 
-	if not options.main_arch in portage.archlist and options.main_arch != "auto":
-		raise ValueError("invalid MAIN ARCH defined!")
-	if not options.target_arch in portage.archlist and options.target_arch != "auto":
-		raise ValueError("invalid TARGET ARCH defined!")
+    if not options.main_arch in portage.archlist and options.main_arch != "auto":
+        raise ValueError("invalid MAIN ARCH defined!")
+    if not options.target_arch in portage.archlist and options.target_arch != "auto":
+        raise ValueError("invalid TARGET ARCH defined!")
 
-	conf["MAIN_ARCH"] = options.main_arch
-	conf["TARGET_ARCH"] = options.target_arch
+    conf["MAIN_ARCH"] = options.main_arch
+    conf["TARGET_ARCH"] = options.target_arch
 
-	conf["FILE"] = options.filename
-	conf["MTIME"] = options.mtime
+    conf["FILE"] = options.filename
+    conf["MTIME"] = options.mtime
 
-	if not options.stable and not options.keyword:
-		conf["STABLE"] = True
-		conf["KEYWORD"] = True
-	else:
-		conf["STABLE"] = options.stable
-		conf["KEYWORD"] = options.keyword
+    if not options.stable and not options.keyword:
+        conf["STABLE"] = True
+        conf["KEYWORD"] = True
+    else:
+        conf["STABLE"] = options.stable
+        conf["KEYWORD"] = options.keyword
 
-#	conf["EXPERIMENTAL"] = options.experimental
-	conf["CATEGORIES"] = options.categories
+    # 	conf["EXPERIMENTAL"] = options.experimental
+    conf["CATEGORIES"] = options.categories
 
-	conf["MAINTAINER"] = options.maintainer
-	conf["HERD"] = options.herd
+    conf["MAINTAINER"] = options.maintainer
+    conf["HERD"] = options.herd
 
-	# append to our existing
-	conf = get_settings( conf )
-	pkgs = get_packages( conf )
-	pkgs = get_imlate( conf, pkgs )
+    # append to our existing
+    conf = get_settings(conf)
+    pkgs = get_packages(conf)
+    pkgs = get_imlate(conf, pkgs)
 
-	show_result( conf, pkgs )
+    show_result(conf, pkgs)
+
 
 if __name__ == "__main__":
-	main()
-
+    main()

@@ -12,35 +12,35 @@ dependent upon the upgraded package.
 import sys
 # This block ensures that ^C interrupts are handled quietly.
 try:
-	import signal
+    import signal
 
-	def exithandler(signum,frame):
-		signal.signal(signal.SIGINT, signal.SIG_IGN)
-		signal.signal(signal.SIGTERM, signal.SIG_IGN)
-		print()
-		sys.exit(1)
+    def exithandler(signum, frame):
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
+        print()
+        sys.exit(1)
 
-	signal.signal(signal.SIGINT, exithandler)
-	signal.signal(signal.SIGTERM, exithandler)
-	signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+    signal.signal(signal.SIGINT, exithandler)
+    signal.signal(signal.SIGTERM, exithandler)
+    signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 
 except KeyboardInterrupt:
-	print()
-	sys.exit(1)
+    print()
+    sys.exit(1)
 
 from gentoolkit import errors
 from gentoolkit.revdep_rebuild import rebuild
 
 try:
-	success = rebuild.main(rebuild.parse_options())
-	sys.exit(success)
+    success = rebuild.main(rebuild.parse_options())
+    sys.exit(success)
 except errors.GentoolkitException as err:
-	if '--debug' in sys.argv:
-		raise
-	else:
-		from gentoolkit import pprinter as pp
-		sys.stderr.write(pp.error(str(err)))
-		print()
-		print("Add '--debug' to global options for traceback.")
-		sys.exit(1)
+    if '--debug' in sys.argv:
+        raise
+    else:
+        from gentoolkit import pprinter as pp
+        sys.stderr.write(pp.error(str(err)))
+        print()
+        print("Add '--debug' to global options for traceback.")
+        sys.exit(1)
