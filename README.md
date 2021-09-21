@@ -1,3 +1,5 @@
+[![Unit tests](https://github.com/gentoo/gentoolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/gentoo/gentoolkit/actions/workflows/ci.yml)
+
 MOTIVATION
 ==========
 
