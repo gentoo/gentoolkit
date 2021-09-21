@@ -32,9 +32,6 @@ from portage import _encodings, _unicode_encode
 
 from gentoolkit import pprinter as pp
 from gentoolkit import errors
-from gentoolkit.atom import Atom
-from gentoolkit.cpv import CPV
-from gentoolkit.versionmatch import VersionMatch
 
 # This has to be imported below to stop circular import.
 # from gentoolkit.package import Package
