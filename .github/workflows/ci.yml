@@ -1,0 +1,44 @@
+name: Unit tests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+        - '3.7'
+        - '3.8'
+        - '3.9'
+        - '3.10.0-alpha - 3.10.0'
+        - 'pypy-3.7'
+
+    env:
+      PORTAGE_VERSION: "3.0.20"
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install portage
+      run: |
+        mkdir portage
+        wget -qO - "https://github.com/gentoo/portage/archive/portage-${PORTAGE_VERSION}.tar.gz" | tar xz -C portage --strip-components=1
+        sudo groupadd -g 250 portage
+        sudo useradd -g portage -d /var/tmp/portage -s /bin/false -u 250 portage
+    - name: Setup gentoo env (required by portage)
+      run: |
+        sudo mkdir -p /var/db/repos/gentoo /etc/portage /var/cache/distfiles
+        wget -qO - "https://github.com/gentoo-mirror/gentoo/archive/master.tar.gz" | sudo tar xz -C /var/db/repos/gentoo --strip-components=1
+        sudo wget "https://www.gentoo.org/dtd/metadata.dtd" -O /var/cache/distfiles/metadata.dtd
+        sudo wget "https://gitweb.gentoo.org/proj/portage.git/plain/cnf/repos.conf" -O /etc/portage/repos.conf
+        sudo ln -s /var/db/repos/gentoo/profiles/default/linux/amd64/17.1/systemd /etc/portage/make.profile
+    - name: Run tests
+      run: |
+        export PYTHONPATH="${PWD}/portage/lib"${PYTHONPATH:+:}${PYTHONPATH}
+        export PATH="${PWD}/portage/bin":${PATH}
+        python setup.py test
