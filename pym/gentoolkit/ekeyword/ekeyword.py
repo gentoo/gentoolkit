@@ -415,12 +415,7 @@ def ignorable_arg(arg, quiet=0):
         "metadata.xml",
     )
     base = os.path.basename(arg)
-    if (
-        base.startswith("ChangeLog")
-        or base in WHITELIST
-        or base.startswith(".")
-        or base.endswith("~")
-    ):
+    if base in WHITELIST or base.startswith(".") or base.endswith("~"):
         if not quiet:
             warning("ignoring file: %s" % arg)
         return True

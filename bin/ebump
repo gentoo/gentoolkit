@@ -39,9 +39,7 @@ print_usage() {
 	echo "  -v|--verbose           increase verbosity"
 	echo "  -q|--quiet             turn off output"
 	echo "  -a|--no-auxfiles       don't bump auxfiles (files/*)"
-	echo "  -c|--no-changelog      do not update ChangeLog (via echangelog)"
 	echo "  -C|--no-vcs            do not add to VCS"
-	echo "  -m|--message           append message to ChangeLog"
 	echo "  -d|--delete-old        delete previous revision from VCS (DANGEROUS!)"
 }
 
@@ -55,16 +53,8 @@ load_options() {
 	if [ -f "/etc/gentoolkit/ebump.conf" ] ; then
 		. /etc/gentoolkit/ebump.conf
 	fi
-	if [ -f "${HOME}/.gentoo/gentool-env" ] ; then
-		. ${HOME}/.gentoo/gentool-env
-	fi
 	if [ -f "${HOME}/.gentoo/ebump.conf" ] ; then
 		. ${HOME}/.gentoo/ebump.conf
-	fi
-
-	# FIXME: remove this warning in 2-3 releases.
-	if [ -n "${opt_add_cvs}" ]; then
-		echo "Warning: opt_add_cvs is deprecated, please use opt_add_vcs from now on!" >&2
 	fi
 }
 
@@ -276,26 +266,6 @@ process_ebuild() {
 		fi
 		einfo "Removed ${delfiles} from VCS"
 	fi
-
-	#
-	# (Optional) Add ChangeLog entry
-	#
-	if [ "${opt_add_changelog}" = "y" ] && [ "${opt_add_vcs}" = "y" ]; then
-		# FIXME: remove this warning in 2-3 releases
-		if [ -n "${AUTHORNAME}" ] || [ -n "${AUTHOREMAIL}" ]; then
-			echo "Warning: AUTHORNAME and AUTHOREMAIL is deprecated!" >&2
-			echo "Please take a look at echangelog(1)." >&2
-			echo "To avoid this warning unset AUTHORNAME and AUTHOREMAIL." >&2
-		fi
-
-		echangelog "${opt_commitmessage}" || set $?
-
-		if [ ${1:-0} -ne 0 ]; then
-			einfo "Modifying ChangeLog failed!"
-		else
-			einfo "Added ChangeLog entry"
-		fi
-	fi
 }
 
 get_vcs() {
@@ -322,7 +292,6 @@ get_vcs() {
 # Global options
 #
 opt_verbosity=0
-opt_add_changelog=y
 opt_add_vcs=y
 opt_bump_auxfiles=y
 opt_delete_old=n
@@ -346,10 +315,6 @@ while [ ${#} -gt 0 ] ; do
 		;;
 		-a|--no-auxfiles)
 			opt_bump_auxfiles=n
-			continue
-		;;
-		-c|--no-changelog)
-			opt_add_changelog=n
 			continue
 		;;
 		-C|--no-vcs)
