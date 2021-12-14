@@ -55,21 +55,6 @@ Do not output any non-essential information.
 don't bump auxfiles (files/*)
 
 .LP
-\fB\-c\fR
-.br
-\fB--no-changelog\fB
-.IP
-do not update ChangeLog (via echangelog)
-
-.LP
-\fB\-m\fR <\fIChangeLog text\fR>
-.br
-\fB\--message\fR <\fIChangeLog text\fR>
-.IP
-Specifies the message to add to the ChangeLog, instead of the standard
-placeholder.
-
-.LP
 \fB\-d\fR
 .br
 \fB\--delete-old\fR
@@ -96,28 +81,16 @@ From these files, \fIebump\fR will load the settings
 .br
 \fBopt_verbosity\fR (default \fI1\fR) - verbosity level 0-10
 .br
-\fBopt_add_changelog\fR (default \fIy\fR) - add entry in ChangeLog
-.br
 \fBopt_add_vcs\fR (default \fIy\fR) - add new files to VCS
 .br
 \fBopt_bump_auxfiles\fR (default \fIy\fR) - bump auxiliary files in files/
 .br
 \fBopt_delete_old\fR (default \fIn\fR) - delete old revision (DANGEROUS!)
-.br
-\fBopt_commitmessage\fR (default \fI""\fR) - default ChangeLog message
-
-.LP
-\fB(DEPRECATED)\fR
-.br
-\fB~/.gentoo/gentool-env\fR
-.IR
-From this file, \fIebump\fR will load the env vars \fBAUTHORNAME\fR and
-\fBAUTHOREMAIL\fR, which are used to generate proper ChangeLog entries.
 
 .SH "SEE ALSO"
 .LP
 The rest of the utilities in \fIapp-portage/gentoolkit-dev\fR, such as
-\fIechangelog(1)\fR and \fIekeyword(1)\fR.
+\fIekeyword(1)\fR.
 
 .SH "AUTHORS"
 .LP
