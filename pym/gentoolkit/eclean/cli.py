@@ -309,7 +309,7 @@ def parseSize(size):
 
     @raise ParseArgsException: in case of failure
     """
-    units = {"G": (1024 ** 3), "M": (1024 ** 2), "K": 1024, "B": 1}
+    units = {"G": (1024**3), "M": (1024**2), "K": 1024, "B": 1}
     try:
         match = re.match(r"^(?P<value>\d+)(?P<unit>[GMKBgmkb])?$", size)
         size = int(match.group("value"))
