@@ -4,31 +4,32 @@
 
 """Provides an easy-to-use python interface to Gentoo's metadata.xml file.
 
-	Example usage:
-		>>> from gentoolkit.metadata import MetaData
-		>>> pkg_md = MetaData('/usr/portage/app-misc/gourmet/metadata.xml')
-		>>> pkg_md
-		<MetaData '/usr/portage/app-misc/gourmet/metadata.xml'>
-		>>> pkg_md.herds()
-		[]
-		>>> for maint in pkg_md.maintainers():
-		...     print('{0} ({1})'.format(maint.email, maint.name))
-		...
-		nixphoeni@gentoo.org (Joe Sapp)
-		>>> for flag in pkg_md.use():
-		...     print(flag.name, '->', flag.description)
-		...
-		rtf -> Enable export to RTF
-		gnome-print -> Enable pretty Python printing with gnome-print
-		>>> upstream = pkg_md.upstream()
-		>>> upstream  # doctest: +ELLIPSIS, +NORMALIZE_WHITESPACE
-		[<_Upstream {'node': <Element 'upstream' at 0x...>,
-		  'remoteids': [], 'docs': [],
-		  'maintainers':
-		  [<_Maintainer 'Thomas_Hinkle@alumni.brown.edu'>],
-		  'changelogs': [], 'bugtrackers': []}>]
-		>>> upstream[0].maintainers[0].name
-		'Thomas Mills Hinkle'
+    Example usage:
+    >>> pkg_md = MetaData('/var/db/repos/gentoo/app-accessibility/espeak-ng/metadata.xml')
+    >>> pkg_md
+    <MetaData '/var/db/repos/gentoo/app-accessibility/espeak-ng/metadata.xml'>
+    >>> for maint in pkg_md.maintainers():
+    ...     print('{0} ({1})'.format(maint.email, maint.name))
+    ...
+    williamh@gentoo.org (William Hubbs)
+    >>> for flag in pkg_md.use():
+    ...     print(flag.name, '->', flag.description)
+    ...
+    async -> Enables asynchronous commands
+    klatt -> Enables Klatt formant synthesis and implementation
+    l10n_ru -> Builds extended Russian Dictionary file
+    l10n_zh -> Builds extended Chinese (Mandarin and Cantonese) Dictionary files
+    man -> Builds and installs manpage with app-text/ronn
+    mbrola -> Adds support for mbrola voices
+    >>> upstream = pkg_md.upstream()
+    >>> upstream
+    [<_Upstream {'node': <Element 'upstream' at 0x7f952a73b2c0>,
+     'maintainers': [<_Maintainer 'msclrhd@gmail.com'>],
+     'changelogs': ['https://github.com/espeak-ng/espeak-ng/releases.atom'],
+     'docs': [], 'bugtrackers': [],
+     'remoteids': [('espeak-ng/espeak-ng', 'github')]}>]
+    >>> upstream[0].maintainers[0].name
+    'Reece H. Dunn'
 """
 
 __all__ = ("MetaData",)
@@ -38,11 +39,8 @@ __docformat__ = "epytext"
 # Imports
 # =======
 
-import os
 import re
 import xml.etree.cElementTree as etree
-
-from portage import settings
 
 # =======
 # Classes
@@ -183,7 +181,6 @@ class MetaData:
         self._xml_tree = etree.parse(metadata_path)
 
         # Used for caching
-        self._herdstree = None
         self._descriptions = None
         self._maintainers = None
         self._useflags = None
@@ -191,56 +188,6 @@ class MetaData:
 
     def __repr__(self):
         return "<%s %r>" % (self.__class__.__name__, self.metadata_path)
-
-    def _get_herd_email(self, herd):
-        """Get a herd's email address.
-
-        @type herd: str
-        @param herd: herd whose email you want
-        @rtype: str or None
-        @return: email address or None if herd is not in herds.xml
-        @raise IOError: if $PORTDIR/metadata/herds.xml can not be read
-        """
-
-        if self._herdstree is None:
-            herds_path = os.path.join(settings["PORTDIR"], "metadata/herds.xml")
-            try:
-                self._herdstree = etree.parse(herds_path)
-            except IOError:
-                # For some trees, herds.xml may not exist. Bug #300108.
-                return None
-
-        # Some special herds are not listed in herds.xml
-        if herd in ("no-herd", "maintainer-wanted", "maintainer-needed"):
-            return None
-
-        for node in self._herdstree.iter("herd"):
-            if node.findtext("name") == herd:
-                return node.findtext("email")
-
-    def herds(self, include_email=False):
-        """Return a list of text nodes for <herd>.
-
-        @type include_email: bool
-        @keyword include_email: if True, also look up the herd's email
-        @rtype: list
-        @return: if include_email is False, return a list of strings;
-                 if include_email is True, return a list of tuples containing:
-                                 [('herd1', 'herd1@gentoo.org'), ('no-herd', None);
-        """
-
-        result = []
-        for elem in self._xml_tree.findall("herd"):
-            text = elem.text
-            if text is None:
-                text = ""
-            if include_email:
-                herd_mail = self._get_herd_email(text)
-                result.append((text, herd_mail))
-            else:
-                result.append(text)
-
-        return result
 
     def descriptions(self):
         """Return a list of text nodes for <longdescription>.

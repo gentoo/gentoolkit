@@ -465,10 +465,6 @@ https://devmanual.gentoo.org/ebuild-writing/misc-files/metadata/index.html
 .br
 Show an extended package description.
 .HP
-.B \-H, \-\-herd
-.br
-Show the herd(s) for the package. When not piping and not passing \fB\-\-quiet\fP as a global option, also show the herd's email address. (shown by default)
-.HP
 .B \-k, \-\-keywords
 .br
 Show keywords for all matching versions. \fBkeywords\fP does not list all keywords for all versions. Instead, it filters the list to make it easier to spot versions that need bumping or are okay to remove from the tree. It filters by slot. For example:
@@ -501,7 +497,7 @@ Dump the plain XML file to the screen.
 equery meta gnucash
 .EE
 .br
-Show general information about maintainership, including herd, maintainer and upstream.
+Show general information about maintainership, including maintainer and upstream.
 .EX
 .HP
 equery meta \-\-description app\-misc/screen
@@ -510,10 +506,10 @@ equery meta \-\-description app\-misc/screen
 See if the package maintainer has provided an extended description.
 .EX
 .HP
-equery \-N meta \-H gnome |grep \-o \-\-color=never '[^( ]*@gentoo.org'
+equery \-N meta \-H gnome-base/gnome |grep \-o \-\-color=never '[^( ]*@gentoo.org'
 .EE
 .br
-Extract the herd's email address to let them know they're doing a great job. Remember, bug reports should go to bugs.gentoo.org. The above example will extract one or more emails if available, or return nothing if the herd is \fBno\-herd\fP.
+Extract the maintainers's email address to let them know they're doing a great job. Remember, bug reports should go to bugs.gentoo.org. The above example will extract one or more emails if available.
 
 .SS
 .BI "size (s) [OPTIONS] " "PKG"

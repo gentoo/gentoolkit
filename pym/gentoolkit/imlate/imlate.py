@@ -161,12 +161,6 @@ def _get_metadata(metadata, element, tag):
         for _element in elements:
             node = _element.getElementsByTagName(tag)
 
-            if tag == "herd" and (not node or not node[0].childNodes):
-                # 				print >> stderr, "'%s' is missing a <herd> tag or it is empty," % metadata
-                # 				print >> stderr, "please file a bug at https://bugs.gentoo.org and refer to http://www.gentoo.org/proj/en/devrel/handbook/handbook.xml?part=2&chap=4"
-                values.append("no-herd")
-                continue
-
             try:
                 values.append(node[0].childNodes[0].data)
             except IndexError:
@@ -202,30 +196,6 @@ def is_maintainer(maintainer, metadata):
     return False
 
 
-def is_herd(herd, metadata):
-    data = []
-
-    if herd == None:
-        return True
-
-    hrd = herd.split(",")
-    data = _get_metadata(metadata, "pkgmetadata", "herd")
-
-    if not data and len(herd) == 0:
-        return True
-    elif not data and len(herd) > 0:
-        return False
-    else:
-        for hd in data:
-            for hd2 in hrd:
-                if hd == hd2:
-                    return True
-                if hd.startswith(hd2):
-                    return True
-
-    return False
-
-
 # fetch a list of arch (just stable) packages
 # -* is important to be sure that just arch is used
 def get_packages(conf):
@@ -248,9 +218,6 @@ def get_packages(conf):
             if not is_maintainer(
                 conf["MAINTAINER"], join(conf["PORTDIR"], cp, "metadata.xml")
             ):
-                continue
-        if conf["HERD"] != None:
-            if not is_herd(conf["HERD"], join(conf["PORTDIR"], cp, "metadata.xml")):
                 continue
 
         cpvrs = conf["portdb"].dbapi.match(cp)
@@ -511,17 +478,6 @@ def main():
     )
 
     parser.add_option(
-        "-H",
-        "--herd",
-        dest="herd",
-        action="store",
-        type="string",
-        help="Show only packages from the specified herd",
-        metavar="HERD",
-        default=None,
-    )
-
-    parser.add_option(
         "-C",
         "--category",
         "--categories",
@@ -576,7 +532,6 @@ def main():
     conf["CATEGORIES"] = options.categories
 
     conf["MAINTAINER"] = options.maintainer
-    conf["HERD"] = options.herd
 
     # append to our existing
     conf = get_settings(conf)

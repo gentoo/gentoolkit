@@ -30,7 +30,6 @@ from gentoolkit.query import Query
 QUERY_OPTS = {
     "current": False,
     "description": False,
-    "herd": False,
     "keywords": False,
     "license": False,
     "maintainer": False,
@@ -79,7 +78,6 @@ def print_help(with_description=True, with_usage=True):
             (
                 (" -h, --help", "display this help message"),
                 (" -d, --description", "show an extended package description"),
-                (" -H, --herd", "show the herd(s) for the package"),
                 (" -k, --keywords", "show keywords for all matching package versions"),
                 (" -l, --license", "show licenses for the best maching version"),
                 (" -m, --maintainer", "show the maintainer(s) for the package"),
@@ -155,21 +153,6 @@ def filter_keywords(matches):
             slot_map[slot].update(del_archmask(add_unstable(keywords)))
         except KeyError:
             slot_map[slot] = set(del_archmask(add_unstable(keywords)))
-
-    return result
-
-
-def format_herds(herds):
-    """Format herd information for display."""
-
-    result = []
-    for herd in herds:
-        herdstr = ""
-        email = "(%s)" % herd[1] if herd[1] else ""
-        herdstr = herd[0]
-        if CONFIG["verbose"]:
-            herdstr += " %s" % (email,)
-        result.append(herdstr)
 
     return result
 
@@ -304,21 +287,6 @@ def call_format_functions(best_match, matches):
     if any(QUERY_OPTS.values()):
         # Specific information requested, less formatting
         got_opts = True
-
-    if QUERY_OPTS["herd"] or not got_opts:
-        herds = best_match.metadata.herds(include_email=True)
-        if any(not h[0] for h in herds):
-            print(
-                pp.warn("The packages metadata.xml has an empty <herd> tag"),
-                file=sys.stderr,
-            )
-            herds = [x for x in herds if x[0]]
-        herds = format_herds(herds)
-        if QUERY_OPTS["herd"]:
-            print_sequence(format_list(herds))
-        else:
-            for herd in herds:
-                pp.uprint(format_line(herd, "Herd:        ", " " * 13))
 
     if QUERY_OPTS["maintainer"] or not got_opts:
         maints = format_maintainers(best_match.metadata.maintainers())
@@ -503,8 +471,6 @@ def parse_module_options(module_opts):
             sys.exit(0)
         elif opt in ("-d", "--description"):
             QUERY_OPTS["description"] = True
-        elif opt in ("-H", "--herd"):
-            QUERY_OPTS["herd"] = True
         elif opt in ("-l", "--license"):
             QUERY_OPTS["license"] = True
         elif opt in ("-m", "--maintainer"):
@@ -528,7 +494,6 @@ def main(input_args):
     long_opts = (
         "help",
         "description",
-        "herd",
         "keywords",
         "license",
         "maintainer",
