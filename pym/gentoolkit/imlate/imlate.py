@@ -521,10 +521,6 @@ def main():
         default=None,
     )
 
-    # 	# EXPERIMENTAL
-    # 	parser.add_option( "-e", "--experimental", dest = "experimental", action = "store_true", default = False,
-    # 			help = "enables experimental functions/features (have a look for # EXPERIMENTAL comments in the source) [default: %default]" )
-
     parser.add_option(
         "-C",
         "--category",
@@ -577,7 +573,6 @@ def main():
         conf["STABLE"] = options.stable
         conf["KEYWORD"] = options.keyword
 
-    # 	conf["EXPERIMENTAL"] = options.experimental
     conf["CATEGORIES"] = options.categories
 
     conf["MAINTAINER"] = options.maintainer
