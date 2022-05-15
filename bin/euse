@@ -338,11 +338,11 @@ get_useflaglist() {
 		descdir="${profiledir}/profiles"
 		if [[ -z ${SCOPE} || ${SCOPE} == "global" ]]; then
 			[[ ! -s "${descdir}/use.desc" ]] && continue
-			egrep "^[^# ]+ +-" "${descdir}/use.desc"
+			grep -E "^[^# ]+ +-" "${descdir}/use.desc"
 		fi
 		if [[ -z ${SCOPE} || ${SCOPE} == "local" ]]; then
 			[[ ! -s "${descdir}/use.local.desc" ]] && continue
-			egrep "^[^# :]+:[^ ]+ +-" "${descdir}/use.local.desc" \
+			grep -E "^[^# :]+:[^ ]+ +-" "${descdir}/use.local.desc" \
 				| cut -d: -f 2
 		fi
 	done | cut -d " "  -f1 | sort --field=":" --key=1,1 --unique
@@ -370,7 +370,7 @@ get_useflaglist() {
 # ACTIVE_FLAGS - Array of current use flag info
 #
 get_useflaglist_ebuild() {
-	local known=$(echo "${ACTIVE_FLAGS[5]}" | egrep "^${1}")
+	local known=$(echo "${ACTIVE_FLAGS[5]}" | grep -E "^${1}")
 	local cacheformat
 	if [[ -n $known ]]; then
 		# No need to recache
@@ -397,7 +397,7 @@ get_useflaglist_ebuild() {
 			return 1
 		fi
 		append=$(set +f; ls ${portdir}/metadata/${cacheformat}/${1}-* \
-			| egrep "${1}-[0-9.]+" \
+			| grep -E "${1}-[0-9.]+" \
 			| sed -e "s:${portdir}/metadata/${cacheformat}/${1}-::g" \
 			| while read -d $'\n' version; do
 				IFS=$'\n'
@@ -454,7 +454,7 @@ traverse_profile() {
 	curdir="${2:-$(get_real_path ${MAKE_PROFILE_PATH})}"
 
 	if [[ -f "${curdir}/parent" ]]; then
-		for parent in $(egrep -v '(^#|^ *$)' ${curdir}/parent); do
+		for parent in $(grep -E -v '(^#|^ *$)' ${curdir}/parent); do
 			# Bug 231394, handle parent path being absolute
 			index=$(expr index "${parent}" :)
 			if [[ ${parent:0:1} == "/" ]]; then
@@ -906,9 +906,9 @@ showflags() {
 			get_flagstatus ${1}
 			echo
 		fi
-		if echo " ${ACTIVE_FLAGS[4]} " | egrep -e " -?${1} " > /dev/null; then
+		if echo " ${ACTIVE_FLAGS[4]} " | grep -E -e " -?${1} " > /dev/null; then
 			for pkg in $( echo "${ACTIVE_FLAGS[4]}" | \
-					egrep " -?${1} " | cut -d " " -f 2); do
+					grep -E " -?${1} " | cut -d " " -f 2); do
 				printf "%-20s" ${1}
 				SCOPE="local" get_flagstatus ${1} "${pkg}"
 				printf "(%s)\n" ${pkg}
@@ -992,7 +992,7 @@ scrub_use_flag() {
 		# If line only has this use flag, let it be removed
 		# (used if PACKAGE is not defined -- from pruning)
 		elif [[ -n $(echo "${line}" | \
-				egrep "^[^#]*${atom_re}.*-?${flag}") ]]; then
+				grep -E "^[^#]*${atom_re}.*-?${flag}") ]]; then
 			echo "Removing use flag from ${line}" >&2
 			if [[ -z $(echo "${line}" | \
 					grep -Ee "${atom_re} *-?${flag} *$") ]]; then
@@ -1068,10 +1068,10 @@ modify_package() {
 		# XXX: Handle version or version wildcard?
 		warn "USE flag \"${flag}\" is not used by $PACKAGE"
 		# Don't necessarily bail for this, just warn
-	elif [[ -n "${V}" && -z "$(egrep "<|>|=" <<< "${PACKAGE:0:1}")" ]]; then
+	elif [[ -n "${V}" && -z "$(grep -E "<|>|=" <<< "${PACKAGE:0:1}")" ]]; then
 		error "Invalid package atom. Did you forget the leading '='?"
 		continue
-	elif [[ -z "${V}" && -n "$(egrep "<|>|=" <<< "${PACKAGE:0:1}")" ]]; then
+	elif [[ -z "${V}" && -n "$(grep -E "<|>|=" <<< "${PACKAGE:0:1}")" ]]; then
 		error "Invalid package atom. Did you forget the version?"
 		continue
 	fi
@@ -1114,7 +1114,7 @@ modify_package() {
 			echo "Adding \"${PACKAGE}[${flag}]\" use flag in \"${filename}\""
 			local added=0
 		 	while read line; do
-				if [[ -n $(echo "${line}" | egrep -e "^[^#]*${PACKAGE} ") ]]; then
+				if [[ -n $(echo "${line}" | grep -E -e "^[^#]*${PACKAGE} ") ]]; then
 					echo $(reduce_package_use "${line} ${flag}")
 					added=1
 				else
@@ -1131,7 +1131,7 @@ modify_package() {
 			local filename
 			if [[ -d ${PACKAGE_USE_PATH} ]]; then
 				# Scan for file containing named package and use flag
-				filename=$(egrep -rle "${pkg_re}.*[^-]${flag}( |$)" "${PACKAGE_USE_PATH}")
+				filename=$(grep -E -rle "${pkg_re}.*[^-]${flag}( |$)" "${PACKAGE_USE_PATH}")
 				if [[ -z "${filename}" ]]; then
 					error ""${flag}" is not defined for package "${PACKAGE}""
 					continue
@@ -1251,7 +1251,7 @@ modify() {
 		# as the ending quote
 		if [ "${line:0:4}" == "USE=" ]; then inuse=1; line=${line:5}; fi
 		[ "${inuse}" == "0" ] && echo -E "${line}"
-		if [ "${inuse}" == "1" ] && echo "${line}" | egrep '" *(#.*)?$' > /dev/null; then
+		if [ "${inuse}" == "1" ] && echo "${line}" | grep -E '" *(#.*)?$' > /dev/null; then
 			echo -n 'USE="'
 			echo -ne "${NEW_MAKE_CONF_USE_2%% }"
 			echo '"'
