@@ -561,6 +561,8 @@ def findPackages(
     # to support FEATURES=binpkg-multi-instance.
     dead_binpkgs = {}
 
+    keep_binpkgs = {}
+
     bin_dbapi = portage.binarytree(pkgdir=pkgdir, settings=var_dbapi.settings).dbapi
     for cpv in bin_dbapi.cpv_all():
         cp = portage.cpv_getkey(cpv)
@@ -574,6 +576,28 @@ def findPackages(
             mtime = int(bin_dbapi.aux_get(cpv, ["_mtime_"])[0])
             if mtime >= time_limit:
                 continue
+
+        # Exclude if binpkg has exact same USEs
+        if not destructive and options["unique-use"]:
+            keys = ("CPV", "EAPI", "USE")
+            binpkg_metadata = dict(zip(keys, bin_dbapi.aux_get(cpv, keys)))
+            cpv_key = "_".join(binpkg_metadata[key] for key in keys)
+            if cpv_key in keep_binpkgs:
+                old_cpv = keep_binpkgs[cpv_key]
+                # compare BUILD_TIME, keep the new one
+                old_time = int(bin_dbapi.aux_get(old_cpv, ["BUILD_TIME"])[0])
+                new_time = int(bin_dbapi.aux_get(cpv, ["BUILD_TIME"])[0])
+                drop_cpv = old_cpv if new_time >= old_time else cpv
+
+                binpkg_path = bin_dbapi.bintree.getname(drop_cpv)
+                dead_binpkgs.setdefault(drop_cpv, []).append(binpkg_path)
+
+                if new_time >= old_time:
+                    keep_binpkgs[cpv_key] = cpv
+                else:
+                    continue
+            else:
+                keep_binpkgs[cpv_key] = cpv
 
         # Exclude if binpkg exists in the porttree and not --deep
         if not destructive and port_dbapi.cpv_exists(cpv):
@@ -604,6 +628,9 @@ def findPackages(
             buildtime = var_dbapi.aux_get(cpv, ["BUILD_TIME"])[0]
             if buildtime == bin_dbapi.aux_get(cpv, ["BUILD_TIME"])[0]:
                 continue
+
+        if not destructive and options["unique-use"]:
+            del keep_binpkgs[cpv_key]
 
         binpkg_path = bin_dbapi.bintree.getname(cpv)
         dead_binpkgs.setdefault(cpv, []).append(binpkg_path)

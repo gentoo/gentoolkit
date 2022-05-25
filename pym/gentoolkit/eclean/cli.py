@@ -252,6 +252,11 @@ def printUsage(_error=None, help=None):
             + "             - ignore failure to locate PKGDIR",
             file=out,
         )
+        print(
+            yellow(" -i, --unique-use")
+            + "                 - keep unique packages which have no duplicated USE",
+            file=out,
+        )
         print(file=out)
     if _error in ("distfiles-options", "merged-distfiles-options") or help in (
         "all",
@@ -392,6 +397,8 @@ def parseArgs(options={}):
                 options["changed-deps"] = True
             elif o in ("-i", "--ignore-failure"):
                 options["ignore-failure"] = True
+            elif o in ("--unique-use"):
+                options["unique-use"] = True
             else:
                 return_code = False
         # sanity check of --deep only options:
@@ -431,7 +438,11 @@ def parseArgs(options={}):
     getopt_options["short"]["distfiles"] = "fs:"
     getopt_options["long"]["distfiles"] = ["fetch-restricted", "size-limit="]
     getopt_options["short"]["packages"] = "i"
-    getopt_options["long"]["packages"] = ["ignore-failure", "changed-deps"]
+    getopt_options["long"]["packages"] = [
+        "ignore-failure",
+        "changed-deps",
+        "unique-use",
+    ]
     # set default options, except 'nocolor', which is set in main()
     options["interactive"] = False
     options["pretend"] = False
@@ -446,6 +457,7 @@ def parseArgs(options={}):
     options["verbose"] = False
     options["changed-deps"] = False
     options["ignore-failure"] = False
+    options["unique-use"] = False
     # if called by a well-named symlink, set the action accordingly:
     action = None
     # temp print line to ensure it is the svn/branch code running, etc..
