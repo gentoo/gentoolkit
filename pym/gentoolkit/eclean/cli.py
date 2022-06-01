@@ -397,7 +397,7 @@ def parseArgs(options={}):
                 options["changed-deps"] = True
             elif o in ("-i", "--ignore-failure"):
                 options["ignore-failure"] = True
-            elif o in ("--unique-use"):
+            elif o in ("-u", "--unique-use"):
                 options["unique-use"] = True
             else:
                 return_code = False
