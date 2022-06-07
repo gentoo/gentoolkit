@@ -1,4 +1,4 @@
-# 	vim:fileencoding=utf-8
+#   vim:fileencoding=utf-8
 # Copyright 2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
@@ -29,7 +29,8 @@ def display(
     # data
     corner_image = ["".ljust(plain_width) for x in range(rotated_height)]
     if toplist != "archlist":
-        corner_image.extend(plain_list)
+        # DON'T add the first list item which is: "-------", it will throw the row alignment off
+        corner_image.extend(plain_list[1:])
     data_printout = [
         "%s%s" % (x, y)
         for x, y in zip_longest(corner_image, rotated_list, fillvalue=corner_image[0])
