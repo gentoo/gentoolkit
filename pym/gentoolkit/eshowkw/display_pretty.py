@@ -125,6 +125,6 @@ class string_rotator:
             if x.find("+ -") != -1:
                 x = x.replace(" ", "-")
             # strip all chars and remove empty lines
-            if not strip or len(x.strip(" |-")) > 0:
+            if not strip or len(x.strip(" |-")) > 0 or '-' in x:
                 tmp.append(x)
         return tmp

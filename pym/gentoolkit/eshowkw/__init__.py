@@ -49,7 +49,7 @@ def process_display(package, keywords, dbapi):
         content.extend(sep)
         content.extend(keywords.extra)
         header_length = keywords.length
-        content_length = portdata.version_length - 1
+        content_length = portdata.version_length
     display(content, header, header_length, content_length, portdata.cp, topper)
 
 
