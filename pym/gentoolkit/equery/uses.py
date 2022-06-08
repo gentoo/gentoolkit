@@ -31,7 +31,11 @@ from gentoolkit.flag import get_flags, reduce_flags
 # Globals
 # =======
 
-QUERY_OPTS = {"all_versions": False, "ignore_l10n": False}
+QUERY_OPTS = {
+    "all_versions": False,
+    "forced_masked": False,
+    "ignore_l10n": False,
+}
 
 # =========
 # Functions
@@ -56,6 +60,7 @@ def print_help(with_description=True):
             (
                 (" -h, --help", "display this help message"),
                 (" -a, --all", "include all package versions"),
+                (" -f, --forced-masked", "include forced/masked USE flags"),
                 (" -i, --ignore-l10n", "don't show l10n USE flags"),
             )
         )
@@ -67,8 +72,14 @@ def display_useflags(output):
 
     @type output: list
     @param output: [(inuse, inused, flag, desc, restrict), ...]
-            inuse (int) = 0 or 1; if 1, flag is set in make.conf
-            inused (int) = 0 or 1; if 1, package is installed with flag enabled
+            inuse (int) = 0, 1, 2, 3;
+                    if 1, flag is set in make.conf;
+                    if 2, flag is masked;
+                    if 3, flag is forced
+            inused (int) = 0, 1, 2, 3;
+                    if 1, package is installed with flag enabled;
+                    if 2, flag is masked;
+                    if 3, flag is forced
             flag (str) = the name of the USE flag
             desc (str) = the flag's description
             restrict (str) = corresponds to the text of restrict in metadata
@@ -80,7 +91,8 @@ def display_useflags(output):
     twrap.width = CONFIG["termWidth"]
     twrap.subsequent_indent = " " * (maxflag_len + 8)
 
-    markers = ("-", "+")
+    markers = ("-", "+", "M", "F")
+    # Colors for masked/forced = unset/set (mod 2)
     color = (partial(pp.useflag, enabled=False), partial(pp.useflag, enabled=True))
     for in_makeconf, in_installed, flag, desc, restrict in output:
         if CONFIG["verbose"]:
@@ -92,7 +104,7 @@ def display_useflags(output):
             else:
                 flag_name += " %s %s" % (markers[in_makeconf], markers[in_installed])
 
-            flag_name += " " + color[in_makeconf](flag.ljust(maxflag_len))
+            flag_name += " " + color[in_makeconf % 2](flag.ljust(maxflag_len))
             flag_name += " : "
 
             # Strip initial whitespace at the start of the description
@@ -119,7 +131,11 @@ def display_useflags(output):
                     twrap.initial_indent = flag_name
                     print(twrap.fill("<unknown>"))
         else:
-            pp.uprint(markers[in_makeconf] + flag)
+            # Match emerge -v output for forced/masked flags
+            if in_makeconf > 1:
+                pp.uprint("(" + markers[in_makeconf % 2] + flag + ")")
+            else:
+                pp.uprint(markers[in_makeconf] + flag)
 
 
 def get_global_useflags():
@@ -184,7 +200,16 @@ def get_output_descriptions(pkg, global_usedesc):
     else:
         local_usedesc = pkg.metadata.use()
 
-    iuse, final_use = get_flags(pkg.cpv, final_setting=True)
+    useforced = []
+    usemasked = []
+    if QUERY_OPTS["forced_masked"]:
+        iuse, final_use, useforced, usemasked = get_flags(
+            pkg.cpv, final_setting=True, include_forced_masked=True
+        )
+    else:
+        iuse, final_use = get_flags(
+            pkg.cpv, final_setting=True, include_forced_masked=False
+        )
     usevar = reduce_flags(iuse)
     usevar.sort()
 
@@ -202,8 +227,8 @@ def get_output_descriptions(pkg, global_usedesc):
     # store (inuse, inused, flag, desc, restrict)
     output = []
     for flag in usevar:
-        inuse = False
-        inused = False
+        inuse = 0
+        inused = 0
 
         local_use = None
         for use in local_usedesc:
@@ -226,9 +251,18 @@ def get_output_descriptions(pkg, global_usedesc):
             restrict = ""
 
         if flag in final_use:
-            inuse = True
+            inuse = 1
+            if flag in useforced:
+                inuse = 3
+        elif flag in usemasked:
+            inuse = 2
+
         if flag in used_flags:
-            inused = True
+            inused = 1
+            if flag in useforced:
+                inused = 3
+        elif flag in usemasked:
+            inused = 2
 
         output.append((inuse, inused, flag, desc, restrict))
 
@@ -245,6 +279,8 @@ def parse_module_options(module_opts):
             sys.exit(0)
         elif opt in ("-a", "--all"):
             QUERY_OPTS["all_versions"] = True
+        elif opt in ("-f", "--forced-masked"):
+            QUERY_OPTS["forced_masked"] = True
         elif opt in ("-i", "--ignore-l10n"):
             QUERY_OPTS["ignore_l10n"] = True
 
@@ -263,8 +299,8 @@ def print_legend():
 def main(input_args):
     """Parse input and run the program"""
 
-    short_opts = "hai"
-    long_opts = ("help", "all", "ignore-l10n")
+    short_opts = "hafi"
+    long_opts = ("help", "all", "forced-masked", "ignore-l10n")
 
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
