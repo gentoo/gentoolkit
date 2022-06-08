@@ -163,7 +163,7 @@ def get_all_cpv_use(cpv):
     return use, use_expand_hidden, usemask, useforce
 
 
-def get_flags(cpv, final_setting=False):
+def get_flags(cpv, final_setting=False, include_forced_masked=False):
     """Retrieves all information needed to filter out hidded, masked, etc.
     USE flags for a given package.
 
@@ -172,12 +172,32 @@ def get_flags(cpv, final_setting=False):
     @type final_setting: boolean
     @param final_setting: used to also determine the final
             enviroment USE flag settings and return them as well.
-    @rtype: list or list, list
-    @return IUSE or IUSE, final_flags
+    @type include_forced_masked: boolean
+    @param include_forced_masked: used to toggle the inclusion of forced and
+            masked USE flags in the returned result.
+    @rtype: list
+            or list, list
+            or list, list, list
+            or list, list, list, list
+    @return IUSE
+            or IUSE, final_flags
+            or IUSE, useforced, usemasked
+            or IUSE, final_flags, useforced, usemasked
     """
     final_use, use_expand_hidden, usemasked, useforced = get_all_cpv_use(cpv)
-    iuse_flags = filter_flags(get_iuse(cpv), use_expand_hidden, usemasked, useforced)
-    if final_setting:
-        final_flags = filter_flags(final_use, use_expand_hidden, usemasked, useforced)
-        return iuse_flags, final_flags
-    return iuse_flags
+    if include_forced_masked:
+        iuse_flags = filter_flags(get_iuse(cpv), use_expand_hidden, [], [])
+        if final_setting:
+            final_flags = filter_flags(final_use, use_expand_hidden, [], [])
+            return iuse_flags, final_flags, useforced, usemasked
+        return iuse_flags, useforced, usemasked
+    else:
+        iuse_flags = filter_flags(
+            get_iuse(cpv), use_expand_hidden, usemasked, useforced
+        )
+        if final_setting:
+            final_flags = filter_flags(
+                final_use, use_expand_hidden, usemasked, useforced
+            )
+            return iuse_flags, final_flags
+        return iuse_flags
