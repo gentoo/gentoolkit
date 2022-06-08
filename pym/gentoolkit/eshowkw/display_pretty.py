@@ -29,8 +29,7 @@ def display(
     # data
     corner_image = ["".ljust(plain_width) for x in range(rotated_height)]
     if toplist != "archlist":
-        # DON'T add the first list item which is: "-------", it will throw the row alignment off
-        corner_image.extend(plain_list[1:])
+        corner_image.extend(plain_list)
     data_printout = [
         "%s%s" % (x, y)
         for x, y in zip_longest(corner_image, rotated_list, fillvalue=corner_image[0])
