@@ -215,8 +215,7 @@ def get_output_descriptions(pkg, global_usedesc):
 
     if QUERY_OPTS["ignore_l10n"]:
         for a in usevar[:]:
-            # TODO: Remove linguas after transition to l10n is complete
-            if a.startswith("l10n_") or a.startswith("linguas_"):
+            if a.startswith("l10n_"):
                 usevar.remove(a)
 
     if pkg.is_installed():
