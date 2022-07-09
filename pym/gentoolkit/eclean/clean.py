@@ -19,8 +19,9 @@ class CleanUp:
                                        or bypassing/ignoring
     """
 
-    def __init__(self, controller):
+    def __init__(self, controller, quiet):
         self.controller = controller
+        self.quiet = quiet
 
     def clean_dist(self, clean_dict):
         """Calculate size of each entry for display, prompt user if needed,
@@ -64,7 +65,7 @@ class CleanUp:
             # emaint is not yet importable so call it
             # print a blank line here for separation
             print()
-            clean_size += index_control.call_emaint()
+            clean_size += index_control.clean_pkgs_index(self.quiet)
         # return total size of deleted or to delete files
         return clean_size
 

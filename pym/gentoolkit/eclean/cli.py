@@ -555,7 +555,7 @@ def doAction(action, options, exclude={}, output=None):
         )
 
     # initialize our cleaner
-    cleaner = CleanUp(output.progress_controller)
+    cleaner = CleanUp(output.progress_controller, options["quiet"])
 
     # actually clean files if something was found
     if clean_me:

@@ -11,6 +11,11 @@ import gentoolkit.pprinter as pp
 from gentoolkit.eprefix import EPREFIX
 
 import portage
+from portage.module import (
+    InvalidModuleName,
+    Modules,
+)
+from portage.emaint.main import TaskHandler
 
 
 class PkgIndex:
@@ -32,37 +37,36 @@ class PkgIndex:
         @sets: self.binhost to BinhostHandler class
         @rtype: boolean
         """
-        # About noqa below: I don't understand how this code can run at all.
-        # TODO: verify soundness
         try:
-            self.emaint_control = Modules()  # noqa
+            self.emaint_control = Modules()
             self.binhost = self.emaint_control._get_class("binhost")
-        except InvalidModuleName as er:  # noqa
+        except InvalidModuleName as er:
             print(pp.error("Error importing emaint binhost module"), file=sys.stderr)
             print(pp.error("Original error: " + er), file=sys.stderr)
         except:
             return False
         return True
 
-    def _load_modules(self):
-        """Import the emaint modules and report the success/fail of them"""
-        try:
-            from emaint.module import Modules  # noqa
-            from emaint.main import TaskHandler  # noqa
-        except ImportError:
-            return False
-        return True
+    def clean_pkgs_index(self, quiet):
+        """This will clean the binpkgs packages index file
 
-    def clean_pkgs_index(
-        self,
-    ):
-        """This will clean the binpkgs packages index file"""
-        go = self._load_modules()
-        if go:
-            if self.get_emaint_binhost():
-                self.taskmaster = TaskHandler(show_progress_bar=True)  # noqa
-                tasks = [self.binhost]
-                self.taskmaster.run_tasks(tasks)
+        @param quiet: boolean
+        @return: the difference in file size
+        """
+        file_ = os.path.join(portage.settings["PKGDIR"], "Packages")
+        statinfo = os.stat(file_)
+        size1 = statinfo.st_size
+        show_progress = not quiet
+        if self.get_emaint_binhost():
+            self.taskmaster = TaskHandler(show_progress_bar=show_progress)
+            tasks = [self.binhost]
+            self.taskmaster.run_tasks(tasks)
+        else:
+            self.call_emaint()
+        statinfo = os.stat(file_)
+        clean_size = size1 - statinfo.st_size
+        self.controller("\n", clean_size, "Packages Index", file_, "Index")
+        return clean_size
 
     def call_emaint(self):
         """Run the stand alone emaint script from
@@ -71,9 +75,6 @@ class PkgIndex:
         @rtype: integer
         @return: the difference in file size
         """
-        file_ = os.path.join(portage.settings["PKGDIR"], "Packages")
-        statinfo = os.stat(file_)
-        size1 = statinfo.st_size
         try:
             retcode = subprocess.call(self.emaint_cmd, shell=True)
             if retcode < 0:
@@ -83,8 +84,3 @@ class PkgIndex:
                 )
         except OSError as e:
             print(pp.error("Execution failed:" + e), file=sys.stderr)
-        print()
-        statinfo = os.stat(file_)
-        clean_size = size1 - statinfo.st_size
-        self.controller(clean_size, "Packages Index", file_, "Index")
-        return clean_size
