@@ -19,6 +19,7 @@ from gentoolkit.equery import format_options, mod_usage, CONFIG
 from gentoolkit.helpers import get_cpvs, get_installed_cpvs
 from gentoolkit.cpv import CPV
 from gentoolkit.package import PackageFormatter, FORMAT_TMPL_VARS
+
 # =======
 # Globals
 # =======
@@ -69,18 +70,18 @@ class DependPrinter:
         if pkg is None:
             return
 
-        if CONFIG['verbose']:
-            print (PackageFormatter(
-                pkg,
-                do_format=True,
-                custom_format=QUERY_OPTS["package_format"]
-            ))
+        if CONFIG["verbose"]:
+            print(
+                PackageFormatter(
+                    pkg, do_format=True, custom_format=QUERY_OPTS["package_format"]
+                )
+            )
         else:
-            print (PackageFormatter(
-                pkg,
-                do_format=False,
-                custom_format=QUERY_OPTS["package_format"]
-            ))
+            print(
+                PackageFormatter(
+                    pkg, do_format=False, custom_format=QUERY_OPTS["package_format"]
+                )
+            )
 
     def format_depend(self, dep, dep_is_displayed):
         """Format a dependency for printing.
@@ -107,24 +108,23 @@ class DependPrinter:
                 use_conditional = " & ".join(
                     pp.useflag(u) for u in mdep.use_conditional.split()
                 )
-            if mdep.operator == '=*':
-                formatted_dep = '=%s*' % str(mdep.cpv)
+            if mdep.operator == "=*":
+                formatted_dep = "=%s*" % str(mdep.cpv)
             else:
                 formatted_dep = mdep.operator + str(mdep.cpv)
             if mdep.slot:
-                formatted_dep += pp.emph(':') + pp.slot(mdep.slot)
+                formatted_dep += pp.emph(":") + pp.slot(mdep.slot)
                 if mdep.sub_slot:
-                    formatted_dep += pp.slot('/') + pp.slot(mdep.sub_slot)
+                    formatted_dep += pp.slot("/") + pp.slot(mdep.sub_slot)
             if mdep.use:
-                useflags = pp.useflag(','.join(mdep.use.tokens))
-                formatted_dep += (pp.emph('[') + useflags + pp.emph(']'))
+                useflags = pp.useflag(",".join(mdep.use.tokens))
+                formatted_dep += pp.emph("[") + useflags + pp.emph("]")
 
             if dep_is_displayed:
                 indent = indent + " " * len(str(dep.cpv))
-                self.print_fn(indent, '', use_conditional, formatted_dep)
+                self.print_fn(indent, "", use_conditional, formatted_dep)
             else:
-                self.print_fn(indent, \
-                    str(dep.cpv), use_conditional, formatted_dep)
+                self.print_fn(indent, str(dep.cpv), use_conditional, formatted_dep)
 
 
 # =========
@@ -174,7 +174,7 @@ def parse_module_options(module_opts):
             QUERY_OPTS["include_masked"] = True
         elif opt in ("-D", "--indirect"):
             QUERY_OPTS["only_direct"] = False
-        elif opt in ('-F', '--format'):
+        elif opt in ("-F", "--format"):
             QUERY_OPTS["package_format"] = posarg
         elif opt in ("--depth"):
             if posarg.isdigit():
@@ -190,9 +190,8 @@ def parse_module_options(module_opts):
 
 def main(input_args):
     """Parse input and run the program"""
-    short_opts = "hadDF:" # -d, --direct was old option for default action
-    long_opts = ('help', 'all-packages', 'direct', 'indirect', \
-                    'format', 'depth=')
+    short_opts = "hadDF:"  # -d, --direct was old option for default action
+    long_opts = ("help", "all-packages", "direct", "indirect", "format", "depth=")
 
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
