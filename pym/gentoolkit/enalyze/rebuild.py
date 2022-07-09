@@ -401,6 +401,7 @@ class Rebuild(ModuleBase):
             encoding=_encodings["content"],
         ) as output:
             output.write("\n".join(data))
+            output.write("\n")
         print("   - Done")
 
 
