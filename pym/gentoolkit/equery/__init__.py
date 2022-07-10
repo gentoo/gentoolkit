@@ -228,6 +228,8 @@ def initialize_configuration():
         # set extra wide, should disable wrapping unless
         # there is some extra long text
         CONFIG["termWidth"] = 600
+        # turn off color
+        pp.output.nocolor()
 
     CONFIG["debug"] = bool(os.getenv("DEBUG", False))
 
