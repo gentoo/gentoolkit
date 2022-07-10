@@ -1,5 +1,12 @@
 News (new features/major bug fixes)
 
+gentoolkit-0.6.1
+----------------
+  * Fix custom TMPL implementation for depends commit 3e35553df4673
+  * fix unused variable detection
+  * migrate setup.py to setuptools
+
+
 gentoolkit-0.6.0
 ----------------
   * merge-driver-ekeyword Fis type annotations
