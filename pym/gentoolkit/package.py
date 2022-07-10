@@ -123,14 +123,18 @@ class Package(CPV):
 
     @property
     def metadata(self):
-        """Instantiate a L{gentoolkit.metadata.MetaData} object here."""
+        """Instantiate a L{portage.xml.MetaDataXML} object here."""
 
-        from gentoolkit.metadata import MetaData
+        from portage.xml.metadata import MetaDataXML
 
         if self._metadata is None:
             metadata_path = os.path.join(self.package_path(), "metadata.xml")
+            projects_path = os.path.join(
+                self._settings["PORTDIR"], "metadata/projects.xml"
+            )
+
             try:
-                self._metadata = MetaData(metadata_path)
+                self._metadata = MetaDataXML(metadata_path, projects_path)
             except IOError as error:
                 import errno
 
