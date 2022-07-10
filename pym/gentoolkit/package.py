@@ -448,7 +448,9 @@ class Package(CPV):
         @rtype: list
         """
 
-        return portage.db[portage.root]["porttree"].dbapi.aux_get(self.cpv, ["DESCRIPTION"])
+        return portage.db[portage.root]["porttree"].dbapi.aux_get(
+            self.cpv, ["DESCRIPTION"]
+        )
 
 
 class PackageFormatter:
