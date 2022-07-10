@@ -18,7 +18,7 @@ from gentoolkit.dependencies import Dependencies
 from gentoolkit.equery import format_options, mod_usage, CONFIG
 from gentoolkit.helpers import get_cpvs, get_installed_cpvs
 from gentoolkit.cpv import CPV
-from gentoolkit.package import PackageFormatter, FORMAT_TMPL_VARS
+from gentoolkit.package import PackageFormatter, Package
 
 # =======
 # Globals
