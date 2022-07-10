@@ -16,6 +16,7 @@ from functools import partial
 from getopt import gnu_getopt, GetoptError
 
 import portage.checksum as checksum
+from portage.exception import PermissionDenied
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
@@ -138,8 +139,12 @@ class VerifyContents:
             md5sum = files[cfile][2]
             try:
                 cur_checksum = checksum.perform_md5(real_cfile, calc_prelink=1)
-            except IOError:
+            except PermissionDenied:
                 err = "Insufficient permissions to read %(cfile)s"
+                obj_errs.append(err % locals())
+                return obj_errs
+            except Exception as ex:
+                err = "Problem checking %(cfile)s: %(ex)s"
                 obj_errs.append(err % locals())
                 return obj_errs
             if cur_checksum != md5sum:
