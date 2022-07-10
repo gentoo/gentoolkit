@@ -3,8 +3,8 @@
 import re
 import sys
 import subprocess
-from distutils import core
-from distutils.cmd import Command
+
+from setuptools import setup, Command
 from glob import glob
 
 import os
@@ -67,7 +67,7 @@ manpages = [
 ]
 
 
-class set_version(core.Command):
+class set_version(Command):
     """Set python __version__ and bash VERSION to our __version__."""
 
     description = "hardcode scripts' version using VERSION from environment"
@@ -130,7 +130,7 @@ test_data = {
     ]
 }
 
-core.setup(
+setup(
     name="gentoolkit",
     version=__version__,
     description="Set of tools that work with and enhance portage.",
