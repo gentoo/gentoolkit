@@ -103,7 +103,6 @@ class DependPrinter:
             pkg = Package(str(dep.cpv))
             self.print_formated(pkg)
         else:
-            self.print_fn(indent, str(dep.cpv), use_conditional, formatted_dep)
             if mdep.use_conditional:
                 use_conditional = " & ".join(
                     pp.useflag(u) for u in mdep.use_conditional.split()
