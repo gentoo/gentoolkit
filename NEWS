@@ -1,5 +1,37 @@
 News (new features/major bug fixes)
 
+gentoolkit-0.6.0
+----------------
+  * merge-driver-ekeyword Fis type annotations
+  * equery changes removal
+  * Convert from tab indent to spaces, format cleanup
+  * Add github action to check formatting, add unit testing
+  * Add flake testing to github action
+  * ChangeLog cleanups
+  * imlate: Remove 'experimental' code
+  * Remove remnants of herds support
+  * man page updates/fixes
+  * euse: migrate egrep -> grep -E
+  * Add python 3.10, 3.11 testing to tox.ini
+  * implement --unique-use option for eclean-pkg
+  * eshowkw: Fix bug 503366 row alignment issue
+  * revdep-rebuild: set up a child logger with propagate = False
+  * Add -f/--forced-masked to equery uses
+  * metadata.py: Don't fail on unmatched package
+  * equery: update linguas->l10n option
+  * equery: Add -F TMPL option to depends module
+  * revdep-rebuild.sh: use awk command instead of gawk
+  * ekeyword: remove .ebuild file suffix requirement (bug 762331)
+  * eclean: Complete migration to imported emaint code
+  * eclean: add early return for empty DISTDIR
+  * enalyze: Fix missing newline at end of saved rebuild files
+  * equery: Turn off color when piping is set
+  * equery meta: Fix missing description when not in metadata.xml
+  * equery meta: Migrate to portage's MetadataXML class
+  * equery check: Fix exception handling for Insufficient permissions
+  * equery depends: Fix a traceback due to UnboundLocalError:
+
+
 gentoolkit-0.5.1
 ----------------
   * Added support for Python 3.9
