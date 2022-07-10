@@ -331,6 +331,8 @@ def call_format_functions(best_match, matches):
 
     if QUERY_OPTS["description"]:
         desc = best_match.metadata.descriptions()
+        if not desc:
+            desc = best_match.description
         print_sequence(format_list(desc))
 
     if QUERY_OPTS["useflags"]:

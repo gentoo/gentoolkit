@@ -437,6 +437,15 @@ class Package(CPV):
         )
         return self.cpv not in unmasked
 
+    @property
+    def description(self):
+        """Returns the DESCRIPTION from the ebuild
+
+        @rtype: list
+        """
+
+        return portage.db[portage.root]["porttree"].dbapi.aux_get(self.cpv, ["DESCRIPTION"])
+
 
 class PackageFormatter:
     """When applied to a L{gentoolkit.package.Package} object, determine the
