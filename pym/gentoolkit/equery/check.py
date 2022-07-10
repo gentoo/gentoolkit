@@ -144,6 +144,7 @@ class VerifyContents:
                 obj_errs.append(err % locals())
                 return obj_errs
             except Exception as ex:
+                assert ex  # to silence unused variable ex
                 err = "Problem checking %(cfile)s: %(ex)s"
                 obj_errs.append(err % locals())
                 return obj_errs
