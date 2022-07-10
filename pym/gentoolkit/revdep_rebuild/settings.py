@@ -64,7 +64,7 @@ def parse_options():
         "-V",
         "--version",
         action="version",
-        help="Show version informations",
+        help="Show version information",
         version="%(prog)s " + VERSION,
     )
 
@@ -116,7 +116,7 @@ def parse_options():
         help="Be more verbose (also passed to emerge command)",
     )
     parser.add_argument(
-        "-d", "--debug", action="store_true", help="Print debug informations"
+        "-d", "--debug", action="store_true", help="Print debug information"
     )
 
     parser.add_argument("portage_options", nargs="*")

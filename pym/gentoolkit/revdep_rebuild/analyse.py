@@ -384,7 +384,7 @@ def analyse(
         ftime = current_milli_time()
         logger.debug("\ttime to complete task: %d milliseconds" % (ftime - stime))
         stime = current_milli_time()
-        logger.info(green(" * ") + bold("Collecting dynamic linking informations"))
+        logger.info(green(" * ") + bold("Collecting dynamic linking information"))
 
         libraries, la_libraries, libraries_links = collect_libraries_from_dir(
             lib_dirs, all_masks, logger

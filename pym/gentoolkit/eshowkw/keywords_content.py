@@ -106,7 +106,7 @@ class keywords_content:
             return [self.__separateVersion(x, repo, revlength) for x, repo in packages]
 
         def __getRevision(self, cpv):
-            """Get revision informations for each package for nice further alignment"""
+            """Get revision information for each package for nice further alignment"""
             rev = port.catpkgsplit(cpv)[3]
             return rev if rev != "r0" else ""
 
