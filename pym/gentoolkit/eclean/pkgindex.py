@@ -57,7 +57,7 @@ class PkgIndex:
         statinfo = os.stat(file_)
         size1 = statinfo.st_size
         show_progress = not quiet
-        if self.get_emaint_binhost():
+        if self._get_emaint_binhost():
             self.taskmaster = TaskHandler(show_progress_bar=show_progress)
             tasks = [self.binhost]
             self.taskmaster.run_tasks(tasks)
@@ -65,7 +65,7 @@ class PkgIndex:
             self.call_emaint()
         statinfo = os.stat(file_)
         clean_size = size1 - statinfo.st_size
-        self.controller("\n", clean_size, "Packages Index", file_, "Index")
+        self.controller(clean_size, "Packages Index", file_, "Index")
         return clean_size
 
     def call_emaint(self):
