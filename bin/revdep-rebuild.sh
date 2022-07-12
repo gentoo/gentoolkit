@@ -570,7 +570,8 @@ verify_tmpdir() {
 	elif [[ -d $1 ]]; then
 		cd "$1"
 	else
-		die 1 "Unable to find a satisfactory location for temporary files ($1)"
+		mkdir -p "$1"
+		cd "$1"
 	fi
 	[[ $VERBOSE ]] && einfo "Temporary cache files are located in $PWD"
 	setup_rm
