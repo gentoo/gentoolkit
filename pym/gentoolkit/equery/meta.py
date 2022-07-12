@@ -167,7 +167,7 @@ def format_maintainers(maints):
         if CONFIG["verbose"]:
             maintstr += " (%s)" % (maint.name,) if maint.name else ""
             maintstr += " - %s" % (maint.restrict,) if maint.restrict else ""
-            maintstr += "\n%s" % (maint.description,) if maint.description else ""
+            maintstr += " - %s" % (maint.description,) if maint.description else ""
         result.append(maintstr)
 
     return result
