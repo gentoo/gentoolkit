@@ -276,7 +276,7 @@ get_vcs() {
 		echo "svn"
 		return 0
 	else
-		if [ -x "$(which git)" ]; then
+		if command -v git >/dev/null; then
 			if [ -n "$(git rev-parse --git-dir 2>/dev/null)" ]; then
 				echo "git"
 				return 0
