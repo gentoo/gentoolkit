@@ -277,7 +277,7 @@ get_vcs() {
 		return 0
 	else
 		if command -v git >/dev/null; then
-			if [ -n "$(git rev-parse --git-dir 2>/dev/null)" ]; then
+			if [ "$(git rev-parse --is-inside-work-tree)" = true ]; then
 				echo "git"
 				return 0
 			fi
