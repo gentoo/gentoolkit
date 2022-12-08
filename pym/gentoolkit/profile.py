@@ -21,21 +21,26 @@ def warning(msg):
     print("warning: %s" % msg, file=sys.stderr)
 
 
-def load_profile_data(portdir=None, repo="gentoo"):
+def load_profile_data(portdir=None, repo=""):
     """Load the list of known arches from the tree
 
     Args:
       portdir: The repository to load all data from (and ignore |repo|)
-      repo: Look up this repository by name to locate profile data
+      repo: Look up this repository by name to locate profile data (if empty, uses main repo name)
 
     Returns:
       A dict mapping the keyword to its preferred state:
       {'x86': ('stable', 'arch'), 'mips': ('dev', '~arch'), ...}
     """
     if portdir is None:
-        portdir = (
-            portage.db[portage.root]["vartree"].settings.repositories[repo].location
-        )
+        repos = portage.db[portage.root]["vartree"].settings.repositories
+        if repo == "":
+            main_repo = repos.mainRepo()
+            if main_repo is None:
+                repo = "gentoo"
+            else:
+                repo = main_repo.name
+        portdir = repos[repo].location
 
     arch_status = {}
 
