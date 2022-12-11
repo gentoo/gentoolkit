@@ -296,7 +296,7 @@ class keywords_content:
             elif pv.find("[%M%]") != -1:
                 tmp.append(colorize_string("darkred", pv))
             elif pv.find("[%I%]") != -1:
-                tmp.append(colorize_string("bold", pv))
+                tmp.append(colorize_string("darkgreen", pv))
             else:
                 tmp.append(pv)
         return tmp
