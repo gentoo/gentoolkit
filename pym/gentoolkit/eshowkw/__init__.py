@@ -121,7 +121,7 @@ def process_args(argv):
         "--ignore-slot",
         action="store_true",
         default=False,
-        help="Treat slots as irelevant during detection of redundant packages.",
+        help="Treat slots as irrelevant during detection of redundant packages.",
     )
 
     return parser.parse_args(args=argv)
