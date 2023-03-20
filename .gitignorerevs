@@ -2,3 +2,5 @@
 bbcd72b5fe85fe9bbca1913f8aa22077d94e75d0
 # Reformat with black 22.1.0
 76c188b5189375b3b3b7c92f31491990e29a1669
+# */*: Reformat with newer Black
+5318fb2032cf24beafdda843af83c0a56d6c9dfe
