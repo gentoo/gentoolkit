@@ -19,7 +19,8 @@ jobs:
         - 'pypy-3.9'
 
     env:
-      PORTAGE_VERSION: "3.0.30"
+      # TODO: get this dynamically
+      PORTAGE_VERSION: "3.0.45.3"
 
     steps:
     - uses: actions/checkout@v2
