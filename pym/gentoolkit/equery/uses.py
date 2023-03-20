@@ -337,7 +337,6 @@ def main(input_args):
 
         global_usedesc = get_global_useflags()
         for pkg in matches:
-
             output = get_output_descriptions(pkg, global_usedesc)
             if output:
                 if CONFIG["verbose"]:

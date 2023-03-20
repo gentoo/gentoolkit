@@ -25,7 +25,6 @@ topper = "versionlist"
 
 
 def process_display(package, keywords, dbapi):
-
     portdata = keywords_content(
         package, keywords.keywords, dbapi, ignore_slots, order, bold, topper
     )

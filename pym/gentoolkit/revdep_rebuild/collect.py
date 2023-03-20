@@ -134,7 +134,6 @@ def collect_libraries_from_dir(dirs, mask, logger):
                         or listing.endswith(".a")
                         or ".so." in listing
                     ):
-
                         if os.path.islink(listing):
                             found_symlinks.add(listing)
                         else:

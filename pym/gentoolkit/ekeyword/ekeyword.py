@@ -138,7 +138,6 @@ def diff_keywords(old_keywords, new_keywords, style="color-inline"):
         output = ""
 
         for tag, i0, i1, j0, j1 in s.get_opcodes():
-
             if tag == "equal":
                 output += s.a[i0:i1]
 

@@ -268,7 +268,6 @@ class Dependencies(Query):
                 and pkgdep.cpv not in seen
                 and (depth < max_depth or max_depth == -1)
             ):
-
                 seen.add(pkgdep.cpv)
                 result.append(
                     pkgdep.graph_reverse_depends(

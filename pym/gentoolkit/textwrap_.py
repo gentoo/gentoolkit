@@ -47,7 +47,6 @@ class TextWrapper(textwrap.TextWrapper):
         ansi_re = re.compile(r"\x1b\[[0-9;]*m")
 
         while chunks:
-
             # Start the list of chunks that will make up the current line.
             # cur_len is just the length of all the chunks in cur_line.
             cur_line = []
