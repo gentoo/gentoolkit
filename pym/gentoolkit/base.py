@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright(c) 2009 - 2010, Gentoo Foundation
+# Copyright(c) 2009-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 """Gentoolkit Base Module class to hold common module operation functions
@@ -39,7 +39,11 @@ def initialize_configuration():
     # Guess color output
     if (
         gentoolkit.CONFIG["color"] == -1
-        and (not sys.stdout.isatty() or os.getenv("NOCOLOR") in ("yes", "true"))
+        and (
+            not sys.stdout.isatty()
+            or os.getenv("NO_COLOR")
+            or os.getenv("NOCOLOR") in ("yes", "true")
+        )
         or gentoolkit.CONFIG["color"] == 0
     ):
         pp.output.nocolor()
