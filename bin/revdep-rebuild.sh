@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 1999-2010 Gentoo Foundation
+# Copyright 2003-2023 Gentoo Authors
 
 # revdep-rebuild: Reverse dependency rebuilder.
 # Original Author: Stanislav Brabec
@@ -80,6 +80,7 @@ declare SEARCH_DIRS_MASK # List of dirs not to search
 declare OLDPROG                # Previous pass through the progress meter
 declare EXACT_PKG              # Versionated atom to emerge
 declare HEAD_TEXT              # Feedback string about the search
+declare NO_COLOR               # Set to nonempty not to output term colors
 declare NOCOLOR                # Set to "true" not to output term colors
 declare OK_TEXT                # Feedback about a search which found no errors
 declare RC_NOCOLOR             # Hack to insure we respect NOCOLOR
@@ -169,7 +170,7 @@ print_usage() {
 cat << EOF
 ${APP_NAME}: (${VERSION})
 
-Copyright (C) 2003-2010 Gentoo Foundation, Inc.
+Copyright (C) 2003-2023 Gentoo Authors
 This is free software; see the source for copying conditions.
 
 Usage: $APP_NAME [OPTIONS] [--] [EMERGE_OPTIONS]
@@ -320,7 +321,8 @@ normalize_emerge_opts() {
 setup_color() {
 	# This should still work if NOCOLOR is set by the -C flag or in the user's
 	# environment.
-	[[ $NOCOLOR = yes || $NOCOLOR = true ]] && export RC_NOCOLOR=yes # HACK! (grr)
+	[[ -n $NO_COLOR || $NOCOLOR = yes || $NOCOLOR = true ]] &&
+		export RC_NOCOLOR=yes # HACK! (grr)
 	# TODO: Change location according to Bug 373219
 	# Remove /etc/init.d/functions.sh once everything is migrated
 	if [ -e /lib/gentoo/functions.sh ]; then
@@ -367,9 +369,9 @@ warn_deprecated_opt() {
 # Get whole-word commandline options preceded by two dashes.
 get_longopts() {
 	case $1 in
-		                               --nocolor) export NOCOLOR="yes";;
+		                               --nocolor) export NO_COLOR=1 NOCOLOR="yes";;
 		                              --no-color) warn_deprecated_opt "$1" "--nocolor"
-		                                          export NOCOLOR="yes";;
+		                                          export NO_COLOR=1 NOCOLOR="yes";;
 		                                 --debug) set -xv;;
 		                                 --exact) unset PACKAGE_NAMES;;
 		                                  --help) print_usage
@@ -424,7 +426,7 @@ get_shortopts() {
 	while getopts ":CdehikL:loPpquvX" OPT; do
 		case "$OPT" in
 			C) # TODO: Match syntax with the rest of gentoolkit
-			   export NOCOLOR="yes";;
+			   export NO_COLOR=1 NOCOLOR="yes";;
 			d) set -xv;;
 			e) unset PACKAGE_NAMES;;
 			h) print_usage
@@ -1092,8 +1094,8 @@ portage_settings() {
 	unset SEARCH_DIRS_MASK
 	unset LD_LIBRARY_MASK
 
-	eval $(portageq envvar -v PORTAGE_ROOT PORTAGE_NICENESS EMERGE_DEFAULT_OPTS NOCOLOR SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK REVDEP_REBUILD_DEFAULT_OPTS)
-	export NOCOLOR
+	eval $(portageq envvar -v PORTAGE_ROOT PORTAGE_NICENESS EMERGE_DEFAULT_OPTS NO_COLOR NOCOLOR SEARCH_DIRS SEARCH_DIRS_MASK LD_LIBRARY_MASK REVDEP_REBUILD_DEFAULT_OPTS)
+	export NO_COLOR NOCOLOR
 
 	# Convert quoted paths to array.
 	eval "EMERGE_DEFAULT_OPTS=(${EMERGE_DEFAULT_OPTS})"

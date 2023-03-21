@@ -1,4 +1,4 @@
-# Copyright(c) 2009, Gentoo Foundation
+# Copyright(c) 2009-2023 Gentoo Authors
 #
 # Licensed under the GNU General Public License, v2
 
@@ -218,7 +218,7 @@ def initialize_configuration():
     # Guess color output
     if (
         CONFIG["color"] == -1
-        and os.getenv("NOCOLOR") in ("yes", "true")
+        and (os.getenv("NO_COLOR") or os.getenv("NOCOLOR") in ("yes", "true"))
         or CONFIG["color"] == 0
     ):
         pp.output.nocolor()

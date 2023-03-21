@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2003-2016 Gentoo Foundation
+# Copyright 2003-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 
@@ -43,7 +43,7 @@ def printVersion():
     print("%s (%s) - %s" % (__productname__, __version__, __description__))
     print()
     print("Author: %s <%s>" % (__author__, __email__))
-    print("Copyright 2003-2009 Gentoo Foundation")
+    print("Copyright 2003-2023 Gentoo Authors")
     print("Distributed under the terms of the GNU General Public License v2")
 
 
@@ -615,7 +615,9 @@ def main():
     # set default options
     options = {}
     options["nocolor"] = (
-        port_settings.get("NOCOLOR") in ("yes", "true") or not sys.stdout.isatty()
+        port_settings.get("NO_COLOR")
+        or port_settings.get("NOCOLOR") in ("yes", "true")
+        or not sys.stdout.isatty()
     )
     if options["nocolor"]:
         pp.output.nocolor()

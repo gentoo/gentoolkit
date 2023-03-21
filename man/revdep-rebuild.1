@@ -82,7 +82,7 @@ REVDEP_REBUILD_DEFAULT_OPTS \- List of default emerge options for revdep-rebuild
 
 The REVDEP_REBUILD_DEFAULT_OPTS variable can be used to override EMERGE_DEFAULT_OPTS for revdep\-rebuild. This variable replaces the values of EMERGE_DEFAULT_OPTS and can still be overridden by command line options. Please note that this variable is only for options to pass to emerge and not options for revdep\-rebuild itself.
 
-revdep\-rebuild honors the NOCOLOR and PORTAGE_NICENESS variables from make.conf
+revdep\-rebuild honors the NO_COLOR, NOCOLOR, and PORTAGE_NICENESS variables from make.conf.
 .SH "EXAMPLES"
 It is recommended that when running revdep\-rebuild that the following command be used initially:
 .br

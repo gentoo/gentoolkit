@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright 2014 Gentoo Foundation
+# Copyright 2014-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 # Written by Mike Frysinger <vapier@gentoo.org>
 
@@ -533,7 +533,10 @@ def main(argv):
         parser.error("need ebuilds to process")
 
     if opts.style == "auto":
-        if not portage_settings().get("NOCOLOR", "false").lower() in ("no", "false"):
+        if not (
+            portage_settings().get("NO_COLOR")
+            or portage_settings().get("NOCOLOR", "false").lower() in ("no", "false")
+        ):
             nocolor()
             opts.style = "short"
         else:
