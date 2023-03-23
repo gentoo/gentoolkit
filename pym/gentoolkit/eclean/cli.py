@@ -13,7 +13,6 @@ __version__ = "git"
 __productname__ = "eclean"
 __description__ = "A cleaning tool for Gentoo distfiles and binaries."
 
-
 import os
 import sys
 import re
@@ -21,7 +20,7 @@ import time
 import getopt
 
 import portage
-from portage.output import white, yellow, turquoise, green
+from portage.output import white, yellow, turquoise, green, red
 
 import gentoolkit.pprinter as pp
 from gentoolkit.eclean.search import (
@@ -47,7 +46,7 @@ def printVersion():
     print("Distributed under the terms of the GNU General Public License v2")
 
 
-def printUsage(_error=None, help=None):
+def printUsage(_error=None, help=None, unresolved_invalids=None):
     """Print help message. May also print partial help to stderr if an
     error from {'options','actions'} is specified."""
 
@@ -63,10 +62,25 @@ def printUsage(_error=None, help=None):
         "merged-distfiles-options",
         "time",
         "size",
+        "invalid_paths",
     ):
         _error = None
     if not _error and not help:
         help = "all"
+    if _error == "invalid_paths":
+        print(
+            pp.error(
+                "eclean was not able to remove invalid binpkgs due to missing features in the currently installed portage"
+            ),
+            file=out,
+        )
+        print(
+            pp.error("Please remove the following binpkgs manually:"),
+            file=out,
+        )
+        for invalid in unresolved_invalids:
+            print(pp.error(invalid), file=out)
+        return
     if _error == "time":
         print(pp.error("Wrong time specification"), file=out)
         print(
@@ -399,6 +413,8 @@ def parseArgs(options={}):
                 options["ignore-failure"] = True
             elif o in ("-u", "--unique-use"):
                 options["unique-use"] = True
+            elif o in ("-N", "--skip-invalids"):
+                options["clean-invalids"] = False
             else:
                 return_code = False
         # sanity check of --deep only options:
@@ -458,6 +474,7 @@ def parseArgs(options={}):
     options["changed-deps"] = False
     options["ignore-failure"] = False
     options["unique-use"] = False
+    options["clean-invalids"] = True
     # if called by a well-named symlink, set the action accordingly:
     action = None
     # temp print line to ensure it is the svn/branch code running, etc..
@@ -527,7 +544,7 @@ def doAction(action, options, exclude={}, output=None):
     if not options["quiet"]:
         output.einfo("Building file list for " + action + " cleaning...")
     if action == "packages":
-        clean_me = findPackages(
+        clean_me, invalids = findPackages(
             options,
             exclude=exclude,
             destructive=options["destructive"],
@@ -602,6 +619,28 @@ def doAction(action, options, exclude={}, output=None):
         )
         output.set_colors("deprecated")
         output.list_pkgs(deprecated)
+    if invalids and options["clean-invalids"]:
+        if type(invalids) == list:
+            printUsage(_error="invalid_paths", unresolved_invalids=invalids)
+            sys.exit(1)
+        verb = "were"
+        if options["pretend"]:
+            verb = "would be"
+        if not options["quiet"]:
+            print()
+            print(
+                (
+                    pp.emph("   The following ")
+                    + red("invalid")
+                    + pp.emph(" binpkgs were found")
+                )
+            )
+            output.set_colors("invalid")
+            output.list_pkgs(invalids)
+            clean_size = cleaner.clean_pkgs(invalids, pkgdir)
+            output.total("invalid", clean_size, len(invalids), verb, action)
+        else:
+            cleaner.clean_pkgs(invalids, pkgdir)
 
 
 def main():
