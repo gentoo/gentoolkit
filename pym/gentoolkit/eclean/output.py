@@ -39,6 +39,9 @@ class OutputControl:
             self.pkg_color = cpv  # green
             self.numbers = number  # turquoise
             self.brace = blue
+        if mode == "invalid":
+            self.pkg_color = red
+            self.numbers = teal
         elif mode == "deprecated":
             self.pkg_color = yellow
             self.numbers = teal  # darkgreen
@@ -164,6 +167,17 @@ class OutputControl:
                 + " files "
                 + verb
                 + " freed in the "
+                + action
+                + " directory"
+            )
+            print(" ===========")
+            print(self.prettySize(size, True, red), message)
+        elif mode == "invalid":
+            message = (
+                red(str(num_files))
+                + " invalid binpkgs "
+                + verb
+                + " removed from the "
                 + action
                 + " directory"
             )

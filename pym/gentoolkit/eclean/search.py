@@ -517,9 +517,10 @@ def findPackages(
     pkgdir: str = None,
     port_dbapi=portage.db[portage.root]["porttree"].dbapi,
     var_dbapi=portage.db[portage.root]["vartree"].dbapi,
-) -> dict[str, list[str]]:
+) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     """Find obsolete binary packages.
 
+    @param invalid_paths:
     @param options: dict of options determined at runtime
     @type  options: dict
     @param exclude: exclusion dict (as defined in the exclude.parseExcludeFile class)
@@ -638,8 +639,12 @@ def findPackages(
 
         binpkg_path = bin_dbapi.bintree.getname(cpv)
         dead_binpkgs.setdefault(cpv, []).append(binpkg_path)
+    try:
+        invalid_paths = bin_dbapi.bintree.invalid_paths
+    except AttributeError:
+        invalid_paths = bin_dbapi.bintree.invalids
 
-    return dead_binpkgs
+    return dead_binpkgs, invalid_paths
 
 
 # vim: set ts=4 sw=4 tw=79:
