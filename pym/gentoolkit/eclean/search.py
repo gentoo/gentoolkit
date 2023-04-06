@@ -8,6 +8,7 @@ import os
 import stat
 import sys
 from functools import partial
+from typing import Optional
 
 import portage
 from portage.dep import Atom, use_reduce
@@ -508,15 +509,15 @@ def _deps_equal(deps_a, eapi_a, deps_b, eapi_b, uselist=None):
 
 
 def findPackages(
-    options,
-    exclude=None,
-    destructive=False,
-    time_limit=0,
-    package_names=False,
-    pkgdir=None,
+    options: dict[str, bool],
+    exclude: Optional[dict] = None,
+    destructive: bool = False,
+    time_limit: Optional[int] = 0,
+    package_names: Optional[bool] = False,
+    pkgdir: str = None,
     port_dbapi=portage.db[portage.root]["porttree"].dbapi,
     var_dbapi=portage.db[portage.root]["vartree"].dbapi,
-):
+) -> dict[str, list[str]]:
     """Find obsolete binary packages.
 
     @param options: dict of options determined at runtime
@@ -563,7 +564,7 @@ def findPackages(
 
     # Dictionary of binary packages to clean. Organized as cpv->[pkgs] in order
     # to support FEATURES=binpkg-multi-instance.
-    dead_binpkgs = {}
+    dead_binpkgs: dict[str, list[str]] = {}
     keep_binpkgs = {}
 
     bin_dbapi = portage.binarytree(pkgdir=pkgdir, settings=var_dbapi.settings).dbapi
