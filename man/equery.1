@@ -1,4 +1,4 @@
-.TH "EQUERY" "1" "August 2009" "GENTOOLKIT" ""
+.TH "EQUERY" "1" "June 2023" "GENTOOLKIT" ""
 .SH "NAME"
 equery \- Gentoo Package Query Tool
 
@@ -307,13 +307,87 @@ Customize the output format of the matched packages using the template string \f
 equery hasuse \-pI perl
 .EE
 .br
-View all Gentoo packages that have the "perl" USE flag, exluding installed packages.
+View all Gentoo packages that have the "perl" USE flag, excluding installed packages.
 .EX
 .HP
 USE="perl"; for PKG in $(equery \-q hasuse $USE); do echo $PKG: $(equery \-q uses $PKG |grep $USE); done
 .EE
 .br
 This Bash one\-liner uses \fBhasuse\fP to find a list of packages that have a certain USE flag, and \fBuses\fP to check whether the flag is enabled or disabled. Modify \fBUSE="perl"\fP to change the query.
+
+.SS
+.BI "keywords (y) [OPTIONS] " "PKG"
+Display keywords for specified \fIPKG\fP or for \fIPKG\fP that is in pwd.
+
+.I R "LOCAL OPTIONS" ":"
+.HP
+.B \-h, \-\-help
+.br
+Show this help message and exit.
+.HP
+.B \-v, \-\-version
+.br
+Show package version and exit.
+.HP
+.B \-a, \-\-arch \fIARCH\fP
+.br
+Display only specified arch(s). (default: []).
+.HP
+.B \-A, \-\-align [{top,bottom}]
+.br
+Specify alignment for descriptions. (default: bottom)
+.HP
+.B \-T, \-\-top-position [{archlist,versionlist}]
+.br
+Specify which fields we want to have in top listing. (default: archlist)
+.HP
+.B \-B, \-\-bold
+.br
+Print out each other column in bold for easier visual separation. (default: False)
+.HP
+.B \-C, \-\-color
+.br
+Force colored output. (default: False)
+.HP
+.B \-O, \-\-overlays
+.br
+Search also overlays. (default: False)
+.HP
+.B \-P, \-\-prefix
+.br
+Display prefix keywords in output. (default: False)
+.HP
+.B \-S, \-\-ignore-slot
+.br
+Treat slots as irrelevant during detection of redundant packages. (default: False)
+.P
+.I R "OUTPUT" ":"
+
+.EX
+Keywords for sys-apps/coreutils:
+          |                               |   u   |  
+          | a   a     p s     l r   a     |   n   |  
+          | m   r h   p p   i o i s l m m | e u s | r
+          | d a m p p c a x a o s 3 p 6 i | a s l | e
+          | 6 r 6 p p 6 r 8 6 n c 9 h 8 p | p e o | p
+          | 4 m 4 a c 4 c 6 4 g v 0 a k s | i d t | o
+----------+-------------------------------+-------+-------
+  8.32-r1 | + + + + + + + + ~ o ~ ~ ~ ~ ~ | 7 # 0 | gentoo
+   9.1-r2 | + + + + + + + + ~ ~ ~ ~ ~ ~ ~ | 7 o   | gentoo
+   9.2-r2 | ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ | 8 #   | gentoo
+   9.3    | ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ | 8 #   | gentoo
+   9.3-r1 | + ~ ~ + + ~ + ~ ~ ~ ~ ~ ~ ~ ~ | 8 #   | gentoo
+[I]9.3-r2 | + ~ ~ + + ~ + ~ ~ ~ ~ ~ ~ ~ ~ | 8 o   | gentoo
+  9999    | o o o o o o o o o o o o o o o | 8 o   | gentoo
+.EE
+.P
+.I R "EXAMPLES" ":"
+.EX
+.HP
+equery keywords coreutils
+.EE
+.br
+Show the keywording status of the sys-apps/coreutils package on Gentoo-supported architectures.
 
 .SS
 .BI "list (l) [OPTIONS] " "PKG"
