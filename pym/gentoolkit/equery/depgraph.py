@@ -197,7 +197,7 @@ def main(input_args):
     """Parse input and run the program"""
 
     short_opts = "hAMUl"
-    long_opts = ("help", "no-atom", "no-useflags", "no-mask", "depth=")
+    long_opts = ("help", "no-atom", "no-useflags", "no-mask", "depth=", "linear")
 
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
