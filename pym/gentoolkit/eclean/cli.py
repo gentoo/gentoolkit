@@ -70,7 +70,7 @@ def printUsage(_error=None, help=None, unresolved_invalids=None):
     if _error == "invalid_paths":
         print(
             pp.error(
-                "eclean was not able to clean invalid binpkgs automatically due to older portage version"
+                "eclean was not able to remove invalid binpkgs due to missing features in the currently installed portage"
             ),
             file=out,
         )
