@@ -233,10 +233,16 @@ def main(input_args):
             )
 
             if QUERY_OPTS["in_porttree"] and not QUERY_OPTS["in_overlay"]:
-                if not ("P" in pkgstr.location or (QUERY_OPTS['in_installed'] and 'I' in pkgstr.location)):
+                if not (
+                    "P" in pkgstr.location
+                    or (QUERY_OPTS["in_installed"] and "I" in pkgstr.location)
+                ):
                     continue
             if QUERY_OPTS["in_overlay"] and not QUERY_OPTS["in_porttree"]:
-                if not ("O" in pkgstr.location or (QUERY_OPTS['in_installed'] and 'I' in pkgstr.location)):
+                if not (
+                    "O" in pkgstr.location
+                    or (QUERY_OPTS["in_installed"] and "I" in pkgstr.location)
+                ):
                     continue
             pp.uprint(pkgstr)
 
