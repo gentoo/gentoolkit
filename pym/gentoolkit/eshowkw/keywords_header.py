@@ -1,4 +1,3 @@
-# 	vim:fileencoding=utf-8
 # Copyright 2001-2018 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 

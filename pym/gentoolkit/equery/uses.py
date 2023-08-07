@@ -98,11 +98,11 @@ def display_useflags(output):
         if CONFIG["verbose"]:
             flag_name = ""
             if in_makeconf != in_installed:
-                flag_name += pp.emph(
-                    " %s %s" % (markers[in_makeconf], markers[in_installed])
-                )
+                flag_name += pp.emph(f" {markers[in_makeconf]} {markers[in_installed]}")
             else:
-                flag_name += " %s %s" % (markers[in_makeconf], markers[in_installed])
+                flag_name += " {} {}".format(
+                    markers[in_makeconf], markers[in_installed]
+                )
 
             flag_name += " " + color[in_makeconf % 2](flag.ljust(maxflag_len))
             flag_name += " : "
@@ -114,7 +114,7 @@ def display_useflags(output):
 
             # print description
             if restrict:
-                restrict = "(%s %s)" % (pp.emph("Restricted to"), pp.cpv(restrict))
+                restrict = "({} {})".format(pp.emph("Restricted to"), pp.cpv(restrict))
                 twrap.initial_indent = flag_name
                 pp.uprint(twrap.fill(restrict))
                 if desc:
@@ -161,7 +161,7 @@ def get_global_useflags():
                 fields = line.split(" - ", 1)
                 if len(fields) == 2:
                     global_usedesc[fields[0]] = fields[1].rstrip()
-    except IOError:
+    except OSError:
         sys.stderr.write(
             pp.warn("Could not load USE flag descriptions from %s" % pp.path(path))
         )
@@ -179,12 +179,12 @@ def get_global_useflags():
                         continue
                     fields = [field.strip() for field in line.split(" - ", 1)]
                     if len(fields) == 2:
-                        expanded_useflag = "%s_%s" % (
+                        expanded_useflag = "{}_{}".format(
                             path.split("/")[-1][0:-5],
                             fields[0],
                         )
                         global_usedesc[expanded_useflag] = fields[1]
-        except IOError:
+        except OSError:
             sys.stderr.write(
                 pp.warn("Could not load USE flag descriptions from %s" % path)
             )
@@ -343,7 +343,7 @@ def main(input_args):
                     if not legend_printed:
                         print_legend()
                         legend_printed = True
-                    print((" * Found these USE flags for %s:" % pp.cpv(str(pkg.cpv))))
+                    print(" * Found these USE flags for %s:" % pp.cpv(str(pkg.cpv)))
                     print(pp.emph(" U I"))
                 display_useflags(output)
             else:

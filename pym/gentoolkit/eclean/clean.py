@@ -98,7 +98,7 @@ class CleanUp:
                 statinfo = os.stat(file_)
                 if statinfo.st_nlink == 1:
                     key_size += statinfo.st_size
-            except EnvironmentError as er:
+            except OSError as er:
                 print(pp.error("Could not get stat info for:" + file_), file=sys.stderr)
                 print(pp.error("Error: %s" % str(er)), file=sys.stderr)
         return key_size
@@ -111,7 +111,7 @@ class CleanUp:
             # ...get its statinfo
             try:
                 statinfo = os.stat(file_)
-            except EnvironmentError as er:
+            except OSError as er:
                 if not os.path.exists(os.readlink(file_)):
                     try:
                         os.remove(file_)
@@ -120,7 +120,7 @@ class CleanUp:
                             file=sys.stderr,
                         )
                         break
-                    except EnvironmentError as er:
+                    except OSError as er:
                         print(
                             pp.error("Error deleting broken symbolic link " + file_),
                             file=sys.stderr,
@@ -144,7 +144,7 @@ class CleanUp:
                             os.rmdir(os.path.dirname(file_))
                         except OSError:
                             pass
-                except EnvironmentError as er:
+                except OSError as er:
                     print(pp.error("Could not delete " + file_), file=sys.stderr)
                     print(pp.error("Error: %s" % str(er)), file=sys.stderr)
         return clean_size

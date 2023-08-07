@@ -499,7 +499,7 @@ class TestDisfiles:
         self.workdir = os.path.join(self.tmpdir, "distfiles")
         dir = os.path.dirname(os.path.abspath(__file__))
         file = os.path.join(dir, "testdistfiles.tar.gz")
-        command = "tar -xpf %s -C %s" % (file, self.tmpdir)
+        command = f"tar -xpf {file} -C {self.tmpdir}"
         subprocess.call(command, shell=True)
         # create a symlink as part of the test files
         # print()

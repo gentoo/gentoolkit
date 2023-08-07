@@ -111,7 +111,7 @@ def get_binpkgs_missing(matches):
 
     result = []
     binary_packages = set(get_bintree_cpvs())
-    matched_packages = set(x.cpv for x in matches)
+    matched_packages = {x.cpv for x in matches}
     missing_binary_packages = set(matched_packages.difference(binary_packages))
 
     for pkg in matches:

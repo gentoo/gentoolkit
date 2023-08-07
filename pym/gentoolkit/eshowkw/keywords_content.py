@@ -1,4 +1,3 @@
-# 	vim:fileencoding=utf-8
 # Copyright 2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
@@ -131,13 +130,13 @@ class keywords_content:
                 suffix = "%s " % suffix
 
             if mask and install:
-                pv = "[M][I]%s%s" % (pv, suffix)
+                pv = f"[M][I]{pv}{suffix}"
             elif mask:
-                pv = "[M]%s%s" % (pv, suffix)
+                pv = f"[M]{pv}{suffix}"
             elif install:
-                pv = "[I]%s%s" % (pv, suffix)
+                pv = f"[I]{pv}{suffix}"
             else:
-                pv = "%s%s" % (pv, suffix)
+                pv = f"{pv}{suffix}"
             return pv
 
         def __getMaskStatus(self, cpv):
@@ -155,7 +154,7 @@ class keywords_content:
 
         def __getInstallStatus(self, cpv, repo):
             """Check if package version we test is installed."""
-            return bool(self.vartree.match("=%s::%s" % (cpv, repo)))
+            return bool(self.vartree.match(f"={cpv}::{repo}"))
 
         def __init__(self, packages):
             """Query all relevant data for version data formatting"""
@@ -187,7 +186,7 @@ class keywords_content:
         except port.exception.AmbiguousPackageName as Arg:
             msg_err = 'Ambiguous package name "%s".\n' % package
             found = "Possibilities: %s" % Arg
-            raise SystemExit("%s%s" % (msg_err, found))
+            raise SystemExit(f"{msg_err}{found}")
         except port.exception.InvalidAtom:
             msg_err = 'No such package "%s"' % package
             raise SystemExit(msg_err)
@@ -397,7 +396,7 @@ class keywords_content:
         slt = self.__formatAdditional(self.slots, "bold", self.slot_length)
         rep = self.__formatAdditional(self.repositories, "yellow", repositories_length)
         # those + numbers are spaces in printout. keywords are multiplied also because of that
-        linesep = "%s+%s+%s+%s" % (
+        linesep = "{}+{}+{}+{}".format(
             "".ljust(self.version_length + 1, "-"),
             "".ljust(self.keyword_length * 2 + 1, "-"),
             "".ljust(redundant_length + self.slot_length + 1 + 4, "-"),

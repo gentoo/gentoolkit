@@ -268,8 +268,7 @@ def get_installed_cpvs(predicate=None):
         if predicate(x)
     )
 
-    for cpv in installed_cpvs:
-        yield cpv
+    yield from installed_cpvs
 
 
 def get_bintree_cpvs(predicate=None):
@@ -295,8 +294,7 @@ def get_bintree_cpvs(predicate=None):
         if predicate(x)
     )
 
-    for cpv in installed_cpvs:
-        yield cpv
+    yield from installed_cpvs
 
 
 def print_file(path):

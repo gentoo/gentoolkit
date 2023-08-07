@@ -124,7 +124,7 @@ class CPV:
     def __lt__(self, other):
         if not isinstance(other, self.__class__):
             raise TypeError(
-                "other isn't of %s type, is %s" % (self.__class__, other.__class__)
+                f"other isn't of {self.__class__} type, is {other.__class__}"
             )
 
         if self.category != other.category:
@@ -140,26 +140,26 @@ class CPV:
     def __gt__(self, other):
         if not isinstance(other, self.__class__):
             raise TypeError(
-                "other isn't of %s type, is %s" % (self.__class__, other.__class__)
+                f"other isn't of {self.__class__} type, is {other.__class__}"
             )
         return not self <= other
 
     def __le__(self, other):
         if not isinstance(other, self.__class__):
             raise TypeError(
-                "other isn't of %s type, is %s" % (self.__class__, other.__class__)
+                f"other isn't of {self.__class__} type, is {other.__class__}"
             )
         return self < other or self == other
 
     def __ge__(self, other):
         if not isinstance(other, self.__class__):
             raise TypeError(
-                "other isn't of %s type, is %s" % (self.__class__, other.__class__)
+                f"other isn't of {self.__class__} type, is {other.__class__}"
             )
         return self > other or self == other
 
     def __repr__(self):
-        return "<%s %r>" % (self.__class__.__name__, str(self))
+        return f"<{self.__class__.__name__} {str(self)!r}>"
 
     def __str__(self):
         return self.cpv

@@ -31,7 +31,7 @@ class VersionMatch:
 
     _convert_op2int = {(-1,): "<", (-1, 0): "<=", (0,): "=", (0, 1): ">=", (1,): ">"}
 
-    _convert_int2op = dict([(v, k) for k, v in _convert_op2int.items()])
+    _convert_int2op = {v: k for k, v in _convert_op2int.items()}
 
     def __init__(self, cpv, op="="):
         """Initialize a VersionMatch instance.
@@ -93,17 +93,17 @@ class VersionMatch:
         operator = self._convert_op2int[self.values]
 
         if self.droprevision or not self.revision:
-            return "ver %s %s" % (operator, self.version)
-        return "ver-rev %s %s-%s" % (operator, self.version, self.revision)
+            return f"ver {operator} {self.version}"
+        return f"ver-rev {operator} {self.version}-{self.revision}"
 
     def __repr__(self):
-        return "<%s %r>" % (self.__class__.__name__, str(self))
+        return f"<{self.__class__.__name__} {str(self)!r}>"
 
     @staticmethod
     def _convert_ops(inst):
         if inst.droprevision:
             return inst.values
-        return tuple(sorted(set((-1, 0, 1)).difference(inst.values)))
+        return tuple(sorted({-1, 0, 1}.difference(inst.values)))
 
     def __eq__(self, other):
         if self is other:

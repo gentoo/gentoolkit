@@ -142,7 +142,7 @@ class GentoolkitNoMatches(GentoolkitException):
 
     def __str__(self):
         inst = "installed " if self.in_installed else ""
-        return "No %spackages matching '%s'" % (inst, self.query)
+        return f"No {inst}packages matching '{self.query}'"
 
 
 class GentoolkitUnknownKeyword(GentoolkitException):

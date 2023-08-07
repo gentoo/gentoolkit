@@ -140,7 +140,7 @@ def depgraph_printer(
             if dep.operator == "=*":
                 atom += " (=%s*)" % dep.cpv
             else:
-                atom += " (%s%s)" % (dep.operator, dep.cpv)
+                atom += f" ({dep.operator}{dep.cpv})"
         if not no_use and dep is not None and dep.use:
             use = " [%s]" % " ".join(
                 pp.useflag(x, enabled=True) for x in dep.use.tokens

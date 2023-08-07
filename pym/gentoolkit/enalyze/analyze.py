@@ -435,10 +435,8 @@ class Analyse(ModuleBase):
             if self.analyser.mismatched:
                 print("_________________________________________________")
                 print(
-                    (
-                        "The following packages were found to have a \n"
-                        + "different recorded ARCH than the current system ARCH"
-                    )
+                    "The following packages were found to have a \n"
+                    + "different recorded ARCH than the current system ARCH"
                 )
                 for cpv in self.analyser.mismatched:
                     print("\t", pp.cpv(cpv))

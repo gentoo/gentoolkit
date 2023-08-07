@@ -77,7 +77,7 @@ def query_in_env(query, env_var, pkg):
 
     try:
         if env_var in ("USE", "IUSE", "CFLAGS", "CXXFLAGS", "LDFLAGS"):
-            results = set([x.lstrip("+-") for x in pkg.environment(env_var).split()])
+            results = {x.lstrip("+-") for x in pkg.environment(env_var).split()}
         else:
             results = set(pkg.environment(env_var).split())
     except errors.GentoolkitFatalError:

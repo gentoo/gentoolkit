@@ -1,4 +1,3 @@
-#   vim:fileencoding=utf-8
 # Copyright 2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
@@ -31,7 +30,7 @@ def display(
     if toplist != "archlist":
         corner_image.extend(plain_list)
     data_printout = [
-        "%s%s" % (x, y)
+        f"{x}{y}"
         for x, y in zip_longest(corner_image, rotated_list, fillvalue=corner_image[0])
     ]
     if toplist == "archlist":

@@ -1,4 +1,3 @@
-# 	vim:fileencoding=utf-8
 # Copyright 2010-2016 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
@@ -35,7 +34,7 @@ def process_display(package, keywords, dbapi):
         )
         # -1 : space is taken in account and appended by us
         filler = "".ljust(portdata.slot_length - 1)
-        header = ["%s%s%s" % (x, filler, y) for x, y in zip(header, extra)]
+        header = [f"{x}{filler}{y}" for x, y in zip(header, extra)]
         content = portdata.content
         header_length = portdata.version_length
         content_length = keywords.length
@@ -172,7 +171,7 @@ def main(argv, indirect=False):
         if len(ebuilds) <= 0:
             msg_err = 'No ebuilds at "%s"' % currdir
             raise SystemExit(msg_err)
-        package = "%s/%s" % (
+        package = "{}/{}".format(
             os.path.basename(os.path.abspath("../")),
             os.path.basename(currdir),
         )
@@ -192,13 +191,11 @@ def main(argv, indirect=False):
             for repo in ports.repositories:
                 repos[repo.name] = repo.location
 
-            with open(os.path.join(ourtree, "profiles", "repo_name"), "rt") as f:
+            with open(os.path.join(ourtree, "profiles", "repo_name")) as f:
                 repo_name = f.readline().strip()
 
             repos[repo_name] = ourtree
-            repos = "".join(
-                "[{}]\nlocation={}\n".format(k, v) for k, v in repos.items()
-            )
+            repos = "".join(f"[{k}]\nlocation={v}\n" for k, v in repos.items())
             mysettings = portc(local_config=False, env={"PORTAGE_REPOSITORIES": repos})
             dbapi = portdbapi(mysettings=mysettings)
         # specify that we want just our nice tree we are in cwd

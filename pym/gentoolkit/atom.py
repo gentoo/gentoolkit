@@ -167,21 +167,21 @@ class Atom(portage.dep.Atom, CPV):
     def __le__(self, other):
         if not isinstance(other, self.__class__):
             raise TypeError(
-                "other isn't of %s type, is %s" % (self.__class__, other.__class__)
+                f"other isn't of {self.__class__} type, is {other.__class__}"
             )
         return self < other or self == other
 
     def __ge__(self, other):
         if not isinstance(other, self.__class__):
             raise TypeError(
-                "other isn't of %s type, is %s" % (self.__class__, other.__class__)
+                f"other isn't of {self.__class__} type, is {other.__class__}"
             )
         return self > other or self == other
 
     def __repr__(self):
         uc = self.use_conditional
         uc = "%s? " % uc if uc is not None else ""
-        return "<%s %r>" % (self.__class__.__name__, "%s%s" % (uc, self.atom))
+        return "<{} {!r}>".format(self.__class__.__name__, f"{uc}{self.atom}")
 
     def __setattr__(self, name, value):
         object.__setattr__(self, name, value)
@@ -336,7 +336,7 @@ class Atom(portage.dep.Atom, CPV):
         """Returns a string representation of the original dep"""
         uc = self.use_conditional
         uc = "%s? " % uc if uc is not None else ""
-        return "%s%s" % (uc, self.atom)
+        return f"{uc}{self.atom}"
 
 
 # vim: set ts=4 sw=4 tw=79:

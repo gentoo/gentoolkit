@@ -87,7 +87,7 @@ def display_size(match_set):
             print("Total files : %s".rjust(25) % pp.number(str(files)))
 
             if uncounted:
-                print(("Inaccessible files : %s".rjust(25) % pp.number(str(uncounted))))
+                print("Inaccessible files : %s".rjust(25) % pp.number(str(uncounted)))
 
             if QUERY_OPTS["size_in_bytes"]:
                 size_str = pp.number(str(size))

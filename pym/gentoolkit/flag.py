@@ -118,7 +118,7 @@ def filter_flags(use, use_expand_hidden, usemasked, useforced):
     """
     # clean out some environment flags, since they will most probably
     # be confusing for the user
-    use = dict((reduce_flag(flag), flag) for flag in use)
+    use = {reduce_flag(flag): flag for flag in use}
     for f in use_expand_hidden:
         f = f.lower() + "_"
         for x in list(use):

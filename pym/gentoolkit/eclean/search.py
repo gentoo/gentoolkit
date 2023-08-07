@@ -188,7 +188,7 @@ class DistfilesSearch:
             filepath = os.path.join(_distdir, file)
             try:
                 file_stat = os.lstat(filepath)
-            except EnvironmentError:
+            except OSError:
                 continue
             is_dirty = False
             # for check, check_name in checks:
@@ -547,7 +547,7 @@ def findPackages(
     try:
         test = os.listdir(pkgdir)
         del test
-    except EnvironmentError as er:
+    except OSError as er:
         if options["ignore-failure"]:
             exit(0)
         print(pp.error("Error accessing PKGDIR."), file=sys.stderr)

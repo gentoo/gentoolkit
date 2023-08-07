@@ -39,7 +39,7 @@ class Keyword:
     def __lt__(self, other):
         if not isinstance(other, self.__class__):
             raise TypeError(
-                "other isn't of %s type, is %s" % (self.__class__, other.__class__)
+                f"other isn't of {self.__class__} type, is {other.__class__}"
             )
         if self.os < other.os:
             return True
@@ -101,7 +101,7 @@ def reduce_keywords(keywords):
     @type keywords: array
     @rtype: set
     """
-    return set(x.lstrip("~") for x in keywords)
+    return {x.lstrip("~") for x in keywords}
 
 
 abs_keywords = reduce_keywords

@@ -37,7 +37,7 @@ def read_cache(temp_path=DEFAULTS["DEFAULT_TMP_DIR"]):
                 val.add(line.strip())
             # libraries.remove('\n')
             _file.close()
-    except EnvironmentError:
+    except OSError:
         pass
 
     return (
@@ -139,13 +139,11 @@ if __name__ == "__main__":
     lib_dirs.update(ld)
     bin_dirs.update(ld)
     masked_dirs.update(
-        set(
-            [
-                "/lib/modules",
-                "/lib32/modules",
-                "/lib64/modules",
-            ]
-        )
+        {
+            "/lib/modules",
+            "/lib32/modules",
+            "/lib64/modules",
+        }
     )
 
     (
