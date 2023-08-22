@@ -435,7 +435,7 @@ def parseArgs(options={}):
 
     # here are the different allowed command line options (getopt args)
     getopt_options = {"short": {}, "long": {}}
-    getopt_options["short"]["global"] = "CdDipqe:t:nhVv"
+    getopt_options["short"]["global"] = "CdDipqe:t:nhVvN"
     getopt_options["long"]["global"] = [
         "nocolor",
         "deep",
@@ -450,6 +450,7 @@ def parseArgs(options={}):
         "help",
         "version",
         "verbose",
+        "clean-inavlids",
     ]
     getopt_options["short"]["distfiles"] = "fs:"
     getopt_options["long"]["distfiles"] = ["fetch-restricted", "size-limit="]
@@ -619,28 +620,29 @@ def doAction(action, options, exclude={}, output=None):
         )
         output.set_colors("deprecated")
         output.list_pkgs(deprecated)
-    if invalids and options["clean-invalids"]:
-        if type(invalids) == list:
-            printUsage(_error="invalid_paths", unresolved_invalids=invalids)
-            sys.exit(1)
-        verb = "were"
-        if options["pretend"]:
-            verb = "would be"
-        if not options["quiet"]:
-            print()
-            print(
-                (
-                    pp.emph("   The following ")
-                    + red("invalid")
-                    + pp.emph(" binpkgs were found")
+    if action in ["packages"]:
+        if invalids and options["clean-invalids"]:
+            if type(invalids) == list:
+                printUsage(_error="invalid_paths", unresolved_invalids=invalids)
+                sys.exit(1)
+            verb = "were"
+            if options["pretend"]:
+                verb = "would be"
+            if not options["quiet"]:
+                print()
+                print(
+                    (
+                        pp.emph("   The following ")
+                        + red("invalid")
+                        + pp.emph(" binpkgs were found")
+                    )
                 )
-            )
-            output.set_colors("invalid")
-            output.list_pkgs(invalids)
-            clean_size = cleaner.clean_pkgs(invalids, pkgdir)
-            output.total("invalid", clean_size, len(invalids), verb, action)
-        else:
-            cleaner.clean_pkgs(invalids, pkgdir)
+                output.set_colors("invalid")
+                output.list_pkgs(invalids)
+                clean_size = cleaner.clean_pkgs(invalids, pkgdir)
+                output.total("invalid", clean_size, len(invalids), verb, action)
+            else:
+                cleaner.clean_pkgs(invalids, pkgdir)
 
 
 def main():
