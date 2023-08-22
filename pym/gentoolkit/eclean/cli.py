@@ -262,6 +262,11 @@ def printUsage(_error=None, help=None, unresolved_invalids=None):
             file=out,
         )
         print(
+            yellow("     --clean-invalid")
+            + "               - cleanup invalid binpkgs",
+            file=out,
+        )
+        print(
             yellow(" -i, --ignore-failure")
             + "             - ignore failure to locate PKGDIR",
             file=out,
@@ -413,8 +418,8 @@ def parseArgs(options={}):
                 options["ignore-failure"] = True
             elif o in ("-u", "--unique-use"):
                 options["unique-use"] = True
-            elif o in ("-N", "--skip-invalids"):
-                options["clean-invalids"] = False
+            elif o in ("-N", "--skip-invalid"):
+                options["clean-invalid"] = False
             else:
                 return_code = False
         # sanity check of --deep only options:
@@ -435,7 +440,7 @@ def parseArgs(options={}):
 
     # here are the different allowed command line options (getopt args)
     getopt_options = {"short": {}, "long": {}}
-    getopt_options["short"]["global"] = "CdDipqe:t:nhVvN"
+    getopt_options["short"]["global"] = "CdDipqe:t:nhVv"
     getopt_options["long"]["global"] = [
         "nocolor",
         "deep",
@@ -450,14 +455,14 @@ def parseArgs(options={}):
         "help",
         "version",
         "verbose",
-        "clean-inavlids",
     ]
     getopt_options["short"]["distfiles"] = "fs:"
     getopt_options["long"]["distfiles"] = ["fetch-restricted", "size-limit="]
-    getopt_options["short"]["packages"] = "i"
+    getopt_options["short"]["packages"] = "iN"
     getopt_options["long"]["packages"] = [
         "ignore-failure",
         "changed-deps",
+        "clean-invalid",
         "unique-use",
     ]
     # set default options, except 'nocolor', which is set in main()
@@ -474,8 +479,8 @@ def parseArgs(options={}):
     options["verbose"] = False
     options["changed-deps"] = False
     options["ignore-failure"] = False
+    options["clean-invalid"] = False
     options["unique-use"] = False
-    options["clean-invalids"] = True
     # if called by a well-named symlink, set the action accordingly:
     action = None
     # temp print line to ensure it is the svn/branch code running, etc..
@@ -621,7 +626,7 @@ def doAction(action, options, exclude={}, output=None):
         output.set_colors("deprecated")
         output.list_pkgs(deprecated)
     if action in ["packages"]:
-        if invalids and options["clean-invalids"]:
+        if invalids and options["clean-invalid"]:
             if type(invalids) == list:
                 printUsage(_error="invalid_paths", unresolved_invalids=invalids)
                 sys.exit(1)
