@@ -458,7 +458,7 @@ def parseArgs(options={}):
     ]
     getopt_options["short"]["distfiles"] = "fs:"
     getopt_options["long"]["distfiles"] = ["fetch-restricted", "size-limit="]
-    getopt_options["short"]["packages"] = "iN"
+    getopt_options["short"]["packages"] = "iNu"
     getopt_options["long"]["packages"] = [
         "ignore-failure",
         "changed-deps",
