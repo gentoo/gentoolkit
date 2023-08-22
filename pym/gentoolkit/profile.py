@@ -54,7 +54,7 @@ def load_profile_data(portdir=None, repo=""):
                 line = line.split("#", 1)[0].strip()
                 if line:
                     arch_status[line] = None
-    except IOError:
+    except OSError:
         pass
 
     try:
@@ -78,7 +78,7 @@ def load_profile_data(portdir=None, repo=""):
                     new_status = profile_status[status]
                     if new_status < curr_status:
                         arch_status[arch] = status
-    except IOError:
+    except OSError:
         pass
 
     if arch_status:
@@ -99,7 +99,7 @@ def load_profile_data(portdir=None, repo=""):
                 if line:
                     arch, status = line
                     arches_desc[arch] = status
-    except IOError:
+    except OSError:
         # backwards compatibility
         arches_desc = {
             "alpha": "testing",

@@ -313,11 +313,13 @@ class TestFetchRestricted(unittest.TestCase):
                     test = "OK"
                 else:
                     test = "FAILED"
-                print("comparing %s, %s" % (key, item), test)
+                print(f"comparing {key}, {item}", test)
                 self.assertEqual(
                     sorted(testdata[item]),
                     sorted(results[item]),
-                    "\n%s: %s %s data does not match\nresult=" % (test_name, key, item)
+                    "\n{}: {} {} data does not match\nresult=".format(
+                        test_name, key, item
+                    )
                     + str(results[item])
                     + "\ntestdata="
                     + str(testdata[item]),
@@ -559,13 +561,13 @@ class TestNonDestructive(unittest.TestCase):
                     test = "OK"
                 else:
                     test = "FAILED"
-                print("comparing %s, %s..." % (key, item), test)
+                print(f"comparing {key}, {item}...", test)
                 if test == "FAILED":
                     print("", sorted(results[item]), "\n", sorted(testdata[item]))
                 self.assertEqual(
                     sorted(testdata[item]),
                     sorted(results[item]),
-                    "\n%s: %s, %s data does not match\n" % (test_name, key, item)
+                    f"\n{test_name}: {key}, {item} data does not match\n"
                     + "result="
                     + str(results[item])
                     + "\ntestdata="

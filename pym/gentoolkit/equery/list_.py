@@ -111,7 +111,7 @@ def get_binpkgs_missing(matches):
 
     result = []
     binary_packages = set(get_bintree_cpvs())
-    matched_packages = set(x.cpv for x in matches)
+    matched_packages = {x.cpv for x in matches}
     missing_binary_packages = set(matched_packages.difference(binary_packages))
 
     for pkg in matches:
@@ -233,10 +233,16 @@ def main(input_args):
             )
 
             if QUERY_OPTS["in_porttree"] and not QUERY_OPTS["in_overlay"]:
-                if not "P" in pkgstr.location:
+                if not (
+                    "P" in pkgstr.location
+                    or (QUERY_OPTS["in_installed"] and "I" in pkgstr.location)
+                ):
                     continue
             if QUERY_OPTS["in_overlay"] and not QUERY_OPTS["in_porttree"]:
-                if not "O" in pkgstr.location:
+                if not (
+                    "O" in pkgstr.location
+                    or (QUERY_OPTS["in_installed"] and "I" in pkgstr.location)
+                ):
                     continue
             pp.uprint(pkgstr)
 

@@ -247,11 +247,9 @@ class Rebuild(ModuleBase):
         if self.options["verbose"]:
             print()
             print(
-                (
-                    pp.emph("  -- Found ")
-                    + pp.number(str(pkg_count))
-                    + pp.emph(" packages that need entries")
-                )
+                pp.emph("  -- Found ")
+                + pp.number(str(pkg_count))
+                + pp.emph(" packages that need entries")
             )
             # print pp.emph("     package.use to maintain their current setting")
         pkg_keys = []
@@ -364,10 +362,8 @@ class Rebuild(ModuleBase):
             if self.analyser.mismatched:
                 print("_________________________________________________")
                 print(
-                    (
-                        "The following packages were found to have a \n"
-                        + "different recorded ARCH than the current system ARCH"
-                    )
+                    "The following packages were found to have a \n"
+                    + "different recorded ARCH than the current system ARCH"
                 )
                 for cpv in self.analyser.mismatched:
                     print("\t", pp.cpv(cpv))

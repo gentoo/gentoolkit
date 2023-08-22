@@ -56,19 +56,19 @@ class TestGentoolkitAtom(unittest.TestCase):
         for lesser, greater in (("0.1", "1"), ("1", "1-r1"), ("1.1", "1.2")):
             self.assertTrue(
                 Atom("=d/b-%s" % lesser) < Atom("=d/b-%s" % greater),
-                msg="d/b-%s < d/b-%s" % (lesser, greater),
+                msg=f"d/b-{lesser} < d/b-{greater}",
             )
             self.assertFalse(
                 Atom("=d/b-%s" % lesser) > Atom("=d/b-%s" % greater),
-                msg="!: d/b-%s < d/b-%s" % (lesser, greater),
+                msg=f"!: d/b-{lesser} < d/b-{greater}",
             )
             self.assertTrue(
                 Atom("=d/b-%s" % greater) > Atom("=d/b-%s" % lesser),
-                msg="d/b-%s > d/b-%s" % (greater, lesser),
+                msg=f"d/b-{greater} > d/b-{lesser}",
             )
             self.assertFalse(
                 Atom("=d/b-%s" % greater) < Atom("=d/b-%s" % lesser),
-                msg="!: d/b-%s > d/b-%s" % (greater, lesser),
+                msg=f"!: d/b-{greater} > d/b-{lesser}",
             )
 
         # self.assertTrue(Atom("!!=d/b-1", eapi=2) > Atom("!=d/b-1"))
@@ -120,12 +120,12 @@ class TestGentoolkitAtom(unittest.TestCase):
             self.assertEqual(
                 result,
                 this_atom.intersects(that_atom),
-                "%s intersecting %s should be %s" % (this, that, result),
+                f"{this} intersecting {that} should be {result}",
             )
             self.assertEqual(
                 result,
                 that_atom.intersects(this_atom),
-                "%s intersecting %s should be %s" % (that, this, result),
+                f"{that} intersecting {this} should be {result}",
             )
 
     def test_intersects_nameonly(self):

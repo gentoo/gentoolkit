@@ -22,7 +22,7 @@ def nl(lines=1):
     @param lines: optional number of blank lines to print
             default = 1
     """
-    print(("\n" * lines))
+    print("\n" * lines)
 
 
 class AnalysisPrinter(CpvValueWrapper):

@@ -65,7 +65,7 @@ def _add_ent(imlate, cat, pkg, ver, our_ver):
 
 def _fill(width, line, fill=" "):
     while len(line) < width:
-        line = "%s%s" % (str(line), str(fill))
+        line = f"{str(line)}{str(fill)}"
     return line
 
 
@@ -78,13 +78,13 @@ def show_result(conf, pkgs):
     col2 = -1
     for cat in pkgs:
         for pkg in pkgs[cat]:
-            col1 = max(col1, len(("%s/%s" % (cat, pkg))))
+            col1 = max(col1, len(f"{cat}/{pkg}"))
             col2 = max(col2, len(pkgs[cat][pkg][1]))
     col1 += 1
     col2 += 1
 
     _header = "%s candidates for 'gentoo' on '%s'"
-    _helper = "%s%s%s" % (
+    _helper = "{}{}{}".format(
         _fill(col1, "category/package[:SLOT])"),
         _fill(col2, "our version"),
         "best version",
@@ -125,7 +125,7 @@ def show_result(conf, pkgs):
             print(
                 "%s%s%s"
                 % (
-                    _fill(col1, ("%s/%s" % (cat, pkg))),
+                    _fill(col1, (f"{cat}/{pkg}")),
                     _fill(col2, pkgs[cat][pkg][1]),
                     pkgs[cat][pkg][0],
                 ),
@@ -240,7 +240,7 @@ def get_packages(conf):
                     _pkgs[cat][pkg] = []
 
                 if rev != "r0":
-                    ver = "%s-%s" % (ver, rev)
+                    ver = f"{ver}-{rev}"
 
                 _pkgs[cat][pkg].append(ver)
 
@@ -278,7 +278,7 @@ def get_imlate(conf, pkgs):
                 # -* would be overridden by ~arch or arch
                 kwd_type = 0
 
-                cpvr = "%s/%s-%s" % (cat, pkg, vr)
+                cpvr = f"{cat}/{pkg}-{vr}"
 
                 # absolute ebuild path for mtime check
                 abs_pkg = join(conf["PORTDIR"], cat, pkg, basename(cpvr))
@@ -324,13 +324,13 @@ def get_imlate(conf, pkgs):
 
                 # look for an existing stable version
                 our = portage.versions.best(
-                    conf["portdb"].dbapi.match("%s/%s%s" % (cat, pkg, slot))
+                    conf["portdb"].dbapi.match(f"{cat}/{pkg}{slot}")
                 )
                 if our:
                     _foo = portage.versions.pkgsplit(our)
                     our_ver = _foo[1]
                     if _foo[2] != "r0":
-                        our_ver = "%s-%s" % (our_ver, _foo[2])
+                        our_ver = f"{our_ver}-{_foo[2]}"
                 else:
                     our_ver = ""
 
@@ -340,11 +340,11 @@ def get_imlate(conf, pkgs):
                         continue
 
                 if kwd_type == 1 and conf["STABLE"]:
-                    imlate = _add_ent(imlate, cat, ("%s%s" % (pkg, slot)), vr, our_ver)
+                    imlate = _add_ent(imlate, cat, (f"{pkg}{slot}"), vr, our_ver)
                     conf["STABLE_SUM"] += 1
                 elif kwd_type == 0 and conf["KEYWORD"]:
                     conf["KEYWORD_SUM"] += 1
-                    imlate = _add_ent(imlate, cat, ("~%s%s" % (pkg, slot)), vr, our_ver)
+                    imlate = _add_ent(imlate, cat, (f"~{pkg}{slot}"), vr, our_ver)
 
     return imlate
 

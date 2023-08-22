@@ -86,11 +86,11 @@ class set_version(core.Command):
         def sub(files, pattern):
             for f in files:
                 updated_file = []
-                with io.open(f[0], "r", 1, "utf_8") as s:
+                with open(f[0], "r", 1, "utf_8") as s:
                     for line in s:
                         newline = re.sub(pattern % f[1], '"%s"' % ver, line, 1)
                         updated_file.append(newline)
-                with io.open(f[0], "w", 1, "utf_8") as s:
+                with open(f[0], "w", 1, "utf_8") as s:
                     s.writelines(updated_file)
 
         quote = r'[\'"]{1}'

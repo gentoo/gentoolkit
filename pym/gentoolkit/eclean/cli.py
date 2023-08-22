@@ -39,9 +39,9 @@ from gentoolkit.eprefix import EPREFIX
 
 def printVersion():
     """Output the version info."""
-    print("%s (%s) - %s" % (__productname__, __version__, __description__))
+    print(f"{__productname__} ({__version__}) - {__description__}")
     print()
-    print("Author: %s <%s>" % (__author__, __email__))
+    print(f"Author: {__author__} <{__email__}>")
     print("Copyright 2003-2023 Gentoo Authors")
     print("Distributed under the terms of the GNU General Public License v2")
 
@@ -603,13 +603,9 @@ def doAction(action, options, exclude={}, output=None):
     if saved and not options["quiet"]:
         print()
         print(
-            (
-                pp.emph("   The following ")
-                + yellow("unavailable")
-                + pp.emph(
-                    " files were saved from cleaning due to exclusion file entries"
-                )
-            )
+            pp.emph("   The following ")
+            + yellow("unavailable")
+            + pp.emph(" files were saved from cleaning due to exclusion file entries")
         )
         output.set_colors("deprecated")
         clean_size = cleaner.pretend_clean(saved)
@@ -617,11 +613,9 @@ def doAction(action, options, exclude={}, output=None):
     if deprecated and not options["quiet"]:
         print()
         print(
-            (
-                pp.emph("   The following ")
-                + yellow("unavailable")
-                + pp.emph(" installed packages were found")
-            )
+            pp.emph("   The following ")
+            + yellow("unavailable")
+            + pp.emph(" installed packages were found")
         )
         output.set_colors("deprecated")
         output.list_pkgs(deprecated)
@@ -685,7 +679,7 @@ def main():
     # parse the exclusion file
     if not "exclude-file" in options:
         # set it to the default exclude file if it exists
-        exclude_file = "%s/etc/%s/%s.exclude" % (EPREFIX, __productname__, action)
+        exclude_file = f"{EPREFIX}/etc/{__productname__}/{action}.exclude"
         if os.path.isfile(exclude_file):
             options["exclude-file"] = exclude_file
     if "exclude-file" in options:

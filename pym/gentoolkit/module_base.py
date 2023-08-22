@@ -152,7 +152,7 @@ class ModuleBase:
                 % pp.emph(self.command_name)
             )
         )
-        print("module: %s, target: %s" % (pp.emph(self.module_name), pp.emph(target)))
+        print(f"module: {pp.emph(self.module_name)}, target: {pp.emph(target)}")
         print()
 
 

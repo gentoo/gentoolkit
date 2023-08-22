@@ -58,13 +58,13 @@ def split_arguments(args):
 
 def main_usage(module_info):
     """Return the main usage message for analyse"""
-    return "%(usage)s %(product)s [%(g_opts)s] %(mod_name)s [%(mod_opts)s]" % {
-        "usage": pp.emph("Usage:"),
-        "product": pp.productname(module_info["__productname__"]),
-        "g_opts": pp.globaloption("global-options"),
-        "mod_name": pp.command("module-name"),
-        "mod_opts": pp.localoption("module-options"),
-    }
+    return "{usage} {product} [{g_opts}] {mod_name} [{mod_opts}]".format(
+        usage=pp.emph("Usage:"),
+        product=pp.productname(module_info["__productname__"]),
+        g_opts=pp.globaloption("global-options"),
+        mod_name=pp.command("module-name"),
+        mod_opts=pp.localoption("module-options"),
+    )
 
 
 def print_version(module_info):
@@ -145,9 +145,9 @@ def mod_usage(mod_name="module", arg="pkgspec", optional=False):
     @param optional: is the argument optional?
     """
 
-    return "%(usage)s: %(mod_name)s [%(opts)s] %(arg)s" % {
-        "usage": pp.emph("Usage"),
-        "mod_name": pp.command(mod_name),
-        "opts": pp.localoption("options"),
-        "arg": ("[%s]" % pp.emph(arg)) if optional else pp.emph(arg),
-    }
+    return "{usage}: {mod_name} [{opts}] {arg}".format(
+        usage=pp.emph("Usage"),
+        mod_name=pp.command(mod_name),
+        opts=pp.localoption("options"),
+        arg=("[%s]" % pp.emph(arg)) if optional else pp.emph(arg),
+    )

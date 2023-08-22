@@ -29,7 +29,7 @@ def make_dir(path):
     Will Error and exit if the target dir already exits"""
     try:
         os.makedirs(path, dir_mode)
-    except EnvironmentError as er:
+    except OSError as er:
         print(pp.error("Error creating path:%s" % path), file=sys.stderr)
         print(pp.error("Error: %s" % str(er), file=sys.stderr))
         sys.exit(1)

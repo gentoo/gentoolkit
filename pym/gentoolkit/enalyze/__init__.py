@@ -110,7 +110,7 @@ def main():
         loaded_module.main(module_args)
     except portage.exception.AmbiguousPackageName as err:
         raise errors.GentoolkitAmbiguousPackage(err.args[0])
-    except IOError as err:
+    except OSError as err:
         if err.errno != errno.EPIPE:
             raise
 

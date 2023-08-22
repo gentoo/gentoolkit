@@ -175,7 +175,7 @@ def process_keywords(keywords, ops, arch_status=None):
         if oarch == "all":
             if arch_status is None:
                 raise ValueError('unable to process "all" w/out profiles.desc')
-            old_arches = set([keyword_to_arch(a) for a in new_keywords])
+            old_arches = {keyword_to_arch(a) for a in new_keywords}
             if op is None:
                 # Process just stable keywords.
                 arches = [
@@ -219,12 +219,12 @@ def process_keywords(keywords, ops, arch_status=None):
 
         # Finally do the actual update of the keywords list.
         for arch in arches:
-            new_keywords -= set(["%s%s" % (x, arch) for x in ("", "~", "-")])
+            new_keywords -= {f"{x}{arch}" for x in ("", "~", "-")}
 
             if op is None:
                 new_keywords.add(arch)
             elif op in ("~", "-"):
-                new_keywords.add("%s%s" % (op, arch))
+                new_keywords.add(f"{op}{arch}")
             elif op == "^":
                 # Already deleted.  Whee.
                 pass
@@ -243,7 +243,7 @@ def process_content(
         disp_name = ebuild
 
         def logit(msg):
-            print("%s: %s" % (disp_name, msg))
+            print(f"{disp_name}: {msg}")
 
     elif quiet > 1:
 
@@ -255,7 +255,7 @@ def process_content(
         disp_name, _, _ = os.path.basename(ebuild).partition(".ebuild")
 
         def logit(msg):
-            print("%s: %s" % (disp_name, msg))
+            print(f"{disp_name}: {msg}")
 
     # Match any KEYWORDS= entry that isn't commented out.
     keywords_re = re.compile(r'^([^#]*\bKEYWORDS=)([\'"])(.*)(\2)(.*)')
@@ -297,7 +297,7 @@ def process_content(
                 old_keywords = sort_keywords(old_keywords)
 
             new_keywords = sort_keywords(new_keywords)
-            line = '%s"%s"%s\n' % (m.group(1), " ".join(new_keywords), m.group(5))
+            line = '{}"{}"{}\n'.format(m.group(1), " ".join(new_keywords), m.group(5))
             if style in ("color-inline", "inline"):
                 logit(diff_keywords(old_keywords, new_keywords, style=style))
             else:
@@ -359,7 +359,7 @@ def process_ebuild(
     Returns:
       Whether any updates were processed
     """
-    with io.open(ebuild, encoding="utf8") as f:
+    with open(ebuild, encoding="utf8") as f:
         updated, content = process_content(
             ebuild,
             f,
@@ -370,7 +370,7 @@ def process_ebuild(
             style=style,
         )
         if updated and not dry_run:
-            with io.open(ebuild, "w", encoding="utf8") as f:
+            with open(ebuild, "w", encoding="utf8") as f:
                 f.writelines(content)
             if manifest:
                 subprocess.check_call(["ebuild", ebuild, "manifest"])

@@ -28,7 +28,7 @@ def print_epkginfo_help():
 
 equery.initialize_configuration()
 args = sys.argv[1:]
-if not args or set(('-h', '--help')).intersection(args):
+if not args or {'-h', '--help'}.intersection(args):
     print_epkginfo_help()
 else:
     try:

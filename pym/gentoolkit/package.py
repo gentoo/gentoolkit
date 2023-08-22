@@ -110,7 +110,7 @@ class Package(CPV):
         self._portdir_path = None
 
     def __repr__(self):
-        return "<%s %r>" % (self.__class__.__name__, self.cpv)
+        return f"<{self.__class__.__name__} {self.cpv!r}>"
 
     def __hash__(self):
         return hash(self.cpv)
@@ -135,7 +135,7 @@ class Package(CPV):
 
             try:
                 self._metadata = MetaDataXML(metadata_path, projects_path)
-            except IOError as error:
+            except OSError as error:
                 import errno
 
                 if error.errno != errno.ENOENT:
@@ -151,7 +151,7 @@ class Package(CPV):
         if self._dblink is None:
             self._dblink = portage.dblink(
                 self.category,
-                "%s-%s" % (self.name, self.fullversion),
+                f"{self.name}-{self.fullversion}",
                 self._settings["ROOT"],
                 self._settings,
             )
@@ -502,7 +502,7 @@ class PackageFormatter:
         self.pkg = pkg
 
     def __repr__(self):
-        return "<%s %s @%#8x>" % (self.__class__.__name__, self.pkg, id(self))
+        return f"<{self.__class__.__name__} {self.pkg} @{id(self):#8x}>"
 
     def __str__(self):
         if self._str is None:
@@ -597,7 +597,7 @@ class PackageFormatter:
             result += 1
         if "missing keyword" in masking_status:
             result += 2
-        if set(("profile", "package.mask")).intersection(masking_status):
+        if {"profile", "package.mask"}.intersection(masking_status):
             result += 3
 
         return (result, masking_status)
@@ -621,7 +621,7 @@ class PackageFormatter:
         return pp.keyword(
             maskmode,
             stable=not maskmode.strip(),
-            hard_masked=set(("M", "?", "-")).intersection(maskmode),
+            hard_masked={"M", "?", "-"}.intersection(maskmode),
         )
 
     def format_cpv(self, attr=None):

@@ -183,7 +183,7 @@ def format_filetype(path, fdesc, show_type=False, show_md5=False, show_timestamp
         ftype = "fifo"
         fpath = path
     else:
-        sys.stderr.write(pp.error("%s has unknown type: %s" % (path, fdesc[0])))
+        sys.stderr.write(pp.error(f"{path} has unknown type: {fdesc[0]}"))
 
     result = ""
     if show_type:
@@ -235,13 +235,13 @@ def initialize_configuration():
 def main_usage():
     """Return the main usage message for equery"""
 
-    return "%(usage)s %(product)s [%(g_opts)s] %(mod_name)s [%(mod_opts)s]" % {
-        "usage": pp.emph("Usage:"),
-        "product": pp.productname(__productname__),
-        "g_opts": pp.globaloption("global-options"),
-        "mod_name": pp.command("module-name"),
-        "mod_opts": pp.localoption("module-options"),
-    }
+    return "{usage} {product} [{g_opts}] {mod_name} [{mod_opts}]".format(
+        usage=pp.emph("Usage:"),
+        product=pp.productname(__productname__),
+        g_opts=pp.globaloption("global-options"),
+        mod_name=pp.command("module-name"),
+        mod_opts=pp.localoption("module-options"),
+    )
 
 
 def mod_usage(mod_name="module", arg="pkgspec", optional=False):
@@ -253,12 +253,12 @@ def mod_usage(mod_name="module", arg="pkgspec", optional=False):
     @param optional: is the argument optional?
     """
 
-    return "%(usage)s: %(mod_name)s [%(opts)s] %(arg)s" % {
-        "usage": pp.emph("Usage"),
-        "mod_name": pp.command(mod_name),
-        "opts": pp.localoption("options"),
-        "arg": ("[%s]" % pp.emph(arg)) if optional else pp.emph(arg),
-    }
+    return "{usage}: {mod_name} [{opts}] {arg}".format(
+        usage=pp.emph("Usage"),
+        mod_name=pp.command(mod_name),
+        opts=pp.localoption("options"),
+        arg=("[%s]" % pp.emph(arg)) if optional else pp.emph(arg),
+    )
 
 
 def parse_global_options(global_opts, args):
@@ -361,7 +361,7 @@ def main(argv):
         loaded_module.main(module_args)
     except portage.exception.AmbiguousPackageName as err:
         raise errors.GentoolkitAmbiguousPackage(err.args[0])
-    except IOError as err:
+    except OSError as err:
         if err.errno != errno.EPIPE:
             raise
 

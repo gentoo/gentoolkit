@@ -55,7 +55,7 @@ def get_set_atoms(setname):
     if _sets_available:
         _init_set_config()
         try:
-            return set([Atom(str(x)) for x in _set_config.getSetAtoms(setname)])
+            return {Atom(str(x)) for x in _set_config.getSetAtoms(setname)}
         except portage._sets.PackageSetNotFound:
             raise errors.GentoolkitSetNotFound(setname)
     raise errors.GentoolkitSetNotFound(setname)

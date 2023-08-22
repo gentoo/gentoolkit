@@ -86,7 +86,7 @@ def assign_packages(broken, logger, settings):
             if os.path.exists(f):
                 contents_matcher = _file_matcher()
                 try:
-                    with io.open(f, "r", encoding="utf_8") as cnt:
+                    with open(f, encoding="utf_8") as cnt:
                         for line in cnt.readlines():
                             m = re.match(r"^obj (/[^ ]+)", line)
                             if m is not None:
@@ -125,20 +125,17 @@ def get_best_match(cpv, cp, logger):
 
     slot = portage.db[portage.root]["vartree"].dbapi.aux_get(cpv, ["SLOT"])[0]
     logger.warning(
-        '\t%s "%s" %s.' % (yellow("* Warning:"), cpv, bold("ebuild not found."))
+        '\t{} "{}" {}.'.format(yellow("* Warning:"), cpv, bold("ebuild not found."))
     )
-    logger.debug("\tget_best_match(); Looking for %s:%s" % (cp, slot))
+    logger.debug(f"\tget_best_match(); Looking for {cp}:{slot}")
     try:
-        match = portdb.match("%s:%s" % (cp, slot))
+        match = portdb.match(f"{cp}:{slot}")
     except portage.exception.InvalidAtom:
         match = None
 
     if not match:
         logger.warning(
-            "\t"
-            + red("!!")
-            + " "
-            + yellow("Could not find ebuild for %s:%s" % (cp, slot))
+            "\t" + red("!!") + " " + yellow(f"Could not find ebuild for {cp}:{slot}")
         )
         slot = [""]
         match = portdb.match(cp)
@@ -159,12 +156,10 @@ def get_slotted_cps(cpvs, logger):
         parts = catpkgsplit(cpv)
         if not parts:
             logger.warning(
-                (
-                    "\t"
-                    + red(
-                        "Failed to split the following pkg: "
-                        "%s, not a valid cat/pkg-ver" % cpv
-                    )
+                "\t"
+                + red(
+                    "Failed to split the following pkg: "
+                    "%s, not a valid cat/pkg-ver" % cpv
                 )
             )
             continue

@@ -14,15 +14,16 @@ import os
 import sys
 import tempfile
 
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Tuple
+from collections.abc import Sequence
 
 from gentoolkit.ekeyword import ekeyword
 
 
-KeywordChanges = List[Tuple[Optional[List[str]], Optional[List[str]]]]
+KeywordChanges = list[tuple[Optional[list[str]], Optional[list[str]]]]
 
 
-def keyword_array(keyword_line: str) -> List[str]:
+def keyword_array(keyword_line: str) -> list[str]:
     # Find indices of string inside the double-quotes
     i1: int = keyword_line.find('"') + 1
     i2: int = keyword_line.rfind('"')
@@ -32,8 +33,8 @@ def keyword_array(keyword_line: str) -> List[str]:
 
 
 def keyword_line_changes(old: str, new: str) -> KeywordChanges:
-    a: List[str] = keyword_array(old)
-    b: List[str] = keyword_array(new)
+    a: list[str] = keyword_array(old)
+    b: list[str] = keyword_array(new)
 
     s = difflib.SequenceMatcher(a=a, b=b)
 

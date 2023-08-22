@@ -140,7 +140,7 @@ def depgraph_printer(
             if dep.operator == "=*":
                 atom += " (=%s*)" % dep.cpv
             else:
-                atom += " (%s%s)" % (dep.operator, dep.cpv)
+                atom += f" ({dep.operator}{dep.cpv})"
         if not no_use and dep is not None and dep.use:
             use = " [%s]" % " ".join(
                 pp.useflag(x, enabled=True) for x in dep.use.tokens
@@ -197,7 +197,7 @@ def main(input_args):
     """Parse input and run the program"""
 
     short_opts = "hAMUl"
-    long_opts = ("help", "no-atom", "no-useflags", "no-mask", "depth=")
+    long_opts = ("help", "no-atom", "no-useflags", "no-mask", "depth=", "linear")
 
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)

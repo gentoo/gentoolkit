@@ -74,7 +74,7 @@ class Query(CPV):
         repo = ""
         if self.repo_filter:
             repo = " in %s" % self.repo_filter
-        return "<%s%s %r%s>" % (self.__class__.__name__, rx, self.query, repo)
+        return f"<{self.__class__.__name__}{rx} {self.query!r}{repo}>"
 
     def __str__(self):
         return self.query
@@ -105,7 +105,7 @@ class Query(CPV):
         if self.repo_filter is not None:
             repo = " %s" % pp.section(self.repo_filter)
 
-        pp.uprint(" * Searching%s for %s %s..." % (repo, pkg_str, cat_str))
+        pp.uprint(f" * Searching{repo} for {pkg_str} {cat_str}...")
 
     def smart_find(
         self,
@@ -115,7 +115,7 @@ class Query(CPV):
         include_masked=True,
         show_progress=True,
         no_matches_fatal=True,
-        **kwargs
+        **kwargs,
     ):
         """A high-level wrapper around gentoolkit package-finder functions.
 
@@ -195,7 +195,7 @@ class Query(CPV):
                     portage.db[portage.root]["vartree"].dbapi.match(self.query)
                 )
         except portage.exception.InvalidAtom as err:
-            message = "query.py: find(), query=%s, InvalidAtom=%s" % (
+            message = "query.py: find(), query={}, InvalidAtom={}".format(
                 self.query,
                 str(err),
             )
@@ -239,7 +239,7 @@ class Query(CPV):
         except portage.exception.InvalidAtom as err:
             message = (
                 "query.py: find_best(), bestmatch-visible, "
-                + "query=%s, InvalidAtom=%s" % (self.query, str(err))
+                + f"query={self.query}, InvalidAtom={str(err)}"
             )
             raise errors.GentoolkitInvalidAtom(message)
         # xmatch can return an empty string, so checking for None is not enough

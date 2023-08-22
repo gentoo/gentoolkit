@@ -45,7 +45,7 @@ def parse_conf(conf_file, visited=None, logger=None):
                             to_parse.update(glob.glob(path))
                     else:
                         lib_dirs.add(line)
-        except EnvironmentError:
+        except OSError:
             logger.warn("\t" + yellow("Error when parsing file %s" % conf))
 
     if visited is None:
@@ -64,18 +64,14 @@ def prepare_search_dirs(logger, settings):
     (list_of_bin_dirs, list_of_lib_dirs)
     """
 
-    bin_dirs = set(
-        [
-            "/bin",
-            "/usr/bin",
-        ]
-    )
-    lib_dirs = set(
-        [
-            "/lib",
-            "/usr/lib",
-        ]
-    )
+    bin_dirs = {
+        "/bin",
+        "/usr/bin",
+    }
+    lib_dirs = {
+        "/lib",
+        "/usr/lib",
+    }
 
     # try:
     with open(
@@ -83,7 +79,6 @@ def prepare_search_dirs(logger, settings):
             os.path.join(portage.root, settings["DEFAULT_ENV_FILE"]),
             encoding=_encodings["fs"],
         ),
-        mode="r",
         encoding=_encodings["content"],
     ) as _file:
         for line in _file.readlines():
@@ -235,13 +230,11 @@ if __name__ == "__main__":
     lib_dirs.update(ld)
     bin_dirs.update(ld)
     masked_dirs.update(
-        set(
-            [
-                "/lib/modules",
-                "/lib32/modules",
-                "/lib64/modules",
-            ]
-        )
+        {
+            "/lib/modules",
+            "/lib32/modules",
+            "/lib64/modules",
+        }
     )
 
     libraries, la_libraries, libraries_links = collect_libraries_from_dir(

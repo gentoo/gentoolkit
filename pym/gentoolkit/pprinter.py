@@ -181,7 +181,7 @@ def uprint(*args, **kw):
     end = kw.pop("end", "\n")
     file = kw.pop("file", sys.stdout)
     if kw:
-        raise TypeError("got invalid keyword arguments: {0}".format(list(kw)))
+        raise TypeError(f"got invalid keyword arguments: {list(kw)}")
     file = getattr(file, "buffer", file)
 
     encoding = locale.getpreferredencoding()

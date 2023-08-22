@@ -43,7 +43,7 @@ class Dependencies(Query):
     def __init__(self, query, parser=None):
         Query.__init__(self, query)
         self.use = []
-        self.depatom = str()
+        self.depatom = ""
 
         # Allow a custom parser function:
         self.parser = parser if parser else self._parser
@@ -61,7 +61,7 @@ class Dependencies(Query):
         return hash((self.atom, self.depatom, tuple(self.use)))
 
     def __repr__(self):
-        return "<%s %r>" % (self.__class__.__name__, self.atom)
+        return f"<{self.__class__.__name__} {self.atom!r}>"
 
     def environment(self, envvars):
         """Returns predefined env vars DEPEND, SRC_URI, etc."""

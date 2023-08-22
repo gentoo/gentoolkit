@@ -92,7 +92,6 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
 
         for line in open(
             _unicode_encode(_file, encoding=_encodings["fs"]),
-            mode="r",
             encoding=_encodings["content"],
         ).readlines():
             line = line.strip()
@@ -256,7 +255,7 @@ class LibCheck:
                             try:
                                 found_libs[bits][l].add(filename)
                             except KeyError:
-                                found_libs[bits][l] = set([filename])
+                                found_libs[bits][l] = {filename}
                                 count += 1
                             fcount += 1
                             self.logger.debug(

@@ -108,7 +108,7 @@ def stablereq(matches):
     for pkg in matches:
         keywords_str = pkg.environment(("KEYWORDS"), prefer_vdb=False)
         # get any unstable keywords
-        keywords = set([x.lstrip("~") for x in keywords_str.split() if "~" in x])
+        keywords = {x.lstrip("~") for x in keywords_str.split() if "~" in x}
         stable_arches = set(list(STABLEREQ_arches))
         cc_keywords = stable_arches.intersection(keywords)
         # add cc's
@@ -165,9 +165,9 @@ def format_maintainers(maints):
     for maint in maints:
         maintstr = maint.email or ""
         if CONFIG["verbose"]:
-            maintstr += " (%s)" % (maint.name,) if maint.name else ""
-            maintstr += " - %s" % (maint.restrict,) if maint.restrict else ""
-            maintstr += " - %s" % (maint.description,) if maint.description else ""
+            maintstr += f" ({maint.name})" if maint.name else ""
+            maintstr += f" - {maint.restrict}" if maint.restrict else ""
+            maintstr += f" - {maint.description}" if maint.description else ""
         result.append(maintstr)
 
     return result
@@ -183,7 +183,7 @@ def format_upstream(upstream):
             doc_lang = doc[1]
             docstr = doc_location
             if doc_lang is not None:
-                docstr += " (%s)" % (doc_lang,)
+                docstr += f" ({doc_lang})"
             result.append(docstr)
         return result
 
@@ -192,7 +192,7 @@ def format_upstream(upstream):
         for id_ in ids:
             site = id_[0]
             proj_id = id_[1]
-            idstr = "%s ID: %s" % (site, proj_id)
+            idstr = f"{site} ID: {proj_id}"
             result.append(idstr)
         return result
 
@@ -255,10 +255,10 @@ def format_keywords_line(pkg, fmtd_keywords, slot, verstr_len):
     """Format the entire keywords line for display."""
 
     ver = pkg.fullversion
-    result = "%s:%s: %s" % (ver, pp.slot(slot), fmtd_keywords)
+    result = f"{ver}:{pp.slot(slot)}: {fmtd_keywords}"
     if CONFIG["verbose"] and fmtd_keywords:
         result = format_line(
-            fmtd_keywords, "%s:%s: " % (ver, pp.slot(slot)), " " * (verstr_len + 2)
+            fmtd_keywords, f"{ver}:{pp.slot(slot)}: ", " " * (verstr_len + 2)
         )
 
     return result
@@ -266,7 +266,7 @@ def format_keywords_line(pkg, fmtd_keywords, slot, verstr_len):
 
 def format_stablereq_line(pkg, fmtd_ccs, slot):
     """Format the entire stablereq line for display (no indented linewrapping)"""
-    return "%s:%s: %s" % (pkg.fullversion, pp.slot(slot), fmtd_ccs)
+    return f"{pkg.fullversion}:{pp.slot(slot)}: {fmtd_ccs}"
 
 
 def format_homepage(homepage):
@@ -282,7 +282,7 @@ def call_format_functions(best_match, matches):
 
     if CONFIG["verbose"]:
         repo = best_match.repo_name()
-        pp.uprint(" * %s [%s]" % (pp.cpv(best_match.cp), pp.section(repo)))
+        pp.uprint(f" * {pp.cpv(best_match.cp)} [{pp.section(repo)}]")
 
     got_opts = False
     if any(QUERY_OPTS.values()):
@@ -532,9 +532,7 @@ def main(input_args):
 
         if best_match.metadata is None:
             print(
-                pp.warn(
-                    "Package {0} is missing " "metadata.xml".format(best_match.cpv)
-                ),
+                pp.warn("Package {} is missing " "metadata.xml".format(best_match.cpv)),
                 file=sys.stderr,
             )
             continue

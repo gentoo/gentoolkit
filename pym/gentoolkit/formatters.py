@@ -73,7 +73,7 @@ def format_filetype(path, fdesc, show_type=False, show_md5=False, show_timestamp
         ftype = "dev"
         fpath = path
     else:
-        sys.stderr.write(pp.error("%s has unknown type: %s" % (path, fdesc[0])))
+        sys.stderr.write(pp.error(f"{path} has unknown type: {fdesc[0]}"))
     result = ""
     if show_type:
         result += "%4s " % ftype

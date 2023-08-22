@@ -158,7 +158,7 @@ def gather_keywords_info(
 
 
 class Analyse(ModuleBase):
-    """Installed db analysis tool to query the installed databse
+    """Installed db analysis tool to query the installed database
     and produce/output stats for USE flags or keywords/mask.
     The 'rebuild' action output is in the form suitable for file type output
     to create a new package.use, package.keywords, package.unmask
@@ -201,7 +201,7 @@ class Analyse(ModuleBase):
             "--width": ("width", "int", 80),
         }
         self.formatted_options = [
-            ("  -h, --help", "Outputs this useage message"),
+            ("  -h, --help", "Outputs this usage message"),
             (
                 "  -u, --unset",
                 "Additionally include any unset USE flags and the packages",
@@ -265,7 +265,7 @@ class Analyse(ModuleBase):
         self.warning = (
             "   CAUTION",
             "This is beta software and some features/options are incomplete,",
-            "some features may change in future releases includig its name.",
+            "some features may change in future releases including its name.",
             "Feedback will be appreciated, http://bugs.gentoo.org",
         )
 
@@ -435,10 +435,8 @@ class Analyse(ModuleBase):
             if self.analyser.mismatched:
                 print("_________________________________________________")
                 print(
-                    (
-                        "The following packages were found to have a \n"
-                        + "different recorded ARCH than the current system ARCH"
-                    )
+                    "The following packages were found to have a \n"
+                    + "different recorded ARCH than the current system ARCH"
                 )
                 for cpv in self.analyser.mismatched:
                     print("\t", pp.cpv(cpv))
