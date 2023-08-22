@@ -262,8 +262,8 @@ def printUsage(_error=None, help=None, unresolved_invalids=None):
             file=out,
         )
         print(
-            yellow("     --clean-invalid")
-            + "               - cleanup invalid binpkgs",
+            yellow(" -N, --clean-invalid")
+            + "              - cleanup invalid binpkgs",
             file=out,
         )
         print(
