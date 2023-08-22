@@ -6,7 +6,6 @@ Functions used for determining the package the broken lib belongs to.
 
 import errno
 import os
-import io
 import re
 import time
 

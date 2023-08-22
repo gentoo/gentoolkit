@@ -39,7 +39,6 @@ Examples:
 import argparse
 import collections
 import difflib
-import io
 import os
 import re
 import subprocess
