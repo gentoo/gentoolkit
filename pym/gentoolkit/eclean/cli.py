@@ -262,7 +262,8 @@ def printUsage(_error=None, help=None, unresolved_invalids=None):
             file=out,
         )
         print(
-            yellow(" -N, --clean-invalid") + "              - cleanup invalid binpkgs",
+            yellow("     --no-clean-invalid")
+            + "           - Skip cleaning invalid binpkgs",
             file=out,
         )
         print(
@@ -417,8 +418,8 @@ def parseArgs(options={}):
                 options["ignore-failure"] = True
             elif o in ("-u", "--unique-use"):
                 options["unique-use"] = True
-            elif o in ("-N", "--skip-invalid"):
-                options["clean-invalid"] = False
+            elif o in ("--no-clean-invalid"):
+                options["no-clean-invalid"] = True
             else:
                 return_code = False
         # sanity check of --deep only options:
@@ -457,12 +458,12 @@ def parseArgs(options={}):
     ]
     getopt_options["short"]["distfiles"] = "fs:"
     getopt_options["long"]["distfiles"] = ["fetch-restricted", "size-limit="]
-    getopt_options["short"]["packages"] = "iNu"
+    getopt_options["short"]["packages"] = "iu"
     getopt_options["long"]["packages"] = [
         "ignore-failure",
         "changed-deps",
-        "clean-invalid",
         "unique-use",
+        "no-clean-invalid",
     ]
     # set default options, except 'nocolor', which is set in main()
     options["interactive"] = False
@@ -478,7 +479,7 @@ def parseArgs(options={}):
     options["verbose"] = False
     options["changed-deps"] = False
     options["ignore-failure"] = False
-    options["clean-invalid"] = False
+    options["no-clean-invalid"] = False
     options["unique-use"] = False
     # if called by a well-named symlink, set the action accordingly:
     action = None
@@ -625,7 +626,7 @@ def doAction(action, options, exclude={}, output=None):
         output.set_colors("deprecated")
         output.list_pkgs(deprecated)
     if action in ["packages"]:
-        if invalids and options["clean-invalid"]:
+        if invalids and not options["no-clean-invalid"]:
             if type(invalids) == list:
                 printUsage(_error="invalid_paths", unresolved_invalids=invalids)
                 sys.exit(1)
