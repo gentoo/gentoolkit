@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
-# Copyright 2020 Gentoo Authors
+# Copyright 2020-2023 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2 or later
 
 """
@@ -127,8 +127,10 @@ def main(argv: Sequence[str]) -> int:
         sys.exit(result)
     else:
         result = os.system(f"git merge-file -L HEAD -L base -L ours {A} {O} {B}")
+        result = os.waitstatus_to_exitcode(result)
+        if result < 0 or result >= 128:
+            sys.exit(-1)
         sys.exit(result)
-
 
 if __name__ == "__main__":
     main(sys.argv)
