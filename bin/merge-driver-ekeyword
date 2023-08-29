@@ -126,11 +126,10 @@ def main(argv: Sequence[str]) -> int:
         result = apply_keyword_changes(A, P, changes)
         sys.exit(result)
     else:
-        result = os.system(f"git merge-file -L HEAD -L base -L ours {A} {O} {B}")
-        result = os.waitstatus_to_exitcode(result)
-        if result < 0 or result >= 128:
+        try:
+            os.execlp("git", "git", "merge-file", "-L", "HEAD", "-L", "base", "-L", "ours", A, O, B)
+        except OSError:
             sys.exit(-1)
-        sys.exit(result)
 
 if __name__ == "__main__":
     main(sys.argv)
