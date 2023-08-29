@@ -127,7 +127,7 @@ def main(argv: Sequence[str]) -> int:
         sys.exit(result)
     else:
         result = os.system(f"git merge-file -L HEAD -L base -L ours {A} {O} {B}")
-        sys.exit(0 if result == 0 else -1)
+        sys.exit(result)
 
 
 if __name__ == "__main__":
