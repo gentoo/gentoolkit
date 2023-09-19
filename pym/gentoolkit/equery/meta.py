@@ -10,19 +10,19 @@ __docformat__ = "epytext"
 # Imports
 # =======
 
-import re
 import os
+import re
 import sys
 import warnings
-from getopt import gnu_getopt, GetoptError
+from getopt import GetoptError, gnu_getopt
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
+from gentoolkit.equery import CONFIG, format_options, mod_usage
+from gentoolkit.helpers import print_file, print_sequence
 from gentoolkit.keyword import Keyword
-from gentoolkit.equery import format_options, mod_usage, CONFIG
-from gentoolkit.helpers import print_sequence, print_file
-from gentoolkit.textwrap_ import TextWrapper
 from gentoolkit.query import Query
+from gentoolkit.textwrap_ import TextWrapper
 
 # =======
 # Globals
@@ -189,11 +189,42 @@ def format_upstream(upstream):
 
     def _format_upstream_ids(ids):
         result = []
-        for id_ in ids:
-            site = id_[0]
-            proj_id = id_[1]
-            idstr = f"{site} ID: {proj_id}"
-            result.append(idstr)
+        remote_ids = {
+            "github": "https://github.com/remote-id",
+            "gentoo": "https://gitweb.gentoo.org/remote-id.git/",
+            "bitbucket": "https://bitbucket.org/remote-id",
+            "codeberg": "https://codeberg.org/remote-id",
+            "cpan": "https://metacpan.org/dist/remote-id",
+            "cpan-module": "https://metacpan.org/pod/remote-id",
+            "cpe": "remote-id",
+            "cran": "https://cran.r-project.org/web/packages/remote-id/",
+            "ctan": "https://ctan.org/pkg/remote-id",
+            "freedesktop-gitlab": "https://gitlab.freedesktop.org/remote-id.git/",
+            "gitlab": "https://gitlab.com/remote-id",
+            "gnome-gitlab": "https://gitlab.gnome.org/remote-id.git/",
+            "google-code": "https://code.google.com/archive/p/remote-id/",
+            "hackage": "https://hackage.haskell.org/package/remote-id",
+            "heptapod": "https://foss.heptapod.net/remote-id",
+            "kde-invent": "https://invent.kde.org/remote-id",
+            "launchpad": "https://launchpad.net/remote-id",
+            "osdn": "https://osdn.net/projects/remote-id/",
+            "pear": "https://pear.php.net/package/remote-id",
+            "pecl": "https://pecl.php.net/package/remote-id",
+            "pypi": "https://pypi.org/project/remote-id/",
+            "rubygems": "https://rubygems.org/gems/remote-id/",
+            "savannah": "https://savannah.gnu.org/projects/remote-id",
+            "savannah-nongnu": "https://savannah.nongnu.org/projects/remote-id",
+            "sourceforge": "https://sourceforge.net/projects/remote-id/",
+            "sourcehut": "https://sr.ht/remote-id/",
+            "vim": "https://www.vim.org/scripts/script.php?script_id=remote-id",
+        }
+        for id in ids:
+            proj_id = id[1]
+            try:
+                site = remote_ids[proj_id].replace("remote-id", id[0])
+            except KeyError:
+                site = id[0]
+            result.append(f"{site} ({proj_id})")
         return result
 
     result = []
