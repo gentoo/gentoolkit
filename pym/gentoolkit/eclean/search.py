@@ -7,6 +7,7 @@
 import os
 import stat
 import sys
+import shlex
 from functools import partial
 from inspect import signature
 from typing import Optional
@@ -134,6 +135,7 @@ class DistfilesSearch:
         # gather the files to be cleaned
         self.output("...checking limits for %d ebuild sources" % len(pkgs))
 
+        vcs = self.vcs_check(_distdir)
         checks = self._get_default_checks(size_limit, time_limit, exclude, destructive)
         checks.extend(extra_checks)
         clean_me = self._check_limits(_distdir, checks, clean_me)
@@ -148,7 +150,7 @@ class DistfilesSearch:
                 + "%s remaining candidates to clean" % len(clean_me)
             )
             clean_me, saved = self._check_excludes(exclude, clean_me)
-        return clean_me, saved, deprecated
+        return clean_me, saved, deprecated, vcs
 
     # begin _check_limits code block
 
@@ -331,6 +333,30 @@ class DistfilesSearch:
             pkgs, _deprecated = self._unrestricted(pkgs, cpvs)
             deprecated.update(_deprecated)
         return pkgs, deprecated
+
+    def vcs_check(self, distdir):
+        """Checks $DISTDIR/vcs-src for checkouts which are not in the vardb"""
+        # For now we only check git
+        vcs_src = os.path.join(distdir, "git3-src")
+        expected_dirs = set()
+        for i in set(self.vardb.cpv_all()):
+            if "live" in self.vardb.aux_get(i, ["PROPERTIES"]):
+                try:
+                    # try to get the dir names of the cloned
+                    # repos from the environment file.
+                    vcs_dir = {
+                        i.split("=")[-1].strip('"')
+                        for i in shlex.split(
+                            self.vardb._aux_env_search(i, ["EVCS_STORE_DIRS"])[
+                                "EVCS_STORE_DIRS"
+                            ].strip("()")
+                        )
+                    }
+                    expected_dirs.update(vcs_dir)
+                except KeyError:
+                    pass
+        actual_dirs = {os.path.join(vcs_src, i) for i in os.listdir(vcs_src)}
+        return actual_dirs.difference(expected_dirs)
 
     def _fetch_restricted(self, pkgs_, cpvs):
         """perform fetch restricted non-destructive source

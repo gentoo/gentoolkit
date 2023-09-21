@@ -5,6 +5,7 @@
 
 
 import os
+import shutil
 import sys
 
 import gentoolkit.pprinter as pp
@@ -25,7 +26,7 @@ class CleanUp:
         self.controller = controller
         self.quiet = quiet
 
-    def clean_dist(self, clean_dict):
+    def clean_dist(self, clean_dict, vcs):
         """Calculate size of each entry for display, prompt user if needed,
         delete files if approved and return the total size of files that
         have been deleted.
@@ -41,6 +42,7 @@ class CleanUp:
         for key in sorted(clean_dict):
             clean_size += self._clean_files(clean_dict[key], key, file_type)
         # return total size of deleted or to delete files
+        clean_size += self._clean_vcs_src(vcs)
         return clean_size
 
     def clean_pkgs(self, clean_dict, pkgdir):
@@ -74,7 +76,7 @@ class CleanUp:
         # return total size of deleted or to delete files
         return clean_size
 
-    def pretend_clean(self, clean_dict):
+    def pretend_clean(self, clean_dict, vcs={}):
         """Shortcut function that calculates total space savings
         for the files in clean_dict.
 
@@ -85,6 +87,8 @@ class CleanUp:
         file_type = "file"
         clean_size = 0
         # tally all entries one by one; sorting helps reading
+        if vcs:
+            clean_size += self._clean_vcs_src(vcs, pretend=True)
         for key in sorted(clean_dict):
             key_size = self._get_size(clean_dict[key])
             self.controller(key_size, key, clean_dict[key], file_type)
@@ -152,4 +156,31 @@ class CleanUp:
                 except OSError as er:
                     print(pp.error("Could not delete " + file_), file=sys.stderr)
                     print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+        return clean_size
+
+    def _clean_vcs_src(self, deprecated_vcs, pretend=False):
+        clean_size = 0
+        for checkout in deprecated_vcs:
+            csize = 0
+            for path, dirs, files in os.walk(checkout):
+                for f in files:
+                    fp = os.path.join(path, f)
+                    try:
+                        statinfo = os.stat(fp)
+                    except OSError as er:
+                        print(
+                            pp.error("Could not get stat info for:" + fp),
+                            file=sys.stderr,
+                        )
+                        print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+                    clean_size += statinfo.st_size
+                    csize += statinfo.st_size
+
+            try:
+                self.controller(csize, checkout, checkout, "checkout")
+                if not pretend:
+                    shutil.rmtree(checkout)
+            except OSError as er:
+                print(pp.error("Could not delete " + checkout), file=sys.stderr)
+                print(pp.error("Error: %s" % str(er)), file=sys.stderr)
         return clean_size
