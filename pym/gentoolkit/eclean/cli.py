@@ -13,25 +13,25 @@ __version__ = "git"
 __productname__ = "eclean"
 __description__ = "A cleaning tool for Gentoo distfiles and binaries."
 
-import os
-import sys
-import re
-import time
 import getopt
+import os
+import re
+import sys
+import time
 
 import portage
-from portage.output import white, yellow, turquoise, green, red
+from portage.output import green, red, turquoise, white, yellow
 
 import gentoolkit.pprinter as pp
+from gentoolkit.eclean.clean import CleanUp
+from gentoolkit.eclean.exclude import ParseExcludeFileException, parseExcludeFile
+from gentoolkit.eclean.output import OutputControl
 from gentoolkit.eclean.search import (
     DistfilesSearch,
     findPackages,
-    port_settings,
     pkgdir,
+    port_settings,
 )
-from gentoolkit.eclean.exclude import parseExcludeFile, ParseExcludeFileException
-from gentoolkit.eclean.clean import CleanUp
-from gentoolkit.eclean.output import OutputControl
 
 # from gentoolkit.eclean.dbapi import Dbapi
 from gentoolkit.eprefix import EPREFIX
@@ -309,6 +309,10 @@ def printUsage(_error=None, help=None, unresolved_invalids=None):
             "   " + '"two hundreds kilobytes", etc.  Units are: ' + "G, M, K and B.",
             file=out,
         )
+        print(
+            yellow(" --skip-vcs") + "  - skip cleaning of vcs_src ",
+            file=out,
+        )
         print(file=out)
     print(
         "More detailed instruction can be found in",
@@ -420,6 +424,8 @@ def parseArgs(options={}):
                 options["unique-use"] = True
             elif o in ("--no-clean-invalid"):
                 options["no-clean-invalid"] = True
+            elif o in ("--skip-vcs"):
+                options["skip-vcs"] = True
             else:
                 return_code = False
         # sanity check of --deep only options:
@@ -457,7 +463,11 @@ def parseArgs(options={}):
         "verbose",
     ]
     getopt_options["short"]["distfiles"] = "fs:"
-    getopt_options["long"]["distfiles"] = ["fetch-restricted", "size-limit="]
+    getopt_options["long"]["distfiles"] = [
+        "fetch-restricted",
+        "size-limit=",
+        "skip-vcs",
+    ]
     getopt_options["short"]["packages"] = "iu"
     getopt_options["long"]["packages"] = [
         "ignore-failure",
@@ -481,6 +491,7 @@ def parseArgs(options={}):
     options["ignore-failure"] = False
     options["no-clean-invalid"] = False
     options["unique-use"] = False
+    options["skip-vcs"] = False
     # if called by a well-named symlink, set the action accordingly:
     action = None
     # temp print line to ensure it is the svn/branch code running, etc..
@@ -546,6 +557,7 @@ def doAction(action, options, exclude={}, output=None):
         files_type = "distfiles"
     saved = {}
     deprecated = {}
+    vcs = []
     # find files to delete, depending on the action
     if not options["quiet"]:
         output.einfo("Building file list for " + action + " cleaning...")
@@ -567,7 +579,7 @@ def doAction(action, options, exclude={}, output=None):
             # portdb=Dbapi(portage.db[portage.root]["porttree"].dbapi),
             # var_dbapi=Dbapi(portage.db[portage.root]["vartree"].dbapi),
         )
-        clean_me, saved, deprecated = engine.findDistfiles(
+        clean_me, saved, deprecated, vcs = engine.findDistfiles(
             exclude=exclude,
             destructive=options["destructive"],
             fetch_restricted=options["fetch-restricted"],
@@ -581,7 +593,7 @@ def doAction(action, options, exclude={}, output=None):
     cleaner = CleanUp(output.progress_controller, options["quiet"])
 
     # actually clean files if something was found
-    if clean_me:
+    if clean_me or vcs:
         # verbose pretend message
         if options["pretend"] and not options["quiet"]:
             output.einfo("Here are the " + files_type + " that would be deleted:")
@@ -590,9 +602,13 @@ def doAction(action, options, exclude={}, output=None):
             output.einfo("Cleaning " + files_type + "...")
         # do the cleanup, and get size of deleted files
         if options["pretend"]:
-            clean_size = cleaner.pretend_clean(clean_me)
+            if options["skip-vcs"]:
+                vcs = {}
+            clean_size = cleaner.pretend_clean(clean_me, vcs)
         elif action in ["distfiles"]:
-            clean_size = cleaner.clean_dist(clean_me)
+            if options["skip-vcs"]:
+                vcs = {}
+            clean_size = cleaner.clean_dist(clean_me, vcs)
         elif action in ["packages"]:
             clean_size = cleaner.clean_pkgs(clean_me, pkgdir)
         # vocabulary for final message
@@ -602,7 +618,7 @@ def doAction(action, options, exclude={}, output=None):
             verb = "were"
         # display freed space
         if not options["quiet"]:
-            output.total("normal", clean_size, len(clean_me), verb, action)
+            output.total("normal", clean_size, len(clean_me) + len(vcs), verb, action)
     # nothing was found
     elif not options["quiet"]:
         output.einfo("Your " + action + " directory was already clean.")
