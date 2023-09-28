@@ -8,6 +8,7 @@ import os
 import stat
 import sys
 from functools import partial
+from inspect import signature
 from typing import Optional
 
 import portage
@@ -16,12 +17,11 @@ from portage.dep._slot_operator import strip_slots
 
 import gentoolkit.pprinter as pp
 from gentoolkit.eclean.exclude import (
-    exclDictMatchCP,
     exclDictExpand,
     exclDictExpandPkgname,
+    exclDictMatchCP,
     exclMatchFilename,
 )
-
 
 # Misc. shortcuts to some portage stuff:
 port_settings = portage.settings
@@ -568,7 +568,12 @@ def findPackages(
     dead_binpkgs: dict[str, list[str]] = {}
     keep_binpkgs = {}
 
-    bin_dbapi = portage.binarytree(pkgdir=pkgdir, settings=var_dbapi.settings).dbapi
+    # FEATURES=pkgdir-index-trusted is now on by default which makes portages inavlids
+    # inaccessible
+    settings = var_dbapi.settings
+    bin_dbapi = portage.binarytree(pkgdir=pkgdir, settings=settings).dbapi
+    if "force_reindex" in signature(bin_dbapi.bintree.populate).parameters:
+        bin_dbapi.bintree.populate(force_reindex=True)
     for cpv in bin_dbapi.cpv_all():
         cp = portage.cpv_getkey(cpv)
 
