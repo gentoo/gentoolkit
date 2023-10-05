@@ -8,7 +8,9 @@ import os
 import sys
 
 import gentoolkit.pprinter as pp
-from gentoolkit.eclean.pkgindex import PkgIndex
+import portage
+from portage.emaint.main import TaskHandler
+from portage.emaint.modules.binhost import binhost
 
 
 class CleanUp:
@@ -61,11 +63,14 @@ class CleanUp:
 
         #  run 'emaint --fix' here
         if clean_size:
-            index_control = PkgIndex(self.controller)
-            # emaint is not yet importable so call it
-            # print a blank line here for separation
-            print()
-            clean_size += index_control.clean_pkgs_index(self.quiet)
+            file = os.path.join(portage.settings["PKGDIR"], "Packages")
+            size1 = os.stat(file).st_size
+            TaskHandler(show_progress_bar=self.quiet).run_tasks(
+                [binhost.BinhostHandler], "fix"
+            )
+            size = size1 - os.stat(file).st_size
+            self.controller(size, "Packages Index", file, "Index")
+            clean_size += size
         # return total size of deleted or to delete files
         return clean_size
 
