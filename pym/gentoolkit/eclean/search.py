@@ -572,8 +572,11 @@ def findPackages(
     # inaccessible
     settings = var_dbapi.settings
     bin_dbapi = portage.binarytree(pkgdir=pkgdir, settings=settings).dbapi
+    populate_kwargs = {}
+    if "invalid_errors" in signature(bin_dbapi.bintree.populate).parameters:
+        populate_kwargs["invalid_errors"] = False
     if "force_reindex" in signature(bin_dbapi.bintree.populate).parameters:
-        bin_dbapi.bintree.populate(force_reindex=True)
+        bin_dbapi.bintree.populate(force_reindex=True, **populate_kwargs)
     for cpv in bin_dbapi.cpv_all():
         cp = portage.cpv_getkey(cpv)
 
