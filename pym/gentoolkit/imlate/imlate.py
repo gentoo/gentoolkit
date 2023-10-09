@@ -4,7 +4,7 @@
 # $Id$
 # Author: Christian Ruppert <idl0r@gentoo.org>
 
-__version__ = "git"
+__version__ = "@VERSION@"
 
 # works just with stable keywords!
 MAIN_ARCH = "auto"  # can be overridden by -m ARCH

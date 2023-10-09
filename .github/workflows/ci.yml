@@ -25,6 +25,14 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        set -xe
+        python -VV
+        python -m site
+        python -m pip install --upgrade pip
+        # setuptools needed for 3.12+ because of https://github.com/mesonbuild/meson/issues/7702.
+        python -m pip install meson ninja setuptools
     - name: Install portage
       run: |
         mkdir portage
@@ -38,8 +46,13 @@ jobs:
         sudo wget "https://www.gentoo.org/dtd/metadata.dtd" -O /var/cache/distfiles/metadata.dtd
         sudo wget "https://gitweb.gentoo.org/proj/portage.git/plain/cnf/repos.conf" -O /etc/portage/repos.conf
         sudo ln -s /var/db/repos/gentoo/profiles/default/linux/amd64/17.1/systemd /etc/portage/make.profile
-    - name: Run tests
+    - name: Test meson install --destdir /tmp/install-root
+      run: |
+        echo -e "[binaries]\npython = '$(command -v python)'" > /tmp/native.ini
+        meson setup --native-file /tmp/native.ini /tmp/build .
+        meson install -C /tmp/build --destdir /tmp/install-root
+    - name: Run tests for ${{ matrix.python-version }}
       run: |
         export PYTHONPATH="${PWD}/portage/lib"${PYTHONPATH:+:}${PYTHONPATH}
         export PATH="${PWD}/portage/bin":${PATH}
-        python setup.py test
+        meson test -C /tmp/build --verbose

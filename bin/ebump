@@ -12,7 +12,7 @@ __description__="Ebuild version bumping tool"
 # a given ebuild and auxiliary files in the Portage tree. It is only
 # useful for Gentoo developers with CVS commit access.
 
-VERSION="git"
+VERSION="@VERSION@"
 
 die() {
 	echo $1 >&2

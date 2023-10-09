@@ -9,7 +9,7 @@ __author__ = (
     + "modular re-write by: Brian Dolbec (dol-sen)"
 )
 __email__ = "degrenier@easyconnect.fr, " + "brian.dolbec@gmail.com"
-__version__ = "git"
+__version__ = "@VERSION@"
 __productname__ = "eclean"
 __description__ = "A cleaning tool for Gentoo distfiles and binaries."
 

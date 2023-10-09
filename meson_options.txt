@@ -1,0 +1,15 @@
+option('system-wide', type : 'boolean', value : true,
+    description : 'Install system-wide rather than isolated inside a Python environment'
+)
+
+option('code-only', type : 'boolean', value : false,
+    description : 'Do not install additional files such as configuration or documentation'
+)
+
+option('eprefix', type : 'string',
+    description : 'Prefix directory for gentoolkit to operate under'
+)
+
+option('docdir', type : 'string',
+    description : 'Documentation directory'
+)
