@@ -50,7 +50,7 @@ import portage
 from portage.output import colorize, nocolor
 
 
-__version__ = "git"
+__version__ = "@VERSION@"
 
 # Operation object that describes how to perform a change.
 # Args:

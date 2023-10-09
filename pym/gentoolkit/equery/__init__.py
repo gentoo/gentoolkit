@@ -6,8 +6,8 @@
 
 __all__ = ("format_options", "format_package_names", "mod_usage")
 __docformat__ = "epytext"
-# version is dynamically set by distutils sdist
-__version__ = "git"
+# version is dynamically set by meson dist
+__version__ = "@VERSION@"
 
 # =======
 # Imports

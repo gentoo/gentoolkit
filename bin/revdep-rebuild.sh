@@ -18,7 +18,7 @@ unset GREP_OPTIONS
 
 # Readonly variables:
 declare -r APP_NAME="revdep-rebuild" # # The name of this application
-declare -r VERSION="git"
+declare -r VERSION="@VERSION@"
 declare -r OIFS="$IFS"         # Save the IFS
 declare -r     ENV_FILE=0_env.rr     # Contains environment variables
 declare -r   FILES_FILE=1_files.rr   # Contains a list of files to search

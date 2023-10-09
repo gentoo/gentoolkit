@@ -2,7 +2,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 __package__ = "gentoolkit.eshowkw"
-__version__ = "git"
+__version__ = "@VERSION@"
 __author__ = "Tomáš Chvátal <scarabeus@gentoo.org>"
 
 import sys, os, fnmatch
