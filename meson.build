@@ -9,8 +9,6 @@ project(
 py_mod = import('python')
 py = py_mod.find_installation(pure : true)
 
-sed = find_program('sed', required : true)
-
 system_wide = get_option('system-wide')
 
 eprefix = get_option('eprefix')
