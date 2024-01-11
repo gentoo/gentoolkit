@@ -15,6 +15,7 @@ from typing import Optional
 import portage
 from portage.dep import Atom, use_reduce
 from portage.dep._slot_operator import strip_slots
+from portage.dep.libc import find_libc_deps, strip_libc_deps
 
 import gentoolkit.pprinter as pp
 from gentoolkit.eclean.exclude import (
@@ -522,13 +523,15 @@ class DistfilesSearch:
         return clean_me, saved
 
 
-def _deps_equal(deps_a, eapi_a, deps_b, eapi_b, uselist=None):
+def _deps_equal(deps_a, eapi_a, deps_b, eapi_b, libc_deps, uselist=None):
     """Compare two dependency lists given a set of USE flags"""
     if deps_a == deps_b:
         return True
 
     deps_a = use_reduce(deps_a, uselist=uselist, eapi=eapi_a, token_class=Atom)
     deps_b = use_reduce(deps_b, uselist=uselist, eapi=eapi_b, token_class=Atom)
+    strip_libc_deps(deps_a, libc_deps)
+    strip_libc_deps(deps_b, libc_deps)
     strip_slots(deps_a)
     strip_slots(deps_b)
     return deps_a == deps_b
@@ -582,6 +585,8 @@ def findPackages(
         print(pp.error("(Check your make.conf file and environment)."), file=sys.stderr)
         print(pp.error("Error: %s" % str(er)), file=sys.stderr)
         exit(1)
+
+    libc_deps = find_libc_deps(var_dbapi, False)
 
     # Create a dictionary of all installed packages
     if destructive and package_names:
@@ -653,6 +658,7 @@ def findPackages(
                 binpkg_metadata["EAPI"],
                 " ".join(ebuild_metadata[key] for key in dep_keys),
                 ebuild_metadata["EAPI"],
+                libc_deps,
                 frozenset(binpkg_metadata["USE"].split()),
             ):
                 continue
