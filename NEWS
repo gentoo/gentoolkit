@@ -1,5 +1,25 @@
 News (new features/major bug fixes)
 
+gentoolkit-0.6.4
+----------------
+  * Raise portage requirement to >=3.0.57
+  * Strip libc dependencies from eclean-pkg --changed-deps calculations
+
+
+gentoolkit-0.6.3
+----------------
+  * Fix handling invalid binpkgs
+  * Migrate to PEP517 meson-python build
+
+
+gentoolkit-0.6.2
+----------------
+  * Add --clean-invalid option for eclean-pkg
+  * Fix merge-driver-ekeyword compatibility with git >= 2.42
+  * Fix eclean-pkg compatibility with FEATURES=pkgdir-index-trusted
+  * Support the NO_COLOR environment variable
+
+
 gentoolkit-0.6.1
 ----------------
   * Fix custom TMPL implementation for depends commit 3e35553df4673
@@ -9,7 +29,7 @@ gentoolkit-0.6.1
 
 gentoolkit-0.6.0
 ----------------
-  * merge-driver-ekeyword Fis type annotations
+  * merge-driver-ekeyword Fix type annotations
   * equery changes removal
   * Convert from tab indent to spaces, format cleanup
   * Add github action to check formatting, add unit testing
