@@ -339,6 +339,9 @@ class DistfilesSearch:
         """Checks $DISTDIR/vcs-src for checkouts which are not in the vardb"""
         # For now we only check git
         vcs_src = os.path.join(distdir, "git3-src")
+        if not os.path.exists(vcs_src):
+            return {}
+
         expected_dirs = set()
         for i in set(self.vardb.cpv_all()):
             if "live" in self.vardb.aux_get(i, ["PROPERTIES"]):
