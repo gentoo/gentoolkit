@@ -1,5 +1,9 @@
 News (new features/major bug fixes)
 
+gentoolkit-0.6.5
+----------------
+  * eclean: fix eclean-dist with no git3-src dir (bug #922455)
+
 gentoolkit-0.6.4
 ----------------
   * Raise portage requirement to >=3.0.57
