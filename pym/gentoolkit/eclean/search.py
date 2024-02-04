@@ -17,6 +17,7 @@ import portage
 from portage.dep import Atom, use_reduce
 from portage.dep._slot_operator import strip_slots
 from portage.dep.libc import find_libc_deps, strip_libc_deps
+from portage.exception import InvalidDependString
 
 import gentoolkit.pprinter as pp
 from gentoolkit.eclean.exclude import (
@@ -526,13 +527,51 @@ class DistfilesSearch:
         return clean_me, saved
 
 
-def _deps_equal(deps_a, eapi_a, deps_b, eapi_b, libc_deps, uselist=None):
-    """Compare two dependency lists given a set of USE flags"""
+def _deps_equal(deps_a, eapi_a, deps_b, eapi_b, libc_deps, uselist=None, cpv=None):
+    """Compare two dependency lists given a set of USE flags
+
+    @param deps_a: binpkg DEPEND string (for InvalidDependString errors)
+    @rtype: string
+    @param eapi_a: EAPI
+    @rtype: string
+    @param deps_b: ebuild DEPEND string (for InvalidDependString errors)
+    @rtype: string
+    @param eapi_b: EAPI
+    @rtype: string
+    @param libc_deps: List of libc packages (or atoms if realized is passed).
+    @rtype: list
+    @param uselist: use flag list
+    @rtype: frozenset
+    @param cpv: Cat/Pkg-version
+    @rtype: string
+    """
     if deps_a == deps_b:
         return True
+    try:
+        deps_a = use_reduce(deps_a, uselist=uselist, eapi=eapi_a, token_class=Atom)
+    except InvalidDependString:  # the binpkg depend string is bad
+        print(
+            pp.warn(
+                "Warning: Invalid binpkg DEPEND string found for: %s, %s"
+                " | tagging for removal" % (cpv, deps_a)
+            ),
+            file=sys.stderr,
+        )
+        return False
+    try:
+        deps_b = use_reduce(deps_b, uselist=uselist, eapi=eapi_b, token_class=Atom)
+    except InvalidDependString as er:  # the ebuild depend string is bad
+        print(
+            pp.warn("Warning: Invalid ebuild DEPEND String found for: %s" % cpv),
+            file=sys.stderr,
+        )
+        print(
+            pp.warn("Warning: DEPEND string for ebuild: %s" % deps_b),
+            file=sys.stderr,
+        )
+        print(er, file=sys.stderr)
+        return True
 
-    deps_a = use_reduce(deps_a, uselist=uselist, eapi=eapi_a, token_class=Atom)
-    deps_b = use_reduce(deps_b, uselist=uselist, eapi=eapi_b, token_class=Atom)
     strip_libc_deps(deps_a, libc_deps)
     strip_libc_deps(deps_b, libc_deps)
     strip_slots(deps_a)
@@ -656,13 +695,16 @@ def findPackages(
             binpkg_metadata = dict(zip(keys, bin_dbapi.aux_get(cpv, keys)))
             ebuild_metadata = dict(zip(keys, port_dbapi.aux_get(cpv, keys)))
 
+            deps_binpkg = " ".join(binpkg_metadata[key] for key in dep_keys)
+            deps_ebuild = " ".join(ebuild_metadata[key] for key in dep_keys)
             if _deps_equal(
-                " ".join(binpkg_metadata[key] for key in dep_keys),
+                deps_binpkg,
                 binpkg_metadata["EAPI"],
-                " ".join(ebuild_metadata[key] for key in dep_keys),
+                deps_ebuild,
                 ebuild_metadata["EAPI"],
                 libc_deps,
                 frozenset(binpkg_metadata["USE"].split()),
+                cpv,
             ):
                 continue
 
