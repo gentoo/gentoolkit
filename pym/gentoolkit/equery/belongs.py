@@ -52,7 +52,7 @@ class BelongsPrinter:
             name = pkg.cp
         else:
             name = str(pkg.cpv)
-        pp.uprint(name)
+        print(name)
 
     def print_verbose(self, pkg, cfile):
         "Format for full output."
@@ -61,7 +61,7 @@ class BelongsPrinter:
             name = pkg.cp
         else:
             name = str(pkg.cpv)
-        pp.uprint(pp.cpv(name), "(" + file_str + ")")
+        print(pp.cpv(name), "(" + file_str + ")")
 
 
 # =========
