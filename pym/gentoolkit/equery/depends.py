@@ -55,13 +55,13 @@ class DependPrinter:
         """Verbosely prints a set of dep strings."""
 
         sep = " ? " if (depatom and use_conditional) else ""
-        pp.uprint(indent + pp.cpv(cpv), "(" + use_conditional + sep + depatom + ")")
+        print(indent + pp.cpv(cpv), "(" + use_conditional + sep + depatom + ")")
 
     @staticmethod
     def print_quiet(indent, cpv, use_conditional, depatom):
         """Quietly prints a subset set of dep strings."""
 
-        pp.uprint(indent + cpv)
+        print(indent + cpv)
 
     @staticmethod
     def print_formated(pkg):
