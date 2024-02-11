@@ -135,7 +135,7 @@ def main(input_args):
         sys.exit(2)
 
     if CONFIG["verbose"]:
-        pp.uprint(" * Searching for %s ... " % (pp.regexpquery(",".join(queries))))
+        print(" * Searching for %s ... " % (pp.regexpquery(",".join(queries))))
 
     printer_fn = BelongsPrinter(
         verbose=CONFIG["verbose"], name_only=QUERY_OPTS["name_only"]
