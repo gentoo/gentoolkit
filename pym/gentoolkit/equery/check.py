@@ -218,10 +218,10 @@ def checks_printer(cpv, data, verbose=True, only_failures=False):
     else:
         if verbose:
             if not cpv in seen:
-                pp.uprint("* Checking %s ..." % (pp.emph(str(cpv))))
+                print("* Checking %s ..." % (pp.emph(str(cpv))))
                 seen.append(cpv)
         else:
-            pp.uprint("%s:" % cpv, end=" ")
+            print("%s:" % cpv, end=" ")
 
     if verbose:
         for err in errs:
