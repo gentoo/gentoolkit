@@ -12,6 +12,7 @@ __all__ = ("Dependencies",)
 # =======
 
 import itertools
+from functools import cache
 from enum import StrEnum
 from typing import List, Dict
 
@@ -102,9 +103,11 @@ class Dependencies(Query):
         except portage.exception.InvalidPackageName as err:
             raise errors.GentoolkitInvalidCPV(err)
 
+    @cache
     def get_raw_depends(self) -> str:
         return self._get_depend([depkind for depkind in DependencyKind], raw=True)
 
+    @cache
     def get_depends(self) -> Dict[DependencyKind, List[Atom]]:
         depends = dict()
         for depkind in DependencyKind:
@@ -189,7 +192,6 @@ class Dependencies(Query):
         printer_fn=None,
         # The rest of these are only used internally:
         depth=0,
-        depcache=None,
         seen=None,
         result=None,
     ):
@@ -233,8 +235,6 @@ class Dependencies(Query):
             )
             raise errors.GentoolkitFatalError(err % (self.__class__.__name__,))
 
-        if depcache is None:
-            depcache = dict()
         if seen is None:
             seen = set()
         if result is None:
@@ -250,12 +250,8 @@ class Dependencies(Query):
                 # us the work of instantiating a whole Atom() for *every*
                 # dependency of *every* package in pkgset.
                 continue
-            try:
-                all_depends = depcache[pkgdep]
-            except KeyError:
-                all_depends = pkgdep.get_all_depends()
-                depcache[pkgdep] = all_depends
 
+            all_depends = pkgdep.get_all_depends()
             dep_is_displayed = False
             for dep in all_depends:
                 # TODO: Add ability to determine if dep is enabled by USE flag.
@@ -284,7 +280,6 @@ class Dependencies(Query):
                         only_direct=only_direct,
                         printer_fn=printer_fn,
                         depth=depth + 1,
-                        depcache=depcache,
                         seen=seen,
                         result=result,
                     )
