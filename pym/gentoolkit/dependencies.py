@@ -11,7 +11,9 @@ __all__ = ("Dependencies",)
 # Imports
 # =======
 
+import itertools
 from enum import StrEnum
+from typing import List, Dict
 
 import portage
 from portage.dep import paren_reduce
@@ -100,22 +102,19 @@ class Dependencies(Query):
         except portage.exception.InvalidPackageName as err:
             raise errors.GentoolkitInvalidCPV(err)
 
-    def get_depend(self, **kwargs):
-        """Get the contents of DEPEND and parse it with self.parser."""
-        return self._get_depend(("DEPEND",), **kwargs)
+    def get_raw_depends(self) -> str:
+        return self._get_depend([depkind for depkind in DependencyKind], raw=True)
 
-    def get_pdepend(self, **kwargs):
-        """Get the contents of PDEPEND and parse it with self.parser."""
-        return self._get_depend(("PDEPEND",), **kwargs)
+    def get_depends(self) -> Dict[DependencyKind, List[Atom]]:
+        depends = dict()
+        for depkind in DependencyKind:
+            depend = self._get_depend([depkind])
+            depends[depkind] = depend
+        return depends
 
-    def get_rdepend(self, **kwargs):
-        """Get the contents of RDEPEND and parse it with self.parser."""
-        return self._get_depend(("RDEPEND",), **kwargs)
-
-    def get_all_depends(self, **kwargs):
-        """Get the contents of ?DEPEND and parse it with self.parser."""
-        env_vars = ("DEPEND", "PDEPEND", "RDEPEND", "BDEPEND")
-        return self._get_depend(env_vars, **kwargs)
+    def get_all_depends(self) -> List[Atom]:
+        # flatten Dict[DependencyKind, List[Atom]] into a List[Atom]
+        return list(itertools.chain.from_iterable(self.get_depends().values()))
 
     def graph_depends(
         self,
@@ -246,8 +245,7 @@ class Dependencies(Query):
 
         pkgdep = None
         for pkgdep in pkgset:
-            raw_depends = pkgdep.get_all_depends(raw=True)
-            if self.cp not in raw_depends:
+            if self.cp not in pkgdep.get_raw_depends():
                 # fast path for obviously non-matching packages. This saves
                 # us the work of instantiating a whole Atom() for *every*
                 # dependency of *every* package in pkgset.
@@ -255,7 +253,7 @@ class Dependencies(Query):
             try:
                 all_depends = depcache[pkgdep]
             except KeyError:
-                all_depends = uniqify(pkgdep.get_all_depends())
+                all_depends = pkgdep.get_all_depends()
                 depcache[pkgdep] = all_depends
 
             dep_is_displayed = False
