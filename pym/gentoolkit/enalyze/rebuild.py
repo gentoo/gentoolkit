@@ -167,7 +167,7 @@ class Rebuild(ModuleBase):
             "pretend": False,
             "prefix": False,
             "portage": True,
-            "slot": False
+            "slot": False,
             # "unset": False
         }
         self.module_opts = {
