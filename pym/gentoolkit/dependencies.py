@@ -21,7 +21,6 @@ from portage.dep import paren_reduce
 
 from gentoolkit import errors
 from gentoolkit.atom import Atom
-from gentoolkit.helpers import uniqify
 from gentoolkit.query import Query
 
 # =======
