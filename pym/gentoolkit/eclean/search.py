@@ -591,7 +591,6 @@ def findPackages(
 ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
     """Find obsolete binary packages.
 
-    @param invalid_paths:
     @param options: dict of options determined at runtime
     @type  options: dict
     @param exclude: exclusion dict (as defined in the exclude.parseExcludeFile class)
@@ -610,8 +609,8 @@ def findPackages(
     @param  var_dbapi: defaults to portage.db[portage.root]["vartree"].dbapi
                                        Can be overridden for tests.
 
-    @return binary packages to remove. e.g. {'cat/pkg-ver': [filepath]}
-    @rtype: dict
+    @return binary packages to remove. e.g. {'cat/pkg-ver': [filepath]}, invalid_paths
+    @rtype: dict, dict
     """
     if exclude is None:
         exclude = {}
