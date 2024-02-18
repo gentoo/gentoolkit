@@ -26,7 +26,10 @@ from gentoolkit.test.eclean.distsupport import (
 )
 import gentoolkit.eclean.search as search
 from gentoolkit.eclean.search import DistfilesSearch
+from gentoolkit.eclean.search import _deps_equal
 from gentoolkit.eclean.exclude import parseExcludeFile
+
+from portage.dep import Atom
 
 """Tests for eclean's distfiles search functions."""
 
@@ -670,12 +673,166 @@ class TestRemoveProtected(unittest.TestCase):
         )
 
 
+class TestDepsEqual(unittest.TestCase):
+
+    def test_deps_equal(self):
+        # def _deps_equal(deps_a, eapi_a, deps_b, eapi_b, libc_deps, uselist=None, cpv=None):
+        all_tests = [
+            # 1 equal
+            (
+                "x11-misc/xdg-user-dirs-gtk-0.11",
+                {
+                    "deps_a": "dev-libs/glib:2 >=x11-libs/gtk+-3.5.1:3 >=x11-misc/xdg-user-dirs-0.14",
+                    "eapi_a": "8",
+                    "deps_b": "dev-libs/glib:2 >=x11-libs/gtk+-3.5.1:3 >=x11-misc/xdg-user-dirs-0.14",
+                    "eapi_b": "8",
+                    "libc_deps": {Atom("sys-libs/glibc:2.2")},
+                    "uselist": frozenset(
+                        {
+                            "elibc_glibc",
+                            "amd64",
+                            "abi_x86_64",
+                            "kernel_linux",
+                            "userland_GNU",
+                        }
+                    ),
+                },
+                True,
+            ),
+            # 2 ebuild different gtk+ dep
+            (
+                "x11-misc/xdg-user-dirs-gtk-0.11",
+                {
+                    "deps_a": "dev-libs/glib:2 >=x11-libs/gtk+-3.5.1:3 >=x11-misc/xdg-user-dirs-0.14",
+                    "eapi_a": "8",
+                    "deps_b": "dev-libs/glib:2 >=x11-libs/gtk+-3.5.2:3 >=x11-misc/xdg-user-dirs-0.14",
+                    "eapi_b": "8",
+                    "libc_deps": {Atom("sys-libs/glibc:2.2")},
+                    "uselist": frozenset(
+                        {
+                            "elibc_glibc",
+                            "amd64",
+                            "abi_x86_64",
+                            "kernel_linux",
+                            "userland_GNU",
+                        }
+                    ),
+                },
+                False,
+            ),
+            # 3 different eapi, but is not currently tested
+            (
+                "x11-misc/xdg-user-dirs-gtk-0.11",
+                {
+                    "deps_a": "dev-libs/glib:2 >=x11-libs/gtk+-3.5.1:3 >=x11-misc/xdg-user-dirs-0.14",
+                    "eapi_a": "7",
+                    "deps_b": "dev-libs/glib:2 >=x11-libs/gtk+-3.5.1:3 >=x11-misc/xdg-user-dirs-0.14",
+                    "eapi_b": "8",
+                    "libc_deps": {Atom("sys-libs/glibc:2.2")},
+                    "uselist": frozenset(
+                        {
+                            "elibc_glibc",
+                            "amd64",
+                            "abi_x86_64",
+                            "kernel_linux",
+                            "userland_GNU",
+                        }
+                    ),
+                },
+                True,
+            ),
+            # 4 valid/False
+            (
+                "x11-misc/xdg-user-dirs-0.18",
+                {
+                    "deps_a": "dev-libs/glib:2 >=x11-libs/gtk+-3.5.1:3 >=x11-misc/xdg-user-dirs-0.14",
+                    "eapi_a": "8",
+                    "deps_b": "gtk? ( x11-misc/xdg-user-dirs-gtk )",
+                    "eapi_b": "8",
+                    "libc_deps": {Atom("sys-libs/glibc:2.2")},
+                    "uselist": frozenset(
+                        {
+                            "elibc_glibc",
+                            "amd64",
+                            "abi_x86_64",
+                            "kernel_linux",
+                            "userland_GNU",
+                        }
+                    ),
+                },
+                False,
+            ),
+            # 5 ebuild InvalidDependString
+            (
+                "x11-misc/xdg-user-dirs-0.18",
+                {
+                    "deps_a": "dev-libs/glib:2 >=x11-libs/gtk+-3.5.1:3 >=x11-misc/xdg-user-dirs-0.14",
+                    "eapi_a": "8",
+                    "deps_b": "gtk? ( )",
+                    "eapi_b": "8",
+                    "libc_deps": {Atom("sys-libs/glibc:2.2")},
+                    "uselist": frozenset(
+                        {
+                            "elibc_glibc",
+                            "amd64",
+                            "abi_x86_64",
+                            "kernel_linux",
+                            "userland_GNU",
+                        }
+                    ),
+                },
+                True,
+            ),
+            # 6 binpkg InvalidDependString
+            (
+                "x11-misc/xdg-user-dirs-0.18",
+                {
+                    "deps_a": "gtk? ( )",
+                    "eapi_a": "8",
+                    "deps_b": "gtk? ( x11-misc/xdg-user-dirs-gtk )",
+                    "eapi_b": "8",
+                    "libc_deps": {Atom("sys-libs/glibc:2.2")},
+                    "uselist": frozenset(
+                        {
+                            "elibc_glibc",
+                            "amd64",
+                            "abi_x86_64",
+                            "kernel_linux",
+                            "userland_GNU",
+                        }
+                    ),
+                },
+                False,
+            ),
+        ]
+        x = 1
+        for test in all_tests:
+            cpv = test[0]
+            data = test[1]
+            # print(x, cpv)  # for debug testing
+            self.assertEqual(
+                _deps_equal(
+                    data["deps_a"],
+                    data["eapi_a"],
+                    data["deps_b"],
+                    data["eapi_b"],
+                    data["libc_deps"],
+                    data["uselist"],
+                    cpv,
+                ),
+                test[2],
+            )
+            x += 1
+            # print("####################")  # for debug testing
+
+
 def test_main():
     suite = unittest.TestLoader()
     suite.loadTestsFromTestCase(TestCheckLimits)
     suite.loadTestsFromTestCase(TestFetchRestricted)
     suite.loadTestsFromTestCase(TestNonDestructive)
     suite.loadTestsFromTestCase(TestRemoveProtected)
+    suite.loadTestsFromTestCase(TestDepsEqual)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
 
