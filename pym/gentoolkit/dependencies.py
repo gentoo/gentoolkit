@@ -14,7 +14,7 @@ __all__ = ("Dependencies",)
 import itertools
 from functools import cache
 from enum import Enum
-from typing import List, Dict
+from typing import List, Dict, Iterable, Iterator, Set, Optional, Any, Union
 
 import portage
 from portage.dep import paren_reduce
@@ -22,6 +22,7 @@ from portage.dep import paren_reduce
 from gentoolkit import errors
 from gentoolkit.atom import Atom
 from gentoolkit.query import Query
+from gentoolkit.cpv import CPV
 
 # =======
 # Classes
@@ -52,10 +53,11 @@ class Dependencies(Query):
 
     """
 
-    def __init__(self, query, parser=None):
+    def __init__(self, query: Any, parser: Any = None) -> None:
         Query.__init__(self, query)
-        self.use = []
-        self.depatom = ""
+        self.use: List[str] = []
+        self.depatom: Optional[Atom] = None
+        self.depth: Optional[int] = None
 
         # Allow a custom parser function:
         self.parser = parser if parser else self._parser
@@ -185,15 +187,13 @@ class Dependencies(Query):
 
     def graph_reverse_depends(
         self,
-        pkgset=None,
-        max_depth=-1,
-        only_direct=True,
-        printer_fn=None,
+        pkgset: Iterable[Union[str, CPV]],
+        max_depth: Optional[int] = None,
+        only_direct: bool = True,
         # The rest of these are only used internally:
-        depth=0,
-        seen=None,
-        result=None,
-    ):
+        depth: int = 0,
+        seen: Optional[Set[str]] = None,
+    ) -> Iterator["Dependencies"]:
         """Graph direct reverse dependencies for self.
 
         Example usage:
@@ -201,10 +201,10 @@ class Dependencies(Query):
                 >>> ffmpeg = Dependencies('media-video/ffmpeg-9999')
                 >>> # I only care about installed packages that depend on me:
                 ... from gentoolkit.helpers import get_installed_cpvs
-                >>> # I want to pass in a sorted list. We can pass strings or
-                ... # Package or Atom types, so I'll use Package to sort:
+                >>> # I want to pass in a list. We can pass strings or
+                ... # Package or Atom types.
                 ... from gentoolkit.package import Package
-                >>> installed = sorted(get_installed_cpvs())
+                >>> installed = get_installed_cpvs()
                 >>> deptree = ffmpeg.graph_reverse_depends(
                 ...     only_direct=False,  # Include indirect revdeps
                 ...     pkgset=installed)   # from installed pkgset
@@ -212,81 +212,51 @@ class Dependencies(Query):
                 24
 
         @type pkgset: iterable
-        @keyword pkgset: sorted pkg cpv strings or anything sublassing
+        @keyword pkgset: pkg cpv strings or anything sublassing
                 L{gentoolkit.cpv.CPV} to use for calculate our revdep graph.
-        @type max_depth: int
+        @type max_depth: optional
         @keyword max_depth: Maximum depth to recurse if only_direct=False.
-                -1 means no maximum depth;
-                 0 is the same as only_direct=True;
+                None means no maximum depth;
+                0 is the same as only_direct=True;
                 >0 means recurse only this many times;
         @type only_direct: bool
         @keyword only_direct: to recurse or not to recurse
-        @type printer_fn: callable
-        @keyword printer_fn: If None, no effect. If set, it will be applied to
-                each L{gentoolkit.atom.Atom} object as it is added to the results.
-        @rtype: list
+        @rtype: iterable
         @return: L{gentoolkit.dependencies.Dependencies} objects
         """
-        if not pkgset:
-            err = (
-                "%s kwarg 'pkgset' must be set. "
-                "Can be list of cpv strings or any 'intersectable' object."
-            )
-            raise errors.GentoolkitFatalError(err % (self.__class__.__name__,))
 
         if seen is None:
             seen = set()
-        if result is None:
-            result = list()
 
-        if depth == 0:
-            pkgset = tuple(Dependencies(x) for x in pkgset)
-
-        pkgdep = None
-        for pkgdep in pkgset:
+        for pkgdep in (Dependencies(pkg) for pkg in pkgset):
             if self.cp not in pkgdep.get_raw_depends():
                 # fast path for obviously non-matching packages. This saves
                 # us the work of instantiating a whole Atom() for *every*
                 # dependency of *every* package in pkgset.
                 continue
 
-            all_depends = pkgdep.get_all_depends()
-            dep_is_displayed = False
-            for dep in all_depends:
-                # TODO: Add ability to determine if dep is enabled by USE flag.
-                #       Check portage.dep.use_reduce
+            found_match = False
+            for dep in pkgdep.get_all_depends():
                 if dep.intersects(self):
+                    pkgdep.depatom = dep
                     pkgdep.depth = depth
-                    pkgdep.matching_dep = dep
-                    if printer_fn is not None:
-                        printer_fn(pkgdep, dep_is_displayed=dep_is_displayed)
-                    result.append(pkgdep)
-                    dep_is_displayed = True
+                    yield pkgdep
+                    found_match = True
 
-            # if --indirect specified, call ourselves again with the dep
-            # Do not call if we have already called ourselves.
             if (
-                dep_is_displayed
-                and not only_direct
+                found_match
                 and pkgdep.cpv not in seen
-                and (depth < max_depth or max_depth == -1)
+                and only_direct is False
+                and (max_depth is None or depth < max_depth)
             ):
                 seen.add(pkgdep.cpv)
-                result.append(
-                    pkgdep.graph_reverse_depends(
-                        pkgset=pkgset,
-                        max_depth=max_depth,
-                        only_direct=only_direct,
-                        printer_fn=printer_fn,
-                        depth=depth + 1,
-                        seen=seen,
-                        result=result,
-                    )
+                yield from pkgdep.graph_reverse_depends(
+                    pkgset=pkgset,
+                    only_direct=False,
+                    max_depth=max_depth,
+                    depth=depth + 1,
+                    seen=seen,
                 )
-
-        if depth == 0:
-            return result
-        return pkgdep
 
     def _parser(self, deps, use_conditional=None, depth=0):
         """?DEPEND file parser.
