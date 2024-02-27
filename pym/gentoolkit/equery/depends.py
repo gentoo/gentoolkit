@@ -35,8 +35,8 @@ QUERY_OPTS = {
 # =======
 
 
-class DependPrinter:
-    """Output L{gentoolkit.dependencies.Dependencies} objects."""
+class Printer:
+    """Output L{gentoolkit.dependencies.Dependencies} objects for equery depends."""
 
     def __init__(self, verbose=True):
         self.verbose = verbose
@@ -83,7 +83,7 @@ class DependPrinter:
             )
 
     def format_depend(self, dep, dep_is_displayed):
-        """Format a dependency for printing.
+        """Format a dependency for printing for equery depends.
 
         @type dep: L{gentoolkit.dependencies.Dependencies}
         @param dep: the dependency to display
@@ -209,7 +209,7 @@ def main(input_args):
     # Output
     #
 
-    dep_print = DependPrinter(verbose=CONFIG["verbose"])
+    printer = Printer(verbose=CONFIG["verbose"])
 
     first_run = True
     got_match = False
