@@ -33,7 +33,7 @@ jobs:
         python -m site
         python -m pip install --upgrade pip
         # setuptools needed for 3.12+ because of https://github.com/mesonbuild/meson/issues/7702.
-        python -m pip install meson ninja setuptools
+        python -m pip install meson ninja setuptools pytest
     - name: Install portage
       run: |
         mkdir portage

@@ -39,12 +39,8 @@ endif
 subdir('bin')
 subdir('pym')
 
-test(
-    'python-unittest',
-    py,
-    args : ['-m', 'unittest', 'discover', meson.current_source_dir() / 'pym'],
-    timeout : 0
-)
+pytest = find_program('pytest')
+test('pytest', pytest, args : ['-v', meson.current_source_dir() / 'pym'])
 
 if get_option('code-only')
     subdir_done()
