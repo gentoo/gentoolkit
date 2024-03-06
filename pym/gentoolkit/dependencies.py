@@ -13,7 +13,7 @@ __all__ = ("Dependencies",)
 
 import itertools
 from functools import cache
-from enum import StrEnum
+from enum import Enum
 from typing import List, Dict
 
 import portage
@@ -28,7 +28,7 @@ from gentoolkit.query import Query
 # =======
 
 
-class DependencyKind(StrEnum):
+class DependencyKind(Enum):
     DEPEND = "DEPEND"
     RDEPEND = "RDEPEND"
     BDEPEND = "BDEPEND"
@@ -104,13 +104,13 @@ class Dependencies(Query):
 
     @cache
     def get_raw_depends(self) -> str:
-        return self._get_depend([depkind for depkind in DependencyKind], raw=True)
+        return self._get_depend([depkind.value for depkind in DependencyKind], raw=True)
 
     @cache
     def get_depends(self) -> Dict[DependencyKind, List[Atom]]:
         depends = dict()
         for depkind in DependencyKind:
-            depend = self._get_depend([depkind])
+            depend = self._get_depend([depkind.value])
             depends[depkind] = depend
         return depends
 
