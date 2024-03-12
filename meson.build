@@ -39,8 +39,10 @@ endif
 subdir('bin')
 subdir('pym')
 
-pytest = find_program('pytest')
-test('pytest', pytest, args : ['-v', meson.current_source_dir() / 'pym'])
+if get_option('tests')
+    pytest = find_program('pytest')
+    test('pytest', pytest, args : ['-v', meson.current_source_dir() / 'pym'])
+endif
 
 if get_option('code-only')
     subdir_done()

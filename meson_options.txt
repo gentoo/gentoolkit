@@ -13,3 +13,7 @@ option('eprefix', type : 'string',
 option('docdir', type : 'string',
     description : 'Documentation directory'
 )
+
+option('tests', type : 'boolean', value: false,
+    description : 'Enable tests'
+)
