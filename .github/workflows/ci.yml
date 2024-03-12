@@ -50,7 +50,7 @@ jobs:
     - name: Test meson install --destdir /tmp/install-root
       run: |
         echo -e "[binaries]\npython = '$(command -v python)'" > /tmp/native.ini
-        meson setup --native-file /tmp/native.ini /tmp/build .
+        meson setup -Dtests=true --native-file /tmp/native.ini /tmp/build .
         meson install -C /tmp/build --destdir /tmp/install-root
     - name: Run tests for ${{ matrix.python-version }}
       run: |
