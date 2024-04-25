@@ -4,6 +4,7 @@
 # See `man eclean` for syntax details.
 .layout.conf*
 .mirror-cache.json
+layout.conf
 metadata.dtd
 metadata.xsd
 portage-\d\d\d\d\d\d\d\d\.tar\.bz2
