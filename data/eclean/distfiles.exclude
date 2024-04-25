@@ -2,6 +2,8 @@
 # In this file you can list some categories or cat/pkg-name for which you want
 # to protect distfiles from "ecleaning". You can also name some specific files.
 # See `man eclean` for syntax details.
+.layout.conf*
+.mirror-cache.json
 metadata.dtd
 metadata.xsd
 portage-\d\d\d\d\d\d\d\d\.tar\.bz2
