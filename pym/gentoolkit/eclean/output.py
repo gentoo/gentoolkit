@@ -138,8 +138,11 @@ class OutputControl:
             print(self.prettySize(size, True), self.pkg_color(key))
         elif self.options["pretend"] or self.options["interactive"]:
             # file list mode
-            for file_ in clean_list:
-                print(file_)
+            if file_type == "checkout":
+                print(clean_list)
+            else:
+                for file_ in clean_list:
+                    print(file_)
         if self.options["pretend"]:
             return False
         elif (
