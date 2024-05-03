@@ -115,10 +115,11 @@ class DistfilesSearch:
         pkgs = {}
         saved = {}
         deprecated = {}
+        vcs = {}
         installed_included = False
         # Check if DISTDIR is empty, return early
         if not os.listdir(_distdir):
-            return clean_me, saved, deprecated
+            return clean_me, saved, deprecated, vcs
 
         # create a big CPV->SRC_URI dict of packages
         # whose distfiles should be kept
