@@ -623,6 +623,7 @@ def doAction(action, options, exclude={}, output=None):
     elif not options["quiet"]:
         output.einfo("Your " + action + " directory was already clean.")
     if saved and not options["quiet"]:
+        verb = "would be"
         print()
         print(
             pp.emph("   The following ")
