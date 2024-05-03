@@ -424,7 +424,7 @@ def parseArgs(options={}):
                 options["unique-use"] = True
             elif o in ("--no-clean-invalid"):
                 options["no-clean-invalid"] = True
-            elif o in ("--skip-vcs"):
+            elif o in ("--skip-vcs") or not options["destructive"]:
                 options["skip-vcs"] = True
             else:
                 return_code = False
@@ -602,11 +602,11 @@ def doAction(action, options, exclude={}, output=None):
             output.einfo("Cleaning " + files_type + "...")
         # do the cleanup, and get size of deleted files
         if options["pretend"]:
-            if options["skip-vcs"]:
+            if options["skip-vcs"] or not options["destructive"]:
                 vcs = {}
             clean_size = cleaner.pretend_clean(clean_me, vcs)
         elif action in ["distfiles"]:
-            if options["skip-vcs"]:
+            if options["skip-vcs"] or not options["destructive"]:
                 vcs = {}
             clean_size = cleaner.clean_dist(clean_me, vcs)
         elif action in ["packages"]:
