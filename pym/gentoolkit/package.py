@@ -1,5 +1,5 @@
 # Copyright(c) 2004, Karl Trygve Kalleberg <karltk@gentoo.org>
-# Copyright(c) 2004-2010, Gentoo Foundation
+# Copyright(c) 2004-2024, Gentoo Authors
 #
 # Licensed under the GNU General Public License, v2
 
@@ -13,7 +13,7 @@ important parts of Portage's back-end.
 Example usage:
 	>>> portage = Package('sys-apps/portage-9999')
 	>>> portage.ebuild_path()
-	'/usr/portage/sys-apps/portage/portage-9999.ebuild'
+	'/var/db/repos/gentoo/sys-apps/portage/portage-9999.ebuild'
 	>>> portage.is_masked()
 	True
 	>>> portage.is_installed()
@@ -318,7 +318,7 @@ class Package(CPV):
         Example usage:
                 >>> pkg = Package('sys-apps/portage-9999')
                 >>> pkg.ebuild_path()
-                '/usr/portage/sys-apps/portage/portage-9999.ebuild'
+                '/var/db/repos/gentoo/sys-apps/portage/portage-9999.ebuild'
                 >>> pkg.ebuild_path(in_vartree=True)
                 '/var/db/pkg/sys-apps/portage-9999/portage-9999.ebuild'
         """
