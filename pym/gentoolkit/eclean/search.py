@@ -641,8 +641,8 @@ def findPackages(
     dead_binpkgs: dict[str, list[str]] = {}
     keep_binpkgs = {}
 
-    # FEATURES=pkgdir-index-trusted is now on by default which makes portages inavlids
-    # inaccessible
+    # FEATURES=pkgdir-index-trusted is now on by default which makes Portage's
+    # invalids inaccessible
     settings = var_dbapi.settings
     bin_dbapi = portage.binarytree(pkgdir=pkgdir, settings=settings).dbapi
     populate_kwargs = {}
