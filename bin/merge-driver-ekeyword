@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Copyright 2020-2023 Gentoo Authors
+# Copyright 2020-2024 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2 or later
 
 """
@@ -119,11 +119,15 @@ def main(argv: Sequence[str]) -> int:
     B = argv[3]  # %B - filename of the other branch's version
     P = argv[4]  # %P - original path of the file
 
-    # Get changes from %O to %B
-    changes = keyword_changes(O, B)
-    if changes:
-        # Apply O -> B changes to A
+    # Get changes to KEYWORDS= from %O to %B
+    if changes := keyword_changes(O, B):
+        # Apply %O -> %B changes to %A
         result = apply_keyword_changes(A, P, changes)
+        sys.exit(result)
+    # Get changes to KEYWORDS= from %O to %A
+    elif changes := keyword_changes(O, A):
+        # Apply %O -> %A changes to %B
+        result = apply_keyword_changes(B, P, changes)
         sys.exit(result)
     else:
         try:
