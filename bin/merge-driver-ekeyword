@@ -112,13 +112,13 @@ def apply_keyword_changes(ebuild: str, pathname: str,
 
 
 def main(argv: Sequence[str]) -> int:
-    if len(argv) != 5:
+    if len(argv) != 4:
         return -1
 
-    O = argv[1]  # %O - filename of original
-    A = argv[2]  # %A - filename of our current version
-    B = argv[3]  # %B - filename of the other branch's version
-    P = argv[4]  # %P - original path of the file
+    O = argv[0]  # %O - filename of original
+    A = argv[1]  # %A - filename of our current version
+    B = argv[2]  # %B - filename of the other branch's version
+    P = argv[3]  # %P - original path of the file
 
     # Get changes to KEYWORDS= from %O to %B
     if changes := keyword_changes(O, B):
@@ -140,4 +140,4 @@ def main(argv: Sequence[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(main(sys.argv[1:]))
