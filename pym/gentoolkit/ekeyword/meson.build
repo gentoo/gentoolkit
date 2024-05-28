@@ -16,7 +16,6 @@ py.install_sources(
 
 install_data(
     [
-        'Makefile',
         'README',
         'pytest.ini',
     ],
