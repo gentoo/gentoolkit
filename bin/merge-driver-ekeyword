@@ -11,6 +11,7 @@ See https://git-scm.com/docs/gitattributes#_defining_a_custom_merge_driver
 
 import difflib
 import os
+import shutil
 import sys
 import tempfile
 
@@ -128,6 +129,8 @@ def main(argv: Sequence[str]) -> int:
     elif changes := keyword_changes(O, A):
         # Apply %O -> %A changes to %B
         result = apply_keyword_changes(B, P, changes)
+        # Merged file should be left in %A
+        shutil.move(B, A)
         sys.exit(result)
     else:
         try:
