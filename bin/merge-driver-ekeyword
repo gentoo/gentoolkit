@@ -113,7 +113,7 @@ def apply_keyword_changes(ebuild: str, pathname: str,
 
 def main(argv: Sequence[str]) -> int:
     if len(argv) != 5:
-        sys.exit(-1)
+        return -1
 
     O = argv[1]  # %O - filename of original
     A = argv[2]  # %A - filename of our current version
@@ -124,20 +124,20 @@ def main(argv: Sequence[str]) -> int:
     if changes := keyword_changes(O, B):
         # Apply %O -> %B changes to %A
         result = apply_keyword_changes(A, P, changes)
-        sys.exit(result)
+        return result
     # Get changes to KEYWORDS= from %O to %A
     elif changes := keyword_changes(O, A):
         # Apply %O -> %A changes to %B
         result = apply_keyword_changes(B, P, changes)
         # Merged file should be left in %A
         shutil.move(B, A)
-        sys.exit(result)
+        return result
     else:
         try:
             os.execlp("git", "git", "merge-file", "-L", "HEAD", "-L", "base", "-L", "ours", A, O, B)
         except OSError:
-            sys.exit(-1)
+            return -1
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    sys.exit(main(sys.argv))
