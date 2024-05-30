@@ -111,6 +111,14 @@ def apply_keyword_changes(ebuild: str, pathname: str,
     return result
 
 
+def merge_keywords(O, A, B, P) -> int:
+    # Get changes to KEYWORDS= from %O to %B
+    if changes := keyword_changes(O, B):
+        # Apply %O -> %B changes to %A
+        return apply_keyword_changes(A, P, changes)
+    return -1
+
+
 def main(argv: Sequence[str]) -> int:
     if len(argv) != 4:
         return -1
@@ -120,23 +128,19 @@ def main(argv: Sequence[str]) -> int:
     B = argv[2]  # %B - filename of the other branch's version
     P = argv[3]  # %P - original path of the file
 
-    # Get changes to KEYWORDS= from %O to %B
-    if changes := keyword_changes(O, B):
-        # Apply %O -> %B changes to %A
-        result = apply_keyword_changes(A, P, changes)
-        return result
-    # Get changes to KEYWORDS= from %O to %A
-    elif changes := keyword_changes(O, A):
-        # Apply %O -> %A changes to %B
-        result = apply_keyword_changes(B, P, changes)
+    if merge_keywords(O, A, B, P) == 0:
+        return 0
+
+    # Try in reverse
+    if merge_keywords(O, B, A, P) == 0:
         # Merged file should be left in %A
         shutil.move(B, A)
-        return result
-    else:
-        try:
-            os.execlp("git", "git", "merge-file", "-L", "HEAD", "-L", "base", "-L", "ours", A, O, B)
-        except OSError:
-            return -1
+        return 0
+
+    try:
+        os.execlp("git", "git", "merge-file", "-L", "HEAD", "-L", "base", "-L", "ours", A, O, B)
+    except OSError:
+        return -1
 
 
 if __name__ == "__main__":
