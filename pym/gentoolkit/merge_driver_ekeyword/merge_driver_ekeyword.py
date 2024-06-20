@@ -30,7 +30,7 @@ def keyword_array(keyword_line: str) -> list[str]:
     i2: int = keyword_line.rfind('"')
 
     # Split into array of KEYWORDS
-    return keyword_line[i1:i2].split(' ')
+    return keyword_line[i1:i2].split(" ")
 
 
 def keyword_line_changes(old: str, new: str) -> KeywordChanges:
@@ -41,14 +41,20 @@ def keyword_line_changes(old: str, new: str) -> KeywordChanges:
 
     changes: KeywordChanges = []
     for tag, i1, i2, j1, j2 in s.get_opcodes():
-        if tag == 'replace':
-            changes.append((a[i1:i2], b[j1:j2]),)
-        elif tag == 'delete':
-            changes.append((a[i1:i2], None),)
-        elif tag == 'insert':
-            changes.append((None, b[j1:j2]),)
+        if tag == "replace":
+            changes.append(
+                (a[i1:i2], b[j1:j2]),
+            )
+        elif tag == "delete":
+            changes.append(
+                (a[i1:i2], None),
+            )
+        elif tag == "insert":
+            changes.append(
+                (None, b[j1:j2]),
+            )
         else:
-            assert tag == 'equal'
+            assert tag == "equal"
     return changes
 
 
@@ -58,34 +64,33 @@ def keyword_changes(ebuild1: str, ebuild2: str) -> Optional[KeywordChanges]:
         lines2 = e2.readlines()
 
         diff = difflib.unified_diff(lines1, lines2, n=0)
-        assert next(diff) == '--- \n'
-        assert next(diff) == '+++ \n'
+        assert next(diff) == "--- \n"
+        assert next(diff) == "+++ \n"
 
         hunk: int = 0
-        old: str = ''
-        new: str = ''
+        old: str = ""
+        new: str = ""
 
         for line in diff:
-            if line.startswith('@@ '):
+            if line.startswith("@@ "):
                 if hunk > 0:
                     break
                 hunk += 1
-            elif line.startswith('-'):
+            elif line.startswith("-"):
                 if old or new:
                     break
                 old = line
-            elif line.startswith('+'):
+            elif line.startswith("+"):
                 if not old or new:
                     break
                 new = line
         else:
-            if 'KEYWORDS=' in old and 'KEYWORDS=' in new:
+            if "KEYWORDS=" in old and "KEYWORDS=" in new:
                 return keyword_line_changes(old, new)
         return None
 
 
-def apply_keyword_changes(ebuild: str, pathname: str,
-                          changes: KeywordChanges) -> int:
+def apply_keyword_changes(ebuild: str, pathname: str, changes: KeywordChanges) -> int:
     result: int = 0
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -98,8 +103,8 @@ def apply_keyword_changes(ebuild: str, pathname: str,
             if removals:
                 for rem in removals:
                     # Drop leading '~' and '-' characters and prepend '^'
-                    i = 1 if rem[0] in ('~', '-') else 0
-                    args.append('^' + rem[i:])
+                    i = 1 if rem[0] in ("~", "-") else 0
+                    args.append("^" + rem[i:])
             if additions:
                 args.extend(additions)
             args.append(ebuild_symlink)
@@ -138,7 +143,20 @@ def main(argv: Sequence[str]) -> int:
         return 0
 
     try:
-        os.execlp("git", "git", "merge-file", "-L", "HEAD", "-L", "base", "-L", "ours", A, O, B)
+        os.execlp(
+            "git",
+            "git",
+            "merge-file",
+            "-L",
+            "HEAD",
+            "-L",
+            "base",
+            "-L",
+            "ours",
+            A,
+            O,
+            B,
+        )
     except OSError:
         return -1
 
