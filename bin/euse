@@ -294,7 +294,7 @@ get_useflags() {
 	# Flip signs of use.mask (it's interpreted oppositely),
 	ACTIVE_FLAGS[6]=$(reduce_incrementals_trump \
 		$(cat $(traverse_profile "use.mask") | sed -re "/^#.*$/{d}") \
-			| sed -re "s/(^| )-[^ ]*//g" -e "s/(^| )([a-z0-9])/ -\2/g")
+			| sed -re "s/(^| )-[^ ]*//g" -e "s/(^| )([a-zA-Z0-9])/ -\2/g")
 	ACTIVE_FLAGS[7]=$(reduce_incrementals \
 		$(cat $(traverse_profile "use.force") \
 			| sed -re "/^#.*$/ {d}"))
@@ -965,7 +965,7 @@ fi
 # Environment:
 # PACKAGE - Package atom for which to remove flag
 scrub_use_flag() {
-	local atom_re="^[<>]?=?([a-z][\da-z/-]+[a-z])(-[0-9pr._*-]+)?"
+	local atom_re="^[<>]?=?([a-zA-Z][\da-zA-Z/-]+[a-zA-Z])(-[0-9pr._*-]+)?"
 	local filename=${1}
 	# Ignore leading - on flag
 	local flag=${2#*-}
@@ -1024,7 +1024,7 @@ scrub_use_flag() {
 modify_package() {
 	get_useflags
 
-	local atom_re="^[<>]?=?([a-z][0-9a-z/-]+[0-9a-z])(-[0-9pr._*-]+)?"
+	local atom_re="^[<>]?=?([a-zA-Z][0-9a-zA-Z/-]+[0-9a-zA-Z])(-[0-9pr._*-]+)?"
 	local pkg=$(echo "${PACKAGE}" | sed -re "s/${atom_re}/\1/")
 	local V=$(echo "${PACKAGE}" | sed -re "s/${atom_re}/\2/")
 	local pkg_re="[<>]?=?${pkg}(-[\dpr._*-]+)?"
