@@ -27,18 +27,23 @@ then
 	exit 1
 fi
 
-ARCH=`portageq envvar ARCH`
+if [ -z "${EBUGREPORT_URL+x}" ] || [ -z "${EBUGREPORT_DEST+x}" ]; then
+	echo "both EBUGREPORT_DEST and EBUGREPORT_URL must be set ; try 'export EBUGREPORT_...'"
+	exit 2
+fi
 
-CATEGORY=`echo $1|cut -f 1 -d '/'`
-EBUILD=`echo $1|cut -f 2 -d '/' | cut -f 1 -d ':'`
-REPOS=`echo $1|cut -f 2 -d '/' | cut -f 3 -d ':'`
+ARCH=$(portageq envvar ARCH)
+
+CATEGORY=$(echo $1|cut -f 1 -d '/')
+EBUILD=$(echo $1|cut -f 2 -d '/' | cut -f 1 -d ':')
+REPOS=$(echo $1|cut -f 2 -d '/' | cut -f 3 -d ':')
 d=/tmp/$EBUILD
 mkdir $d
 f=$d/index.html
 TITLE="Gentoo bug report for ${EBUILD}"
 
 echo "<html><head><title>${TITLE}</title></head><body><h1>${TITLE}</h1>" >$f
-echo "Created on `LC_TIME=C date` with <a href="https://github.com/petaflot/gentoolkit/bin/ebugreport">this script</a><br/><br/>" >>$f
+echo "Created on $(LC_TIME=C date) with <a href="https://github.com/petaflot/gentoolkit/bin/ebugreport">this script</a><br/><br/>" >>$f
 
 echo -e "\n<h3>$ emerge -pqv =${CATEGORY}/${EBUILD}::${REPOS}</h3>\n<pre>" >> $f
 emerge -pqv =${CATEGORY}/${EBUILD}::${REPOS} >> $f
