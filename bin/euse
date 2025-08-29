@@ -427,8 +427,8 @@ get_useflaglist_ebuild() {
 # get all make.conf files that exist on the system
 get_all_make_conf() {
 	# At least one of the files exists or we would not have made it this far
-        for x in ${ETC}/make.conf ${ETC}/portage/make.conf ${ETC}/portage/make.conf/*; do
-                [ -f "${x}" ] && echo "${x}"
+    for x in ${ETC}/make.conf ${ETC}/portage/make.conf ${ETC}/portage/make.conf/*; do
+    	[ -f "${x}" ] && echo "${x}"
 	done
 }
 # Function: traverse_profile {{{
