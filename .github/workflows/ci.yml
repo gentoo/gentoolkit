@@ -13,12 +13,13 @@ jobs:
         - '3.10'
         - '3.11'
         - '3.12-dev'
+        - '3.14-dev'
         - 'pypy-3.9'
         - 'pypy-3.10'
 
     env:
       # TODO: get this dynamically
-      PORTAGE_VERSION: "3.0.57"
+      PORTAGE_VERSION: "3.0.70"
 
     steps:
     - uses: actions/checkout@v2
