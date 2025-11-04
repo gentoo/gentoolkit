@@ -1,7 +1,7 @@
 project(
     'gentoolkit',
     'c',
-    version : '0.6.10',
+    version : '0.6.11',
     license : 'GPL-2.0-or-later',
     meson_version : '>=0.64.0'
 )
