@@ -8,4 +8,5 @@ import sys
 from gentoolkit.merge_driver_ekeyword import merge_driver_ekeyword
 
 
-sys.exit(merge_driver_ekeyword.main(sys.argv[1:]))
+if __name__ == "__main__":
+	sys.exit(merge_driver_ekeyword.main(sys.argv[1:]))

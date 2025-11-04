@@ -31,14 +31,15 @@ except KeyboardInterrupt:
 
 from gentoolkit import enalyze, errors
 
-try:
-    enalyze.main()
-except errors.GentoolkitException as err:
-    if '--debug' in sys.argv:
-        raise
-    else:
-        from gentoolkit import pprinter as pp
-        sys.stderr.write(pp.error(str(err)))
-        print()
-        print("Add '--debug' to global options for traceback.")
-        sys.exit(1)
+if __name__ == "__main__":
+    try:
+        enalyze.main()
+    except errors.GentoolkitException as err:
+        if '--debug' in sys.argv:
+            raise
+        else:
+            from gentoolkit import pprinter as pp
+            sys.stderr.write(pp.error(str(err)))
+            print()
+            print("Add '--debug' to global options for traceback.")
+            sys.exit(1)

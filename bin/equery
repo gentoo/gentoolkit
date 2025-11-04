@@ -37,20 +37,21 @@ def formatwarning(message, category, filename, llineno, line=None):
     return pp.warn(str(message))
 
 
-if '--debug' not in sys.argv and not bool(os.getenv('DEBUG', False)):
-    warnings.formatwarning = formatwarning
+if __name__ == "__main__":
+    if '--debug' not in sys.argv and not bool(os.getenv('DEBUG', False)):
+        warnings.formatwarning = formatwarning
 
-try:
-    equery.main(sys.argv)
-except errors.GentoolkitNonZeroExit as err:
-    sys.exit(err.return_code)
-except errors.GentoolkitException as err:
-    if '--debug' in sys.argv or bool(os.getenv('DEBUG', False)):
-        raise
-    else:
-        from gentoolkit import pprinter as pp
-        sys.stderr.write(pp.error(str(err)))
-        if err.is_serious:
-            print()
-            print("Add '--debug' to global options for traceback.")
-        sys.exit(1)
+    try:
+        equery.main(sys.argv)
+    except errors.GentoolkitNonZeroExit as err:
+        sys.exit(err.return_code)
+    except errors.GentoolkitException as err:
+        if '--debug' in sys.argv or bool(os.getenv('DEBUG', False)):
+            raise
+        else:
+            from gentoolkit import pprinter as pp
+            sys.stderr.write(pp.error(str(err)))
+            if err.is_serious:
+                print()
+                print("Add '--debug' to global options for traceback.")
+            sys.exit(1)

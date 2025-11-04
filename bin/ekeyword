@@ -33,9 +33,10 @@ except KeyboardInterrupt:
 
 from gentoolkit.ekeyword import ekeyword
 
-try:
-    ekeyword.main(sys.argv[1:])
-except KeyboardInterrupt:
-    print("Aborted.")
-    sys.exit(130)
-sys.exit(0)
+if __name__ == "__main__":
+    try:
+        ekeyword.main(sys.argv[1:])
+    except KeyboardInterrupt:
+        print("Aborted.")
+        sys.exit(130)
+    sys.exit(0)
