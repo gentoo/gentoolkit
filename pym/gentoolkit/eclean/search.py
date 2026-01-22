@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2003-2024 Gentoo Authors
+# Copyright 2003-2026 Gentoo Authors
 # Distributed under the terms of the GNU General Public License v2
 
 
@@ -780,13 +780,14 @@ def findPackages(
             )
 
         try:
-            invalid_paths[location] = bin_dbapi.bintree.invalid_paths
-            # A little dirty, but it makes the structure of
-            # invalid_paths match the structure of dead_binpkgs.
-            for file_ in invalid_paths[location]:
-                if len(invalid_paths[location][file_]) == 1:
-                    full_path = invalid_paths[location][file_][0]
-                    invalid_paths[location][file_] = (full_path, None)
+            if len(bin_dbapi.bintree.invalid_paths) > 0:
+                invalid_paths[location] = bin_dbapi.bintree.invalid_paths
+                # A little dirty, but it makes the structure of
+                # invalid_paths match the structure of dead_binpkgs.
+                for file_ in invalid_paths[location]:
+                    if len(invalid_paths[location][file_]) == 1:
+                        full_path = invalid_paths[location][file_][0]
+                        invalid_paths[location][file_] = (full_path, None)
         except AttributeError:
             # if bintree.invalid_paths was not initialized, this is a
             # hard error and we can just return here
