@@ -588,6 +588,75 @@ def _deps_equal(deps_a, eapi_a, deps_b, eapi_b, libc_deps, uselist=None, cpv=Non
     return deps_a == deps_b
 
 
+def _check_subslot_deps(deps, eapi, port_dbapi, uselist=None, cpv=None, verbose=False):
+    """Check if any := dep has a subslot no longer available in the tree.
+
+    Returns True if a stale subslot dep is found (binpkg should be removed).
+    """
+    try:
+        dep_list = use_reduce(deps, uselist=uselist, eapi=eapi, token_class=Atom)
+    except InvalidDependString:
+        print(
+            pp.warn(
+                "Warning: Invalid binpkg DEPEND string found for: %s"
+                " | tagging for removal" % cpv
+            ),
+            file=sys.stderr,
+        )
+        return True
+
+    queue = list(dep_list)
+    while queue:
+        token = queue.pop()
+        if isinstance(token, list):
+            queue.extend(token)
+            continue
+        if not isinstance(token, Atom):
+            continue
+        if not token.slot_operator_built:
+            continue
+        matches = port_dbapi.cp_list(token.cp)
+        if not matches:
+            continue
+        found = False
+        available_subslots = set()
+        for match_cpv in matches:
+            try:
+                slot_str = port_dbapi.aux_get(match_cpv, ["SLOT"])[0]
+            except KeyError:
+                continue
+            slot_parts = slot_str.split("/")
+            match_slot = slot_parts[0]
+            match_subslot = slot_parts[1] if len(slot_parts) > 1 else slot_parts[0]
+            if match_slot == token.slot:
+                if match_subslot == token.sub_slot:
+                    found = True
+                    break
+                available_subslots.add(match_subslot)
+        if not found:
+            if verbose:
+                print(
+                    pp.warn(
+                        "  %s: stale subslot dep on %s:%s/%s=,"
+                        " available subslot(s): %s"
+                        % (
+                            cpv,
+                            token.cp,
+                            token.slot,
+                            token.sub_slot,
+                            (
+                                ", ".join(sorted(available_subslots))
+                                if available_subslots
+                                else "(none)"
+                            ),
+                        )
+                    ),
+                    file=sys.stderr,
+                )
+            return True
+    return False
+
+
 def _find_debuginfo_tarball(cpv: portage.versions._pkg_str, cp: str):
     """
     From a CPV, identify and check for a matching debuginfo tarball.
@@ -737,25 +806,43 @@ def findPackages(
 
             # Exclude if binpkg exists in the porttree and not --deep
             if not destructive and port_dbapi.cpv_exists(cpv):
-                if not options["changed-deps"]:
+                if not options["changed-deps"] and not options["changed-subslot"]:
                     continue
 
                 dep_keys = ("RDEPEND", "PDEPEND")
                 keys = ("EAPI", "USE") + dep_keys
                 binpkg_metadata = dict(zip(keys, bin_dbapi.aux_get(cpv, keys)))
-                ebuild_metadata = dict(zip(keys, port_dbapi.aux_get(cpv, keys)))
-
                 deps_binpkg = " ".join(binpkg_metadata[key] for key in dep_keys)
-                deps_ebuild = " ".join(ebuild_metadata[key] for key in dep_keys)
-                if _deps_equal(
-                    deps_binpkg,
-                    binpkg_metadata["EAPI"],
-                    deps_ebuild,
-                    ebuild_metadata["EAPI"],
-                    libc_deps,
-                    frozenset(binpkg_metadata["USE"].split()),
-                    cpv,
-                ):
+                uselist = frozenset(binpkg_metadata["USE"].split())
+
+                should_remove = False
+
+                if options["changed-deps"]:
+                    ebuild_metadata = dict(zip(keys, port_dbapi.aux_get(cpv, keys)))
+                    deps_ebuild = " ".join(ebuild_metadata[key] for key in dep_keys)
+                    if not _deps_equal(
+                        deps_binpkg,
+                        binpkg_metadata["EAPI"],
+                        deps_ebuild,
+                        ebuild_metadata["EAPI"],
+                        libc_deps,
+                        uselist,
+                        cpv,
+                    ):
+                        should_remove = True
+
+                if not should_remove and options["changed-subslot"]:
+                    if _check_subslot_deps(
+                        deps_binpkg,
+                        binpkg_metadata["EAPI"],
+                        port_dbapi,
+                        uselist,
+                        cpv,
+                        verbose=options["verbose"],
+                    ):
+                        should_remove = True
+
+                if not should_remove:
                     continue
 
             if destructive and var_dbapi.cpv_exists(cpv):

@@ -262,6 +262,11 @@ def printUsage(_error=None, help=None, unresolved_invalids=None):
             file=out,
         )
         print(
+            yellow("     --changed-subslot")
+            + "            - delete packages with := deps on subslots no longer in tree",
+            file=out,
+        )
+        print(
             yellow("     --no-clean-invalid")
             + "           - Skip cleaning invalid binpkgs",
             file=out,
@@ -418,6 +423,8 @@ def parseArgs(options={}):
                 options["verbose"] = True
             elif o in ("--changed-deps"):
                 options["changed-deps"] = True
+            elif o in ("--changed-subslot"):
+                options["changed-subslot"] = True
             elif o in ("-i", "--ignore-failure"):
                 options["ignore-failure"] = True
             elif o in ("-u", "--unique-use"):
@@ -472,6 +479,7 @@ def parseArgs(options={}):
     getopt_options["long"]["packages"] = [
         "ignore-failure",
         "changed-deps",
+        "changed-subslot",
         "unique-use",
         "no-clean-invalid",
     ]
@@ -488,6 +496,7 @@ def parseArgs(options={}):
     options["size-limit"] = 0
     options["verbose"] = False
     options["changed-deps"] = False
+    options["changed-subslot"] = False
     options["ignore-failure"] = False
     options["no-clean-invalid"] = False
     options["unique-use"] = False
