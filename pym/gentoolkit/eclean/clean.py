@@ -165,9 +165,6 @@ class CleanUp:
             rm_files.append(files[1])
             rm_size += sz
 
-        if not rm_size:
-            return 0
-
         # optionally prompt for removal
         clean_size = 0
         if self.controller(rm_size, key, files, "binary package"):
