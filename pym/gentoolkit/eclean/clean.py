@@ -132,7 +132,10 @@ class CleanUp:
         try:
             statinfo = os.stat(file_)
             if statinfo.st_nlink == 1:
-                return statinfo.st_size
+                # Hack to disambiguate a file of empty size from the other
+                # case where this function returns 0 at the end for a dead
+                # symlink.
+                return statinfo.st_size or 1
         except OSError as er:
             if os.path.exists(os.readlink(file_)):
                 print(pp.error("Could not get stat info for:" + file_), file=sys.stderr)
