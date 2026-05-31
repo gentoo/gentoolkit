@@ -567,6 +567,7 @@ def doAction(action, options, exclude={}, output=None):
     saved = {}
     deprecated = {}
     vcs = []
+    invalids = None
     # find files to delete, depending on the action
     if not options["quiet"]:
         output.einfo("Building file list for " + action + " cleaning...")
