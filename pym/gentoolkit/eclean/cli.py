@@ -634,7 +634,7 @@ def doAction(action, options, exclude={}, output=None):
         if not options["quiet"]:
             output.total("normal", clean_size, file_count + len(vcs), verb, action)
     # nothing was found
-    elif not options["quiet"]:
+    elif not options["quiet"] and not invalids:
         output.einfo("Your " + action + " directory was already clean.")
     if saved and not options["quiet"]:
         verb = "would be"
