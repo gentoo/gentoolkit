@@ -734,7 +734,6 @@ def findPackages(
     # Dictionary of binary packages to clean. Organized as
     # { location -> { cpv~build-id -> (binpkg, debugpack) } }
     dead_binpkgs: dict[str, dict[str, tuple[str, str | None]]] = {}
-    keep_binpkgs = {}
 
     def mk_binpkg_key(cpv):
         if cpv.build_id is None:
@@ -766,6 +765,7 @@ def findPackages(
             populate_kwargs["invalid_errors"] = False
         if "force_reindex" in signature(bin_dbapi.bintree.populate).parameters:
             bin_dbapi.bintree.populate(force_reindex=True, **populate_kwargs)
+        keep_binpkgs = {}
         for cpv in bin_dbapi.cpv_all():
             cp = portage.cpv_getkey(cpv)
             binpkg_key = mk_binpkg_key(cpv)
