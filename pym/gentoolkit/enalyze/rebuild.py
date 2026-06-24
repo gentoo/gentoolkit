@@ -26,7 +26,6 @@ from gentoolkit.package import Package
 
 
 import portage
-from portage import _encodings, _unicode_encode
 
 
 def cpv_all_diff_use(
@@ -391,9 +390,9 @@ class Rebuild(ModuleBase):
         if not self.options["quiet"]:
             print("   - Saving file: %s" % filepath)
         with open(
-            _unicode_encode(filepath, encoding=_encodings["fs"]),
+            filepath,
             mode="w",
-            encoding=_encodings["content"],
+            encoding="utf-8",
         ) as output:
             output.write("\n".join(data))
             output.write("\n")

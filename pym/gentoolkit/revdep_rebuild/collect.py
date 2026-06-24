@@ -8,7 +8,6 @@ import glob
 import stat
 
 import portage
-from portage import _encodings, _unicode_encode
 from portage.output import blue, yellow
 from .settings import parse_revdep_config
 
@@ -27,8 +26,8 @@ def parse_conf(conf_file, visited=None, logger=None):
     for conf in conf_file:
         try:
             with open(
-                _unicode_encode(conf, encoding=_encodings["fs"]),
-                encoding=_encodings["content"],
+                conf,
+                encoding="utf-8",
             ) as _file:
                 for line in _file.readlines():
                     line = line.strip()
@@ -75,11 +74,8 @@ def prepare_search_dirs(logger, settings):
 
     # try:
     with open(
-        _unicode_encode(
-            os.path.join(portage.root, settings["DEFAULT_ENV_FILE"]),
-            encoding=_encodings["fs"],
-        ),
-        encoding=_encodings["content"],
+        os.path.join(portage.root, settings["DEFAULT_ENV_FILE"]),
+        encoding="utf-8",
     ) as _file:
         for line in _file.readlines():
             line = line.strip()

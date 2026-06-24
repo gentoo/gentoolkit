@@ -18,7 +18,6 @@ from getopt import gnu_getopt, GetoptError
 from glob import glob
 
 from portage import settings
-from portage import _encodings, _unicode_encode
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
@@ -151,8 +150,8 @@ def get_global_useflags():
     try:
         path = os.path.join(settings["PORTDIR"], "profiles", "use.desc")
         with open(
-            _unicode_encode(path, encoding=_encodings["fs"]),
-            encoding=_encodings["content"],
+            path,
+            encoding="utf-8",
         ) as open_file:
             for line in open_file:
                 if line.startswith("#"):
@@ -171,8 +170,8 @@ def get_global_useflags():
     for path in glob(os.path.join(settings["PORTDIR"], "profiles", "desc", "*.desc")):
         try:
             with open(
-                _unicode_encode(path, encoding=_encodings["fs"]),
-                encoding=_encodings["content"],
+                path,
+                encoding="utf-8",
             ) as open_file:
                 for line in open_file:
                     if line.startswith("#"):
