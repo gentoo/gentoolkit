@@ -13,8 +13,6 @@ import os.path
 import portage
 import sys
 
-from portage import _encodings, _unicode_encode
-
 
 def warning(msg):
     """Write |msg| as a warning to stderr"""
@@ -47,8 +45,8 @@ def load_profile_data(portdir=None, repo=""):
     try:
         arch_list = os.path.join(portdir, "profiles", "arch.list")
         with open(
-            _unicode_encode(arch_list, encoding=_encodings["fs"]),
-            encoding=_encodings["content"],
+            arch_list,
+            encoding="utf-8",
         ) as f:
             for line in f:
                 line = line.split("#", 1)[0].strip()
@@ -66,8 +64,8 @@ def load_profile_data(portdir=None, repo=""):
         }
         profiles_list = os.path.join(portdir, "profiles", "profiles.desc")
         with open(
-            _unicode_encode(profiles_list, encoding=_encodings["fs"]),
-            encoding=_encodings["content"],
+            profiles_list,
+            encoding="utf-8",
         ) as f:
             for line in f:
                 line = line.split("#", 1)[0].split()
@@ -91,8 +89,8 @@ def load_profile_data(portdir=None, repo=""):
     try:
         arches_list = os.path.join(portdir, "profiles", "arches.desc")
         with open(
-            _unicode_encode(arches_list, encoding=_encodings["fs"]),
-            encoding=_encodings["content"],
+            arches_list,
+            encoding="utf-8",
         ) as f:
             for line in f:
                 line = line.split("#", 1)[0].split()

@@ -6,7 +6,6 @@ import os
 import re
 import time
 
-from portage import _encodings, _unicode_encode
 from portage.output import bold, blue, yellow, green
 
 from .stuff import scan
@@ -91,8 +90,8 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
             continue
 
         for line in open(
-            _unicode_encode(_file, encoding=_encodings["fs"]),
-            encoding=_encodings["content"],
+            _file,
+            encoding="utf-8",
         ).readlines():
             line = line.strip()
             if line.startswith("dependency_libs="):

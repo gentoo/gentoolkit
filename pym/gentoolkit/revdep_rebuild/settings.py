@@ -9,7 +9,6 @@ import re
 import glob
 
 import portage
-from portage import _encodings, _unicode_encode
 
 portage_root = str(portage.root)
 
@@ -158,10 +157,8 @@ def parse_revdep_config(revdep_confdir):
 
     for _file in os.listdir(revdep_confdir):
         for line in open(
-            _unicode_encode(
-                os.path.join(revdep_confdir, _file), encoding=_encodings["fs"]
-            ),
-            encoding=_encodings["content"],
+            os.path.join(revdep_confdir, _file),
+            encoding="utf-8",
         ):
             line = line.strip()
             # first check for comment, we do not want to regex all lines

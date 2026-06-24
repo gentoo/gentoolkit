@@ -5,7 +5,6 @@ Functions for reading, saving and verifying the data caches
 from portage import os
 import time
 
-from portage import _encodings, _unicode_encode
 from portage.output import red
 from .settings import DEFAULTS
 
@@ -28,10 +27,8 @@ def read_cache(temp_path=DEFAULTS["DEFAULT_TMP_DIR"]):
     try:
         for key, val in ret.items():
             _file = open(
-                _unicode_encode(
-                    os.path.join(temp_path, key), encoding=_encodings["fs"]
-                ),
-                encoding=_encodings["content"],
+                os.path.join(temp_path, key),
+                encoding="utf-8",
             )
             for line in _file.readlines():
                 val.add(line.strip())
@@ -60,22 +57,18 @@ def save_cache(logger, to_save={}, temp_path=DEFAULTS["DEFAULT_TMP_DIR"]):
 
     try:
         _file = open(
-            _unicode_encode(
-                os.path.join(temp_path, "timestamp"), encoding=_encodings["fs"]
-            ),
+            os.path.join(temp_path, "timestamp"),
             mode="w",
-            encoding=_encodings["content"],
+            encoding="utf-8",
         )
         _file.write(str(int(time.time())))
         _file.close()
 
         for key, val in to_save.items():
             _file = open(
-                _unicode_encode(
-                    os.path.join(temp_path, key), encoding=_encodings["fs"]
-                ),
+                os.path.join(temp_path, key),
                 mode="w",
-                encoding=_encodings["content"],
+                encoding="utf-8",
             )
             for line in val:
                 _file.write(line + "\n")
@@ -105,8 +98,8 @@ def check_temp_files(
 
     try:
         _file = open(
-            _unicode_encode(timestamp_path, encoding=_encodings["fs"]),
-            encoding=_encodings["content"],
+            timestamp_path,
+            encoding="utf-8",
         )
         timestamp = int(_file.readline())
         _file.close()

@@ -51,7 +51,6 @@ from string import Template
 
 import portage
 from portage.util import LazyItemsDict
-from portage import _encodings, _unicode_encode
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
@@ -397,7 +396,7 @@ class Package(CPV):
         size = n_files = n_uncounted = 0
         for path in self.parsed_contents(prefix_root=True):
             try:
-                st = os.lstat(_unicode_encode(path, encoding=_encodings["fs"]))
+                st = os.lstat(path)
             except OSError:
                 continue
 
