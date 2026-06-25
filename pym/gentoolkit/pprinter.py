@@ -162,12 +162,6 @@ def warn(string):
     return "!!! " + string + "\n"
 
 
-try:
-    unicode
-except NameError:
-    unicode = str
-
-
 def uprint(*args, **kw):
     """Replacement for the builtin print function.
 
@@ -199,7 +193,7 @@ def uprint(*args, **kw):
             if isinstance(arg, bytes):
                 yield arg
             else:
-                yield unicode(arg).encode(encoding, "replace")
+                yield str(arg).encode(encoding, "replace")
 
     sep = sep.encode(encoding, "replace")
     end = end.encode(encoding, "replace")
