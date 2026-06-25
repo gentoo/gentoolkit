@@ -58,7 +58,7 @@ def keyword_line_changes(old: str, new: str) -> KeywordChanges:
 
 
 def keyword_changes(ebuild1: str, ebuild2: str) -> Optional[KeywordChanges]:
-    with open(ebuild1) as e1, open(ebuild2) as e2:
+    with open(ebuild1, encoding="utf-8") as e1, open(ebuild2, encoding="utf-8") as e2:
         lines1 = e1.readlines()
         lines2 = e2.readlines()
 

@@ -97,7 +97,7 @@ def show_result(conf, pkgs):
     elif conf["FILE"] == "stderr":
         out = stderr
     else:
-        out = open(conf["FILE"], "w")
+        out = open(conf["FILE"], "w", encoding="utf-8")
 
     if conf["STABLE"] and conf["KEYWORD"]:
         _cand = "%i Stable and %i Keyword(~)" % (

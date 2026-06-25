@@ -191,7 +191,9 @@ def main(argv, indirect=False):
             for repo in ports.repositories:
                 repos[repo.name] = repo.location
 
-            with open(os.path.join(ourtree, "profiles", "repo_name")) as f:
+            with open(
+                os.path.join(ourtree, "profiles", "repo_name"), encoding="utf-8"
+            ) as f:
                 repo_name = f.readline().strip()
 
             repos[repo_name] = ourtree
