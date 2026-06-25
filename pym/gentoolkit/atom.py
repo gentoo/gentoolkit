@@ -297,10 +297,10 @@ class Atom(portage.dep.Atom, CPV):
 
         # If we get here at least one of us is a <, <=, > or >=:
         if self.operator in ("<", "<=", ">", ">="):
-            ranged, ranged.operator = self, self.operator
+            ranged = self
         else:
-            ranged, ranged.operator = other, other.operator
-            other, other.operator = self, self.operator
+            ranged = other
+            other = self
 
         if "<" in other.operator or ">" in other.operator:
             # We are both ranged, and in the opposite "direction" (or
