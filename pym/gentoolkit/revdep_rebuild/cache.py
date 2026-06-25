@@ -2,7 +2,7 @@
 Functions for reading, saving and verifying the data caches
 """
 
-from portage import os
+import os
 import time
 
 from portage.output import red
