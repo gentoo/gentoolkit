@@ -3,7 +3,7 @@
 """Data collection module"""
 
 import re
-from portage import os
+import os
 import glob
 import stat
 
