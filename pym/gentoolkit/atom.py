@@ -24,6 +24,8 @@ from gentoolkit import errors
 # Classes
 # =======
 
+_UNSET = object()
+
 
 class Atom(portage.dep.Atom, CPV):
     """Portage's Atom class with improvements from pkgcore.
@@ -43,20 +45,36 @@ class Atom(portage.dep.Atom, CPV):
     # Necessary for Portage versions < 2.1.7
     _atoms = weakref.WeakValueDictionary()
 
+    @property
+    def operator(self):
+        # Old portage stored operator as a plain instance attribute in
+        # __dict__; new portage exposes it as a read-only @property backed
+        # by _operator.  super().operator only searches class __dict__
+        # entries, so check the instance dict first.
+        op = self.__dict__.get("operator", _UNSET)
+        if op is _UNSET:
+            op = super().operator
+        return "" if op is None else op
+
     def __init__(self, atom):
         self.atom = atom
-        self.operator = self.blocker = self.use = self.slot = None
 
         try:
             portage.dep.Atom.__init__(self, atom)
         except portage.exception.InvalidAtom:
             raise errors.GentoolkitInvalidAtom(atom)
 
-        # Make operator compatible with intersects
-        if self.operator is None:
-            self.operator = ""
-
-        CPV.__init__(self, self.cpv)
+        # cpv is already managed by portage.dep.Atom; initialize CPV's
+        # private attrs directly to avoid writing to portage's read-only
+        # cpv property (new portage) or redundantly overwriting __dict__
+        # (old portage).
+        self._category = None
+        self._name = None
+        self._version = None
+        self._revision = None
+        self._cp = None
+        self._fullversion = None
+        self.validate = False
 
         # use_conditional is USE flag condition for this Atom to be required:
         # For: !build? ( >=sys-apps/sed-4.0.5 ), use_conditional = '!build'
