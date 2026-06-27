@@ -62,6 +62,14 @@ class Query(CPV):
             try:
                 atom = Atom(self.query)
                 self.__dict__.update(atom.__dict__)
+                # portage.dep.Atom uses __slots__, so cpv, _cp, and _version
+                # are absent from atom.__dict__; initialize them explicitly so
+                # CPV's lazy property accessors don't raise AttributeError.
+                if "cpv" not in self.__dict__:
+                    self.cpv = atom.cpv
+                for _attr in ("_version", "_cp"):
+                    if _attr not in self.__dict__:
+                        setattr(self, _attr, None)
             except errors.GentoolkitInvalidAtom:
                 CPV.__init__(self, self.query)
                 self.operator = ""
