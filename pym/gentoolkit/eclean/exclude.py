@@ -39,7 +39,7 @@ def isValidCP(cp):
     @rtype: bool
     """
 
-    if not "/" in cp:
+    if "/" not in cp:
         return False
     try:
         portage.cpv_getkey(cp + "-0")
@@ -103,7 +103,7 @@ def parseExcludeFile(filepath, output):
         except:
             pass
         else:
-            if not cat in portage.settings.categories:
+            if cat not in portage.settings.categories:
                 raise ParseExcludeFileException(
                     "Invalid category: " + cat + " @line # " + str(linenum)
                 )

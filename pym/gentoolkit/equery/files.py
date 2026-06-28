@@ -276,7 +276,7 @@ def parse_module_options(module_opts):
             f_split = posarg.split(",")
             content_filter.extend(x.lstrip("=") for x in f_split)
             for rule in content_filter:
-                if not rule in FILTER_RULES:
+                if rule not in FILTER_RULES:
                     sys.stderr.write(pp.error("Invalid filter rule '%s'" % rule))
                     print()
                     print_help(with_description=False)

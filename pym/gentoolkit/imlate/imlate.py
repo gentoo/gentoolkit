@@ -52,9 +52,9 @@ def _portage_settings(var, value, settings=None):
 
 
 def _add_ent(imlate, cat, pkg, ver, our_ver):
-    if not cat in list(imlate.keys()):
+    if cat not in list(imlate.keys()):
         imlate[cat] = {}
-    if not pkg in list(imlate[cat].keys()):
+    if pkg not in list(imlate[cat].keys()):
         imlate[cat][pkg] = []
 
     imlate[cat][pkg].append(ver)
@@ -210,7 +210,7 @@ def get_packages(conf):
         slots = {}
 
         if conf["USER_PKGS"]:
-            if not cp in conf["USER_PKGS"] and not basename(cp) in conf["USER_PKGS"]:
+            if cp not in conf["USER_PKGS"] and basename(cp) not in conf["USER_PKGS"]:
                 continue
 
         # None is important to match also on empty string
@@ -224,7 +224,7 @@ def get_packages(conf):
 
         for cpvr in cpvrs:
             slot = conf["portdb"].dbapi.aux_get(cpvr, ["SLOT"])[0]
-            if not slot in slots:
+            if slot not in slots:
                 slots[slot] = []
             slots[slot].append(cpvr)
 
@@ -234,9 +234,9 @@ def get_packages(conf):
             if cpvr:
                 cat, pkg, ver, rev = portage.versions.catpkgsplit(cpvr)
 
-                if not cat in list(_pkgs.keys()):
+                if cat not in list(_pkgs.keys()):
                     _pkgs[cat] = {}
-                if not pkg in list(_pkgs[cat].keys()):
+                if pkg not in list(_pkgs[cat].keys()):
                     _pkgs[cat][pkg] = []
 
                 if rev != "r0":
@@ -511,9 +511,9 @@ def main():
     conf["KEYWORD_SUM"] = 0
     conf["STABLE_SUM"] = 0
 
-    if not options.main_arch in portage.archlist and options.main_arch != "auto":
+    if options.main_arch not in portage.archlist and options.main_arch != "auto":
         raise ValueError("invalid MAIN ARCH defined!")
-    if not options.target_arch in portage.archlist and options.target_arch != "auto":
+    if options.target_arch not in portage.archlist and options.target_arch != "auto":
         raise ValueError("invalid TARGET ARCH defined!")
 
     conf["MAIN_ARCH"] = options.main_arch

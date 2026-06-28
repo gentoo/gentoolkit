@@ -114,7 +114,7 @@ class OutputControl:
         @rtype: bool
         """
         user_string = "xxx"
-        while not user_string.lower() in ["", "y", "n", "a", "yes", "no", "all"]:
+        while user_string.lower() not in ["", "y", "n", "a", "yes", "no", "all"]:
             self.eprompt(message + " [Y/n/a]: ")
             user_string = sys.stdin.readline().rstrip("\n")
             user_string = user_string.strip()

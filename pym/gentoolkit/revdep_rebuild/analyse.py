@@ -254,7 +254,7 @@ class LibCheck:
                                     "\tLibrary %s is a full path and it exists" % l
                                 )
                                 continue
-                            if not bits in found_libs:
+                            if bits not in found_libs:
                                 found_libs[bits] = {}
                             try:
                                 found_libs[bits][l].add(filename)

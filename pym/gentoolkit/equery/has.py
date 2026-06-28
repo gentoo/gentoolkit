@@ -107,13 +107,13 @@ def display_pkg(query, env_var, pkg):
         and not QUERY_OPTS["in_porttree"]
         and not QUERY_OPTS["in_overlay"]
     ):
-        if not "I" in pkgstr.location:
+        if "I" not in pkgstr.location:
             return False
     if QUERY_OPTS["in_porttree"] and not QUERY_OPTS["in_overlay"]:
-        if not "P" in pkgstr.location:
+        if "P" not in pkgstr.location:
             return False
     if QUERY_OPTS["in_overlay"] and not QUERY_OPTS["in_porttree"]:
-        if not "O" in pkgstr.location:
+        if "O" not in pkgstr.location:
             return False
     pp.uprint(pkgstr)
 

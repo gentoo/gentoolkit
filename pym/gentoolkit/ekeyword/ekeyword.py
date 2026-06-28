@@ -393,7 +393,7 @@ def arg_to_op(arg):
         op, arch = arg[0], arg[1:]
 
     if "=" in arch:
-        if not op is None:
+        if op is not None:
             raise ValueError("Cannot use an op and a refarch")
         arch, refarch = arch.split("=", 1)
 

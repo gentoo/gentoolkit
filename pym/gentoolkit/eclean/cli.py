@@ -53,7 +53,7 @@ def printUsage(_error=None, help=None, unresolved_invalids=None):
     out = sys.stdout
     if _error:
         out = sys.stderr
-    if not _error in (
+    if _error not in (
         "actions",
         "global-options",
         "packages-options",
@@ -537,7 +537,7 @@ def parseArgs(options={}):
         return action
     # So, we are in "eclean --foo action --bar" mode. Parse remaining args...
     # Only two actions are allowed: 'packages' and 'distfiles'.
-    if not len(args) or not args[0] in ("packages", "distfiles"):
+    if not len(args) or args[0] not in ("packages", "distfiles"):
         raise ParseArgsException("actions")
     action = args.pop(0)
     # parse the action specific options
@@ -717,7 +717,7 @@ def main():
         if options["verbose"]:
             options["verbose-output"] = output.einfo
     # parse the exclusion file
-    if not "exclude-file" in options:
+    if "exclude-file" not in options:
         # set it to the default exclude file if it exists
         exclude_file = f"{EPREFIX}/etc/{__productname__}/{action}.exclude"
         if os.path.isfile(exclude_file):

@@ -5,7 +5,9 @@ __package__ = "gentoolkit.eshowkw"
 __version__ = "@VERSION@"
 __author__ = "Tomáš Chvátal <scarabeus@gentoo.org>"
 
-import sys, os, fnmatch
+import sys
+import os
+import fnmatch
 import argparse
 from portage import output as porto
 from portage import settings as ports

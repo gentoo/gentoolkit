@@ -144,7 +144,7 @@ def masking(mask):
     if "package.mask" in mask or "profile" in mask:
         # use porthole wrap style to help clarify meaning
         return output.red("M[" + mask[0] + "]")
-    if mask is not []:
+    if mask != []:
         for status in mask:
             if "keyword" in status:
                 # keyword masked | " [missing keyword] " <=looks better
