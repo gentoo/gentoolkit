@@ -70,7 +70,7 @@ class Atom(portage.dep.Atom, CPV):
             self._cp = None
         self._category = None
         self._name = None
-        self._version = None
+        self._bare_version = None
         self._revision = None
         self._fullversion = None
         self.validate = False

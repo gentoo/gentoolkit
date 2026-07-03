@@ -56,7 +56,7 @@ class CPV:
         self.cpv = cpv
         self._category = None
         self._name = None
-        self._version = None
+        self._bare_version = None
         self._revision = None
         self._cp = None
         self._fullversion = None
@@ -79,9 +79,9 @@ class CPV:
 
     @property
     def version(self):
-        if self._version is None:
+        if self._bare_version is None:
             self._set_cpv_chunks()
-        return self._version
+        return self._bare_version
 
     @property
     def revision(self):
@@ -107,7 +107,7 @@ class CPV:
         chunks = split_cpv(self.cpv, validate=self.validate)
         self._category = chunks[0]
         self._name = chunks[1]
-        self._version = chunks[2]
+        self._bare_version = chunks[2]
         self._revision = chunks[3]
 
     def __eq__(self, other):
