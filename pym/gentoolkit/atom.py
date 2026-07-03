@@ -64,15 +64,14 @@ class Atom(portage.dep.Atom, CPV):
         except portage.exception.InvalidAtom:
             raise errors.GentoolkitInvalidAtom(atom)
 
-        # cpv is already managed by portage.dep.Atom; initialize CPV's
-        # private attrs directly to avoid writing to portage's read-only
-        # cpv property (new portage) or redundantly overwriting __dict__
-        # (old portage).
+        # Seed _cp only if portage didn't already set it (old portage never
+        # sets it; new portage's __slots__ value must not be clobbered).
+        if not hasattr(self, "_cp"):
+            self._cp = None
         self._category = None
         self._name = None
         self._version = None
         self._revision = None
-        self._cp = None
         self._fullversion = None
         self.validate = False
 
