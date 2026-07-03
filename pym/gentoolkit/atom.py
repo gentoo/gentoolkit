@@ -56,6 +56,13 @@ class Atom(portage.dep.Atom, CPV):
             op = super().operator
         return "" if op is None else op
 
+    @property
+    def version(self):
+        # New portage's version property includes the revision; ours doesn't.
+        if self._bare_version is None:
+            self._set_cpv_chunks()
+        return self._bare_version
+
     def __init__(self, atom):
         self.atom = atom
 
