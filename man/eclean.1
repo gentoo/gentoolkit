@@ -115,6 +115,10 @@ This is only useful when scripting to ignore an otherwise fatal error.
 \fB\-\-changed\-deps\fP		delete packages for which ebuild dependencies have changed
 .TP
 \fB\-\-changed\-subslot\fP		delete packages with := deps on subslots no longer in the tree
+.TP
+\fB\-\-changed\-iuse\fP		delete packages whose IUSE no longer matches the ebuild
+This is useful when, for instance, PYTHON_COMPAT changes and adds a new
+python_targets_* flag: the old binary package can never be a cache hit again.
 .SH "EXCLUSION FILES"
 Exclusions files are lists of packages names or categories you want to protect
 in particular.  This may be useful to protect more binary packages for some system

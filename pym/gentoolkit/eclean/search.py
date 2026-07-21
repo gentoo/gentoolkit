@@ -657,6 +657,23 @@ def _check_subslot_deps(deps, eapi, port_dbapi, uselist=None, cpv=None, verbose=
     return False
 
 
+def _iuse_changed(iuse_binpkg, iuse_ebuild):
+    """Check if the set of IUSE flags differs between binpkg and ebuild.
+
+    USE flag defaults (a leading + or -) are ignored; only the presence of a
+    flag matters. Portage cannot use a binpkg whose IUSE no longer matches the
+    ebuild's (e.g. after PYTHON_COMPAT adds a new python_targets_* flag), so
+    such a binpkg is orphaned and can be removed.
+
+    Returns True if the IUSE flags differ (binpkg should be removed).
+    """
+
+    def _flags(iuse):
+        return frozenset(flag.lstrip("+-") for flag in iuse.split())
+
+    return _flags(iuse_binpkg) != _flags(iuse_ebuild)
+
+
 def _find_debuginfo_tarball(cpv: portage.versions._pkg_str, cp: str):
     """
     From a CPV, identify and check for a matching debuginfo tarball.
@@ -806,11 +823,15 @@ def findPackages(
 
             # Exclude if binpkg exists in the porttree and not --deep
             if not destructive and port_dbapi.cpv_exists(cpv):
-                if not options["changed-deps"] and not options["changed-subslot"]:
+                if (
+                    not options["changed-deps"]
+                    and not options["changed-subslot"]
+                    and not options["changed-iuse"]
+                ):
                     continue
 
                 dep_keys = ("RDEPEND", "PDEPEND")
-                keys = ("EAPI", "USE") + dep_keys
+                keys = ("EAPI", "USE", "IUSE") + dep_keys
                 binpkg_metadata = dict(zip(keys, bin_dbapi.aux_get(cpv, keys)))
                 deps_binpkg = " ".join(binpkg_metadata[key] for key in dep_keys)
                 uselist = frozenset(binpkg_metadata["USE"].split())
@@ -840,6 +861,11 @@ def findPackages(
                         cpv,
                         verbose=options["verbose"],
                     ):
+                        should_remove = True
+
+                if not should_remove and options["changed-iuse"]:
+                    ebuild_iuse = port_dbapi.aux_get(cpv, ["IUSE"])[0]
+                    if _iuse_changed(binpkg_metadata["IUSE"], ebuild_iuse):
                         should_remove = True
 
                 if not should_remove:
