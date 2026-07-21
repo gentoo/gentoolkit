@@ -119,6 +119,10 @@ This is only useful when scripting to ignore an otherwise fatal error.
 \fB\-\-changed\-iuse\fP		delete packages whose IUSE no longer matches the ebuild
 This is useful when, for instance, PYTHON_COMPAT changes and adds a new
 python_targets_* flag: the old binary package can never be a cache hit again.
+.TP
+\fB\-\-unreachable\fP		delete packages that can no longer be a Portage cache hit
+This enables all of the \-\-changed\-* options at once, so any binary package
+that Portage can no longer reuse is removed regardless of why.
 .SH "EXCLUSION FILES"
 Exclusions files are lists of packages names or categories you want to protect
 in particular.  This may be useful to protect more binary packages for some system

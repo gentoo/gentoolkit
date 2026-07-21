@@ -272,6 +272,12 @@ def printUsage(_error=None, help=None, unresolved_invalids=None):
             file=out,
         )
         print(
+            yellow("     --unreachable")
+            + "                - delete packages that can no longer be a cache hit"
+            + " (enables all --changed-* options)",
+            file=out,
+        )
+        print(
             yellow("     --no-clean-invalid")
             + "           - Skip cleaning invalid binpkgs",
             file=out,
@@ -432,6 +438,10 @@ def parseArgs(options={}):
                 options["changed-subslot"] = True
             elif o in ("--changed-iuse"):
                 options["changed-iuse"] = True
+            elif o in ("--unreachable"):
+                options["changed-deps"] = True
+                options["changed-subslot"] = True
+                options["changed-iuse"] = True
             elif o in ("-i", "--ignore-failure"):
                 options["ignore-failure"] = True
             elif o in ("-u", "--unique-use"):
@@ -488,6 +498,7 @@ def parseArgs(options={}):
         "changed-deps",
         "changed-subslot",
         "changed-iuse",
+        "unreachable",
         "unique-use",
         "no-clean-invalid",
     ]
