@@ -111,6 +111,10 @@ Only effective with \-\-deep. Without \-\-deep, no VCS cleaning is done.
 .TP
 \fB\-i, \-\-ignore\-failure\fP		ignore the failure to locate PKGDIR
 This is only useful when scripting to ignore an otherwise fatal error.
+.TP
+\fB\-\-changed\-deps\fP		delete packages for which ebuild dependencies have changed
+.TP
+\fB\-\-changed\-subslot\fP		delete packages with := deps on subslots no longer in the tree
 .SH "EXCLUSION FILES"
 Exclusions files are lists of packages names or categories you want to protect
 in particular.  This may be useful to protect more binary packages for some system
