@@ -13,14 +13,14 @@ __docformat__ = "epytext"
 import os
 import sys
 from functools import partial
-from getopt import gnu_getopt, GetoptError
+from getopt import GetoptError, gnu_getopt
 
-import portage.checksum as checksum
+from portage import checksum
 from portage.exception import PermissionDenied
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
-from gentoolkit.equery import format_options, mod_usage, CONFIG
+from gentoolkit.equery import CONFIG, format_options, mod_usage
 from gentoolkit.query import Query
 
 # =======

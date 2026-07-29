@@ -10,8 +10,9 @@ __all__ = ("load_profile_data",)
 
 
 import os.path
-import portage
 import sys
+
+import portage
 
 
 def warning(msg):

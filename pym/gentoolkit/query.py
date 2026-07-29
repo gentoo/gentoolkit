@@ -19,14 +19,12 @@ from string import ascii_letters, digits
 
 import portage
 
-from gentoolkit import CONFIG
-from gentoolkit import errors
-from gentoolkit import helpers
+from gentoolkit import CONFIG, errors, helpers
 from gentoolkit import pprinter as pp
 from gentoolkit.atom import Atom
 from gentoolkit.cpv import CPV
 from gentoolkit.package import Package
-from gentoolkit.sets import get_set_atoms, SETPREFIX
+from gentoolkit.sets import SETPREFIX, get_set_atoms
 
 # =======
 # Classes
@@ -203,10 +201,7 @@ class Query(CPV):
                     portage.db[portage.root]["vartree"].dbapi.match(self.query)
                 )
         except portage.exception.InvalidAtom as err:
-            message = "query.py: find(), query={}, InvalidAtom={}".format(
-                self.query,
-                str(err),
-            )
+            message = f"query.py: find(), query={self.query}, InvalidAtom={err!s}"
             raise errors.GentoolkitInvalidAtom(message)
 
         return [Package(x) for x in set(matches)]
@@ -247,7 +242,7 @@ class Query(CPV):
         except portage.exception.InvalidAtom as err:
             message = (
                 "query.py: find_best(), bestmatch-visible, "
-                + f"query={self.query}, InvalidAtom={str(err)}"
+                + f"query={self.query}, InvalidAtom={err!s}"
             )
             raise errors.GentoolkitInvalidAtom(message)
         # xmatch can return an empty string, so checking for None is not enough
@@ -389,9 +384,11 @@ class Query(CPV):
         result = []
         for match in matches:
             repo_name = match.repo_name()
-            if repo_name == self.repo_filter:
-                result.append(match)
-            elif not repo_name and self.repo_filter in ("unknown", "null"):
+            if (
+                repo_name == self.repo_filter
+                or not repo_name
+                and self.repo_filter in ("unknown", "null")
+            ):
                 result.append(match)
 
         return result

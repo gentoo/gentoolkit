@@ -13,23 +13,23 @@ Creation date: 2010/10/17
 License: BSD
 """
 
-import os
-import sys
 import logging
+import os
 import subprocess
+import sys
 import time
 
 current_milli_time = lambda: int(round(time.time() * 1000))
 
 
-from portage.output import bold, red, blue, yellow, nocolor
+from portage.output import blue, bold, nocolor, red, yellow
 
+from . import __version__
 from .analyse import analyse
-from .cache import check_temp_files, read_cache
 from .assign import get_slotted_cps
+from .cache import check_temp_files, read_cache
 from .settings import DEFAULTS, parse_options
 from .stuff import filter_masked
-from . import __version__
 
 APP_NAME = sys.argv[0]
 VERSION = __version__

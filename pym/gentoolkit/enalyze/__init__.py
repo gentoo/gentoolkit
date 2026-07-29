@@ -27,7 +27,7 @@ MODULE_INFO = {
 
 import errno
 import sys
-from getopt import getopt, GetoptError
+from getopt import GetoptError, getopt
 
 import portage
 
@@ -36,9 +36,9 @@ from gentoolkit import errors
 from gentoolkit import pprinter as pp
 from gentoolkit.base import (
     initialize_configuration,
-    split_arguments,
     parse_global_options,
     print_help,
+    split_arguments,
 )
 
 NAME_MAP = {"a": "analyze", "r": "rebuild"}

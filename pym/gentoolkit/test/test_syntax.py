@@ -1,7 +1,6 @@
-import unittest
-import py_compile
-
 import os
+import py_compile
+import unittest
 
 osp = os.path
 

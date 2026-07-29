@@ -14,7 +14,7 @@ __all__ = ("CPV", "compare_strs", "split_cpv")
 
 import re
 
-from portage.versions import catpkgsplit, vercmp, pkgcmp
+from portage.versions import catpkgsplit, pkgcmp, vercmp
 
 from gentoolkit import errors
 

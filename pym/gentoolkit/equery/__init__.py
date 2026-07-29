@@ -17,12 +17,11 @@ import errno
 import os
 import sys
 import time
-from getopt import getopt, GetoptError
+from getopt import GetoptError, getopt
 
 import portage
 
-from gentoolkit import CONFIG
-from gentoolkit import errors
+from gentoolkit import CONFIG, errors
 from gentoolkit import pprinter as pp
 from gentoolkit.textwrap_ import TextWrapper
 

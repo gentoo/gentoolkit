@@ -44,10 +44,10 @@ import re
 import subprocess
 import sys
 
-from gentoolkit.profile import load_profile_data
-
 import portage
 from portage.output import colorize, nocolor
+
+from gentoolkit.profile import load_profile_data
 
 __version__ = "@VERSION@"
 

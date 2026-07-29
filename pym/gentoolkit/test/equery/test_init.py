@@ -31,7 +31,7 @@ class TestEqueryInit(unittest.TestCase):
         for short_name, long_name in zip(name_map, name_map.values()):
             self.assertEqual(equery.expand_module_name(short_name), long_name)
             self.assertEqual(equery.expand_module_name(long_name), long_name)
-        unused_keys = set(map(chr, range(0, 256))).difference(name_map.keys())
+        unused_keys = set(map(chr, range(256))).difference(name_map.keys())
         for key in unused_keys:
             self.assertRaises(KeyError, equery.expand_module_name, key)
 

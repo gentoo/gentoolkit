@@ -8,16 +8,16 @@
 """Provides a breakdown list of USE flags or keywords used and by
 what packages according to the Installed package database"""
 
-import gentoolkit
-from gentoolkit.module_base import ModuleBase
-from gentoolkit import pprinter as pp
-from gentoolkit.flag import get_installed_use, get_flags
-from gentoolkit.enalyze.lib import FlagAnalyzer, KeywordAnalyser
-from gentoolkit.enalyze.output import nl, AnalysisPrinter
-from gentoolkit.package import Package
-from gentoolkit.helpers import get_installed_cpvs
-
 import portage
+
+import gentoolkit
+from gentoolkit import pprinter as pp
+from gentoolkit.enalyze.lib import FlagAnalyzer, KeywordAnalyser
+from gentoolkit.enalyze.output import AnalysisPrinter, nl
+from gentoolkit.flag import get_flags, get_installed_use
+from gentoolkit.helpers import get_installed_cpvs
+from gentoolkit.module_base import ModuleBase
+from gentoolkit.package import Package
 
 
 def gather_flags_info(
@@ -477,11 +477,7 @@ class Analyse(ModuleBase):
         cpvs = sorted(cpvs)
         flags = FlagAnalyzer(system=system_use, filter_defaults=False, target="USE")
 
-        if self.options["verbose"]:
-            print("   cat/pkg-ver                             USE Flags")
-            #   "app-emulation/emul-linux-x86-sdl-20100915 ...."
-            # blankline = nl
-        elif not self.options["quiet"]:
+        if self.options["verbose"] or not self.options["quiet"]:
             print("   cat/pkg-ver                             USE Flags")
             # blankline = lambda: None
         for cpv in cpvs:

@@ -1,5 +1,5 @@
-import threading
 import subprocess
+import threading
 
 
 class ProcessRunner(threading.Thread):

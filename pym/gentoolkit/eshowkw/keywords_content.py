@@ -1,14 +1,14 @@
 # Copyright 2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 
-import portage as port
 import os
+
+import portage as port
 from portage.output import colorize
 
 __all__ = ["keywords_content"]
 
-from gentoolkit.eshowkw.display_pretty import colorize_string
-from gentoolkit.eshowkw.display_pretty import align_string
+from gentoolkit.eshowkw.display_pretty import align_string, colorize_string
 
 
 class keywords_content:

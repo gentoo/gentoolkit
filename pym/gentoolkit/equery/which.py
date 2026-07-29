@@ -14,8 +14,7 @@ __docformat__ = "epytext"
 
 import os
 import sys
-from getopt import gnu_getopt, GetoptError
-
+from getopt import GetoptError, gnu_getopt
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors

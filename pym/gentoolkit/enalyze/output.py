@@ -11,8 +11,8 @@ both screen and file output
 import time
 
 from gentoolkit import pprinter as pp
-from gentoolkit.formatters import CpvValueWrapper
 from gentoolkit.cpv import split_cpv
+from gentoolkit.formatters import CpvValueWrapper
 
 
 def nl(lines=1):

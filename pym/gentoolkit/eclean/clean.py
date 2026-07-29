@@ -8,9 +8,10 @@ import os
 import shutil
 import sys
 
-import gentoolkit.pprinter as pp
 from portage.emaint.main import TaskHandler
 from portage.emaint.modules.binhost import binhost
+
+import gentoolkit.pprinter as pp
 
 
 class CleanUp:

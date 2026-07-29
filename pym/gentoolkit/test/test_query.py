@@ -1,7 +1,6 @@
 import unittest
 
-from gentoolkit import query
-from gentoolkit import errors
+from gentoolkit import errors, query
 
 
 class TestQuery(unittest.TestCase):

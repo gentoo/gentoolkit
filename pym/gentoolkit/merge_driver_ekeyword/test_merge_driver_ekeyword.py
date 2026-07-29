@@ -7,9 +7,10 @@
 import itertools
 import os
 import pathlib
-import pytest
 import shutil
 import tempfile
+
+import pytest
 
 from gentoolkit.merge_driver_ekeyword import merge_driver_ekeyword
 

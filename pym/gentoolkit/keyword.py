@@ -7,7 +7,7 @@
 http://www.gentoo.org/proj/en/glep/glep-0053.html
 """
 
-__all__ = ("Keyword", "compare_strs", "reduce_keywords", "determine_keyword")
+__all__ = ("Keyword", "compare_strs", "determine_keyword", "reduce_keywords")
 
 # =======
 # Imports
@@ -58,7 +58,7 @@ class Keyword:
         return self.keyword
 
     def __repr__(self):
-        return "<{0.__class__.__name__} {0.keyword!r}>".format(self)
+        return f"<{self.__class__.__name__} {self.keyword!r}>"
 
 
 # =========

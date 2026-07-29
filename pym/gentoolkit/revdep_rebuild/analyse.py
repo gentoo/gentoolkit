@@ -6,17 +6,17 @@ import os
 import re
 import time
 
-from portage.output import bold, blue, yellow, green
+from portage.output import blue, bold, green, yellow
 
-from .stuff import scan
-from .collect import (
-    prepare_search_dirs,
-    parse_revdep_config,
-    collect_libraries_from_dir,
-    collect_binaries_from_dir,
-)
 from .assign import assign_packages
 from .cache import save_cache
+from .collect import (
+    collect_binaries_from_dir,
+    collect_libraries_from_dir,
+    parse_revdep_config,
+    prepare_search_dirs,
+)
+from .stuff import scan
 
 current_milli_time = lambda: int(round(time.time() * 1000))
 
@@ -92,7 +92,7 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
         for line in open(
             _file,
             encoding="utf-8",
-        ).readlines():
+        ):
             line = line.strip()
             if line.startswith("dependency_libs="):
                 match = re.match(r"dependency_libs='([^']+)'", line)
@@ -102,9 +102,12 @@ def extract_dependencies_from_la(la, libraries, to_check, logger):
                         if len(el) < 1 or el.startswith("-L") or el.startswith("-R"):
                             continue
 
-                        if el.startswith("-l") and "lib" + el[2:] in libnames:
-                            pass
-                        elif el in la or el in libraries:
+                        if (
+                            el.startswith("-l")
+                            and "lib" + el[2:] in libnames
+                            or el in la
+                            or el in libraries
+                        ):
                             pass
                         else:
                             if to_check:

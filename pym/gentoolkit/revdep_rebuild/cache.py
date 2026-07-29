@@ -6,6 +6,7 @@ import os
 import time
 
 from portage.output import red
+
 from .settings import DEFAULTS
 
 
@@ -30,7 +31,7 @@ def read_cache(temp_path=DEFAULTS["DEFAULT_TMP_DIR"]):
                 os.path.join(temp_path, key),
                 encoding="utf-8",
             )
-            for line in _file.readlines():
+            for line in _file:
                 val.add(line.strip())
             # libraries.remove('\n')
             _file.close()
@@ -70,8 +71,7 @@ def save_cache(logger, to_save={}, temp_path=DEFAULTS["DEFAULT_TMP_DIR"]):
                 mode="w",
                 encoding="utf-8",
             )
-            for line in val:
-                _file.write(line + "\n")
+            _file.writelines(line + "\n" for line in val)
             _file.close()
     except Exception as ex:
         logger.warning("\t" + red("Could not save cache: %s" % str(ex)))
@@ -118,13 +118,14 @@ def check_temp_files(
 if __name__ == "__main__":
     print("Preparing cache ... ")
 
-    from .collect import (
-        prepare_search_dirs,
-        parse_revdep_config,
-        collect_libraries_from_dir,
-        collect_binaries_from_dir,
-    )
     import logging
+
+    from .collect import (
+        collect_binaries_from_dir,
+        collect_libraries_from_dir,
+        parse_revdep_config,
+        prepare_search_dirs,
+    )
 
     bin_dirs, lib_dirs = prepare_search_dirs()
 

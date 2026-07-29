@@ -6,6 +6,7 @@
 
 import os
 import re
+
 import portage
 
 # Misc. shortcuts to some portage stuff:
@@ -206,8 +207,7 @@ def exclDictExpand(exclude):
             d[cp] = None
     if "anti-packages" in exclude:
         for cp in exclude["anti-packages"]:
-            if cp in d:
-                del d[cp]
+            d.pop(cp, None)
     return d
 
 

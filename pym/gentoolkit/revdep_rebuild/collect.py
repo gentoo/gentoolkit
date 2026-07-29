@@ -2,13 +2,14 @@
 
 """Data collection module"""
 
-import re
-import os
 import glob
+import os
+import re
 import stat
 
 import portage
 from portage.output import blue, yellow
+
 from .settings import parse_revdep_config
 
 
@@ -29,7 +30,7 @@ def parse_conf(conf_file, visited=None, logger=None):
                 conf,
                 encoding="utf-8",
             ) as _file:
-                for line in _file.readlines():
+                for line in _file:
                     line = line.strip()
                     if line.startswith("#"):
                         continue
@@ -45,7 +46,7 @@ def parse_conf(conf_file, visited=None, logger=None):
                     else:
                         lib_dirs.add(line)
         except OSError:
-            logger.warn("\t" + yellow("Error when parsing file %s" % conf))
+            logger.warning("\t" + yellow("Error when parsing file %s" % conf))
 
     if visited is None:
         visited = set()
@@ -77,7 +78,7 @@ def prepare_search_dirs(logger, settings):
         os.path.join(portage.root, settings["DEFAULT_ENV_FILE"]),
         encoding="utf-8",
     ) as _file:
-        for line in _file.readlines():
+        for line in _file:
             line = line.strip()
             match = re.match(r"^export (ROOT)?PATH='([^']+)'", line)
             if match is not None:

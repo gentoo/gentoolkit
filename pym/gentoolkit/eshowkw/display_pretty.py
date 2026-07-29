@@ -9,12 +9,12 @@ except ImportError:  # older python naming
     from itertools import izip_longest as zip_longest
 
 __all__ = [
-    "string_rotator",
-    "colorize_string",
     "align_string",
-    "rotate_dash",
-    "print_content",
+    "colorize_string",
     "display",
+    "print_content",
+    "rotate_dash",
+    "string_rotator",
 ]
 
 

@@ -16,9 +16,9 @@ import weakref
 
 import portage
 
+from gentoolkit import errors
 from gentoolkit.cpv import CPV
 from gentoolkit.versionmatch import VersionMatch
-from gentoolkit import errors
 
 # =======
 # Classes

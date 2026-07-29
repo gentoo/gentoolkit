@@ -8,8 +8,8 @@ import sys
 import time
 
 import gentoolkit
-from gentoolkit.textwrap_ import TextWrapper
 import gentoolkit.pprinter as pp
+from gentoolkit.textwrap_ import TextWrapper
 
 
 def format_options(options):

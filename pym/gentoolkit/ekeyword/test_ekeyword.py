@@ -9,7 +9,6 @@ import os
 import subprocess
 import tempfile
 import unittest
-
 from unittest import mock
 
 from gentoolkit.ekeyword import ekeyword

@@ -14,11 +14,11 @@ from pathlib import Path
 from typing import Optional, Set
 
 import portage
+from portage.binrepo.config import BinRepoConfigLoader
 from portage.dep import Atom, use_reduce
 from portage.dep._slot_operator import strip_slots
 from portage.dep.libc import find_libc_deps, strip_libc_deps
 from portage.exception import InvalidDependString
-from portage.binrepo.config import BinRepoConfigLoader
 
 import gentoolkit.pprinter as pp
 from gentoolkit.eclean.exclude import (

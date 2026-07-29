@@ -14,9 +14,8 @@ import os
 import shutil
 import sys
 import tempfile
-
-from typing import Optional
 from collections.abc import Sequence
+from typing import Optional
 
 from gentoolkit.ekeyword import ekeyword
 

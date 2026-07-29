@@ -11,21 +11,20 @@ what packages according to the Installed package database"""
 
 import os
 
+import portage
+
 import gentoolkit
-from gentoolkit.module_base import ModuleBase
 from gentoolkit import pprinter as pp
+from gentoolkit.atom import Atom
 from gentoolkit.enalyze.lib import (
-    get_installed_use,
-    get_flags,
     FlagAnalyzer,
     KeywordAnalyser,
+    get_flags,
+    get_installed_use,
 )
 from gentoolkit.enalyze.output import RebuildPrinter
-from gentoolkit.atom import Atom
+from gentoolkit.module_base import ModuleBase
 from gentoolkit.package import Package
-
-
-import portage
 
 
 def cpv_all_diff_use(

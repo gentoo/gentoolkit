@@ -13,7 +13,7 @@ current_milli_time = lambda: int(round(time.time() * 1000))
 
 import portage
 from portage import portdb
-from portage.output import bold, red, yellow, green
+from portage.output import bold, green, red, yellow
 
 
 class _file_matcher:
@@ -86,7 +86,7 @@ def assign_packages(broken, logger, settings):
                 contents_matcher = _file_matcher()
                 try:
                     with open(f, encoding="utf_8") as cnt:
-                        for line in cnt.readlines():
+                        for line in cnt:
                             m = re.match(r"^obj (/[^ ]+)", line)
                             if m is not None:
                                 contents_matcher.add(m.group(1))
@@ -147,8 +147,8 @@ def get_best_match(cpv, cp, logger):
 
 def get_slotted_cps(cpvs, logger):
     """Uses portage to reduce the cpv list into a cp:slot list and returns it"""
-    from portage.versions import catpkgsplit
     from portage import portdb
+    from portage.versions import catpkgsplit
 
     cps = []
     for cpv in cpvs:

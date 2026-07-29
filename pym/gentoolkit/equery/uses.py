@@ -12,19 +12,18 @@ __docformat__ = "epytext"
 
 import os
 import sys
-
 from functools import partial
-from getopt import gnu_getopt, GetoptError
+from getopt import GetoptError, gnu_getopt
 from glob import glob
 
 from portage import settings
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
-from gentoolkit.equery import format_options, mod_usage, CONFIG
-from gentoolkit.textwrap_ import TextWrapper
-from gentoolkit.query import Query
+from gentoolkit.equery import CONFIG, format_options, mod_usage
 from gentoolkit.flag import get_flags, reduce_flags
+from gentoolkit.query import Query
+from gentoolkit.textwrap_ import TextWrapper
 
 # =======
 # Globals
@@ -99,9 +98,7 @@ def display_useflags(output):
             if in_makeconf != in_installed:
                 flag_name += pp.emph(f" {markers[in_makeconf]} {markers[in_installed]}")
             else:
-                flag_name += " {} {}".format(
-                    markers[in_makeconf], markers[in_installed]
-                )
+                flag_name += f" {markers[in_makeconf]} {markers[in_installed]}"
 
             flag_name += " " + color[in_makeconf % 2](flag.ljust(maxflag_len))
             flag_name += " : "

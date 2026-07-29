@@ -12,17 +12,18 @@ __all__ = ("Dependencies",)
 # =======
 
 import itertools
-from functools import cache
+from collections.abc import Iterable, Iterator
 from enum import Enum
-from typing import List, Dict, Iterable, Iterator, Set, Optional, Any, Union
+from functools import cache
+from typing import Any, Dict, List, Optional, Set, Union
 
 import portage
 from portage.dep import paren_reduce
 
 from gentoolkit import errors
 from gentoolkit.atom import Atom
-from gentoolkit.query import Query
 from gentoolkit.cpv import CPV
+from gentoolkit.query import Query
 
 # =======
 # Classes
@@ -161,9 +162,7 @@ class Dependencies(Query):
             except KeyError:
                 pkgdep = Query(dep.atom).find_best()
                 depcache[dep.atom] = pkgdep
-            if not pkgdep:
-                continue
-            elif pkgdep.cpv in seen:
+            if not pkgdep or pkgdep.cpv in seen:
                 continue
             if depth <= max_depth or max_depth == 0:
                 if printer_fn is not None:

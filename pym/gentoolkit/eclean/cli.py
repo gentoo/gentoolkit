@@ -688,11 +688,9 @@ def doAction(action, options, exclude={}, output=None):
             if not options["quiet"]:
                 print()
                 print(
-                    (
-                        pp.emph("   The following ")
-                        + red("invalid")
-                        + pp.emph(" binpkgs were found")
-                    )
+                    pp.emph("   The following ")
+                    + red("invalid")
+                    + pp.emph(" binpkgs were found")
                 )
                 output.set_colors("invalid")
                 output.list_pkgs(invalids)

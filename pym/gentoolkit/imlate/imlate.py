@@ -19,19 +19,17 @@ TARGET_ARCH = "auto"  # can be overridden by -t ARCH
 # do not change anything below #
 ################################
 
-from os.path import join, basename
-from sys import stderr, stdout
+from optparse import OptionParser
 from os import stat
-from time import time
-from xml.dom import minidom, NotFoundErr
+from os.path import basename, join
+from sys import stderr, stdout
+from time import gmtime, strftime, time
+from xml.dom import NotFoundErr, minidom
 from xml.parsers.expat import ExpatError
 
 # TODO: just import needed stuff to safe memory/time and maybe use "as foo"
 import portage
 import portage.versions
-
-from optparse import OptionParser
-from time import gmtime, strftime
 
 # override/change portage module settings
 
@@ -65,7 +63,7 @@ def _add_ent(imlate, cat, pkg, ver, our_ver):
 
 def _fill(width, line, fill=" "):
     while len(line) < width:
-        line = f"{str(line)}{str(fill)}"
+        line = f"{line!s}{fill!s}"
     return line
 
 

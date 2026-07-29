@@ -31,12 +31,11 @@ __all__ = (
 # Imports
 # =======
 
-import sys
-import locale
 import codecs
+import locale
+import sys
 
-import portage.output as output
-from portage import archlist
+from portage import archlist, output
 
 # =========
 # Functions

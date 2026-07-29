@@ -10,10 +10,10 @@
 
 __all__ = (
     "FileOwner",
+    "get_bintree_cpvs",
     "get_cpvs",
     "get_installed_cpvs",
     "get_uninstalled_cpvs",
-    "get_bintree_cpvs",
     "uniqify",
 )
 __docformat__ = "epytext"
@@ -29,8 +29,8 @@ from itertools import chain
 
 import portage
 
-from gentoolkit import pprinter as pp
 from gentoolkit import errors
+from gentoolkit import pprinter as pp
 
 # This has to be imported below to stop circular import.
 # from gentoolkit.package import Package

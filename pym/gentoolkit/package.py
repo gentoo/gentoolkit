@@ -20,7 +20,7 @@ Example usage:
         False
 """
 
-__all__ = ("Package", "PackageFormatter", "FORMAT_TMPL_VARS")
+__all__ = ("FORMAT_TMPL_VARS", "Package", "PackageFormatter")
 
 # =======
 # Globals
@@ -55,9 +55,9 @@ from portage.util import LazyItemsDict
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
 from gentoolkit.cpv import CPV
-from gentoolkit.keyword import determine_keyword
-from gentoolkit.flag import get_flags
 from gentoolkit.eprefix import EPREFIX
+from gentoolkit.flag import get_flags
+from gentoolkit.keyword import determine_keyword
 
 # =======
 # Settings
@@ -528,7 +528,7 @@ class PackageFormatter:
 
         fmt_vars = self.format_vars
         self.format_vars.clear()
-        fmt_vars.addLazySingleton("location", lambda: getattr(self, "location"))
+        fmt_vars.addLazySingleton("location", lambda: self.location)
         fmt_vars.addLazySingleton("mask", self.format_mask)
         fmt_vars.addLazySingleton("mask2", self.format_mask_status2)
         fmt_vars.addLazySingleton("cpv", self.format_cpv)

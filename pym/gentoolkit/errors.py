@@ -5,19 +5,19 @@
 """Exception classes for gentoolkit"""
 
 __all__ = (
+    "GentoolkitAmbiguousPackage",
     "GentoolkitException",
     "GentoolkitFatalError",
-    "GentoolkitAmbiguousPackage",
     "GentoolkitInvalidAtom",
+    "GentoolkitInvalidCPV",
     "GentoolkitInvalidCategory",
     "GentoolkitInvalidPackage",
-    "GentoolkitInvalidCPV",
     "GentoolkitInvalidRegex",
     "GentoolkitInvalidVersion",
     "GentoolkitNoMatches",
+    "GentoolkitNonZeroExit",
     "GentoolkitSetNotFound",
     "GentoolkitUnknownKeyword",
-    "GentoolkitNonZeroExit",
 )
 
 # ==========

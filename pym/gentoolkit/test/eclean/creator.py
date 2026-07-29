@@ -5,9 +5,9 @@
 # Distributed under the terms of the GNU General Public License v2
 
 import os
-import sys
-import shutil
 import random
+import shutil
+import sys
 
 import gentoolkit.pprinter as pp
 

@@ -5,7 +5,9 @@
 
 
 import sys
-from portage.output import blue, yellow, teal, green, red
+
+from portage.output import blue, green, red, teal, yellow
+
 from gentoolkit.pprinter import cpv, number
 
 

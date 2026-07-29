@@ -7,29 +7,28 @@
 # License: GPL2/BSD
 
 
-import unittest
-import re
 import os
+import re
+import unittest
 
+from portage.dep import Atom
+
+from gentoolkit.eclean import search
+from gentoolkit.eclean.exclude import parseExcludeFile
+from gentoolkit.eclean.search import DistfilesSearch, _deps_equal
 from gentoolkit.test.eclean.distsupport import (
-    FILES,
-    TestDisfiles,
-    OutputSimulator,
-    Dbapi,
+    CLEAN_ME,
     CPVS,
     CPVS2,
     CPVS3,
-    PROPS,
+    FILES,
     PKGS,
-    CLEAN_ME,
+    PROPS,
+    Dbapi,
+    OutputSimulator,
+    TestDisfiles,
     get_props,
 )
-import gentoolkit.eclean.search as search
-from gentoolkit.eclean.search import DistfilesSearch
-from gentoolkit.eclean.search import _deps_equal
-from gentoolkit.eclean.exclude import parseExcludeFile
-
-from portage.dep import Atom
 
 """Tests for eclean's distfiles search functions."""
 
@@ -320,9 +319,7 @@ class TestFetchRestricted(unittest.TestCase):
                 self.assertEqual(
                     sorted(testdata[item]),
                     sorted(results[item]),
-                    "\n{}: {} {} data does not match\nresult=".format(
-                        test_name, key, item
-                    )
+                    f"\n{test_name}: {key} {item} data does not match\nresult="
                     + str(results[item])
                     + "\ntestdata="
                     + str(testdata[item]),

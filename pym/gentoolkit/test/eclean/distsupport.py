@@ -4,10 +4,11 @@
 # License: GPL2/BSD
 
 
-import re
 import os
-from tempfile import mkdtemp
+import re
 import subprocess
+from tempfile import mkdtemp
+
 import portage
 
 dir_mode = 0o774

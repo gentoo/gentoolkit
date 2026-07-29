@@ -5,19 +5,19 @@ __package__ = "gentoolkit.eshowkw"
 __version__ = "@VERSION@"
 __author__ = "Tomáš Chvátal <scarabeus@gentoo.org>"
 
-import sys
-import os
-import fnmatch
 import argparse
-from portage import output as porto
-from portage import settings as ports
-from portage import config as portc
-from portage import portdbapi as portdbapi
+import fnmatch
+import os
+import sys
 
-from gentoolkit.eshowkw.keywords_header import keywords_header
+from portage import config as portc
+from portage import output as porto
+from portage import portdbapi as portdbapi
+from portage import settings as ports
+
+from gentoolkit.eshowkw.display_pretty import display, string_rotator
 from gentoolkit.eshowkw.keywords_content import keywords_content
-from gentoolkit.eshowkw.display_pretty import string_rotator
-from gentoolkit.eshowkw.display_pretty import display
+from gentoolkit.eshowkw.keywords_header import keywords_header
 
 ignore_slots = False
 bold = False

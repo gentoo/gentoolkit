@@ -8,14 +8,14 @@
 """Provides support functions for USE flag settings and analysis"""
 
 __all__ = (
-    "get_iuse",
-    "get_installed_use",
-    "reduce_flag",
-    "reduce_flags",
     "defaulted_flags",
     "filter_flags",
     "get_all_cpv_use",
     "get_flags",
+    "get_installed_use",
+    "get_iuse",
+    "reduce_flag",
+    "reduce_flags",
 )
 
 

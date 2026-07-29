@@ -3,10 +3,10 @@
 """Default settings"""
 
 import argparse
-import os
-import sys
-import re
 import glob
+import os
+import re
+import sys
 
 import portage
 
@@ -47,7 +47,7 @@ def parse_options():
 
     # TODO: Verify: options: no-ld-path, no-order, no-progress
     # are not appliable
-    from .rebuild import VERSION, APP_NAME
+    from .rebuild import APP_NAME, VERSION
 
     settings = DEFAULTS.copy()
 

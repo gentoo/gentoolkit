@@ -10,11 +10,11 @@ __docformat__ = "epytext"
 
 
 import sys
-from getopt import gnu_getopt, GetoptError
+from getopt import GetoptError, gnu_getopt
 
 import gentoolkit.pprinter as pp
-from gentoolkit.formatters import format_options
 from gentoolkit.base import mod_usage
+from gentoolkit.formatters import format_options
 
 
 class ModuleBase:

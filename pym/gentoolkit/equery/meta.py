@@ -563,7 +563,7 @@ def main(input_args):
 
         if best_match.metadata is None:
             print(
-                pp.warn("Package {} is missing " "metadata.xml".format(best_match.cpv)),
+                pp.warn(f"Package {best_match.cpv} is missing " "metadata.xml"),
                 file=sys.stderr,
             )
             continue

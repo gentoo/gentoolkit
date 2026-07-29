@@ -1,6 +1,8 @@
+from typing import Dict, List, Optional
+
 import portage
-from typing import List, Dict, Optional
 from pytest import MonkeyPatch
+
 from gentoolkit.dependencies import Dependencies
 
 

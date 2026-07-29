@@ -8,20 +8,19 @@
 
 """Provides support functions to enalyze modules"""
 
-from gentoolkit import errors
-from gentoolkit.keyword import reduce_keywords
-from gentoolkit.flag import (
-    reduce_flags,
-    get_flags,
-    get_all_cpv_use,
-    filter_flags,
-    get_installed_use,
-    defaulted_flags,
-)
-
 # from gentoolkit.package import Package
-
 import portage
+
+from gentoolkit import errors
+from gentoolkit.flag import (
+    defaulted_flags,
+    filter_flags,
+    get_all_cpv_use,
+    get_flags,
+    get_installed_use,
+    reduce_flags,
+)
+from gentoolkit.keyword import reduce_keywords
 
 
 class FlagAnalyzer:
@@ -130,7 +129,6 @@ class FlagAnalyzer:
         """Checks for redundant settings.
         future function. Not yet implemented.
         """
-        pass
 
     def remove_expanding(self, flags):
         """Remove unwanted USE_EXPAND flags

@@ -11,12 +11,12 @@ __docformat__ = "epytext"
 # =======
 
 import sys
-from getopt import gnu_getopt, GetoptError
+from getopt import GetoptError, gnu_getopt
 
 import gentoolkit.pprinter as pp
 from gentoolkit import errors
-from gentoolkit.equery import format_options, mod_usage, CONFIG
-from gentoolkit.package import PackageFormatter, FORMAT_TMPL_VARS
+from gentoolkit.equery import CONFIG, format_options, mod_usage
+from gentoolkit.package import FORMAT_TMPL_VARS, PackageFormatter
 from gentoolkit.query import Query
 
 # =======
