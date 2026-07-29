@@ -218,7 +218,7 @@ class TestProcessContent(unittest.TestCase):
             ekeyword.Op(None, "arm", None),
             ekeyword.Op("~", "sparc", None),
         )
-        return ekeyword.process_content("file", ["%s\n" % line], ops, quiet=True)
+        return ekeyword.process_content("file", [f"{line}\n"], ops, quiet=True)
 
     def testKeywords(self):
         """Basic KEYWORDS mod"""

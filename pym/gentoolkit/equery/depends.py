@@ -107,7 +107,7 @@ class Printer:
                     pp.useflag(u) for u in mdep.use_conditional.split()
                 )
             if mdep.operator == "=*":
-                formatted_dep = "=%s*" % str(mdep.cpv)
+                formatted_dep = f"={mdep.cpv!s}*"
             else:
                 formatted_dep = mdep.operator + str(mdep.cpv)
             if mdep.slot:
@@ -194,7 +194,7 @@ def main(input_args):
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
     except GetoptError as err:
-        sys.stderr.write(pp.error("Module %s" % err))
+        sys.stderr.write(pp.error(f"Module {err}"))
         print()
         print_help(with_description=False)
         sys.exit(2)
@@ -224,7 +224,7 @@ def main(input_args):
             pkggetter = get_installed_cpvs
 
         if CONFIG["verbose"]:
-            print(" * These packages depend on %s:" % pp.emph(pkg.cpv))
+            print(f" * These packages depend on {pp.emph(pkg.cpv)}:")
 
         first_run = False
 

@@ -144,7 +144,7 @@ def main(input_args):
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
     except GetoptError as err:
-        sys.stderr.write(pp.error("Module %s" % err))
+        sys.stderr.write(pp.error(f"Module {err}"))
         print()
         print_help(with_description=False)
         sys.exit(2)
@@ -169,7 +169,7 @@ def main(input_args):
             print()
 
         if CONFIG["verbose"]:
-            pp.uprint(" * Searching for USE flag %s ... " % pp.emph(query))
+            pp.uprint(f" * Searching for USE flag {pp.emph(query)} ... ")
 
         for pkg in matches:
             if display_useflags(query, pkg):

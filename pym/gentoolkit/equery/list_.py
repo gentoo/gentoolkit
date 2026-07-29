@@ -178,7 +178,7 @@ def main(input_args):
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
     except GetoptError as err:
-        sys.stderr.write(pp.error("Module %s" % err))
+        sys.stderr.write(pp.error(f"Module {err}"))
         print()
         print_help(with_description=False)
         sys.exit(2)
@@ -262,12 +262,12 @@ def main(input_args):
                     status = ", ".join(ms_orig)
                     explanation = mask_reason[0]
                     mask_location = mask_reason[1]
-                    pp.uprint(" * Masked by %r" % status)
-                    pp.uprint(" * %s:" % mask_location)
+                    pp.uprint(f" * Masked by {status!r}")
+                    pp.uprint(f" * {mask_location}:")
                     pp.uprint(
                         "\n".join(
                             [
-                                " * %s" % line.lstrip(" #")
+                                f" * {line.lstrip(' #')}"
                                 for line in explanation.splitlines()
                             ]
                         )

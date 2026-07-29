@@ -43,8 +43,8 @@ def scan_files(libs_and_bins, cmd_max_args, logger, searchbits):
     for line in lines:
         parts = line.split(";")
         if len(parts) != 5:
-            logger.error("\tscan_files(); error processing lib: %s" % line)
-            logger.error("\tscan_files(); parts = %s" % str(parts))
+            logger.error(f"\tscan_files(); error processing lib: {line}")
+            logger.error(f"\tscan_files(); parts = {parts!s}")
             continue
         filename, sfilename, soname, needed, bits = parts
         filename = os.path.realpath(filename)
@@ -156,9 +156,7 @@ class LibCheck:
         self.searchbits = sorted(searchbits) or ["32", "64"]
         self.all_masks = all_masks
         self.masked_dirs = masked_dirs
-        self.logger.debug(
-            "\tLibCheck.__init__(), new searchlibs: %s" % (self.searchbits)
-        )
+        self.logger.debug(f"\tLibCheck.__init__(), new searchlibs: {self.searchbits}")
         if searchlibs:
             self.smsg = "\tLibCheck.search(), Checking for %s bit dependants"
             self.pmsg = yellow(" * ") + "Files that depend on: %s (%s bits)"
@@ -194,7 +192,7 @@ class LibCheck:
                         break
 
         self.alllibs = "|".join(sonames) + "|"
-        self.logger.debug("\tLibCheck._setslibs(), new alllibs: %s" % (self.alllibs))
+        self.logger.debug(f"\tLibCheck._setslibs(), new alllibs: {self.alllibs}")
 
     def _setlibs(self, l, b):
         """Internal function.  Use the class's setlibs variable"""
@@ -230,7 +228,7 @@ class LibCheck:
             try:
                 scanned = scanned_files[bits]
             except KeyError:
-                self.logger.debug("There are no %s-bit libraries" % bits)
+                self.logger.debug(f"There are no {bits}-bit libraries")
                 continue
             self.logger.debug(self.smsg % bits)
             self.setlibs(sorted(scanned), bits)
@@ -240,7 +238,7 @@ class LibCheck:
                         if self.check(l):
                             if l in self.all_masks:
                                 self.logger.debug(
-                                    "\tLibrary %s ignored as it is masked" % l
+                                    f"\tLibrary {l} ignored as it is masked"
                                 )
                                 continue
                             if (
@@ -249,12 +247,12 @@ class LibCheck:
                                 or self.is_masked(os.path.realpath(filename))
                             ):
                                 self.logger.debug(
-                                    "\tFile %s ignored as it is masked" % filename
+                                    f"\tFile {filename} ignored as it is masked"
                                 )
                                 continue
                             if l.startswith("/") and os.path.isfile(l):
                                 self.logger.debug(
-                                    "\tLibrary %s is a full path and it exists" % l
+                                    f"\tLibrary {l} is a full path and it exists"
                                 )
                                 continue
                             if bits not in found_libs:
@@ -357,7 +355,7 @@ def analyse(
     all_masks.update(masked_files)
     logger.debug("\tall_masks:")
     for x in sorted(all_masks):
-        logger.debug("\t\t%s" % (x))
+        logger.debug(f"\t\t{x}")
 
     if libraries and la_libraries and libraries_links and binaries:
         logger.info(
@@ -376,16 +374,16 @@ def analyse(
 
         logger.debug("\tanalyse(), bin directories:")
         for x in sorted(bin_dirs):
-            logger.debug("\t\t%s" % (x))
+            logger.debug(f"\t\t{x}")
         logger.debug("\tanalyse(), lib directories:")
         for x in sorted(lib_dirs):
-            logger.debug("\t\t%s" % (x))
+            logger.debug(f"\t\t{x}")
         logger.debug("\tanalyse(), masked directories:")
         for x in sorted(masked_dirs):
-            logger.debug("\t\t%s" % (x))
+            logger.debug(f"\t\t{x}")
         logger.debug("\tanalyse(), masked files:")
         for x in sorted(masked_files):
-            logger.debug("\t\t%s" % (x))
+            logger.debug(f"\t\t{x}")
 
         ftime = current_milli_time()
         logger.debug("\ttime to complete task: %d milliseconds" % (ftime - stime))

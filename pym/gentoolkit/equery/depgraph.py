@@ -138,7 +138,7 @@ def depgraph_printer(
     try:
         if not no_atom:
             if dep.operator == "=*":
-                atom += " (=%s*)" % dep.cpv
+                atom += f" (={dep.cpv}*)"
             else:
                 atom += f" ({dep.operator}{dep.cpv})"
         if not no_use and dep is not None and dep.use:
@@ -163,7 +163,7 @@ def depgraph_printer(
         pp.uprint(" ".join((indent, decorator, pp.cpv(str(pkg.cpv)), atom, mask, use)))
     except AttributeError:
         # 'NoneType' object has no attribute 'cpv'
-        pp.uprint("".join((indent, decorator, "(no match for %r)" % dep.atom)))
+        pp.uprint("".join((indent, decorator, f"(no match for {dep.atom!r})")))
 
 
 def make_depgraph(pkg, printer_fn):
@@ -173,7 +173,7 @@ def make_depgraph(pkg, printer_fn):
     if CONFIG["verbose"]:
         pp.uprint(" * " + pp.subsection("dependency graph for ") + pp.cpv(str(pkg.cpv)))
     else:
-        pp.uprint("%s:" % pkg.cpv)
+        pp.uprint(f"{pkg.cpv}:")
 
     # Print out the first package
     printer_fn(0, pkg, None, initial_pkg=True)
@@ -202,7 +202,7 @@ def main(input_args):
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
     except GetoptError as err:
-        sys.stderr.write(pp.error("Module %s" % err))
+        sys.stderr.write(pp.error(f"Module {err}"))
         print()
         print_help(with_description=False)
         sys.exit(2)

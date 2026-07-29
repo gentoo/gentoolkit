@@ -592,7 +592,7 @@ class PackageFormatter:
         if masking_status is None:
             return (6, [])
 
-        if ("~%s keyword" % self.pkg.settings("ARCH")) in masking_status:
+        if (f"~{self.pkg.settings('ARCH')} keyword") in masking_status:
             result += 1
         if "missing keyword" in masking_status:
             result += 2

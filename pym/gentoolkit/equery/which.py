@@ -91,7 +91,7 @@ def main(input_args):
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
     except GetoptError as err:
-        sys.stderr.write(pp.error("Module %s" % err))
+        sys.stderr.write(pp.error(f"Module {err}"))
         print()
         print_help(with_description=False)
         sys.exit(2)
@@ -114,7 +114,7 @@ def main(input_args):
                 if QUERY_OPTS["ebuild"]:
                     print_ebuild(ebuild_path)
             else:
-                sys.stderr.write(pp.warn("No ebuilds to satisfy %s" % pkg.cpv))
+                sys.stderr.write(pp.warn(f"No ebuilds to satisfy {pkg.cpv}"))
         else:
             raise errors.GentoolkitNoMatches(query)
 

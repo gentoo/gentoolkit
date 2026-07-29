@@ -177,9 +177,9 @@ class FileOwner:
             for query in queries:
                 query = slashes.sub("/", query).rstrip("/")
                 if query.startswith("/"):
-                    query = "^%s$" % re.escape(query)
+                    query = f"^{re.escape(query)}$"
                 else:
-                    query = "/%s$" % re.escape(query)
+                    query = f"/{re.escape(query)}$"
                 result.append(query)
         result = "|".join(result)
         return result

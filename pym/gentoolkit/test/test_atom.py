@@ -55,19 +55,19 @@ class TestGentoolkitAtom(unittest.TestCase):
         self.assertEqual2(Atom("cat/pkg:AZaz09+_.-"), Atom("cat/pkg:AZaz09+_.-"))
         for lesser, greater in (("0.1", "1"), ("1", "1-r1"), ("1.1", "1.2")):
             self.assertTrue(
-                Atom("=d/b-%s" % lesser) < Atom("=d/b-%s" % greater),
+                Atom(f"=d/b-{lesser}") < Atom(f"=d/b-{greater}"),
                 msg=f"d/b-{lesser} < d/b-{greater}",
             )
             self.assertFalse(
-                Atom("=d/b-%s" % lesser) > Atom("=d/b-%s" % greater),
+                Atom(f"=d/b-{lesser}") > Atom(f"=d/b-{greater}"),
                 msg=f"!: d/b-{lesser} < d/b-{greater}",
             )
             self.assertTrue(
-                Atom("=d/b-%s" % greater) > Atom("=d/b-%s" % lesser),
+                Atom(f"=d/b-{greater}") > Atom(f"=d/b-{lesser}"),
                 msg=f"d/b-{greater} > d/b-{lesser}",
             )
             self.assertFalse(
-                Atom("=d/b-%s" % greater) < Atom("=d/b-%s" % lesser),
+                Atom(f"=d/b-{greater}") < Atom(f"=d/b-{lesser}"),
                 msg=f"!: d/b-{greater} > d/b-{lesser}",
             )
 

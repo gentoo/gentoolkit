@@ -55,7 +55,7 @@ def get_distdir():
 
     d = portage.settings["DISTDIR"]
     if not os.path.isdir(d):
-        e = pp.error("%s does not appear to be a directory.\n" % d)
+        e = pp.error(f"{d} does not appear to be a directory.\n")
         e += pp.error("Please set DISTDIR to a sane value.\n")
         e += pp.error("(Check your make.conf file and environment).")
         print(e, file=sys.stderr)
@@ -138,7 +138,7 @@ class DistfilesSearch:
             installed_included = True
         if destructive:
             self.output(
-                "...destructive type search: %d packages already found" % len(pkgs)
+                f"...destructive type search: {len(pkgs)} packages already found"
             )
             pkgs, _deprecated = self._destructive(
                 package_names, exclude, pkgs, installed_included
@@ -147,7 +147,7 @@ class DistfilesSearch:
                 # use the same structure as invalid binpkgs for list_pkgs()
                 deprecated.update({_distdir: _deprecated})
         # gather the files to be cleaned
-        self.output("...checking limits for %d ebuild sources" % len(pkgs))
+        self.output(f"...checking limits for {len(pkgs)} ebuild sources")
 
         vcs = self.vcs_check(Path(_distdir))
         checks = self._get_default_checks(size_limit, time_limit, exclude, destructive)
@@ -155,13 +155,13 @@ class DistfilesSearch:
         clean_me = self._check_limits(_distdir, checks, clean_me)
         # remove any protected files from the list
         self.output(
-            "...removing protected sources from %s candidates to clean" % len(clean_me)
+            f"...removing protected sources from {len(clean_me)} candidates to clean"
         )
         clean_me = self._remove_protected(pkgs, clean_me)
         if not deprecate and len(exclude) and len(clean_me):
             self.output(
                 "...checking final for exclusion from "
-                + "%s remaining candidates to clean" % len(clean_me)
+                + f"{len(clean_me)} remaining candidates to clean"
             )
             clean_me, saved = self._check_excludes(exclude, clean_me)
         return clean_me, saved, deprecated, vcs
@@ -326,7 +326,7 @@ class DistfilesSearch:
         if fetch_restricted and destructive:
             self.output(
                 "   - getting source file names "
-                + "for %d installed ebuilds" % len(installed_cpvs)
+                + f"for {len(installed_cpvs)} installed ebuilds"
             )
             pkgs, _deprecated = self._unrestricted(pkgs, installed_cpvs)
             deprecated.update(_deprecated)
@@ -334,16 +334,14 @@ class DistfilesSearch:
             cpvs.difference_update(installed_cpvs)
             self.output(
                 "   - getting fetch-restricted source file names "
-                + "for %d remaining ebuilds" % len(cpvs)
+                + f"for {len(cpvs)} remaining ebuilds"
             )
             pkgs, _deprecated = self._fetch_restricted(pkgs, cpvs)
             deprecated.update(_deprecated)
             # save the installed cpv list to re-use in _destructive()
             self.installed_cpvs = installed_cpvs.copy()
         else:
-            self.output(
-                "   - getting source file names " + "for %d ebuilds" % len(cpvs)
-            )
+            self.output("   - getting source file names " + f"for {len(cpvs)} ebuilds")
             pkgs, _deprecated = self._unrestricted(pkgs, cpvs)
             deprecated.update(_deprecated)
         return pkgs, deprecated
@@ -466,12 +464,12 @@ class DistfilesSearch:
                     pkgset.update(self.vardb.cpv_all())
                 else:
                     pkgset.update(self.installed_cpvs)
-                self.output("   - processing %s installed ebuilds" % len(pkgset))
+                self.output(f"   - processing {len(pkgset)} installed ebuilds")
             elif package_names:
                 # list all CPV's from portree for CP's in vartree
                 # print( "_destructive: getting vardb.cp_all")
                 cps = self.vardb.cp_all()
-                self.output("   - processing %s installed packages" % len(cps))
+                self.output(f"   - processing {len(cps)} installed packages")
                 for package in cps:
                     pkgset.update(self.portdb.cp_list(package))
         self.output("   - processing excluded")
@@ -571,11 +569,11 @@ def _deps_equal(deps_a, eapi_a, deps_b, eapi_b, libc_deps, uselist=None, cpv=Non
         deps_b = use_reduce(deps_b, uselist=uselist, eapi=eapi_b, token_class=Atom)
     except InvalidDependString as er:  # the ebuild depend string is bad
         print(
-            pp.warn("Warning: Invalid ebuild DEPEND String found for: %s" % cpv),
+            pp.warn(f"Warning: Invalid ebuild DEPEND String found for: {cpv}"),
             file=sys.stderr,
         )
         print(
-            pp.warn("Warning: DEPEND string for ebuild: %s" % deps_b),
+            pp.warn(f"Warning: DEPEND string for ebuild: {deps_b}"),
             file=sys.stderr,
         )
         print(er, file=sys.stderr)
@@ -737,7 +735,7 @@ def findPackages(
             exit(0)
         print(pp.error("Error accessing PKGDIR."), file=sys.stderr)
         print(pp.error("(Check your make.conf file and environment)."), file=sys.stderr)
-        print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+        print(pp.error(f"Error: {er!s}"), file=sys.stderr)
         exit(1)
 
     libc_deps = find_libc_deps(var_dbapi, False)

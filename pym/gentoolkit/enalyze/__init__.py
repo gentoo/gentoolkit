@@ -77,7 +77,7 @@ def main():
         global_opts, args = getopt(sys.argv[1:], short_opts, long_opts)
     except GetoptError as err:
         sys.stderr.write(" \n")
-        sys.stderr.write(pp.error("Global %s\n" % err))
+        sys.stderr.write(pp.error(f"Global {err}\n"))
         print_help(MODULE_INFO, FORMATTED_OPTIONS, with_description=False)
         sys.exit(2)
 
@@ -99,7 +99,7 @@ def main():
     try:
         expanded_module_name = expand_module_name(module_name)
     except KeyError:
-        sys.stderr.write(pp.error("Unknown module '%s'" % module_name))
+        sys.stderr.write(pp.error(f"Unknown module '{module_name}'"))
         print_help(MODULE_INFO, FORMATTED_OPTIONS, with_description=False)
         sys.exit(2)
 

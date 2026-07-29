@@ -256,7 +256,7 @@ def mod_usage(mod_name="module", arg="pkgspec", optional=False):
         usage=pp.emph("Usage"),
         mod_name=pp.command(mod_name),
         opts=pp.localoption("options"),
-        arg=("[%s]" % pp.emph(arg)) if optional else pp.emph(arg),
+        arg=f"[{pp.emph(arg)}]" if optional else pp.emph(arg),
     )
 
 
@@ -295,14 +295,7 @@ def parse_global_options(global_opts, args):
 def print_version():
     """Print the version of this tool to the console."""
 
-    print(
-        "%(product)s (%(version)s) - %(docstring)s"
-        % {
-            "product": pp.productname(__productname__),
-            "version": __version__,
-            "docstring": __doc__,
-        }
-    )
+    print(f"{pp.productname(__productname__)} ({__version__}) - {__doc__}")
 
 
 def split_arguments(args):
@@ -322,7 +315,7 @@ def main(argv):
     try:
         global_opts, args = getopt(argv[1:], short_opts, long_opts)
     except GetoptError as err:
-        sys.stderr.write(pp.error("Global %s" % err))
+        sys.stderr.write(pp.error(f"Global {err}"))
         print_help(with_description=False)
         sys.exit(2)
 
@@ -351,7 +344,7 @@ def main(argv):
     try:
         expanded_module_name = expand_module_name(module_name)
     except KeyError:
-        sys.stderr.write(pp.error("Unknown module '%s'" % module_name))
+        sys.stderr.write(pp.error(f"Unknown module '{module_name}'"))
         print_help(with_description=False)
         sys.exit(2)
 

@@ -29,8 +29,8 @@ def make_dir(path):
     try:
         os.makedirs(path, dir_mode)
     except OSError as er:
-        print(pp.error("Error creating path:%s" % path), file=sys.stderr)
-        print(pp.error("Error: %s" % str(er), file=sys.stderr))
+        print(pp.error(f"Error creating path:{path}"), file=sys.stderr)
+        print(pp.error(f"Error: {er!s}", file=sys.stderr))
         sys.exit(1)
 
 

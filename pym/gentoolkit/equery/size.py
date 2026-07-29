@@ -83,7 +83,7 @@ def display_size(match_set):
         size, files, uncounted = pkg.size()
 
         if CONFIG["verbose"]:
-            pp.uprint(" * %s" % pp.cpv(str(pkg.cpv)))
+            pp.uprint(f" * {pp.cpv(str(pkg.cpv))}")
             print("Total files : %s".rjust(25) % pp.number(str(files)))
 
             if uncounted:
@@ -166,7 +166,7 @@ def main(input_args):
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
     except GetoptError as err:
-        sys.stderr.write(pp.error("Module %s" % err))
+        sys.stderr.write(pp.error(f"Module {err}"))
         print()
         print_help(with_description=False)
         sys.exit(2)
@@ -185,7 +185,7 @@ def main(input_args):
         matches = query.smart_find(**QUERY_OPTS)
 
         if not matches:
-            sys.stderr.write(pp.error("No package found matching %s" % query))
+            sys.stderr.write(pp.error(f"No package found matching {query}"))
 
         matches.sort()
 

@@ -123,7 +123,7 @@ def main(input_args):
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
     except GetoptError as err:
-        sys.stderr.write(pp.error("Module %s" % err))
+        sys.stderr.write(pp.error(f"Module {err}"))
         print()
         print_help(with_description=False)
         sys.exit(2)
@@ -135,7 +135,7 @@ def main(input_args):
         sys.exit(2)
 
     if CONFIG["verbose"]:
-        pp.uprint(" * Searching for %s ... " % (pp.regexpquery(",".join(queries))))
+        pp.uprint(f" * Searching for {pp.regexpquery(','.join(queries))} ... ")
 
     printer_fn = BelongsPrinter(
         verbose=CONFIG["verbose"], name_only=QUERY_OPTS["name_only"]

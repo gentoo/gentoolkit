@@ -123,9 +123,7 @@ def get_best_match(cpv, cp, logger):
     """
 
     slot = portage.db[portage.root]["vartree"].dbapi.aux_get(cpv, ["SLOT"])[0]
-    logger.warning(
-        '\t{} "{}" {}.'.format(yellow("* Warning:"), cpv, bold("ebuild not found."))
-    )
+    logger.warning(f"\t{yellow('* Warning:')} \"{cpv}\" {bold('ebuild not found.')}.")
     logger.debug(f"\tget_best_match(); Looking for {cp}:{slot}")
     try:
         match = portdb.match(f"{cp}:{slot}")
@@ -157,8 +155,7 @@ def get_slotted_cps(cpvs, logger):
             logger.warning(
                 "\t"
                 + red(
-                    "Failed to split the following pkg: "
-                    "%s, not a valid cat/pkg-ver" % cpv
+                    f"Failed to split the following pkg: {cpv}, not a valid cat/pkg-ver"
                 )
             )
             continue
@@ -170,7 +167,7 @@ def get_slotted_cps(cpvs, logger):
             match, slot = get_best_match(cpv, cp, logger)
             if not match:
                 logger.warning(
-                    "\t" + red("Installed package: " "%s is no longer available" % cp)
+                    "\t" + red(f"Installed package: {cp} is no longer available")
                 )
                 continue
 

@@ -79,7 +79,7 @@ class Query(CPV):
             rx = " regex"
         repo = ""
         if self.repo_filter:
-            repo = " in %s" % self.repo_filter
+            repo = f" in {self.repo_filter}"
         return f"<{self.__class__.__name__}{rx} {self.query!r}{repo}>"
 
     def __str__(self):
@@ -98,7 +98,7 @@ class Query(CPV):
                 cat = ""
                 pkg = self.atom
             if cat and not self.is_regex:
-                cat_str = "in %s " % pp.emph(cat.lstrip("><=~!"))
+                cat_str = f"in {pp.emph(cat.lstrip('><=~!'))} "
             else:
                 cat_str = ""
 
@@ -109,7 +109,7 @@ class Query(CPV):
 
         repo = ""
         if self.repo_filter is not None:
-            repo = " %s" % pp.section(self.repo_filter)
+            repo = f" {pp.section(self.repo_filter)}"
 
         pp.uprint(f" * Searching{repo} for {pkg_str} {cat_str}...")
 
@@ -348,7 +348,7 @@ class Query(CPV):
             if cat:
                 query_re = fnmatch.translate(self.query)
             else:
-                query_re = fnmatch.translate("*/%s" % self.query)
+                query_re = fnmatch.translate(f"*/{self.query}")
             predicate = lambda x: re.search(query_re, x)
         if pre_filter:
             result = [x for x in pre_filter if predicate(x)]

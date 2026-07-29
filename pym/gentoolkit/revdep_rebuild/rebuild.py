@@ -139,7 +139,7 @@ def main(settings=None, logger=None):
         )
         settings["PRETEND"] = True
 
-    logger.debug("\tmain(), _libs_to_check = %s" % str(_libs_to_check))
+    logger.debug(f"\tmain(), _libs_to_check = {_libs_to_check!s}")
 
     if settings["USE_TMP_FILES"] and check_temp_files(
         settings["DEFAULT_TMP_DIR"], logger=logger

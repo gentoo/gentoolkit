@@ -168,10 +168,10 @@ def main(argv, indirect=False):
         currdir = os.getcwd()
         # check if there are actualy some ebuilds
         ebuilds = [
-            "%s" % x for x in os.listdir(currdir) if fnmatch.fnmatch(x, "*.ebuild")
+            f"{x}" for x in os.listdir(currdir) if fnmatch.fnmatch(x, "*.ebuild")
         ]
         if len(ebuilds) <= 0:
-            msg_err = 'No ebuilds at "%s"' % currdir
+            msg_err = f'No ebuilds at "{currdir}"'
             raise SystemExit(msg_err)
         package = "{}/{}".format(
             os.path.basename(os.path.abspath("../")),

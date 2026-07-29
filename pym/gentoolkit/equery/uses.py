@@ -110,7 +110,7 @@ def display_useflags(output):
 
             # print description
             if restrict:
-                restrict = "({} {})".format(pp.emph("Restricted to"), pp.cpv(restrict))
+                restrict = f"({pp.emph('Restricted to')} {pp.cpv(restrict)})"
                 twrap.initial_indent = flag_name
                 pp.uprint(twrap.fill(restrict))
                 if desc:
@@ -159,7 +159,7 @@ def get_global_useflags():
                     global_usedesc[fields[0]] = fields[1].rstrip()
     except OSError:
         sys.stderr.write(
-            pp.warn("Could not load USE flag descriptions from %s" % pp.path(path))
+            pp.warn(f"Could not load USE flag descriptions from {pp.path(path)}")
         )
 
     del path, open_file
@@ -175,14 +175,11 @@ def get_global_useflags():
                         continue
                     fields = [field.strip() for field in line.split(" - ", 1)]
                     if len(fields) == 2:
-                        expanded_useflag = "{}_{}".format(
-                            path.split("/")[-1][0:-5],
-                            fields[0],
-                        )
+                        expanded_useflag = f"{path.split('/')[-1][0:-5]}_{fields[0]}"
                         global_usedesc[expanded_useflag] = fields[1]
         except OSError:
             sys.stderr.write(
-                pp.warn("Could not load USE flag descriptions from %s" % path)
+                pp.warn(f"Could not load USE flag descriptions from {path}")
             )
 
     return global_usedesc
@@ -283,8 +280,8 @@ def parse_module_options(module_opts):
 def print_legend():
     """Print a legend to explain the output format."""
 
-    print("[ Legend : %s - final flag setting for installation]" % pp.emph("U"))
-    print("[        : %s - package is installed with flag     ]" % pp.emph("I"))
+    print(f"[ Legend : {pp.emph('U')} - final flag setting for installation]")
+    print(f"[        : {pp.emph('I')} - package is installed with flag     ]")
     print(
         "[ Colors : %s, %s                             ]"
         % (pp.useflag("set", enabled=True), pp.useflag("unset", enabled=False))
@@ -300,7 +297,7 @@ def main(input_args):
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
     except GetoptError as err:
-        sys.stderr.write(pp.error("Module %s" % err))
+        sys.stderr.write(pp.error(f"Module {err}"))
         print()
         print_help(with_description=False)
         sys.exit(2)
@@ -339,13 +336,13 @@ def main(input_args):
                     if not legend_printed:
                         print_legend()
                         legend_printed = True
-                    print(" * Found these USE flags for %s:" % pp.cpv(str(pkg.cpv)))
+                    print(f" * Found these USE flags for {pp.cpv(str(pkg.cpv))}:")
                     print(pp.emph(" U I"))
                 display_useflags(output)
             else:
                 if CONFIG["verbose"]:
                     sys.stderr.write(
-                        pp.warn("No USE flags found for %s" % pp.cpv(pkg.cpv))
+                        pp.warn(f"No USE flags found for {pp.cpv(pkg.cpv)}")
                     )
 
         first_run = False

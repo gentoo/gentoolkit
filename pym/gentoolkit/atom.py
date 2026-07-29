@@ -204,8 +204,8 @@ class Atom(portage.dep.Atom, CPV):
 
     def __repr__(self):
         uc = self.use_conditional
-        uc = "%s? " % uc if uc is not None else ""
-        return "<{} {!r}>".format(self.__class__.__name__, f"{uc}{self.atom}")
+        uc = f"{uc}? " if uc is not None else ""
+        return f"<{self.__class__.__name__} {uc}{self.atom}>"
 
     def __setattr__(self, name, value):
         object.__setattr__(self, name, value)
@@ -359,7 +359,7 @@ class Atom(portage.dep.Atom, CPV):
     def get_depstr(self):
         """Returns a string representation of the original dep"""
         uc = self.use_conditional
-        uc = "%s? " % uc if uc is not None else ""
+        uc = f"{uc}? " if uc is not None else ""
         return f"{uc}{self.atom}"
 
 

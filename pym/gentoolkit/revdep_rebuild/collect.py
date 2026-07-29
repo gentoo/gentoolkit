@@ -46,7 +46,7 @@ def parse_conf(conf_file, visited=None, logger=None):
                     else:
                         lib_dirs.add(line)
         except OSError:
-            logger.warning("\t" + yellow("Error when parsing file %s" % conf))
+            logger.warning("\t" + yellow(f"Error when parsing file {conf}"))
 
     if visited is None:
         visited = set()
@@ -239,6 +239,4 @@ if __name__ == "__main__":
     )
     binaries = collect_binaries_from_dir(bin_dirs, masked_dirs, logging)
 
-    logging.debug(
-        "Found: %i binaries and %i libraries." % (len(binaries), len(libraries))
-    )
+    logging.debug(f"Found: {len(binaries)} binaries and {len(libraries)} libraries.")

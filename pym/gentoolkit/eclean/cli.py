@@ -332,7 +332,7 @@ def printUsage(_error=None, help=None, unresolved_invalids=None):
         print(file=out)
     print(
         "More detailed instruction can be found in",
-        turquoise("`man %s`" % __productname__),
+        turquoise(f"`man {__productname__}`"),
         file=out,
     )
 
@@ -457,7 +457,7 @@ def parseArgs(options={}):
             if (not options["destructive"]) and options[opt]:
                 if not options["quiet"]:
                     print(
-                        pp.error("--%s only makes sense in --deep mode." % opt),
+                        pp.error(f"--{opt} only makes sense in --deep mode."),
                         file=sys.stderr,
                     )
                 options[opt] = False
@@ -748,11 +748,11 @@ def main():
         except ParseExcludeFileException as e:
             print(pp.error(str(e)), file=sys.stderr)
             print(
-                pp.error("Invalid exclusion file: %s" % options["exclude-file"]),
+                pp.error(f"Invalid exclusion file: {options['exclude-file']}"),
                 file=sys.stderr,
             )
             print(
-                pp.error("See format of this file in `man %s`" % __productname__),
+                pp.error(f"See format of this file in `man {__productname__}`"),
                 file=sys.stderr,
             )
             sys.exit(1)

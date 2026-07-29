@@ -100,7 +100,7 @@ class VerifyContents:
             ftype = files[cfile][0]
             real_cfile = os.environ.get("ROOT", "") + cfile
             if not os.path.lexists(real_cfile):
-                errs.append("%s does not exist" % cfile)
+                errs.append(f"{cfile} does not exist")
                 continue
             elif ftype == "dir":
                 if not os.path.isdir(real_cfile):
@@ -218,10 +218,10 @@ def checks_printer(cpv, data, verbose=True, only_failures=False):
     else:
         if verbose:
             if cpv not in seen:
-                pp.uprint("* Checking %s ..." % (pp.emph(str(cpv))))
+                pp.uprint(f"* Checking {pp.emph(str(cpv))} ...")
                 seen.append(cpv)
         else:
-            pp.uprint("%s:" % cpv, end=" ")
+            pp.uprint(f"{cpv}:", end=" ")
 
     if verbose:
         for err in errs:
@@ -234,7 +234,7 @@ def checks_printer(cpv, data, verbose=True, only_failures=False):
         print(info % locals())
         print()
     else:
-        print("failed(%s)" % n_failed)
+        print(f"failed({n_failed})")
 
 
 def parse_module_options(module_opts):
@@ -260,7 +260,7 @@ def main(input_args):
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
     except GetoptError as err:
-        sys.stderr.write(pp.error("Module %s" % err))
+        sys.stderr.write(pp.error(f"Module {err}"))
         print()
         print_help(with_description=False)
         sys.exit(2)

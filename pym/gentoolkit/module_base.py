@@ -132,7 +132,7 @@ class ModuleBase:
                 input_args, self.short_opts, self.long_opts
             )
         except GetoptError as err:
-            sys.stderr.write(pp.error("Module %s" % err))
+            sys.stderr.write(pp.error(f"Module {err}"))
             print()
             self.print_help(with_description=False)
             sys.exit(2)

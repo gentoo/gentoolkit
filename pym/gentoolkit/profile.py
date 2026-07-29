@@ -17,7 +17,7 @@ import portage
 
 def warning(msg):
     """Write |msg| as a warning to stderr"""
-    print("warning: %s" % msg, file=sys.stderr)
+    print(f"warning: {msg}", file=sys.stderr)
 
 
 def load_profile_data(portdir=None, repo=""):
@@ -83,7 +83,7 @@ def load_profile_data(portdir=None, repo=""):
     if arch_status:
         arch_status["all"] = None
     else:
-        warning("could not read profile files: %s" % arch_list)
+        warning(f"could not read profile files: {arch_list}")
         warning("will not be able to verify args are correct")
 
     arches_desc = {}

@@ -53,9 +53,7 @@ class VersionMatch:
         self.fullversion = cpv.fullversion
 
         if self.operator != "~" and self.operator not in self._convert_int2op:
-            raise errors.GentoolkitInvalidVersion(
-                "invalid operator '%s'" % self.operator
-            )
+            raise errors.GentoolkitInvalidVersion(f"invalid operator '{self.operator}'")
 
         if self.operator == "~":
             if not self.version:

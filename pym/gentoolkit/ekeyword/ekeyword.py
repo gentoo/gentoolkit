@@ -65,7 +65,7 @@ Op = collections.namedtuple("Op", ("op", "arch", "ref_arch"))
 
 def warning(msg):
     """Write |msg| as a warning to stderr"""
-    print("warning: %s" % msg, file=sys.stderr)
+    print(f"warning: {msg}", file=sys.stderr)
 
 
 def keyword_to_arch(keyword):
@@ -227,7 +227,7 @@ def process_keywords(keywords, ops, arch_status=None):
                 # Already deleted.  Whee.
                 pass
             else:
-                raise ValueError("unknown operation %s" % op)
+                raise ValueError(f"unknown operation {op}")
 
     return new_keywords
 
@@ -295,7 +295,7 @@ def process_content(
                 old_keywords = sort_keywords(old_keywords)
 
             new_keywords = sort_keywords(new_keywords)
-            line = '{}"{}"{}\n'.format(m.group(1), " ".join(new_keywords), m.group(5))
+            line = f"{m.group(1)}\"{' '.join(new_keywords)}\"{m.group(5)}\n"
             if style in ("color-inline", "inline"):
                 logit(diff_keywords(old_keywords, new_keywords, style=style))
             else:
@@ -320,9 +320,9 @@ def process_content(
                     deleted_keywords = [
                         x for x in old_keywords if x not in new_keywords
                     ]
-                    logit("--- %s" % " ".join(deleted_keywords))
+                    logit(f"--- {' '.join(deleted_keywords)}")
                     added_keywords = [x for x in new_keywords if x not in old_keywords]
-                    logit("+++ %s" % " ".join(added_keywords))
+                    logit(f"+++ {' '.join(added_keywords)}")
 
         content.append(line)
 
@@ -404,7 +404,7 @@ def ignorable_arg(arg, quiet=0):
     """Whether it's ok to ignore this argument"""
     if os.path.isdir(arg):
         if not quiet:
-            warning("ignoring directory %s" % arg)
+            warning(f"ignoring directory {arg}")
         return True
 
     WHITELIST = (
@@ -414,7 +414,7 @@ def ignorable_arg(arg, quiet=0):
     base = os.path.basename(arg)
     if base in WHITELIST or base.startswith(".") or base.endswith("~"):
         if not quiet:
-            warning("ignoring file: %s" % arg)
+            warning(f"ignoring file: {arg}")
         return True
 
     return False
@@ -440,7 +440,7 @@ def args_to_work(args, arch_status=None, _repo=None, quiet=0):
             if not arch_status or op.arch in arch_status:
                 todo_arches.append(op)
             else:
-                raise ValueError("unknown arch/argument: %s" % arg)
+                raise ValueError(f"unknown arch/argument: {arg}")
 
     if todo_arches:
         raise ValueError("missing ebuilds to process!")

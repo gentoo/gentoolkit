@@ -40,7 +40,7 @@ class GentoolkitFatalError(GentoolkitException):
         self.err = err
 
     def __str__(self):
-        return "Fatal error: %s" % self.err
+        return f"Fatal error: {self.err}"
 
 
 class GentoolkitAmbiguousPackage(GentoolkitException):
@@ -51,7 +51,7 @@ class GentoolkitAmbiguousPackage(GentoolkitException):
         self.choices = choices
 
     def __str__(self):
-        choices = "\n".join("  %s" % x for x in self.choices)
+        choices = "\n".join(f"  {x}" for x in self.choices)
         return "\n".join(("Ambiguous package name. Choose from:", choices))
 
 
@@ -63,7 +63,7 @@ class GentoolkitInvalidAtom(GentoolkitException):
         self.atom = atom
 
     def __str__(self):
-        return "Invalid atom: '%s'" % self.atom
+        return f"Invalid atom: '{self.atom}'"
 
 
 class GentoolkitSetNotFound(GentoolkitException):
@@ -74,7 +74,7 @@ class GentoolkitSetNotFound(GentoolkitException):
         self.setname = setname
 
     def __str__(self):
-        return "Unknown set: '%s'" % self.setname
+        return f"Unknown set: '{self.setname}'"
 
 
 class GentoolkitInvalidCategory(GentoolkitException):
@@ -85,7 +85,7 @@ class GentoolkitInvalidCategory(GentoolkitException):
         self.category = category
 
     def __str__(self):
-        return "Invalid category: '%s'" % self.category
+        return f"Invalid category: '{self.category}'"
 
 
 class GentoolkitInvalidPackage(GentoolkitException):
@@ -96,7 +96,7 @@ class GentoolkitInvalidPackage(GentoolkitException):
         self.package = package
 
     def __str__(self):
-        return "Invalid package: '%s'" % self.package
+        return f"Invalid package: '{self.package}'"
 
 
 class GentoolkitInvalidCPV(GentoolkitException):
@@ -107,7 +107,7 @@ class GentoolkitInvalidCPV(GentoolkitException):
         self.cpv = cpv
 
     def __str__(self):
-        return "Invalid CPV: '%s'" % self.cpv
+        return f"Invalid CPV: '{self.cpv}'"
 
 
 class GentoolkitInvalidRegex(GentoolkitException):
@@ -118,7 +118,7 @@ class GentoolkitInvalidRegex(GentoolkitException):
         self.regex = regex
 
     def __str__(self):
-        return "Invalid regex: '%s'" % self.regex
+        return f"Invalid regex: '{self.regex}'"
 
 
 class GentoolkitInvalidVersion(GentoolkitException):
@@ -129,7 +129,7 @@ class GentoolkitInvalidVersion(GentoolkitException):
         self.version = version
 
     def __str__(self):
-        return "Malformed version: '%s'" % self.version
+        return f"Malformed version: '{self.version}'"
 
 
 class GentoolkitNoMatches(GentoolkitException):
@@ -157,8 +157,7 @@ class GentoolkitUnknownKeyword(GentoolkitException):
     def __str__(self):
         return (
             "Unable to determine the install keyword for:\n"
-            + "'%s', KEYWORDS = '%s'\nUSE flags = '%s'"
-            % (self.query, self.keywords, self.use)
+            + f"'{self.query}', KEYWORDS = '{self.keywords}'\nUSE flags = '{self.use}'"
         )
 
 

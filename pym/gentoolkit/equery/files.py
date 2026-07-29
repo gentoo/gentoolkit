@@ -277,7 +277,7 @@ def parse_module_options(module_opts):
             content_filter.extend(x.lstrip("=") for x in f_split)
             for rule in content_filter:
                 if rule not in FILTER_RULES:
-                    sys.stderr.write(pp.error("Invalid filter rule '%s'" % rule))
+                    sys.stderr.write(pp.error(f"Invalid filter rule '{rule}'"))
                     print()
                     print_help(with_description=False)
                     sys.exit(2)
@@ -294,7 +294,7 @@ def main(input_args):
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
     except GetoptError as err:
-        sys.stderr.write(pp.error("Module %s" % err))
+        sys.stderr.write(pp.error(f"Module {err}"))
         print()
         print_help(with_description=False)
         sys.exit(2)
@@ -321,13 +321,13 @@ def main(input_args):
         matches = Query(query).smart_find(**QUERY_OPTS)
 
         if not matches:
-            sys.stderr.write(pp.error("No matching packages found for %s" % query))
+            sys.stderr.write(pp.error(f"No matching packages found for {query}"))
 
         matches.sort()
 
         for pkg in matches:
             if CONFIG["verbose"]:
-                pp.uprint(" * Contents of %s:" % pp.cpv(str(pkg.cpv)))
+                pp.uprint(f" * Contents of {pp.cpv(str(pkg.cpv))}:")
 
             contents = pkg.parsed_contents()
             display_files(filter_contents(contents))

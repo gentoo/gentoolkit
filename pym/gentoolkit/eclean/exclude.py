@@ -225,7 +225,7 @@ def exclDictMatchCP(exclude, pkg):
         dprint(
             "exclude",
             "exclDictMatchCP: Invalid package name: "
-            + "%s, Could not determine category" % pkg,
+            + f"{pkg}, Could not determine category",
         )
         cat = ""
     if "categories" in exclude and cat in exclude["categories"]:
@@ -279,7 +279,7 @@ def exclMatchFilename(exclude_names, filename):
         dprint(
             "exclude",
             "exclMatchFilename: filename: "
-            + "%s, Could not determine package name" % filename,
+            + f"{filename}, Could not determine package name",
         )
         return False
     pkgname = found.group("pkgname")

@@ -109,7 +109,7 @@ def show_result(conf, pkgs):
 
     header = _header % (_cand, conf["MAIN_ARCH"])
 
-    print("Generated on: %s" % conf["TIME"], file=out)
+    print(f"Generated on: {conf['TIME']}", file=out)
     print(_fill(len(header), "", "="), file=out)
     print(header, file=out)
     print(_fill(len(header), "", "="), file=out)
@@ -140,13 +140,7 @@ def _get_metadata(metadata, element, tag):
     try:
         metadatadom = minidom.parse(metadata)
     except ExpatError as e:
-        raise ExpatError(
-            "%s: %s"
-            % (
-                metadata,
-                e,
-            )
-        )
+        raise ExpatError(f"{metadata}: {e}")
 
     try:
         elements = metadatadom.getElementsByTagName(element)
@@ -164,7 +158,7 @@ def _get_metadata(metadata, element, tag):
             except IndexError:
                 pass
     except NotFoundErr:
-        raise NotFoundErr("%s: Malformed input: missing 'flag' tag(s)" % (metadata))
+        raise NotFoundErr(f"{metadata}: Malformed input: missing 'flag' tag(s)")
 
     metadatadom.unlink()
     return values
@@ -200,7 +194,7 @@ def get_packages(conf):
     _pkgs = {}
 
     _portage_settings(
-        "ACCEPT_KEYWORDS", ("-* %s" % str(conf["TARGET_ARCH"])), conf["portdb"].settings
+        "ACCEPT_KEYWORDS", (f"-* {conf['TARGET_ARCH']!s}"), conf["portdb"].settings
     )
 
     for cp in conf["portdb"].dbapi.cp_all():
@@ -250,12 +244,12 @@ def get_packages(conf):
 
 def get_imlate(conf, pkgs):
     _portage_settings(
-        "ACCEPT_KEYWORDS", ("-* %s" % str(conf["MAIN_ARCH"])), conf["portdb"].settings
+        "ACCEPT_KEYWORDS", (f"-* {conf['MAIN_ARCH']!s}"), conf["portdb"].settings
     )
 
     stable = str(conf["MAIN_ARCH"].lstrip("~"))
-    testing = "~%s" % stable
-    exclude = "-%s" % stable
+    testing = f"~{stable}"
+    exclude = f"-{stable}"
     exclude_all = "-*"
 
     imlate = {}
@@ -280,12 +274,12 @@ def get_imlate(conf, pkgs):
 
                 # absolute ebuild path for mtime check
                 abs_pkg = join(conf["PORTDIR"], cat, pkg, basename(cpvr))
-                abs_pkg = "%s.ebuild" % str(abs_pkg)
+                abs_pkg = f"{abs_pkg!s}.ebuild"
 
                 kwds = conf["portdb"].dbapi.aux_get(cpvr, ["KEYWORDS"])[0]
 
                 # FIXME: %s is bad.. maybe even cast it, else there are issues because its unicode
-                slot = ":%s" % conf["portdb"].dbapi.aux_get(cpvr, ["SLOT"])[0]
+                slot = f":{conf['portdb'].dbapi.aux_get(cpvr, ['SLOT'])[0]}"
                 if slot == ":0":
                     slot = ""
 
@@ -362,9 +356,7 @@ def get_settings(conf=None):
     )
 
     if conf["MAIN_ARCH"] == "auto":
-        conf["MAIN_ARCH"] = "%s" % mysettings["ACCEPT_KEYWORDS"].split(" ")[0].lstrip(
-            "~"
-        )
+        conf["MAIN_ARCH"] = f"{mysettings['ACCEPT_KEYWORDS'].split(' ')[0].lstrip('~')}"
     if conf["TARGET_ARCH"] == "auto":
         conf["TARGET_ARCH"] = "~%s" % mysettings["ACCEPT_KEYWORDS"].split(" ")[
             0
@@ -377,7 +369,7 @@ def get_settings(conf=None):
             _cat = _cat.strip()
             _mycats.append(_cat)
             if _cat not in mysettings.categories:
-                raise ValueError("invalid category for -C switch '%s'" % _cat)
+                raise ValueError(f"invalid category for -C switch '{_cat}'")
         mysettings.categories = _mycats
 
     # maybe thats not necessary because we override porttrees below..

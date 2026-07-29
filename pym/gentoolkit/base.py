@@ -147,5 +147,5 @@ def mod_usage(mod_name="module", arg="pkgspec", optional=False):
         usage=pp.emph("Usage"),
         mod_name=pp.command(mod_name),
         opts=pp.localoption("options"),
-        arg=("[%s]" % pp.emph(arg)) if optional else pp.emph(arg),
+        arg=f"[{pp.emph(arg)}]" if optional else pp.emph(arg),
     )

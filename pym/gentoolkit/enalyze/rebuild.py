@@ -387,7 +387,7 @@ class Rebuild(ModuleBase):
         @param data: list of lines to write to filepath
         """
         if not self.options["quiet"]:
-            print("   - Saving file: %s" % filepath)
+            print(f"   - Saving file: {filepath}")
         with open(
             filepath,
             mode="w",

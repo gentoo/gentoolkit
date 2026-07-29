@@ -51,7 +51,7 @@ class keywords_content:
         def __cleanKeyword(keyword):
             """Remove masked arches and hardmasks from keywords since we don't care about that."""
             return [
-                "%s" % x for x in keyword.split() if x != "-*" and not x.startswith("-")
+                f"{x}" for x in keyword.split() if x != "-*" and not x.startswith("-")
             ]
 
         def __listRedundantAll(self, masks, keywords):
@@ -91,7 +91,7 @@ class keywords_content:
         def __checkShadow(self, old, new):
             """Check if package version is overshadowed by other package version."""
             tmp = set(new)
-            tmp.update("~%s" % x for x in new if not x.startswith("~"))
+            tmp.update(f"~{x}" for x in new if not x.startswith("~"))
             return list(set(old).difference(tmp))
 
         def __init__(self, masks, keywords, slots, ignore_slots=False):
@@ -127,7 +127,7 @@ class keywords_content:
                 suffixlen = suffixlen + 1
             suffix = ""
             for x in range(suffixlen):
-                suffix = "%s " % suffix
+                suffix = f"{suffix} "
 
             if mask and install:
                 pv = f"[M][I]{pv}{suffix}"
@@ -184,11 +184,11 @@ class keywords_content:
         try:
             mycp = port.dep_expand(package, mydb=pdb, settings=pdb.settings).cp
         except port.exception.AmbiguousPackageName as Arg:
-            msg_err = 'Ambiguous package name "%s".\n' % package
-            found = "Possibilities: %s" % Arg
+            msg_err = f'Ambiguous package name "{package}".\n'
+            found = f"Possibilities: {Arg}"
             raise SystemExit(f"{msg_err}{found}")
         except port.exception.InvalidAtom:
-            msg_err = 'No such package "%s"' % package
+            msg_err = f'No such package "{package}"'
             raise SystemExit(msg_err)
 
         mysplit = mycp.split("/")
@@ -222,7 +222,7 @@ class keywords_content:
         """Check if specified package even exists."""
         matches = self.__xmatch(pdb, package)
         if len(matches) <= 0:
-            msg_err = 'No such package "%s"' % package
+            msg_err = f'No such package "{package}"'
             raise SystemExit(msg_err)
         return list(zip(*matches))
 
@@ -264,7 +264,7 @@ class keywords_content:
         # arch -> green +
         # -* -> red *
         """
-        keys = ["~%s" % arch, "-%s" % arch, "%s" % arch, "-*"]
+        keys = [f"~{arch}", f"-{arch}", f"{arch}", "-*"]
         values = [
             colorize("darkyellow", "~"),
             colorize("darkred", "-"),
@@ -350,8 +350,7 @@ class keywords_content:
             else:
                 s = "%".join(list("".rjust(slot_length)))
             content.append(
-                "%s%s%s%s%s%s%s%s%s%s%s"
-                % (v, fieldsep, k, fieldsep, e, normsep, r, normsep, s, fieldsep, t)
+                f"{v}{fieldsep}{k}{fieldsep}{e}{normsep}{r}{normsep}{s}{fieldsep}{t}"
             )
         return content
 

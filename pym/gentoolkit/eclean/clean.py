@@ -121,7 +121,7 @@ class CleanUp:
                     key_size += statinfo.st_size
             except OSError as er:
                 print(pp.error("Could not get stat info for:" + file_), file=sys.stderr)
-                print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+                print(pp.error(f"Error: {er!s}"), file=sys.stderr)
         return key_size
 
     def _get_size_valid_symlink(self, file_):
@@ -140,7 +140,7 @@ class CleanUp:
         except OSError as er:
             if os.path.exists(os.readlink(file_)):
                 print(pp.error("Could not get stat info for:" + file_), file=sys.stderr)
-                print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+                print(pp.error(f"Error: {er!s}"), file=sys.stderr)
             else:
                 try:
                     os.remove(file_)
@@ -153,7 +153,7 @@ class CleanUp:
                         pp.error("Error deleting broken symbolic link " + file_),
                         file=sys.stderr,
                     )
-                    print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+                    print(pp.error(f"Error: {er!s}"), file=sys.stderr)
         return 0
 
     def _clean_binary_package(self, files: tuple[str, str | None], key: str):
@@ -186,7 +186,7 @@ class CleanUp:
                             pass
                 except OSError as er:
                     print(pp.error("Could not delete " + file_), file=sys.stderr)
-                    print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+                    print(pp.error(f"Error: {er!s}"), file=sys.stderr)
         return clean_size
 
     def _clean_files(self, files, key):
@@ -211,14 +211,14 @@ class CleanUp:
                             pp.error("Error deleting broken symbolic link " + file_),
                             file=sys.stderr,
                         )
-                        print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+                        print(pp.error(f"Error: {er!s}"), file=sys.stderr)
                         break
                 else:
                     print(
                         pp.error("Could not get stat info for:" + file_),
                         file=sys.stderr,
                     )
-                    print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+                    print(pp.error(f"Error: {er!s}"), file=sys.stderr)
             if self.controller(statinfo.st_size, key, file_, "file"):
                 # ... try to delete it.
                 try:
@@ -232,7 +232,7 @@ class CleanUp:
                             pass
                 except OSError as er:
                     print(pp.error("Could not delete " + file_), file=sys.stderr)
-                    print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+                    print(pp.error(f"Error: {er!s}"), file=sys.stderr)
         return clean_size
 
     def _clean_vcs_src(self, deprecated_vcs, pretend=False):
@@ -249,7 +249,7 @@ class CleanUp:
                             pp.error("Could not get stat info for:" + fp),
                             file=sys.stderr,
                         )
-                        print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+                        print(pp.error(f"Error: {er!s}"), file=sys.stderr)
                     clean_size += statinfo.st_size
                     csize += statinfo.st_size
 
@@ -259,5 +259,5 @@ class CleanUp:
                     shutil.rmtree(checkout)
             except OSError as er:
                 print(pp.error("Could not delete " + checkout), file=sys.stderr)
-                print(pp.error("Error: %s" % str(er)), file=sys.stderr)
+                print(pp.error(f"Error: {er!s}"), file=sys.stderr)
         return clean_size

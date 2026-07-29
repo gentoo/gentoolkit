@@ -98,7 +98,7 @@ class OutputControl:
         while len(units) and size >= 1000:
             size = size / 1024.0
             units.pop()
-        sizestr = "%.1f" % (round(size, 1)) + units[-1]
+        sizestr = f"{round(size, 1):.1f}" + units[-1]
         if justify:
             sizestr = (
                 " " + self.brace("[ ") + color(sizestr.rjust(8)) + self.brace(" ]")

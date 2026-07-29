@@ -139,7 +139,7 @@ def filter_keywords(matches):
     def add_unstable(keywords):
         """Add unstable keyword for all stable keywords to filter set."""
         result = list(keywords)
-        result.extend(["~%s" % x for x in keywords if not x.startswith(("-", "~"))])
+        result.extend([f"~{x}" for x in keywords if not x.startswith(("-", "~"))])
         return result
 
     result = {}
@@ -541,7 +541,7 @@ def main(input_args):
     try:
         module_opts, queries = gnu_getopt(input_args, short_opts, long_opts)
     except GetoptError as err:
-        sys.stderr.write(pp.error("Module %s" % err))
+        sys.stderr.write(pp.error(f"Module {err}"))
         print()
         print_help(with_description=False)
         sys.exit(2)

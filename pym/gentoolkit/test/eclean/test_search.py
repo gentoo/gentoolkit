@@ -306,7 +306,7 @@ class TestFetchRestricted(unittest.TestCase):
         self.check_results("test_unrestricted")
 
     def check_results(self, test_name):
-        print("\nChecking results for %s,............" % test_name)
+        print(f"\nChecking results for {test_name},............")
         for key in sorted(self.results):
             testdata = self.testdata[key]
             results = self.results[key]
@@ -552,7 +552,7 @@ class TestNonDestructive(unittest.TestCase):
         self.check_results("test_non_destructive")
 
     def check_results(self, test_name):
-        print("\nChecking results for %s,............" % test_name)
+        print(f"\nChecking results for {test_name},............")
         for key in sorted(self.results):
             testdata = self.testdata[key]
             results = self.results[key]

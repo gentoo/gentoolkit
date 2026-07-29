@@ -36,7 +36,7 @@ class TextWrapper(textwrap.TextWrapper):
         """
         lines = []
         if self.width <= 0:
-            raise ValueError("invalid width %r (must be > 0)" % self.width)
+            raise ValueError(f"invalid width {self.width!r} (must be > 0)")
 
         # Arrange in reverse order so items can be efficiently popped
         # from a stack of chunks.

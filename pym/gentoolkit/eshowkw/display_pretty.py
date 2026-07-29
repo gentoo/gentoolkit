@@ -24,7 +24,7 @@ def display(
     """Render defauld display to show the keywords listing"""
     # header
     output = []
-    output.append("Keywords for %s:" % colorize("blue", cp))
+    output.append(f"Keywords for {colorize('blue', cp)}:")
     # data
     corner_image = ["".ljust(plain_width) for x in range(rotated_height)]
     if toplist != "archlist":
