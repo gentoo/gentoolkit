@@ -33,12 +33,8 @@ warn() {
 	echo -e "WARNING: ${*}"
 }
 
-# /etc/make.conf now exists as /etc/portage/make.conf by default, prefer
-# it over /etc/make.conf for changes.
 if [[ -e "${ETC}/portage/make.conf" ]]; then
 	MAKE_CONF_PATH="${ETC}/portage/make.conf"
-elif [[ -e "${ETC}/make.conf" ]]; then
-	MAKE_CONF_PATH="${ETC}/make.conf"
 else
 	fatal "make.conf does not exist"
 fi
@@ -427,7 +423,7 @@ get_useflaglist_ebuild() {
 # get all make.conf files that exist on the system
 get_all_make_conf() {
 	# At least one of the files exists or we would not have made it this far
-	for x in ${ETC}/make.conf ${ETC}/portage/make.conf ${ETC}/portage/make.conf/*; do
+	for x in ${ETC}/portage/make.conf ${ETC}/portage/make.conf/*; do
 		[ -f "${x}" ] && echo "${x}"
 	done
 }

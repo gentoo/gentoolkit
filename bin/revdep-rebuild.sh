@@ -67,7 +67,7 @@ declare REVDEP_REBUILD_DEFAULT_OPTS # String of default emerge options for revde
 # Customizable incremental variables:
 # These variables can be prepended to either by setting the variable in
 # your environment prior to execution, or by placing an entry in
-# /etc/make.conf.
+# /etc/portage/make.conf.
 #
 # An entry of "-*" means to clear the variable from that point forward.
 # Example: env SEARCH_DIRS="/usr/bin -*" revdep-rebuild will set SEARCH_DIRS
@@ -1139,7 +1139,7 @@ setup_search_paths_and_masks() {
 
 	# Read the incremental variables from environment and portage
 	# Until such time as portage supports these variables as incrementals
-	# The value will be what is in /etc/make.conf
+	# The value will be what is in /etc/portage/make.conf
 #	SEARCH_DIRS+=" "$(unset SEARCH_DIRS; portageq envvar SEARCH_DIRS)
 #	SEARCH_DIRS_MASK+=" "$(unset SEARCH_DIRS_MASK; portageq envvar SEARCH_DIRS_MASK)
 #	LD_LIBRARY_MASK+=" "$(unset LD_LIBRARY_MASK; portageq envvar LD_LIBRARY_MASK)
