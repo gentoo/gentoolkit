@@ -68,6 +68,10 @@ class Query(CPV):
                 for _attr in ("_version", "_cp"):
                     if _attr not in self.__dict__:
                         setattr(self, _attr, None)
+                # gentoolkit.atom.Atom's operator is a read-only @property,
+                # never a plain instance attribute, so it's never in
+                # atom.__dict__ either.
+                self.operator = atom.operator
             except errors.GentoolkitInvalidAtom:
                 CPV.__init__(self, self.query)
                 self.operator = ""
