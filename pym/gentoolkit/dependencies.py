@@ -227,6 +227,16 @@ class Dependencies(Query):
         if seen is None:
             seen = set()
 
+        # self.atom is a real Atom only when the query parsed as a valid
+        # atom; a bare package name (e.g. "simdjson") falls back to a plain
+        # string that Atom.intersects() can't type-check. Pass self instead:
+        # it has the .cp/.category/.name attributes intersects() needs for
+        # its name-only comparison, and since self.cp (unslashed) never
+        # equals dep.cp ("cat/pkg"), that comparison always takes the
+        # early-return branch, so the attributes intersects() doesn't check
+        # (.repo, .slot, etc.) are never touched.
+        target = self.atom if isinstance(self.atom, Atom) else self
+
         for pkgdep in (Dependencies(pkg) for pkg in pkgset):
             if self.cp not in pkgdep.get_raw_depends():
                 # fast path for obviously non-matching packages. This saves
@@ -236,7 +246,7 @@ class Dependencies(Query):
 
             found_match = False
             for dep in pkgdep.get_all_depends():
-                if dep.intersects(self):
+                if dep.intersects(target):
                     pkgdep.depatom = dep
                     pkgdep.depth = depth
                     yield pkgdep

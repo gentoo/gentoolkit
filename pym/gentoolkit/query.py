@@ -60,6 +60,10 @@ class Query(CPV):
             try:
                 atom = Atom(self.query)
                 self.__dict__.update(atom.__dict__)
+                # gentoolkit.atom.Atom.__init__ sets self.atom to the raw
+                # atom string (for __repr__/__str__), clobbering what should
+                # be a reference to the Atom object itself; restore it.
+                self.atom = atom
                 # portage.dep.Atom uses __slots__, so cpv, _cp, and _version
                 # are absent from atom.__dict__; initialize them explicitly so
                 # CPV's lazy property accessors don't raise AttributeError.
@@ -75,7 +79,13 @@ class Query(CPV):
             except errors.GentoolkitInvalidAtom:
                 CPV.__init__(self, self.query)
                 self.operator = ""
-                self.atom = self.cpv
+                # self.cpv may contain glob/regex wildcards (e.g. from a
+                # regex query), which aren't valid atom syntax; fall back to
+                # the plain string in that case.
+                try:
+                    self.atom = Atom(f"={self.cpv}")
+                except errors.GentoolkitInvalidAtom:
+                    self.atom = self.cpv
 
     def __repr__(self):
         rx = ""
