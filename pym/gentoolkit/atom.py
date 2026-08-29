@@ -45,6 +45,20 @@ class Atom(portage.dep.Atom, CPV):
     # Necessary for Portage versions < 2.1.7
     _atoms = weakref.WeakValueDictionary()
 
+    def __new__(cls, *args, **kwargs):
+        # portage.dep.Atom.__new__ interns instances in a module-level
+        # cache keyed only by the atom string (not by cls), so calling
+        # this subclass's constructor with an already-interned string can
+        # silently hand back a plain portage.dep.Atom instead of one of
+        # ours. Always build a fresh instance so we stay this subclass.
+        #
+        # Old portage (<= 3.0.81.3) makes Atom a str subclass instead, with
+        # no interning cache, so allocation there must go through
+        # str.__new__ or the instance is unusable as a str.
+        if issubclass(portage.dep.Atom, str):
+            return str.__new__(cls, args[0] if args else "")
+        return object.__new__(cls)
+
     @property
     def operator(self):
         # Old portage stored operator as a plain instance attribute in
