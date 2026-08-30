@@ -1,0 +1,87 @@
+#!/bin/bash
+
+#
+# generate a full HTML report when portage fails to build a package
+#
+# author: petaflot
+# license: CC BY-NC-SA
+# version history:
+#	2023-11-04: first positive trace of using the script, was possibly started as far back as 2019
+#	2024-09-04: fixed date locale, added link to script, disabled gzipping the files, added
+#			conditional statements and full build log with $ARCH
+#	2025-01-31: ansifilter on build.log
+#	2025-07-29: changed URL, DEST to EBUGREPORT_URL, EBUGREPORT_DEST ; merge request for gentoolkit
+#
+# configuration: add
+# export EBUGREPORT_URL='...'
+# export EBUGREPORT_DEST='.../'
+# to your .bashrc
+# EBUGREPORT_DEST is some ssh server:path where the files are uplaoded and MUST end with a /
+# EBUGREPORT_URL is the URL where the files will be available
+
+export LC_ALL=C.UTF-8
+
+if [[ $# == 0 ]]
+then
+	echo "usage: $0 category/ebuild-version::repos"
+	exit 1
+fi
+
+if [ -z "${EBUGREPORT_URL+x}" ] || [ -z "${EBUGREPORT_DEST+x}" ]; then
+	echo "both EBUGREPORT_DEST and EBUGREPORT_URL must be set ; try 'export EBUGREPORT_...'"
+	exit 2
+fi
+
+ARCH=$(portageq envvar ARCH)
+
+CATEGORY=$(echo $1|cut -f 1 -d '/')
+EBUILD=$(echo $1|cut -f 2 -d '/' | cut -f 1 -d ':')
+REPOS=$(echo $1|cut -f 2 -d '/' | cut -f 3 -d ':')
+d=/tmp/$EBUILD
+mkdir $d
+f=$d/index.html
+TITLE="Gentoo bug report for ${EBUILD}"
+
+echo "<html><head><title>${TITLE}</title></head><body><h1>${TITLE}</h1>" >$f
+echo "Created on $(LC_TIME=C date) with <a href="https://github.com/petaflot/gentoolkit/bin/ebugreport">this script</a><br/><br/>" >>$f
+
+echo -e "\n<h3>$ emerge -pqv =${CATEGORY}/${EBUILD}::${REPOS}</h3>\n<pre>" >> $f
+emerge -pqv =${CATEGORY}/${EBUILD}::${REPOS} >> $f
+echo -e "</pre><h3>$ emerge --info =${CATEGORY}/${EBUILD}::${REPOS}</h3>\n<pre>" >> $f
+emerge --info =${CATEGORY}/${EBUILD}::${REPOS} >> $f
+echo "</pre><h3>Other relevant files</h3><ul>" >> $f
+
+if mv /var/tmp/portage/${CATEGORY}/${EBUILD}/temp/build.log $d/
+then
+	echo "applying ansifilter to build.log..."
+	ansifilter $d/build.log > $d/build.log.filtered
+	mv $d/build.log{.filtered,}
+	echo "<li><a href='build.log'>/var/tmp/portage/${CATEGORY}/${EBUILD}/temp/build.log</a></li>" >>$f
+else
+	echo "<li><i>/var/tmp/portage/${CATEGORY}/${EBUILD}/temp/build.log</i> is not available</li>" >>$f
+fi
+
+if mv /var/tmp/portage/${CATEGORY}/${EBUILD}/temp/environment $d/
+then
+	echo "<li><a href='environment'>/var/tmp/portage/${CATEGORY}/${EBUILD}/temp/environment</a></li>" >>$f
+else
+	echo "<li><i>/var/tmp/portage/${CATEGORY}/${EBUILD}/temp/environment</i> is not available</li>" >>$f
+fi
+
+if mv /var/tmp/portage/${CATEGORY}/${EBUILD}/bin/config.log $d/
+then
+	echo "<li><a href='config.log'>/var/tmp/portage/${CATEGORY}/${EBUILD}/temp/config.log</a></li>" >>$f
+else
+	mv /var/tmp/portage/net-fs/${EBUILD}-${VERSION}/work/${EBUILD}-${VERSION}-.${ARCH}/bin/config.log $d/
+	echo "<li><i>/var/tmp/portage/${CATEGORY}/${EBUILD}/temp/config.log</i> is not available</li>" >>$f
+fi
+
+
+echo "</ul></body></html>" >>$f
+
+chmod -R a+r ${d}
+scp -rv $d ${EBUGREPORT_DEST}
+#echo "Your bug report for ${EBUILD} is available at `bpaste upload $f`"
+echo "Your bug report for ${EBUILD} is available at ${EBUGREPORT_URL}${EBUILD}/"
+
+echo not doing rm -rf $d
