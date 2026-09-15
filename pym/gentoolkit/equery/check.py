@@ -138,7 +138,7 @@ class VerifyContents:
         if self.check_sums:
             md5sum = files[cfile][2]
             try:
-                cur_checksum = checksum.perform_md5(real_cfile, calc_prelink=1)
+                cur_checksum = checksum.perform_md5(real_cfile)
             except PermissionDenied:
                 err = "Insufficient permissions to read %(cfile)s"
                 obj_errs.append(err % locals())
