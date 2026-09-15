@@ -161,7 +161,7 @@ def main(argv, indirect=False):
         mysettings = portc(local_config=False)
         dbapi = portdbapi(mysettings=mysettings)
         if not use_overlays:
-            dbapi.porttrees = [dbapi.porttree_root]
+            dbapi.porttrees = [dbapi.repositories.mainRepoLocation()]
         for pkg in package:
             process_display(pkg, keywords, dbapi)
     else:
