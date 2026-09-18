@@ -66,11 +66,18 @@ class CleanUp:
         #  run 'emaint --fix' here
         if clean_size:
             file = os.path.join(pkgdir, "Packages")
-            size1 = os.stat(file).st_size
+            try:
+                size1 = os.path.getsize(file)
+            except OSError:
+                size1 = 0
             TaskHandler(show_progress_bar=self.quiet).run_tasks(
                 [binhost.BinhostHandler], "fix"
             )
-            size = size1 - os.stat(file).st_size
+            try:
+                size2 = os.path.getsize(file)
+            except OSError:
+                size2 = 0
+            size = size1 - size2
             self.controller(size, "Packages Index", file, "Index")
             clean_size += size
         # return total size of deleted or to delete files
