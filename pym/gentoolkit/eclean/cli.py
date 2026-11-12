@@ -545,7 +545,7 @@ def parseArgs(options={}):
     # apply getopts to command line, show partial help on failure
     try:
         opts, args = getopt.getopt(sys.argv[1:], short_opts, long_opts)
-    except:
+    except getopt.GetoptError:
         raise ParseArgsException(opts_mode + "-options")
     # set options accordingly
     optionSwitch(options, opts, action=action)
@@ -565,7 +565,7 @@ def parseArgs(options={}):
         opts, args = getopt.getopt(
             args, getopt_options["short"][action], getopt_options["long"][action]
         )
-    except:
+    except getopt.GetoptError:
         raise ParseArgsException(action + "-options")
     # set options again, for action-specific options
     optionSwitch(options, opts, action=action)
