@@ -142,7 +142,7 @@ def cpv_all_diff_keywords(
 
 
 class Rebuild(ModuleBase):
-    """Installed db analysis tool to query the installed databse
+    """Installed db analysis tool to query the installed database
     and produce/output stats for USE flags or keywords/mask.
     The 'rebuild' action output is in the form suitable for file type output
     to create a new package.use, package.keywords, package.unmask
