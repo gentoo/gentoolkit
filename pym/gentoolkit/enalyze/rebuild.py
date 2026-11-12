@@ -178,7 +178,7 @@ class Rebuild(ModuleBase):
             "--verbose": ("verbose", "boolean", True),
         }
         self.formatted_options = [
-            ("    -h, --help", "Outputs this useage message"),
+            ("    -h, --help", "Outputs this usage message"),
             ("    -p, --pretend", "Does not actually create the files."),
             ("    ", "It directs the outputs to the screen"),
             ("    -e, --exact", "will atomize the package with a"),
