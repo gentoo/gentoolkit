@@ -168,7 +168,7 @@ def main(settings=None, logger=None):
         logger.warning("")
         if settings["library"]:
             logger.warning(
-                red(" !!! Dependant orphaned files: ")
+                red(" !!! Dependent orphaned files: ")
                 + bold("No installed package was found for the following:")
             )
         else:

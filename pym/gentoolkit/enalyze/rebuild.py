@@ -142,7 +142,7 @@ def cpv_all_diff_keywords(
 
 
 class Rebuild(ModuleBase):
-    """Installed db analysis tool to query the installed databse
+    """Installed db analysis tool to query the installed database
     and produce/output stats for USE flags or keywords/mask.
     The 'rebuild' action output is in the form suitable for file type output
     to create a new package.use, package.keywords, package.unmask
@@ -178,7 +178,7 @@ class Rebuild(ModuleBase):
             "--verbose": ("verbose", "boolean", True),
         }
         self.formatted_options = [
-            ("    -h, --help", "Outputs this useage message"),
+            ("    -h, --help", "Outputs this usage message"),
             ("    -p, --pretend", "Does not actually create the files."),
             ("    ", "It directs the outputs to the screen"),
             ("    -e, --exact", "will atomize the package with a"),
@@ -210,7 +210,7 @@ class Rebuild(ModuleBase):
         self.warning = (
             "     CAUTION",
             "This is beta software and some features/options are incomplete,",
-            "some features may change in future releases includig its name.",
+            "some features may change in future releases including its name.",
             "The file generated is saved in your home directory",
             "Feedback will be appreciated, http://bugs.gentoo.org",
         )

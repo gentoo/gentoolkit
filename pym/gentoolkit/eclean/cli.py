@@ -359,7 +359,7 @@ def parseSize(size):
         size = int(match.group("value"))
         if match.group("unit"):
             size *= units[match.group("unit").capitalize()]
-    except:
+    except (AttributeError, ValueError):
         raise ParseArgsException("size")
     return size
 
@@ -383,7 +383,7 @@ def parseTime(timespec):
             unit = "D"
         else:
             unit = match.group("unit").capitalize()
-    except:
+    except (AttributeError, ValueError):
         raise ParseArgsException("time")
     return time.time() - (value * units[unit])
 
@@ -545,7 +545,7 @@ def parseArgs(options={}):
     # apply getopts to command line, show partial help on failure
     try:
         opts, args = getopt.getopt(sys.argv[1:], short_opts, long_opts)
-    except:
+    except getopt.GetoptError:
         raise ParseArgsException(opts_mode + "-options")
     # set options accordingly
     optionSwitch(options, opts, action=action)
@@ -565,7 +565,7 @@ def parseArgs(options={}):
         opts, args = getopt.getopt(
             args, getopt_options["short"][action], getopt_options["long"][action]
         )
-    except:
+    except getopt.GetoptError:
         raise ParseArgsException(action + "-options")
     # set options again, for action-specific options
     optionSwitch(options, opts, action=action)
@@ -679,7 +679,7 @@ def doAction(action, options, exclude={}, output=None):
         output.list_pkgs(deprecated)
     if action in ["packages"]:
         if invalids and not options["no-clean-invalid"]:
-            if type(invalids) == list:
+            if isinstance(invalids, list)
                 printUsage(_error="invalid_paths", unresolved_invalids=invalids)
                 sys.exit(1)
             verb = "were"

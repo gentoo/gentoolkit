@@ -1,6 +1,6 @@
 Contributing
 ============
-Gentoo Developers have full priviledges to the gentoolkit repository and
+Gentoo Developers have full privileges to the gentoolkit repository and
 any Gentoo developer can do work on the gentoolkit source. We only ask that you
 keep the following in mind:
 

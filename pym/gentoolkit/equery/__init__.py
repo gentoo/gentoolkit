@@ -228,7 +228,7 @@ def initialize_configuration():
         # there is some extra long text
         CONFIG["termWidth"] = 600
 
-    CONFIG["debug"] = bool(os.getenv("DEBUG", False))
+    CONFIG["debug"] = os.getenv("DEBUG", "").lower() not in ("", "0", "false", "no")
 
 
 def main_usage():

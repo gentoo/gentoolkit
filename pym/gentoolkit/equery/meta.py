@@ -80,7 +80,7 @@ def print_help(with_description=True, with_usage=True):
                 (" -h, --help", "display this help message"),
                 (" -d, --description", "show an extended package description"),
                 (" -k, --keywords", "show keywords for all matching package versions"),
-                (" -l, --license", "show licenses for the best maching version"),
+                (" -l, --license", "show licenses for the best matching version"),
                 (" -m, --maintainer", "show the maintainer(s) for the package"),
                 (" -r, --reverse", "show the output in reverse order if applicable"),
                 (
