@@ -44,7 +44,7 @@ from gentoolkit.base import (
 NAME_MAP = {"a": "analyze", "r": "rebuild"}
 
 FORMATTED_OPTIONS = (
-    ("    (a)nalyze", "analyzes the installed PKG database USE flag or keyword useage"),
+    ("    (a)nalyze", "analyzes the installed PKG database USE flag or keyword usage"),
     (
         "    (r)ebuild",
         "analyzes the Installed PKG database and generates files suitable",
