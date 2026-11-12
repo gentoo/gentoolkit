@@ -23,7 +23,7 @@ gentoolkit
 - eshowkw        - Display keywords for specified package(s)
 - euse           - tool to manage USE flags
 - imlate         - Displays candidates for keywords for an architecture...
-- qpkg           - convient package query tool (deprecated)
+- qpkg           - convenient package query tool (deprecated)
 - revdep-rebuild - scans/fixes broken shared libs and binaries
 
 IMPROVEMENTS
