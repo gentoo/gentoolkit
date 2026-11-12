@@ -98,7 +98,7 @@ class Printer:
         mdep = dep.depatom
         use_conditional = ""
 
-        if QUERY_OPTS["package_format"] != None:
+        if QUERY_OPTS["package_format"] is not None:
             pkg = Package(str(dep.cpv))
             self.print_formated(pkg)
         else:
