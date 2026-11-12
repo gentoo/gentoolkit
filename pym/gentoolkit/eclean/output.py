@@ -88,7 +88,7 @@ class OutputControl:
         @returns a formatted and (escape sequenced)
                         colorized text string
         """
-        if color == None:
+        if color is None
             color = self.numbers
         units = [" G", " M", " K", " B"]
         # by using 1000 as the changeover, the integer portion
