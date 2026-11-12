@@ -679,7 +679,7 @@ def doAction(action, options, exclude={}, output=None):
         output.list_pkgs(deprecated)
     if action in ["packages"]:
         if invalids and not options["no-clean-invalid"]:
-            if type(invalids) == list:
+            if isinstance(invalids, list)
                 printUsage(_error="invalid_paths", unresolved_invalids=invalids)
                 sys.exit(1)
             verb = "were"
