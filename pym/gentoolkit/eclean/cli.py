@@ -359,7 +359,7 @@ def parseSize(size):
         size = int(match.group("value"))
         if match.group("unit"):
             size *= units[match.group("unit").capitalize()]
-    except:
+    except (AttributeError, ValueError):
         raise ParseArgsException("size")
     return size
 
@@ -383,7 +383,7 @@ def parseTime(timespec):
             unit = "D"
         else:
             unit = match.group("unit").capitalize()
-    except:
+    except (AttributeError, ValueError):
         raise ParseArgsException("time")
     return time.time() - (value * units[unit])
 
