@@ -210,7 +210,7 @@ class Rebuild(ModuleBase):
         self.warning = (
             "     CAUTION",
             "This is beta software and some features/options are incomplete,",
-            "some features may change in future releases includig its name.",
+            "some features may change in future releases including its name.",
             "The file generated is saved in your home directory",
             "Feedback will be appreciated, http://bugs.gentoo.org",
         )
