@@ -430,7 +430,7 @@ class Analyse(ModuleBase):
             kwd_missing = keyword_users[keyword]["missing"]
             if len(kwd_missing):
                 self.printer(keyword, "-", kwd_missing)
-                blankline
+                blankline()
         if not self.options["quiet"]:
             if self.analyser.mismatched:
                 print("_________________________________________________")
